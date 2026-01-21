@@ -1,0 +1,223 @@
+{
+  "name": "vscode-workspace-tasks",
+  "displayName": "Workspace Tasks",
+  "description": "A Task Explorer for VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ignore",
+        "extensions": [
+          ".tasksignore"
+        ],
+        "filenamePatterns": [
+          ".tasksignore"
+        ]
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "workspace-tasks",
+          "title": "Workspace Tasks",
+          "icon": "res/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "workspace-tasks": [
+        {
+          "id": "workspaceTasksView",
+          "name": "Tasks",
+          "icon": "res/icon.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "workspaceTasks.refresh",
+        "title": "Refresh Tasks",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "workspaceTasks.runTask",
+        "title": "Run Task",
+        "icon": "$(play)"
+      },
+      {
+        "command": "workspaceTasks.stopTask",
+        "title": "Stop Task",
+        "icon": "$(stop)"
+      },
+      {
+        "command": "workspaceTasks.addToFavorites",
+        "title": "Add to Favorites",
+        "icon": "$(star)"
+      },
+      {
+        "command": "workspaceTasks.removeFromFavorites",
+        "title": "Remove from Favorites",
+        "icon": "$(star-full)"
+      },
+      {
+        "command": "workspaceTasks.addToQueue",
+        "title": "Add to Queue",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "workspaceTasks.runQueue",
+        "title": "Run Queue",
+        "icon": "$(play)"
+      },
+      {
+        "command": "workspaceTasks.clearQueue",
+        "title": "Clear Queue",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "workspaceTasks.removeFromQueue",
+        "title": "Remove from Queue",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "workspaceTasks.renameQueue",
+        "title": "Rename Queue",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "workspaceTasks.context.addToQueue",
+        "title": "Add to Queue"
+      },
+      {
+        "command": "workspaceTasks.context.addToFavorites",
+        "title": "Add to Favorites"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "workspaceTasks.fileMenu",
+        "label": "Workspace Tasks"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "submenu": "workspaceTasks.fileMenu",
+          "group": "7_modification",
+          "when": "resourceExtname =~ /\\.(json|sh|ps1|bat|cmd|makefile|dockerfile|just)$/i || resourceFilename =~ /^(Makefile|makefile|Dockerfile|dockerfile|justfile)(\\..*)?$/i"
+        }
+      ],
+      "workspaceTasks.fileMenu": [
+        {
+          "command": "workspaceTasks.context.addToFavorites",
+          "group": "1_modification"
+        },
+        {
+          "command": "workspaceTasks.context.addToQueue",
+          "group": "1_modification"
+        },
+        {
+           "command": "workspaceTasks.refresh",
+           "group": "2_navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "workspaceTasks.refresh",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "workspaceTasks.runQueue",
+          "when": "viewItem == queue",
+          "group": "inline"
+        },
+        {
+          "command": "workspaceTasks.renameQueue",
+          "when": "viewItem == queue",
+          "group": "inline"
+        },
+        {
+          "command": "workspaceTasks.clearQueue",
+          "when": "viewItem == queue",
+          "group": "inline"
+        },
+        {
+          "command": "workspaceTasks.runTask",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask",
+          "group": "inline@3"
+        },
+        {
+          "command": "workspaceTasks.stopTask",
+          "when": "viewItem == runningTask",
+          "group": "inline@3"
+        },
+        {
+          "command": "workspaceTasks.addToFavorites",
+          "when": "viewItem == task",
+          "group": "inline@1"
+        },
+        {
+          "command": "workspaceTasks.removeFromFavorites",
+          "when": "viewItem == favoriteTask",
+          "group": "inline@1"
+        },
+        {
+          "command": "workspaceTasks.addToQueue",
+          "when": "viewItem == task || viewItem == favoriteTask",
+          "group": "inline@2"
+        },
+        {
+          "command": "workspaceTasks.removeFromQueue",
+          "when": "viewItem == queuedTask",
+          "group": "inline@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "workspaceTasks.renameQueue",
+        "key": "f2",
+        "when": "view == workspaceTasksView && listFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.1.0",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.9.3",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.0"
+  },
+  "dependencies": {
+    "ignore": "^7.0.5"
+  }
+}

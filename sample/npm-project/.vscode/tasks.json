@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Echo Hello",
+            "type": "shell",
+            "command": "echo Hello from VS Code Task"
+        },
+        {
+            "label": "List Files",
+            "type": "shell",
+            "command": "ls -la"
+        },
+        {
+            "label": "Long Running",
+            "type": "shell",
+            "command": "powershell -Command \"Start-Sleep -Seconds 5; Write-Host 'Done'\"",
+            "windows": {
+                "command": "powershell -Command \"Start-Sleep -Seconds 5; Write-Host 'Done'\""
+            },
+            "linux": {
+                "command": "sleep 5 && echo 'Done'"
+            },
+            "osx": {
+                "command": "sleep 5 && echo 'Done'"
+            }
+        },
+        {
+            "label": "Fail Task",
+            "type": "shell",
+            "command": "powershell -Command \"Start-Sleep -Seconds 5; Write-Host 'Done'\"; exit 1"
+        }
+    ]
+}

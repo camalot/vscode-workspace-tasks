@@ -1,0 +1,11 @@
+{
+  "name": "sample-npm-project",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "echo 'Starting...'",
+    "test": "echo 'Testing...'",
+    "build": "echo 'Building...'",
+    "long-running": "node -e \"setTimeout(() => { console.log('Done'); }, 5000)\"",
+    "fail": "node -e \"setTimeout(() => { console.log('Done'); }, 5000); process.exit(1)\""
+  }
+}

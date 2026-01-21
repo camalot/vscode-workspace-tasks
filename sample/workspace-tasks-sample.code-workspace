@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "npm-project"
+		},
+		{
+			"path": "scripts-project"
+		},
+		{
+			"path": "vscode-project"
+		}
+	],
+	"settings": {}
+}
