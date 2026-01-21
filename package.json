@@ -101,34 +101,7 @@
         "title": "Add to Favorites"
       }
     ],
-    "submenus": [
-      {
-        "id": "workspaceTasks.fileMenu",
-        "label": "Workspace Tasks"
-      }
-    ],
     "menus": {
-      "explorer/context": [
-        {
-          "submenu": "workspaceTasks.fileMenu",
-          "group": "7_modification",
-          "when": "resourceExtname =~ /\\.(json|sh|ps1|bat|cmd|makefile|dockerfile|just)$/i || resourceFilename =~ /^(Makefile|makefile|Dockerfile|dockerfile|justfile)(\\..*)?$/i"
-        }
-      ],
-      "workspaceTasks.fileMenu": [
-        {
-          "command": "workspaceTasks.context.addToFavorites",
-          "group": "1_modification"
-        },
-        {
-          "command": "workspaceTasks.context.addToQueue",
-          "group": "1_modification"
-        },
-        {
-           "command": "workspaceTasks.refresh",
-           "group": "2_navigation"
-        }
-      ],
       "view/title": [
         {
           "command": "workspaceTasks.refresh",

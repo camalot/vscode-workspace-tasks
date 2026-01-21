@@ -6,7 +6,7 @@ export class TaskCacheService {
     private static instance: TaskCacheService;
     private fileTaskMap: Map<string, TaskItem[]> = new Map();
     private allTasks: TaskItem[] = [];
-    
+
     private providers: TaskProvider[] = [];
 
     private constructor() {}
@@ -30,7 +30,7 @@ export class TaskCacheService {
             try {
                 const tasks = await provider.getTasks();
                 this.allTasks.push(...tasks);
-                
+
                 for (const task of tasks) {
                     if (task.resourceUri) {
                         const key = task.resourceUri.toString();
@@ -51,8 +51,8 @@ export class TaskCacheService {
         // Try exact match
         let tasks = this.fileTaskMap.get(uri.toString());
         if (tasks) return tasks;
-        
-        // Try finding by fsPath (ignoring scheme/encoding differences) if needed, 
+
+        // Try finding by fsPath (ignoring scheme/encoding differences) if needed,
         // or iterate keys if we suspect casing issues on Windows.
         // A simple normalization approach:
         const targetPath = uri.fsPath.toLowerCase();
@@ -62,7 +62,7 @@ export class TaskCacheService {
                  return items;
              }
         }
-        
+
         return [];
     }
 
