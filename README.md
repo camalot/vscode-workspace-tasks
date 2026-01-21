@@ -5,6 +5,7 @@ A powerful VS Code extension that provides a comprehensive task explorer for you
 ## Features
 
 ### Task Discovery
+
 Workspace Tasks automatically scans your workspace for the following types of task files:
 
 - **NPM Scripts**: Tasks defined in `package.json` files (e.g., `scripts` section).
@@ -17,9 +18,10 @@ Workspace Tasks automatically scans your workspace for the following types of ta
 Tasks are organized hierarchically by workspace folder, task type, and individual tasks.
 
 ### Queue System
+
 The queue allows you to create a sequential list of tasks to run in order:
 
-- **Add Tasks**: Right-click on any task and select "Add to Queue".
+- **Add Tasks**: Click on the "list" icon to add to queue.
 - **Reorder**: Drag and drop tasks within the queue to change their execution order.
 - **Run Queue**: Execute all tasks in the queue sequentially, or start from a specific task in the queue.
 - **Persistence**: The queue is saved across VS Code sessions.
@@ -27,17 +29,29 @@ The queue allows you to create a sequential list of tasks to run in order:
 - **Clear Queue**: Remove all tasks from the queue at once.
 
 ### Favorites
+
 Mark frequently used tasks as favorites for quick access:
 
-- **Add to Favorites**: Right-click on any task and select "Add to Favorites".
-- **Remove from Favorites**: Unfavorite tasks as needed.
+- **Add to Favorites**: Click on the ⭐ to add a task to Favorites.
+- **Remove from Favorites**: Click on the ⭐ to remove a task to Favorites.
 - **Persistence**: Favorites are saved across sessions.
 - **Dedicated Group**: Favorites appear in their own section in the task tree.
 
 ### Task Ignore
+
 Use `.tasksignore` files to exclude certain files or patterns from task discovery, following the same syntax as `.gitignore`.
 
+You can also configure a global exclude list using the extension setting `workspaceTasks.exclude` — an array of glob patterns. For example, add the following to your `settings.json`:
+
+>[!NOTE]
+> `**/node_modules/**` is added to all task types by default.
+
+```json
+"workspaceTasks.exclude": ["**/.git/**"]
+```
+
 ### Execution and Navigation
+
 - **Run Tasks**: Click the play button or use context menus to execute tasks.
 - **Stop Tasks**: Halt running tasks with the stop button.
 - **Open Files**: Double-click or use the open button to navigate to the task definition in its source file.
@@ -59,7 +73,7 @@ Use `.tasksignore` files to exclude certain files or patterns from task discover
 ## Supported File Types
 
 | File Type | Patterns | Language ID | Task Type |
-|-----------|----------|-------------|-----------|
+| --------- | -------- | ----------- | --------- |
 | package.json | `**/package.json` | json | npm |
 | tasks.json | `.vscode/tasks.json` | json | vscode |
 | Shell Scripts | `**/*.sh`, `**/*.ps1`, etc. | shellscript, powershell, etc. | script |

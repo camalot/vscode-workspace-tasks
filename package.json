@@ -6,6 +6,25 @@
   "engines": {
     "vscode": "^1.74.0"
   },
+  "keywords": [
+    "tasks",
+    "task",
+    "npm",
+    "grunt",
+    "gulp",
+    "yarn",
+    "ant",
+    "makefile",
+    "composer",
+    "php",
+    "multi-root ready",
+    "c c++",
+    "gradle",
+    "tsc",
+    "nsis",
+    "batch",
+    "bash"
+  ],
   "categories": [
     "Other"
   ],
@@ -101,6 +120,151 @@
         "title": "Add to Favorites"
       }
     ],
+    "configuration": {
+      "type": "object",
+      "title": "Workspace Tasks",
+      "properties": {
+        "workspaceTasks.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Glob patterns to exclude from tasks.",
+          "markdownDescription": "Glob patterns to exclude from tasks. For example, to ignore all tasks in `sample` folders, add `**/sample/**`."
+        },
+        "workspaceTasks.groups.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Group tasks by type, folder, and custom separator."
+        },
+        "workspaceTasks.groups.taskSeparator": {
+          "type": "string",
+          "default": "-",
+          "description": "Separator used to split task name into groups.",
+          "markdownDescription": "Separator used to split task name into groups. For example, a task named `build-frontend` with a separator of `-` would be grouped under `build`."
+        },
+        "workspaceTasks.enabledTaskTypes": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "%config.workspaceTasks.enabledTaskTypes%",
+          "properties": {
+            "ant": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableAnt%"
+            },
+            "appPublisher": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableAppPublisher%"
+            },
+            "shell": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableShell%"
+            },
+            "composer": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableComposer%"
+            },
+            "docker": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableDocker%"
+            },
+            "gradle": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableGradle%"
+            },
+            "grunt": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableGrunt%"
+            },
+            "gulp": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableGulp%"
+            },
+            "make": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableMake%"
+            },
+            "maven": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableMaven%"
+            },
+            "npm": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableNpm%"
+            },
+            "nsis": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableNsis%"
+            },
+            "perl": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enablePerl%"
+            },
+            "pipenv": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enablePipenv%"
+            },
+            "pwsh": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enablePwsh%"
+            },
+            "python": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enablePython%"
+            },
+            "ruby": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableRuby%"
+            },
+            "tsc": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableTsc%"
+            },
+            "yarn": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableYarn%"
+            },
+            "venv": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableVenv%"
+            },
+            "vscode": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableVsCode%"
+            },
+            "workspace": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enableWorkspace%"
+            }
+          },
+          "default": {
+            "ant": true,
+            "appPublisher": true,
+            "shell": true,
+            "composer": true,
+            "docker": true,
+            "gradle": true,
+            "grunt": true,
+            "gulp": true,
+            "make": true,
+            "maven": true,
+            "npm": true,
+            "nsis": false,
+            "perl": false,
+            "pipenv": true,
+            "pwsh": true,
+            "python": true,
+            "ruby": false,
+            "tsc": true,
+            "yarn": true,
+            "venv": true,
+            "vscode": true,
+            "workspace": true
+          }
+        }
+      }
+    },
     "menus": {
       "view/title": [
         {
@@ -155,14 +319,7 @@
           "group": "inline@2"
         }
       ]
-    },
-    "keybindings": [
-      {
-        "command": "workspaceTasks.renameQueue",
-        "key": "f2",
-        "when": "view == workspaceTasksView && listFocus"
-      }
-    ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
