@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskTreeDataProvider } from './taskTreeDataProvider';
-import { PackageJsonTaskProvider } from './providers/packageJsonTaskProvider';
+import { PackageJsonTaskProvider } from './providers/npmTaskProvider';
 import { ScriptTaskProvider } from './providers/scriptTaskProvider';
 import { VscodeTaskProvider } from './providers/vscodeTaskProvider';
 import { VenvTaskProvider } from './providers/venvTaskProvider';
@@ -15,6 +15,8 @@ import { TaskCacheService } from './services/taskCacheService';
 import { WorkspaceTasksProvider } from './providers/workspaceTasksProvider';
 import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
+import { GruntTaskProvider } from './providers/gruntTaskProvider';
+import { GulpTaskProvider } from './providers/gulpTaskProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   TaskStateManager.getInstance().initialize(context);
@@ -22,15 +24,17 @@ export function activate(context: vscode.ExtensionContext) {
   const taskTreeDataProvider = new TaskTreeDataProvider(context);
 
   // Register Providers
-  taskTreeDataProvider.registerProvider(new PackageJsonTaskProvider(context));
+  taskTreeDataProvider.registerProvider(new PackageJsonTaskProvider());
   taskTreeDataProvider.registerProvider(new ScriptTaskProvider());
   taskTreeDataProvider.registerProvider(new VscodeTaskProvider());
   taskTreeDataProvider.registerProvider(new VenvTaskProvider());
   taskTreeDataProvider.registerProvider(new MakefileTaskProvider());
-  taskTreeDataProvider.registerProvider(new WorkspaceTasksProvider(context));
+  taskTreeDataProvider.registerProvider(new WorkspaceTasksProvider());
   taskTreeDataProvider.registerProvider(new JustfileTaskProvider());
-    taskTreeDataProvider.registerProvider(new AntTaskProvider());
-    taskTreeDataProvider.registerProvider(new MsBuildTaskProvider());
+  taskTreeDataProvider.registerProvider(new AntTaskProvider());
+  taskTreeDataProvider.registerProvider(new GulpTaskProvider());
+  taskTreeDataProvider.registerProvider(new GruntTaskProvider());
+  taskTreeDataProvider.registerProvider(new MsBuildTaskProvider());
 
   // Initial refresh
   taskTreeDataProvider.refresh();

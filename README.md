@@ -169,6 +169,8 @@ You can also configure a global exclude list using the extension setting `worksp
 | **npm** | `**/package.json` | NPM scripts from package.json files | 📦 package.json |
 | **vscode** | `.vscode/tasks.json` | VS Code task definitions | ⚙️ workspace |
 | **script** | `**/*.sh`, `**/*.ps1`, `**/*.bat`, `**/*.cmd` | Executable shell scripts | 📜 script |
+| **gulp** | `{**/gulpfile.js,**/gulpfile.mjs}` | Gulp task definitions in `gulpfile.js` or `gulpfile.mjs` | Default VS Code `gulpfile.js` icon |
+| **grunt** | `**/[Gg]runtfile.js` | Tasks registered via `grunt.registerTask` / `grunt.registerMultiTask` in `Gruntfile.js` | Default VS Code `Gruntfile.js` icon |
 | **makefile** | `**/Makefile`, `**/makefile`, `**/.makefile` | Make targets | 🔨 Makefile |
 | **dockerfile** | `**/Dockerfile`, `**/dockerfile`, `**/*.dockerfile` | Docker build tasks | 🐳 Dockerfile |
 | **justfile** | `**/justfile`, `**/.justfile`, `**/*.just` | Just command runner recipes | ⚡ justfile |

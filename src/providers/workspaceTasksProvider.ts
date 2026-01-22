@@ -8,7 +8,7 @@ import constants from '../libs/constants';
 import * as path from 'path';
 
 export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProvider {
-  constructor(private context: vscode.ExtensionContext) {
+  constructor() {
     super('workspace-task');
   }
 
@@ -48,9 +48,9 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
       // the tasks will appear in the tree view but won't be linked to any specific file.
       // the "type" of the task will be the language ID. If the language ID is not recognized, it will default to 'shell'.
       if ((!glob_include || glob_include.length === 0) && taskDefs.length > 0) {
-        console.log(`Creating task items for provider ${provider} without specific file association`);
+        console.debug(`Creating task items for provider ${provider} without specific file association`);
         for (const taskDef of taskDefs) {
-          console.log(`Creating task item for provider ${provider} with task ${taskDef.label} without specific file association`);
+          console.debug(`Creating task item for provider ${provider} with task ${taskDef.label} without specific file association`);
 
           // Use sourceUri if available (the .workspace-tasks.json file)
           const resourceUri = taskDef.sourceUri;
@@ -85,7 +85,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
         continue;
       }
 
-      console.log(`Searching files for provider ${provider} with include globs: ${glob_include.join(',')} and exclude globs: ${glob_exclude.join(',')}`);
+      console.debug(`Searching files for provider ${provider} with include globs: ${glob_include.join(',')} and exclude globs: ${glob_exclude.join(',')}`);
 
       // Join globs safely
       const includePattern = glob_include.length > 1 ? `{${glob_include.join(',')}}` : glob_include.join(',');
@@ -97,13 +97,17 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
       );
       for (const file of files) {
         for (const taskDef of taskDefs) {
-          console.log(`Creating task item for file ${file.fsPath} with task ${taskDef.label}`);
+          console.debug(`Creating task item for file ${file.fsPath} with task ${taskDef.label}`);
           const item = new TaskItem(
             taskDef.label,
             vscode.TreeItemCollapsibleState.None,
             langId, // Use the language ID as the type
             file
           );
+
+          // Mark this item as backed by a workspace-defined task so TaskRunner
+          // can resolve the declared command rather than using the default type handler
+          item.taskSource = provider;
 
           item.description = vscode.workspace.asRelativePath(file);
 

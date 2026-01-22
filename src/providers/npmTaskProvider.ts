@@ -7,7 +7,7 @@ import constants from '../libs/constants';
 import * as path from 'path';
 
 export class PackageJsonTaskProvider extends BaseTaskProvider implements TaskProvider {
-    constructor(private context?: vscode.ExtensionContext) {
+    constructor() {
         super('npm');
     }
     async getTasks(): Promise<TaskItem[]> {
@@ -30,8 +30,8 @@ export class PackageJsonTaskProvider extends BaseTaskProvider implements TaskPro
                 let iconPath: { light: vscode.Uri; dark: vscode.Uri } | undefined;
                 if (this.context) {
                   iconPath = {
-                    light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', 'npm.svg')),
-                    dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', 'npm.svg'))
+                    light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
+                    dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
                   };
                 }
                 // Simple parsing for now

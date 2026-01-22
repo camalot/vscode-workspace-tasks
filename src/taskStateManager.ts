@@ -90,6 +90,10 @@ export class TaskStateManager {
         return this.queue;
     }
 
+    public getContext(): vscode.ExtensionContext | undefined {
+        return this.context;
+    }
+
     public addToQueue(item: TaskItem) {
         // Avoid duplicates based on ID
         const id = this.getTaskId(item);

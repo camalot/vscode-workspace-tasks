@@ -24,209 +24,50 @@ export class TaskRunner {
   }
 
   public async runTask(item: TaskItem, args?: string): Promise<void> {
-    if (!item.resourceUri) { return; }
-
+    // Allow tasks that don't have a resourceUri (global workspace tasks).
+    // Use file's folder as cwd when available, otherwise fall back to the first workspace folder or process.cwd().
     let task: vscode.Task | undefined;
-    const cwd = path.dirname(item.resourceUri.fsPath);
+    const cwd = item.resourceUri ? path.dirname(item.resourceUri.fsPath) : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length ? vscode.workspace.workspaceFolders[0].uri.fsPath : process.cwd());
+
+    // Fallback Uri for commands that need one
+    const fallbackWorkspaceUri = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri : vscode.Uri.file(cwd);
+    const resourceUri = item.resourceUri ?? fallbackWorkspaceUri;
 
     // Use originalLabel if available (for grouped tasks), otherwise label
     const taskLabel = item.originalLabel || item.label;
 
-    if (item.taskType === 'npm') {
-      task = new vscode.Task(
-        { type: 'npm', script: taskLabel },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'npm',
-        new vscode.ShellExecution(`npm run "${taskLabel}" ${args || ''}`.trim(), { cwd })
-      );
-    } else if (item.taskType === 'script') {
-      let command = item.resourceUri.fsPath;
-      if (process.platform === 'win32' && (command.endsWith('.ps1'))) {
-        command = `powershell -ExecutionPolicy Bypass -File "${command}" ${args || ''}`.trim();
-      } else if (process.platform !== 'win32' && command.endsWith('.sh')) {
-        command = `bash "${command}" ${args || ''}`.trim();
-      } else {
-        command = `"${command}" ${args || ''}`.trim();
+// Delegate task creation to the Task Factory to centralize logic and make it testable
+    const { createTaskForItem } = await import('./taskFactory');
+    const created = await createTaskForItem(item, args);
+    if (created) {
+      task = created.task;
+      // Extra debug info for gulp tasks
+      if (item.taskType === 'gulp') {
+        console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);
       }
+    }
 
-      task = new vscode.Task(
-        { type: 'script', script: taskLabel },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'script',
-        new vscode.ShellExecution(command, { cwd })
-      );
-    } else if (item.taskType === 'vscode') {
-      const tasks = await vscode.tasks.fetchTasks();
-      task = tasks.find(t => t.name === taskLabel && t.source === 'Workspace');
-      if (!task) {
-        vscode.window.showWarningMessage(`Could not find VS Code task '${taskLabel}'. Make sure it is valid.`);
-        return;
-      }
-    } else if (item.taskType === 'makefile') {
-      task = new vscode.Task(
-        { type: 'makefile', script: taskLabel },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'makefile',
-        new vscode.ShellExecution(`make "${taskLabel}" ${args || ''}`.trim(), { cwd })
-      );
-    } else if (item.taskType === 'dockerfile') {
-      const command = await WorkspaceTasksService.getInstance().resolveTaskCommand(taskLabel, 'DockerFile', item.resourceUri);
-      if (command) {
-        const fullCommand = args ? `${command} ${args}` : command;
-        task = new vscode.Task(
-          { type: 'dockerfile', task: taskLabel },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'dockerfile',
-          new vscode.ShellExecution(fullCommand, { cwd })
-        );
-      }
-    } else if (item.taskType === 'workspace-task') {
-      const configType = item.taskSource || 'shell';
-      const command = await WorkspaceTasksService.getInstance().resolveTaskCommand(taskLabel, configType, item.resourceUri);
-      if (command) {
-        const fullCommand = args ? `${command} ${args}` : command;
-        task = new vscode.Task(
-          { type: 'workspace-task', task: taskLabel },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'workspace-task',
-          new vscode.ShellExecution(fullCommand, { cwd })
-        );
-      }
-    } else if (item.taskType === 'justfile') {
-      task = new vscode.Task(
-        { type: 'justfile', task: taskLabel },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'just',
-        new vscode.ShellExecution(`just "${taskLabel}" ${args || ''}`.trim(), { cwd })
-      );
-    } else if (item.taskType === 'venv') {
-      let command = item.resourceUri.fsPath;
-      // Recover real path if we faked it for the icon
-      if (command.endsWith('.py') && (command.includes('activate') || command.includes('deactivate'))) {
-        command = command.substring(0, command.length - 3);
-      }
-
-      // Script execution logic similar to 'script' type but simpler as we know extensions
-      if (process.platform === 'win32' && (command.toLowerCase().endsWith('.ps1'))) {
-        command = `powershell -ExecutionPolicy Bypass -File "${command}" ${args || ''}`.trim();
-      } else if (process.platform !== 'win32' && (command.endsWith('.fish'))) {
-        command = `fish "${command}" ${args || ''}`.trim();
-      } else if (process.platform !== 'win32' && (command.endsWith('.bat'))) {
-        // Bat on non-windows? Unlikely to work, but proceed.
-        command = `"${command}" ${args || ''}`.trim();
-      } else {
-        command = `"${command}" ${args || ''}`.trim();
-      }
-
-      task = new vscode.Task(
-        { type: 'venv', task: taskLabel },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'venv',
-        new vscode.ShellExecution(command, { cwd })
-      );
-    } else if (item.taskType === 'ant') {
-      const antProvider = new AntTaskProvider();
-      const useAnsicon = antProvider.shouldUseAnsicon();
-
-      // Get workspace folder for resolving relative paths
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
-      const workspaceUri = workspaceFolder?.uri;
-
-      let command: string;
-      let commandArgs: string[];
-      let antCommand: string;
-
-      if (useAnsicon) {
-        // Use ansicon as wrapper
-        command = antProvider.getAnsiconPath();
-        antCommand = antProvider.getCommand(workspaceUri);
-        console.log(`[TaskRunner] Ant command for ansicon: "${antCommand}"`);
-        // Pass the build file path explicitly to avoid "Buildfile: build.xml does not exist!" if file is named differently
-        // or if typical cwd inheritance issues occur
-        commandArgs = [antCommand].concat(antProvider.getCommandArgs(taskLabel, true, item.resourceUri.fsPath));
-      } else {
-        // Use ant directly
-        antCommand = antProvider.getCommand(workspaceUri);
-        command = antCommand;
-        commandArgs = antProvider.getCommandArgs(taskLabel, false, item.resourceUri.fsPath);
-      }
-
-      // Add user-provided args if any
-      if (args) {
-        commandArgs.push(...args.split(' '));
-      }
-
-      // Calculate ANT_HOME
-      let antHome = path.dirname(antCommand);
-      if (path.basename(antHome) === 'bin') {
-        antHome = path.dirname(antHome);
-      }
-
-      if (useAnsicon) {
-        // Use ansicon as wrapper
-        // The user has verified that ANT_HOME is set correctly in their environment/package
-        const ansiconArgs = commandArgs.map(arg => `"${arg}"`).join(' ');
-        const fullCommand = `"${command}" ${ansiconArgs}`;
-        console.log(`[TaskRunner] Using ansicon, full command: ${fullCommand}`);
-
-        task = new vscode.Task(
-          { type: 'ant', target: taskLabel },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'ant',
-          new vscode.ShellExecution(fullCommand, { cwd })
-        );
-      } else {
-        task = new vscode.Task(
-          { type: 'ant', target: taskLabel },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'ant',
-          new vscode.ShellExecution(command, commandArgs, { cwd })
-        );
-      }    } else if (item.taskType === 'msbuild') {
-        const msbuildProvider = new MsBuildTaskProvider();
-
-        const workspaceFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
-        const workspaceUri = workspaceFolder?.uri;
-
-        const command = msbuildProvider.getCommand(workspaceUri);
-        const commandArgs = msbuildProvider.getCommandArgs(taskLabel, item.resourceUri.fsPath);
-
-        if (args) {
-            commandArgs.push(...args.split(' '));
-        }
-
-        task = new vscode.Task(
-            { type: 'msbuild', target: taskLabel },
-            vscode.TaskScope.Workspace,
-            taskLabel,
-            'msbuild',
-            new vscode.ShellExecution(command, commandArgs, { cwd })
-        );    }
+    if (!task) {
+      vscode.window.showWarningMessage(`No runnable task could be created for '${taskLabel}'.`);
+      return;
+    }
 
     if (task) {
       const id = TaskStateManager.getInstance().getTaskId(item);
       TaskStateManager.getInstance().setStatus(id, 'running');
       vscode.commands.executeCommand('workspaceTasks.refresh'); // Trigger refresh
 
-      try {
+        try {
         const execution = await vscode.tasks.executeTask(task);
-        TaskStateManager.getInstance().setExecution(id, execution);
-      } catch (e) {
-        TaskStateManager.getInstance().setStatus(id, 'failure');
-        vscode.commands.executeCommand('workspaceTasks.refresh');
-        vscode.window.showErrorMessage(`Failed to run task: ${e}`);
-        throw e;
+          TaskStateManager.getInstance().setExecution(id, execution);
+        } catch (e) {
+          console.error('[TaskRunner] executeTask failed:', e);
+          TaskStateManager.getInstance().setStatus(id, 'failure');
+          vscode.commands.executeCommand('workspaceTasks.refresh');
+          vscode.window.showErrorMessage(`Failed to run task: ${e}`);
+          throw e;
+        }
       }
-    }
   }
 
   public async runQueue(startItem?: TaskItem) {

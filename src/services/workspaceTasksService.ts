@@ -86,7 +86,7 @@ export class WorkspaceTasksService {
             }
         }
         this.config = newConfig;
-        console.log('Workspace tasks configuration loaded:', this.config);
+        console.debug('Workspace tasks configuration loaded');
     }
 
     private mergeConfig(target: FileTasksConfig, local: FileTasksConfig) {

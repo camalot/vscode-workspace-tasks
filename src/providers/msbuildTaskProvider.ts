@@ -8,7 +8,7 @@ import { BaseTaskProvider, TaskProvider } from "../taskProvider";
 import constants from '../libs/constants';
 
 export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvider {
-  constructor(private context?: vscode.ExtensionContext) {
+  constructor() {
     super('msbuild');
   }
 
@@ -46,8 +46,8 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
         let iconPath: { light: vscode.Uri; dark: vscode.Uri } | string | vscode.IconPath | undefined;
         if (this.context) {
           iconPath = {
-            light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', 'task.svg')),
-            dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', 'task.svg'))
+            light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
+            dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
           };
         }
 

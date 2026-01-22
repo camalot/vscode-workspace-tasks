@@ -7,5 +7,12 @@
     "build": "echo 'Building...'",
     "long_running": "node -e \"setTimeout(() => { console.log('Done'); }, 5000)\"",
     "fail": "node -e \"setTimeout(() => { console.log('Done'); }, 5000); process.exit(1)\""
+  },
+  "devDependencies": {
+    "grunt": "^1.6.1",
+    "grunt-cli": "^1.5.0",
+    "gulp": "^5.0.1"
+  },
+  "dependencies": {
   }
 }

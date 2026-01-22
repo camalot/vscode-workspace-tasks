@@ -5,8 +5,7 @@
     "globs": {
       "include": [
         "{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"
-      ],
-      "exclude": ["**/node_modules/**", "**/.git/**"]
+      ]
     },
     "inputs": [
       {
@@ -31,12 +30,25 @@
       }
     ]
   },
+  "npm": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/package.json"]
+    },
+    "iconUri": "package.json",
+    "tasks": [
+      {
+        "label": "Install Dependencies",
+        "type": "shell",
+        "command": "npm install",
+        "group": "build"
+      }
+    ]
+  },
   "venv": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/.venv/pyvenv.cfg"
-      ],
+      "include": ["**/.venv/pyvenv.cfg"],
       "exclude": ["**/node_modules/**", "**/.git/**"]
     },
     "iconUri": "{{ .FileName }}.py",

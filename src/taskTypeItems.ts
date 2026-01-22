@@ -29,7 +29,17 @@ export class NpmTaskTypeItem extends TaskTypeGroupItem {
 export class VscodeTaskTypeItem extends TaskTypeGroupItem {
   constructor(extensionPath?: string) {
     super('vscode', vscode.Uri.file('/tasks.code-workspace'));
+    if (extensionPath) {
+      this.iconPath = {
+        light: vscode.Uri.file(path.join(extensionPath, 'res', 'icons', 'light', `${this.label}.svg`)),
+        dark: vscode.Uri.file(path.join(extensionPath, 'res', 'icons', 'dark', `${this.label}.svg`))
+      };
+    } else {
+      this.iconPath = vscode.Uri.file('/tasks.code-workspace');
+    }
   }
+
+
 }
 
 export class ScriptTaskTypeItem extends TaskTypeGroupItem {
@@ -75,6 +85,20 @@ export class AntTaskTypeItem extends TaskTypeGroupItem {
     } else {
       this.iconPath = vscode.Uri.file('/build.xml');
     }
+  }
+}
+
+export class GruntTaskTypeItem extends TaskTypeGroupItem {
+  constructor(extensionPath?: string) {
+    // Use the Gruntfile name so VS Code shows the default Gruntfile/JS file icon
+    super('grunt', vscode.Uri.file('/Gruntfile.js'));
+  }
+}
+
+export class GulpTaskTypeItem extends TaskTypeGroupItem {
+  constructor(extensionPath?: string) {
+    // Use a gulpfile path so VS Code shows the default JS/module file icon for the group
+    super('gulp', vscode.Uri.file('/gulpfile.js'));
   }
 }
 
@@ -133,6 +157,10 @@ export class TaskTypeFactory {
         return new VenvTaskTypeItem(extensionPath);
       case 'ant':
         return new AntTaskTypeItem(extensionPath);
+      case 'grunt':
+        return new GruntTaskTypeItem(extensionPath);
+      case 'gulp':
+        return new GulpTaskTypeItem(extensionPath);
       case 'msbuild':
         return new MsBuildTaskTypeItem(extensionPath);
       case 'workspace-task':

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { TaskProvider, BaseTaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
@@ -50,11 +51,21 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
               iconUri = file.with({ path: file.path.replace(/\.json$/, '.code-workspace') });
             }
 
+            let iconPath: { light: vscode.Uri; dark: vscode.Uri } | undefined;
+            if (this.context) {
+                iconPath = {
+                  light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
+                  dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
+                };
+            }
+
             const item = new TaskItem(
               label,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconUri
+              iconUri,
+              undefined,
+              iconPath
             );
             item.description = vscode.workspace.asRelativePath(file);
             // We do NOT set defaultIconPath, so it uses resourceUri (iconUri)

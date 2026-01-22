@@ -8,7 +8,8 @@ import { BaseTaskProvider, TaskProvider } from "../taskProvider";
 import constants from '../libs/constants';
 
 export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
-  constructor(private context?: vscode.ExtensionContext) {
+
+  constructor() {
     super('ant');
   }
 
@@ -45,8 +46,8 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
         let iconPath: { light: vscode.Uri; dark: vscode.Uri } | undefined;
         if (this.context) {
           iconPath = {
-            light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', 'ant.svg')),
-            dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', 'ant.svg'))
+            light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
+            dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
           };
         }
 
