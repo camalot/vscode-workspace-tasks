@@ -17,7 +17,7 @@ export class TaskStateManager {
     private favorites: Set<string> = new Set();
     private queue: TaskItem[] = [];
     private context: vscode.ExtensionContext | undefined;
-    private queueName: string = 'Queue';
+    private queueName: string = 'Queue'; // TODO: support localization from package.nls.json (%tree.queue%)
 
     private constructor() {}
 
@@ -32,7 +32,7 @@ export class TaskStateManager {
         this.context = context;
         const savedFavorites = context.globalState.get<string[]>('favorites', []);
         this.favorites = new Set(savedFavorites);
-        this.queueName = context.globalState.get<string>('queueName', 'Queue');
+        this.queueName = context.globalState.get<string>('queueName', 'Queue'); // TODO: support localization from package.nls.json (%tree.queue%)
 
         // Restore Queue
         const savedQueue = context.globalState.get<SerializedTaskItem[]>('queueItems', []);
@@ -57,7 +57,7 @@ export class TaskStateManager {
             if (uri && (item.startLine !== undefined)) {
                  item.command = {
                      command: 'workspaceTasks.openFileAtLine',
-                     title: 'Open File',
+                     title: '%command.openFileAtLine%',
                      arguments: [uri, item.startLine]
                  };
             }
@@ -94,7 +94,31 @@ export class TaskStateManager {
         // Avoid duplicates based on ID
         const id = this.getTaskId(item);
         if (!this.queue.some(t => this.getTaskId(t) === id)) {
-            this.queue.push(item);
+            // FIX: If item is a grouped item, label is partial. Use originalLabel if available.
+            const fullLabel = item.originalLabel || item.label;
+
+            // Reconstruct the item to ensure we store a clean copy with the full label
+            const queueItem = new TaskItem(
+                fullLabel,
+                vscode.TreeItemCollapsibleState.None,
+                item.taskType,
+                item.resourceUri,
+                item.command
+            );
+            queueItem.startLine = item.startLine;
+            // Ensure originalLabel is set consistently
+            queueItem.originalLabel = fullLabel;
+
+            // Set context value for queue
+            queueItem.contextValue = 'queuedTask';
+
+            // Restore description
+            if (item.resourceUri) {
+                const wsFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
+                queueItem.description = wsFolder ? wsFolder.name : '';
+            }
+
+            this.queue.push(queueItem);
             this.saveQueue();
         }
     }
@@ -149,20 +173,26 @@ export class TaskStateManager {
         return this.favorites.has(id);
     }
 
-    public toggleFavorite(id: string) {
-        if (this.favorites.has(id)) {
-            this.favorites.delete(id);
-        } else {
-            this.favorites.add(id);
-        }
+    public addToFavorites(item: TaskItem) {
+        const id = this.getTaskId(item);
+        this.favorites.add(id);
         this.context?.globalState.update('favorites', Array.from(this.favorites));
     }
 
-    public getTaskId(item: { label: string, resourceUri?: vscode.Uri, taskType: string }): string {
-        if (item.resourceUri) {
-            return `${item.resourceUri.toString()}|${item.taskType}|${item.label}`;
+    public removeFromFavorites(item: TaskItem) {
+        const id = this.getTaskId(item);
+        if (this.favorites.has(id)) {
+            this.favorites.delete(id);
+            this.context?.globalState.update('favorites', Array.from(this.favorites));
         }
-        return `${item.taskType}|${item.label}`;
+    }
+
+    public getTaskId(item: { label: string, resourceUri?: vscode.Uri, taskType: string, originalLabel?: string }): string {
+        const label = item.originalLabel || item.label;
+        if (item.resourceUri) {
+            return `${item.resourceUri.toString()}|${item.taskType}|${label}`;
+        }
+        return `${item.taskType}|${label}`;
     }
 
     public setStatus(id: string, status: TaskStatus) {

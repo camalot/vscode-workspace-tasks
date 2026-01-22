@@ -1,14 +1,23 @@
 import * as vscode from 'vscode';
-import { TaskProvider } from '../taskProvider';
+import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import { findFilesByGlobAndLanguage } from '../libs/fileUtils';
-import * as path from 'path';
+import { TaskConfigService } from '../services/taskConfigService';
+import constants from '../libs/constants';
 
-export class MakefileTaskProvider implements TaskProvider {
+export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvider {
+    constructor() {
+        super('makefile');
+    }
     async getTasks(): Promise<TaskItem[]> {
+        if (!this.enabled) {
+            return [];
+        }
         const tasks: TaskItem[] = [];
-        
-        const files = await findFilesByGlobAndLanguage('**/Makefile', '**/node_modules/**', 'makefile');
+
+        const files = await findFilesByGlobAndLanguage(
+          constants.GLOB_MAKE, constants.GLOB_GLOBAL_EXCLUDE, constants.LANGUAGE_MAKE
+        );
 
         for (const file of files) {
             try {

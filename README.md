@@ -14,8 +14,100 @@ Workspace Tasks automatically scans your workspace for the following types of ta
 - **Makefiles**: Targets defined in `Makefile`, `makefile`, or `.makefile` files.
 - **Dockerfiles**: Build tasks for `Dockerfile`, `dockerfile`, `*.dockerfile`, etc.
 - **Justfiles**: Recipes defined in `justfile`, `.justfile`, or `*.just` files.
+- **Python Virtual Environments**: Activation/deactivation scripts in `.venv/Scripts/` directories.
+- **Workspace Tasks**: Custom tasks defined in `.workspace-tasks.json` files (see below).
 
 Tasks are organized hierarchically by workspace folder, task type, and individual tasks.
+
+### Custom Workspace Tasks
+
+Create a `.workspace-tasks.json` file in your workspace to define custom tasks that can be associated with specific file patterns or defined globally. This powerful feature allows you to:
+
+- Define reusable task templates with variable inputs
+- Create tasks that work across multiple file types
+- Build custom workflows without modifying VS Code's `tasks.json`
+
+#### Example: Dockerfile Tasks
+
+```json
+{
+  "dockerfile": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"],
+      "exclude": ["**/node_modules/**", "**/.git/**"]
+    },
+    "inputs": [
+      {
+        "id": "Name",
+        "type": "promptString",
+        "description": "Enter the name for the Docker image",
+        "default": "${workspaceFolderBasename}"
+      },
+      {
+        "id": "Tag",
+        "type": "promptString",
+        "description": "Enter the tag for the Docker image",
+        "default": "latest"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "Build Docker Image",
+        "type": "workspace",
+        "command": "docker build -t {{ .Name }}:{{ .Tag }} .",
+        "group": "build"
+      }
+    ]
+  }
+}
+```
+
+#### Example: Global Workspace Tasks
+
+Tasks without file associations (no `globs` defined) appear under the workspace folder:
+
+```json
+{
+  "shell": {
+    "version": "2.0.0",
+    "inputs": [],
+    "tasks": [
+      {
+        "label": "Clean Build Artifacts",
+        "type": "workspace",
+        "command": "rm -rf dist build out",
+        "group": "build"
+      },
+      {
+        "label": "Install Dependencies",
+        "type": "workspace",
+        "command": "npm install && pip install -r requirements.txt",
+        "group": "build"
+      }
+    ]
+  }
+}
+```
+
+#### Configuration Schema
+
+- **Top-level keys**: Define task types (e.g., `dockerfile`, `shell`, `python`)
+- **version**: Schema version (currently "2.0.0")
+- **globs** (optional): File patterns to associate tasks with
+  - **include**: Array of glob patterns to match files
+  - **exclude**: Array of glob patterns to ignore
+- **inputs**: Array of input definitions for dynamic values
+  - **id**: Unique identifier for the input
+  - **type**: Input type (`promptString` or `pickString`)
+  - **description**: User-facing prompt
+  - **default**: Default value (supports `${workspaceFolderBasename}`)
+  - **options**: Array of choices (for `pickString` type)
+- **tasks**: Array of task definitions
+  - **label**: Display name for the task
+  - **type**: Must be "workspace"
+  - **command**: Shell command to execute (use `{{ .InputId }}` for variable substitution)
+  - **group**: Optional task group (e.g., "build", "test")
 
 ### Queue System
 
@@ -72,14 +164,25 @@ You can also configure a global exclude list using the extension setting `worksp
 
 ## Supported File Types
 
-| File Type | Patterns | Language ID | Task Type |
-| --------- | -------- | ----------- | --------- |
-| package.json | `**/package.json` | json | npm |
-| tasks.json | `.vscode/tasks.json` | json | vscode |
-| Shell Scripts | `**/*.sh`, `**/*.ps1`, etc. | shellscript, powershell, etc. | script |
-| Makefiles | `**/Makefile`, `**/makefile` | makefile | makefile |
-| Dockerfiles | `**/Dockerfile`, `**/*.dockerfile` | dockerfile | dockerfile |
-| Justfiles | `**/justfile`, `**/*.just` | just | justfile |
+| Task Type | File Patterns | Description | Icon |
+| --------- | ------------- | ----------- | ---- |
+| **npm** | `**/package.json` | NPM scripts from package.json files | 📦 package.json |
+| **vscode** | `.vscode/tasks.json` | VS Code task definitions | ⚙️ workspace |
+| **script** | `**/*.sh`, `**/*.ps1`, `**/*.bat`, `**/*.cmd` | Executable shell scripts | 📜 script |
+| **makefile** | `**/Makefile`, `**/makefile`, `**/.makefile` | Make targets | 🔨 Makefile |
+| **dockerfile** | `**/Dockerfile`, `**/dockerfile`, `**/*.dockerfile` | Docker build tasks | 🐳 Dockerfile |
+| **justfile** | `**/justfile`, `**/.justfile`, `**/*.just` | Just command runner recipes | ⚡ justfile |
+| **venv** | `**/.venv/Scripts/activate.*`, `**/.venv/Scripts/deactivate.*` | Python virtual environment scripts | 🐍 Python |
+| **workspace-task** | `.workspace-tasks.json` | Custom workspace task definitions | 📋 Custom |
+
+### Task Type Features
+
+- **File-Associated Tasks**: Tasks linked to specific files (npm, makefile, dockerfile, etc.) show the file path and open the file on click
+- **Global Tasks**: Tasks defined in `.workspace-tasks.json` without file globs appear under their workspace folder
+- **Dynamic Inputs**: Workspace tasks support prompted values and variable substitution
+- **Custom Icons**: Each task type has a distinctive icon for easy identification
+- **Runnable**: All tasks can be executed directly from the tree view with context menu or inline buttons
+
 
 ## Requirements
 

@@ -1,0 +1,37 @@
+
+
+const constants: Record<string, any> = {
+  extensionName: "workspaceTasks",
+  configurationSection: "workspaceTasks",
+
+  FAVORITES_KEY: "favorites",
+
+  QUEUE_KEY: "queue",
+
+  DEFAULT_TASK_GROUP_SEPARATOR: "",
+
+  GLOB_GLOBAL_EXCLUDE: "**/node_modules/**,**/.git/**",
+  GLOB_ANT: "**/*.xml",
+  GLOB_JUST: "{**/justfile,**/.justfile,**/*.just}",
+  GLOB_MAVEN: "**/pom.xml",
+  GLOB_MSBUILD: "**/*.{csproj,vbproj,vcxproj,xml,proj,sln}",
+  GLOB_SHELL: "{**/*.sh,**/*.bash,**/*.zsh,**/*.fish,**/*.csh,**/*.ksh,**/*.cmd,**/*.bat,**/*.ps1}",
+  GLOB_SHELL_EXCLUDE: "**/.venv/**",
+  GLOB_GULP: "**/gulpfile.js",
+  GLOB_GRADLE: "**/*.gradle",
+  GLOB_MAKE: "**/[M]akefile",
+  GLOB_NODEJS: "**/package.json",
+  GLOB_PERL: "**/*.pl",
+  GLOB_COMPOSER: "**/composer.json",
+  GLOB_PYTHON: "**/*.py",
+  GLOB_PIPENV: "**/Pipfile",
+  GLOB_POETRY: "**/pyproject.toml",
+  GLOB_RUBY: "**/*.rb",
+  GLOB_TSCONFIG: "**/tsconfig.{json,*.json}",
+  GLOB_VSCODE: "**/.vscode/tasks.json",
+  GLOB_MCP: "**/.vscode/mcp.json",
+  GLOB_VENV: "**/.venv/Scripts/{activate.bat,activate.fish,Activate.ps1,deactivate.bat}",
+
+};
+
+export default constants;

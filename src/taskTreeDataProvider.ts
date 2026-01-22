@@ -13,7 +13,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     public dragAndDropController: vscode.TreeDragAndDropController<TaskItem>;
 
-    constructor() {
+    constructor(private context: vscode.ExtensionContext) {
         this.dragAndDropController = new TaskTreeDragAndDropController();
     }
 
@@ -40,6 +40,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     }
 
     private organizeTasks(tasks: TaskItem[]): TaskItem[] {
+        const config = vscode.workspace.getConfiguration('workspaceTasks');
+        const groupsEnabled = config.get<boolean>('groups.enabled', true);
+        const taskSeparator = config.get<string>('groups.taskSeparator', '-');
+
         // Map<WorkspaceName, Map<TaskType, TaskItem[]>>
         const workspaceMap = new Map<string, Map<string, TaskItem[]>>();
         const favoriteTasks: TaskItem[] = [];
@@ -59,16 +63,34 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                     task.resourceUri,
                     task.command
                 );
+                favTask.originalLabel = task.originalLabel || task.label;
                 favTask.startLine = task.startLine;
 
                 // Set description to workspace folder
                 const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
                 favTask.description = workspaceFolder ? workspaceFolder.name : '';
 
+                favTask.updateContextValue();
                 favoriteTasks.push(favTask);
             }
 
-            if (!task.resourceUri) { continue; }
+            if (!task.resourceUri) {
+                const workspaceName = 'Workspace';
+
+                let projectMap = workspaceMap.get(workspaceName);
+                if (!projectMap) {
+                    projectMap = new Map<string, TaskItem[]>();
+                    workspaceMap.set(workspaceName, projectMap);
+                }
+
+                let typeTasks = projectMap.get(task.taskType);
+                if (!typeTasks) {
+                    typeTasks = [];
+                    projectMap.set(task.taskType, typeTasks);
+                }
+                typeTasks.push(task);
+                continue;
+            }
             // ... rest of loop processing for normal view
 
             const workspaceFolder = vscode.workspace.getWorkspaceFolder(task.resourceUri);
@@ -110,6 +132,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                      task.resourceUri,
                      task.command
                  );
+                 queuedItem.originalLabel = task.originalLabel || task.label;
                  queuedItem.startLine = task.startLine;
                  // Set description to workspace folder
                  const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
@@ -126,7 +149,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // Add Favorites Group
         if (favoriteTasks.length > 0) {
             const favGroup = new TaskItem(
-                'Favorites',
+                'Favorites', // TODO: support localization from package.nls.json (%tree.favorites%)
                 vscode.TreeItemCollapsibleState.Expanded,
                 'favorites'
             );
@@ -144,7 +167,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             }
 
             for (const [type, tasks] of favTypeMap) {
-                 const typeItem = TaskTypeFactory.create(type);
+                 const typeItem = TaskTypeFactory.create(type, this.context.extensionPath);
                  typeItem.children = tasks;
                  favGroup.children.push(typeItem);
             }
@@ -152,28 +175,124 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             rootItems.push(favGroup);
         }
 
-        for (const [workspaceName, projectMap] of workspaceMap) {
-            const workspaceItem = new TaskItem(
-                workspaceName,
-                vscode.TreeItemCollapsibleState.Expanded,
-                'workspace'
+        if (!groupsEnabled) {
+             const tasksRoot = new TaskItem(
+              'Tasks', // TODO: support localization from package.nls.json (%tree.tasks%)
+              vscode.TreeItemCollapsibleState.Expanded,
+              'folder'
             );
 
-            // Try to enable folder icon for workspace item explicitly found via URI
-            // Not essential but might look better
-             workspaceItem.iconPath = vscode.ThemeIcon.Folder;
+             const flatTasks: TaskItem[] = [];
+             for (const projectMap of workspaceMap.values()) {
+                 for (const typeTasks of projectMap.values()) {
+                     flatTasks.push(...typeTasks);
+                 }
+             }
+             flatTasks.sort((a,b) => a.label.localeCompare(b.label));
 
-            for (const [taskType, typeTasks] of projectMap) {
-                // Use Factory to create typed item
-                const typeItem = TaskTypeFactory.create(taskType);
-                typeItem.children = typeTasks;
-                workspaceItem.children.push(typeItem);
+             tasksRoot.children = flatTasks;
+             rootItems.push(tasksRoot);
+        } else {
+            for (const [workspaceName, projectMap] of workspaceMap) {
+                const workspaceItem = new TaskItem(
+                    workspaceName,
+                    vscode.TreeItemCollapsibleState.Expanded,
+                    'workspace'
+                );
+
+                // Try to enable folder icon for workspace item explicitly found via URI
+                // Not essential but might look better
+                workspaceItem.iconPath = vscode.ThemeIcon.Folder;
+
+                for (const [taskType, typeTasks] of projectMap) {
+                    // Use Factory to create typed item
+                    const typeItem = TaskTypeFactory.create(taskType, this.context.extensionPath);
+                    typeItem.children = this.groupTasksByName(typeTasks, taskSeparator);
+                    workspaceItem.children.push(typeItem);
+                }
+                // Sort types by name
+                workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
+
+                rootItems.push(workspaceItem);
             }
-            // Sort types by name
-            workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
-
-            rootItems.push(workspaceItem);
         }
+
+        return rootItems;
+    }
+
+    public groupTasksByName(tasks: TaskItem[], separator: string): TaskItem[] {
+        if (!separator) { return tasks; }
+
+        const rootItems: TaskItem[] = [];
+        const groups = new Map<string, TaskItem[]>();
+        const leafs: TaskItem[] = [];
+
+        for (const task of tasks) {
+            const parts = task.label.split(separator);
+            if (parts.length > 1) {
+                const groupName = parts[0];
+                let groupList = groups.get(groupName);
+                if (!groupList) {
+                    groupList = [];
+                    groups.set(groupName, groupList);
+                }
+                const remainder = parts.slice(1).join(separator);
+                const newTask = new TaskItem(
+                    remainder,
+                    task.collapsibleState,
+                    task.taskType,
+                    task.resourceUri,
+                    task.command
+                );
+                newTask.originalLabel = task.originalLabel || task.label;
+                newTask.startLine = task.startLine;
+                newTask.tooltip = task.tooltip;
+                // Re-run context value update now that originalLabel is set
+                newTask.updateContextValue();
+
+                groupList.push(newTask);
+            } else {
+                leafs.push(task);
+            }
+        }
+
+        for (const [groupName, groupTasks] of groups) {
+            let iconUri: vscode.Uri | undefined;
+            if (groupTasks.length > 0) {
+                 const typeItem = TaskTypeFactory.create(groupTasks[0].taskType);
+                 iconUri = typeItem.resourceUri;
+            }
+
+            const groupItem = new TaskItem(groupName, vscode.TreeItemCollapsibleState.Collapsed, 'folder', iconUri);
+            if (iconUri) {
+                groupItem.iconPath = vscode.ThemeIcon.File;
+            }
+            groupItem.contextValue = 'folder';
+            groupItem.children = this.groupTasksByName(groupTasks, separator);
+            rootItems.push(groupItem);
+        }
+
+        // Sort groups/leafs? Usually folders first
+        rootItems.sort((a, b) => {
+            if (a.contextValue === 'folder' && b.contextValue !== 'folder') return -1;
+            if (a.contextValue !== 'folder' && b.contextValue === 'folder') return 1;
+            return a.label.localeCompare(b.label);
+        });
+
+        // Add leafs if any? wait. rootItems has groups.
+        // Actually I should just merge leafs into rootItems and then sort.
+        // But above I just pushed groups.
+
+        rootItems.push(...leafs);
+
+        // Sort again to ensure leafs are mixed or sorted properly
+        rootItems.sort((a, b) => {
+             // Folders first
+             const aIsFolder = a.contextValue === 'folder' ? 1 : 0;
+             const bIsFolder = b.contextValue === 'folder' ? 1 : 0;
+             if (aIsFolder !== bIsFolder) { return bIsFolder - aIsFolder; }
+             return a.label.localeCompare(b.label);
+        });
 
         return rootItems;
     }

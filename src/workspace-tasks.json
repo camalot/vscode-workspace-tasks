@@ -1,0 +1,52 @@
+{
+  "$schema": "./../res/schemas/workspace-tasks.schema.json",
+  "dockerfile": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"
+      ],
+      "exclude": ["**/node_modules/**", "**/.git/**"]
+    },
+    "inputs": [
+      {
+        "id": "Name",
+        "type": "promptString",
+        "description": "Enter the name for the Docker image",
+        "default": "${workspaceFolderBasename}"
+      },
+      {
+        "id": "Tag",
+        "type": "promptString",
+        "description": "Enter the tag for the Docker image",
+        "default": "latest"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "Build Docker Image",
+        "type": "shell",
+        "command": "docker build -t {{ .Name }}:{{ .Tag }} .",
+        "group": "build"
+      }
+    ]
+  },
+  "venv": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/.venv/pyvenv.cfg"
+      ],
+      "exclude": ["**/node_modules/**", "**/.git/**"]
+    },
+    "iconUri": "{{ .FileName }}.py",
+    "tasks": [
+      {
+        "label": "Create Virtual Environment",
+        "type": "shell",
+        "command": "echo \"python -m venv .venv ${workspaceFolder}\"",
+        "group": "build"
+      }
+    ]
+  }
+}

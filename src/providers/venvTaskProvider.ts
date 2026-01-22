@@ -1,0 +1,42 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { BaseTaskProvider, TaskProvider } from '../taskProvider';
+import { TaskItem } from '../taskItem';
+import constants from '../libs/constants';
+
+export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
+  constructor() {
+    super('venv');
+  }
+  async getTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    const tasks: TaskItem[] = [];
+    const files = await vscode.workspace.findFiles(constants.GLOB_VENV, constants.GLOB_GLOBAL_EXCLUDE);
+
+    for (const file of files) {
+      const label = path.basename(file.fsPath);
+
+      // Fake URI to force .py icon
+      const iconUri = file.with({ path: file.path + '.py' });
+
+      const item = new TaskItem(
+        label,
+        vscode.TreeItemCollapsibleState.None,
+        this.type,
+        iconUri
+      );
+
+      item.description = vscode.workspace.asRelativePath(file);
+      item.command = {
+        command: 'workspaceTasks.openFileAtLine',
+        title: 'Open File',
+        arguments: [file, 0]
+      };
+
+      tasks.push(item);
+    }
+    return tasks;
+  }
+}

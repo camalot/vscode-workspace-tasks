@@ -1,11 +1,19 @@
 import * as vscode from 'vscode';
-import { TaskProvider } from '../taskProvider';
+import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import { TaskIgnoreService } from '../services/taskIgnoreService';
+import { TaskConfigService } from '../services/taskConfigService';
 import * as path from 'path';
+import constants from '../libs/constants';
 
-export class ScriptTaskProvider implements TaskProvider {
+export class ScriptTaskProvider extends BaseTaskProvider implements TaskProvider {
+    constructor() {
+        super('script');
+    }
     async getTasks(): Promise<TaskItem[]> {
+        if (!this.enabled) {
+            return [];
+        }
         const tasks: TaskItem[] = [];
         const ignoreService = TaskIgnoreService.getInstance();
 
@@ -20,11 +28,14 @@ export class ScriptTaskProvider implements TaskProvider {
           '**/*.bash',
           '**/*.ps1',
           '**/*.bat',
-          '**/*.cmd'
+          '**/*.cmd',
+          '**/*.fish',
+          '**/*.ksh',
+          '**/*.csh'
         ];
 
         for (const pattern of patterns) {
-             const files = await vscode.workspace.findFiles(pattern, '**/node_modules/**');
+             const files = await vscode.workspace.findFiles(pattern, constants.GLOB_SHELL_EXCLUDE);
              for (const file of files) {
                  if (ignoreService.shouldIgnore(file)) { continue; }
 
@@ -33,7 +44,7 @@ export class ScriptTaskProvider implements TaskProvider {
                  const item = new TaskItem(
                      filename,
                      vscode.TreeItemCollapsibleState.None,
-                     'script', // type
+                     this.type, // type
                      file
                  );
                  item.description = vscode.workspace.asRelativePath(file);

@@ -1,17 +1,25 @@
 import * as vscode from 'vscode';
-import { TaskProvider } from '../taskProvider';
+import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import { findFilesByGlobAndLanguage } from '../libs/fileUtils';
 import * as path from 'path';
+import constants from '../libs/constants';
 
-export class JustfileTaskProvider implements TaskProvider {
+export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvider {
+    constructor() {
+        super('justfile');
+    }
     async getTasks(): Promise<TaskItem[]> {
+        if (!this.enabled) {
+            return [];
+        }
         const tasks: TaskItem[] = [];
 
         // Find files using the utility
         // Glob patterns for justfiles
-        const globPattern = '{**/justfile,**/.justfile,**/*.just}';
-        const files = await findFilesByGlobAndLanguage(globPattern, '**/node_modules/**', 'just');
+        const files = await findFilesByGlobAndLanguage(
+          constants.GLOB_JUST, constants.GLOB_GLOBAL_EXCLUDE, constants.LANGUAGE_JUST
+        );
 
         for (const file of files) {
             try {
@@ -51,7 +59,7 @@ export class JustfileTaskProvider implements TaskProvider {
                          const item = new TaskItem(
                             target,
                             vscode.TreeItemCollapsibleState.None,
-                            'justfile',
+                            this.type,
                             file
                         );
                         item.description = vscode.workspace.asRelativePath(file);

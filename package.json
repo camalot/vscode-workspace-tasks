@@ -6,6 +6,25 @@
   "engines": {
     "vscode": "^1.74.0"
   },
+  "author": {
+    "name": "Ryan Conrad",
+    "email": "camalot@gmail.com"
+  },
+  "homepage": "https://github.com/camalot/vscode-workspace-tasks",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/camalot/vscode-workspace-tasks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/camalot/vscode-workspace-tasks/issues"
+  },
+  "license": "MIT",
+  "publisher": "Ryan Conrad",
+  "icon": "res/icon.png",
+  "galleryBanner": {
+    "color": "#333333",
+    "theme": "dark"
+  },
   "keywords": [
     "tasks",
     "task",
@@ -30,6 +49,17 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
   "contributes": {
     "languages": [
       {
@@ -40,6 +70,12 @@
         "filenamePatterns": [
           ".tasksignore"
         ]
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": ".workspace-tasks.json",
+        "url": "./res/schemas/workspace-tasks.schema.json"
       }
     ],
     "viewsContainers": {
@@ -63,66 +99,71 @@
     "commands": [
       {
         "command": "workspaceTasks.refresh",
-        "title": "Refresh Tasks",
+        "title": "%command.refreshTasks%",
         "icon": "$(refresh)"
       },
       {
         "command": "workspaceTasks.runTask",
-        "title": "Run Task",
+        "title": "%command.runTask%",
         "icon": "$(play)"
       },
       {
+        "command": "workspaceTasks.runTaskWithArgs",
+        "title": "%command.runTaskWithArgs%",
+        "icon": "$(debug-continue)"
+      },
+      {
         "command": "workspaceTasks.stopTask",
-        "title": "Stop Task",
+        "title": "%command.stopTask%",
         "icon": "$(stop)"
       },
       {
         "command": "workspaceTasks.addToFavorites",
-        "title": "Add to Favorites",
+        "title": "%command.addToFavorites%",
         "icon": "$(star)"
       },
       {
         "command": "workspaceTasks.removeFromFavorites",
-        "title": "Remove from Favorites",
+        "title": "%command.removeFromFavorites%",
         "icon": "$(star-full)"
       },
       {
         "command": "workspaceTasks.addToQueue",
-        "title": "Add to Queue",
+        "title": "%command.addToQueue%",
         "icon": "$(list-unordered)"
       },
       {
         "command": "workspaceTasks.runQueue",
-        "title": "Run Queue",
-        "icon": "$(play)"
+        "title": "%command.runQueue%",
+        "icon": "$(run-all)"
       },
       {
         "command": "workspaceTasks.clearQueue",
-        "title": "Clear Queue",
+        "title": "%command.clearQueue%",
         "icon": "$(clear-all)"
       },
       {
         "command": "workspaceTasks.removeFromQueue",
-        "title": "Remove from Queue",
+        "title": "%command.removeFromQueue%",
         "icon": "$(trash)"
       },
       {
         "command": "workspaceTasks.renameQueue",
-        "title": "Rename Queue",
+        "title": "%command.renameQueue%",
         "icon": "$(edit)"
       },
       {
         "command": "workspaceTasks.context.addToQueue",
-        "title": "Add to Queue"
+        "title": "%command.addToQueue%"
       },
       {
         "command": "workspaceTasks.context.addToFavorites",
-        "title": "Add to Favorites"
+        "title": "%command.addToFavorites%"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "Workspace Tasks",
+      "title": "%view.name%",
       "properties": {
         "workspaceTasks.exclude": {
           "type": "array",
@@ -130,125 +171,134 @@
             "type": "string"
           },
           "default": [],
-          "description": "Glob patterns to exclude from tasks.",
-          "markdownDescription": "Glob patterns to exclude from tasks. For example, to ignore all tasks in `sample` folders, add `**/sample/**`."
+          "description": "%config.workspaceTasks.exclude.description%",
+          "markdownDescription": "%config.workspaceTasks.exclude.markdown%"
         },
         "workspaceTasks.groups.enabled": {
+          "title": "%config.workspaceTasks.groups.enabled%",
           "type": "boolean",
           "default": true,
-          "description": "Group tasks by type, folder, and custom separator."
+          "description": "%config.workspaceTasks.groups.enabled.description%",
+          "markdownDescription": "%config.workspaceTasks.groups.enabled.markdown%"
         },
         "workspaceTasks.groups.taskSeparator": {
+          "title": "%config.workspaceTasks.groups.taskSeparator%",
           "type": "string",
-          "default": "-",
-          "description": "Separator used to split task name into groups.",
-          "markdownDescription": "Separator used to split task name into groups. For example, a task named `build-frontend` with a separator of `-` would be grouped under `build`."
+          "default": "",
+          "description": "%config.workspaceTasks.groups.taskSeparator.description%",
+          "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%"
         },
         "workspaceTasks.enabledTaskTypes": {
           "type": "object",
           "additionalProperties": false,
           "description": "%config.workspaceTasks.enabledTaskTypes%",
+          "markdownDescription": "%config.workspaceTasks.enabledTaskTypes.markdown%",
           "properties": {
             "ant": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableAnt%"
-            },
-            "appPublisher": {
-              "type": "boolean",
-              "description": "%config.workspaceTasks.enableAppPublisher%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.ant%"
             },
             "shell": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableShell%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
             },
             "composer": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableComposer%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
             },
             "docker": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableDocker%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
             },
             "gradle": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableGradle%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.gradle%"
             },
             "grunt": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableGrunt%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.grunt%"
             },
             "gulp": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableGulp%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.gulp%"
+            },
+            "just": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.just%"
             },
             "make": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableMake%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.makefile%"
             },
             "maven": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableMaven%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.maven%"
+            },
+            "msbuild": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.msbuild%"
             },
             "npm": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableNpm%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.npm%"
             },
             "nsis": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableNsis%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.nsis%"
             },
             "perl": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enablePerl%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.perl%"
             },
             "pipenv": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enablePipenv%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.pipenv%"
             },
             "pwsh": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enablePwsh%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.pwsh%"
             },
             "python": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enablePython%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.python%"
             },
             "ruby": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableRuby%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.ruby%"
             },
             "tsc": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableTsc%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.tsc%"
             },
             "yarn": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableYarn%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.yarn%"
             },
             "venv": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableVenv%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.venv%"
             },
             "vscode": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableVsCode%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.vscode%"
             },
             "workspace": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enableWorkspace%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.workspace%"
             }
           },
           "default": {
             "ant": true,
-            "appPublisher": true,
             "shell": true,
             "composer": true,
             "docker": true,
             "gradle": true,
             "grunt": true,
             "gulp": true,
+            "just": false,
             "make": true,
             "maven": true,
+            "msbuild": true,
             "npm": true,
             "nsis": false,
             "perl": false,
@@ -262,6 +312,30 @@
             "vscode": true,
             "workspace": true
           }
+        },
+        "workspaceTasks.msbuild.path": {
+          "type": "string",
+          "description": "%config.workspaceTasks.msbuild.path%",
+          "markdownDescription": "%config.workspaceTasks.msbuild.path.markdown%",
+          "default": "msbuild"
+        },
+        "workspaceTasks.ant.path": {
+          "type": "string",
+          "description": "%config.workspaceTasks.ant.path%",
+          "markdownDescription": "%config.workspaceTasks.ant.path.markdown%",
+          "default": "ant"
+        },
+        "workspaceTasks.ant.ansicon.enabled": {
+          "type": "boolean",
+          "description": "%config.workspaceTasks.ant.ansicon.enabled%",
+          "markdownDescription": "%config.workspaceTasks.ant.ansicon.enabled.markdown%",
+          "default": true
+        },
+        "workspaceTasks.ant.ansicon.path": {
+          "type": "string",
+          "description": "%config.workspaceTasks.ant.ansicon.path%",
+          "markdownDescription": "%config.workspaceTasks.ant.ansicon.path.markdown%",
+          "default": "ansicon.exe"
         }
       }
     },
@@ -294,6 +368,11 @@
           "group": "inline@3"
         },
         {
+          "command": "workspaceTasks.runTaskWithArgs",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask",
+          "group": "inline@3"
+        },
+        {
           "command": "workspaceTasks.stopTask",
           "when": "viewItem == runningTask",
           "group": "inline@3"
@@ -321,17 +400,6 @@
       ]
     }
   },
-  "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
-  },
   "devDependencies": {
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
@@ -348,6 +416,7 @@
     "webpack-cli": "^5.0.0"
   },
   "dependencies": {
+    "fast-xml-parser": "^5.3.3",
     "ignore": "^7.0.5"
   }
 }

@@ -1,14 +1,22 @@
 {
 	"folders": [
 		{
+			"path": "npm-grouping"
+		},
+		{
 			"path": "npm-project"
 		},
 		{
 			"path": "scripts-project"
 		},
 		{
+			"path": "venv-project"
+		},
+		{
 			"path": "vscode-project"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"powershell.cwd": "npm-grouping"
+	}
 }

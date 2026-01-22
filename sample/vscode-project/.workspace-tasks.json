@@ -1,0 +1,14 @@
+{
+  "workspace": {
+    "version": "2.0.0",
+    "inputs": [],
+    "tasks": [
+      {
+        "label": "Example Workspace Task",
+        "type": "shell",
+        "command": "echo Hello World",
+        "group": "build"
+      }
+    ]
+  }
+}

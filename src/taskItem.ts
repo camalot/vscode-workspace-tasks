@@ -4,18 +4,24 @@ import { TaskStateManager } from './taskStateManager';
 export class TaskItem extends vscode.TreeItem {
     public children: TaskItem[] = [];
     public startLine: number | undefined;
+    public originalLabel: string;
+    public defaultIconPath: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } | undefined;
+    public taskSource: string | undefined;
 
     constructor(
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly taskType: string,
         public readonly resourceUri?: vscode.Uri,
-        public command?: vscode.Command
+        public command?: vscode.Command,
+        defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri }
     ) {
         super(label, collapsibleState);
+        this.originalLabel = label;
         this.tooltip = `${this.label} (${this.taskType})`;
         this.description = this.taskType;
         this.resourceUri = resourceUri;
+        this.defaultIconPath = defaultIconPath;
 
         this.updateContextValue();
     }
@@ -43,7 +49,7 @@ export class TaskItem extends vscode.TreeItem {
                 } else if (status === 'failure') {
                     this.iconPath = new vscode.ThemeIcon('error', new vscode.ThemeColor('testing.iconFailed'));
                 } else {
-                    this.iconPath = undefined; // Default
+                    this.iconPath = this.defaultIconPath; // Default
                 }
             }
         }
