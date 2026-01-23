@@ -277,6 +277,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
             },
+            "github-action": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.github-action%"
+            },
             "gradle": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.gradle%"
@@ -355,6 +359,7 @@
             "shell": true,
             "composer": true,
             "docker": true,
+            "github-action": true,
             "gradle": true,
             "grunt": true,
             "gulp": true,
@@ -363,7 +368,6 @@
             "maven": true,
             "msbuild": true,
             "npm": true,
-            "nsis": false,
             "perl": false,
             "pipenv": true,
             "pwsh": true,
@@ -375,6 +379,12 @@
             "vscode": true,
             "workspace": true
           }
+        },
+        "workspaceTasks.act.path": {
+          "type": "string",
+          "description": "%config.workspaceTasks.act.path%",
+          "markdownDescription": "%config.workspaceTasks.act.path.markdown%",
+          "default": "act"
         },
         "workspaceTasks.composer.path": {
           "type": "string",
