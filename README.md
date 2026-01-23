@@ -27,6 +27,7 @@ Workspace Tasks automatically scans your workspace for the following types of ta
 - **Python Virtual Environments**: Activation/deactivation scripts in `.venv/Scripts/` directories
 - **[Docker](https://www.docker.com/)**: Docker container build tasks from Dockerfiles
 - **[Docker Compose](https://docs.docker.com/compose/)**: Multi-container orchestration tasks from `docker-compose.yml` files
+- **[GitHub Actions](https://github.com/features/actions)**: Local workflow execution via [act](https://github.com/nektos/act) from `.github/workflows/*.yml` files
 - **Workspace Tasks**: Custom tasks defined in `.workspace-tasks.json` files (see below)
 
 Tasks are organized hierarchically by workspace folder, task type, and individual tasks.
@@ -101,6 +102,132 @@ Tasks without file associations (no `globs` defined) appear under the workspace 
   }
 }
 ```
+
+### GitHub Actions Integration
+
+Run your GitHub Actions workflows locally using [act](https://github.com/nektos/act), a powerful tool that allows you to test workflows without pushing to GitHub. Workspace Tasks automatically discovers workflow files and provides a rich interface for executing them.
+
+**Features:**
+
+- **Automatic Discovery**: Scans `.github/workflows/*.yml` files and parses workflow definitions
+- **Event Support**: Run workflows for different event triggers:
+  - `push` - Simulate push events
+  - `pull_request` - Test pull request workflows
+  - `workflow_dispatch` - Manual workflow triggers with input support
+  - Any custom event defined in your workflow's `on:` clause
+- **Job Execution**: Run individual jobs from multi-job workflows
+- **Rich Input Prompts**: For `workflow_dispatch` events, the extension presents interactive prompts with:
+  - Input descriptions from workflow YAML
+  - Default values pre-filled
+  - Required field validation
+  - Type hints (string, boolean, choice, etc.)
+- **Status Indicators**: Real-time visual feedback with running/success/failure icons
+- **Configuration Options**: Full control over act execution environment
+
+**Configuration Settings:**
+
+Configure how act runs in your VS Code settings (`settings.json`):
+
+```json
+{
+  // Path to act executable (absolute or relative to workspace root)
+  "workspaceTasks.act.path": "act",  // or "tools/act/act.exe" for custom location
+  
+  // Environment file for act (sets environment variables)
+  "workspaceTasks.act.envFile": ".env",
+  
+  // Variables file (alternative to inline variables)
+  "workspaceTasks.act.variablesFile": ".act.vars",
+  
+  // Secrets file (for sensitive data like API keys)
+  "workspaceTasks.act.secretsFile": ".act.secrets",
+  
+  // Inline variables (passed as --var key=value)
+  "workspaceTasks.act.variables": {
+    "ENVIRONMENT": "development",
+    "VERSION": "1.0.0"
+  }
+}
+```
+
+**Workflow Example:**
+
+Given a workflow file `.github/workflows/build.yml`:
+
+```yaml
+name: Build & Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: npm run build
+  
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test
+        run: npm test
+```
+
+**Task Tree Structure:**
+
+The extension will create the following task structure:
+
+```
+GitHub Actions
+└── Build & Test
+    ├── Run Workflow (push)
+    ├── Run Workflow (pull_request)
+    ├── Run Workflow (workflow_dispatch)  // Shows input prompts when run
+    ├── Run Job: build
+    └── Run Job: test
+```
+
+**Running Workflows:**
+
+1. **Event-based Execution**: Click "Run Workflow (push)" to simulate a push event
+2. **Manual Dispatch**: Click "Run Workflow (workflow_dispatch)" - you'll be prompted for inputs:
+   - Environment selection with description and default value
+   - Debug toggle with type hint
+3. **Job Execution**: Run specific jobs in isolation with "Run Job: build" or "Run Job: test"
+
+**Requirements:**
+
+- Install [act](https://github.com/nektos/act) on your system
+- Docker must be running (act uses Docker containers to execute workflows)
+- Configure `workspaceTasks.act.path` if act is not in your PATH
+
+**Tips:**
+
+- Use `.act.secrets` to store GitHub tokens and API keys (add to `.gitignore`)
+- Configure environment variables in `.env` for consistent local testing
+- Test `workflow_dispatch` inputs locally before pushing to GitHub
+- Run individual jobs to speed up debugging specific workflow steps
 
 #### Configuration Schema
 
@@ -288,6 +415,7 @@ Workspace Tasks provides comprehensive support for various build tools, task run
 | **Python venv** | `**/.venv/Scripts/activate.*`, `**/.venv/Scripts/deactivate.*` | Finds Python virtual environment activation and deactivation scripts. |
 | **[Docker](https://www.docker.com/)** | `**/Dockerfile`, `**/dockerfile`, `**/*.dockerfile` | Identifies Docker container definition files for building images. |
 | **[Docker Compose](https://docs.docker.com/compose/)** | `**/docker-compose.yml` | Discovers multi-container application orchestration tasks. Common tasks include starting services (`up`), stopping services (`down`), viewing logs, and rebuilding containers. |
+| **[GitHub Actions](https://github.com/features/actions)** | `**/.github/workflows/*.{yml,yaml}` | Parses GitHub Actions workflow files for local execution with [act](https://github.com/nektos/act). Supports multiple event types, workflow_dispatch inputs, and individual job execution. |
 
 ### VS Code & Custom
 
@@ -324,6 +452,7 @@ Workspace Tasks provides comprehensive support for various build tools, task run
   - [Pipenv](https://pipenv.pypa.io/) for Pipenv tasks
   - [Docker](https://www.docker.com/) for Dockerfile tasks
   - [Docker Compose](https://docs.docker.com/compose/) for Docker Compose tasks
+  - [act](https://github.com/nektos/act) and [Docker](https://www.docker.com/) for GitHub Actions workflows
   - Bash, PowerShell, or other shell interpreters for shell scripts
 
 > [!NOTE]

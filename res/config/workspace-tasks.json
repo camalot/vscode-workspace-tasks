@@ -1,5 +1,5 @@
 {
-  "$schema": "./../res/schemas/workspace-tasks.schema.json",
+  "$schema": "../schemas/workspace-tasks.schema.json",
   "pipenv": {
     "version": "2.0.0",
     "globs": {

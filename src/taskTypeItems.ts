@@ -176,6 +176,17 @@ export class ComposerTaskTypeItem extends TaskTypeGroupItem {
   }
 }
 
+export class GithubActionsTaskTypeItem extends TaskTypeGroupItem {
+  constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
+    super('github-actions', vscode.Uri.file('/.github/workflows/main.yml'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+    const iconService = TaskIconService.getInstance();
+    const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/.github/workflows/main.yml'));
+    if (iconUri?.TaskIcon) {
+      this.iconPath = iconUri.TaskIcon;
+    }
+  }
+}
+
 export class WorkspaceTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
     // Use a generic name or the specific file name for the icon
@@ -219,6 +230,8 @@ export class TaskTypeFactory {
         return new NpmTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'vscode':
         return new VscodeTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+      case 'github-actions':
+        return new GithubActionsTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'script':
         return new ScriptTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'makefile':

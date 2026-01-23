@@ -9,6 +9,7 @@ export class TaskItem extends vscode.TreeItem {
     public taskSource: string | undefined;
     public taskFileUri?: vscode.Uri;
     public parent?: TaskItem;
+    public metadata?: any;
 
     // Static counter for ensure unique IDs within a session if needed,
     // though determinstic IDs are better for state preservation.

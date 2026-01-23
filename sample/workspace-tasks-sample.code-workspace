@@ -11,6 +11,10 @@
 		}
 	],
 	"settings": {
-		"powershell.cwd": "npm-grouping"
+		"powershell.cwd": "npm-grouping",
+		"workspaceTasks.shellEnabledTaskTypes": {
+			"batch": true
+		},
+		"workspaceTasks.act.path": "tools/act/act"
 	}
 }

@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-// @ts-ignore
-import * as fileTasksData from '../workspace-tasks.json';
+import * as fs from 'fs';
 import { TaskFilesService } from './taskFilesService';
-import { parseJsonWithComments } from '../libs/jsonUtils'
+import { parseJsonWithComments } from '../libs/jsonUtils';
 
 interface TaskInput {
   id: string;
@@ -39,11 +38,10 @@ interface FileTasksConfig {
 
 export class WorkspaceTasksService {
   private static instance: WorkspaceTasksService;
-  private config: FileTasksConfig;
+  private config: FileTasksConfig = {};
+  private context?: vscode.ExtensionContext;
 
   private constructor() {
-    this.config = parseJsonWithComments(JSON.stringify(fileTasksData)); // Deep copy initial config
-    this.loadWorkspaceConfig();
   }
 
   public static getInstance(): WorkspaceTasksService {
@@ -53,8 +51,28 @@ export class WorkspaceTasksService {
     return WorkspaceTasksService.instance;
   }
 
+  public initialize(context: vscode.ExtensionContext) {
+      this.context = context;
+      this.loadWorkspaceConfig();
+  }
+
   private async loadWorkspaceConfig() {
-    const newConfig: FileTasksConfig = parseJsonWithComments(JSON.stringify(fileTasksData));
+    let newConfig: FileTasksConfig = {};
+    if (this.context) {
+        const defaultsPath = path.join(this.context.extensionPath, 'res', 'config', 'workspace-tasks.json');
+      console.debug(`[WorkspaceTasksService]: Loading default workspace tasks from ${defaultsPath}`);
+        try {
+            if (fs.existsSync(defaultsPath)) {
+                const content = await fs.promises.readFile(defaultsPath, 'utf8');
+                newConfig = parseJsonWithComments(content);
+            }
+        } catch (e) {
+            console.error(`[WorkspaceTasksService]: Failed to load default workspace tasks from ${defaultsPath}`, e);
+        }
+    } else {
+      console.warn('[WorkspaceTasksService]: No extension context available, skipping default workspace tasks load');
+    }
+
     const filesService = TaskFilesService.getInstance();
     const files = await filesService.findFiles(['**/.workspace-tasks.json']);
     if (files.length > 0) {

@@ -44,17 +44,35 @@
   "config.workspaceTasks.enabledTaskTypes.maven": "Maven",
   "config.workspaceTasks.enabledTaskTypes.msbuild": "MSBuild",
   "config.workspaceTasks.enabledTaskTypes.npm": "NPM",
-  "config.workspaceTasks.enabledTaskTypes.perl": "Perl",
   "config.workspaceTasks.enabledTaskTypes.pipenv": "Pipenv",
-  "config.workspaceTasks.enabledTaskTypes.pwsh": "PowerShell",
-  "config.workspaceTasks.enabledTaskTypes.python": "Python",
-  "config.workspaceTasks.enabledTaskTypes.ruby": "Ruby",
   "config.workspaceTasks.enabledTaskTypes.shell": "Scripts",
   "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
   "config.workspaceTasks.enabledTaskTypes.venv": "Virtual Environment",
   "config.workspaceTasks.enabledTaskTypes.vscode": "VS Code",
   "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
+
+  "config.workspaceTasks.shellEnabledTaskTypes": "Supported Shell Task Types",
+  "config.workspaceTasks.shellEnabledTaskTypes.markdown": "Enable support for specific shell script types. This allows the extension to recognize and run tasks defined in these shell scripts.",
+
+  "config.workspaceTasks.shellEnabledTaskTypes.bash": "Bash",
+  "config.workspaceTasks.shellEnabledTaskTypes.batch": "Batch",
+  "config.workspaceTasks.shellEnabledTaskTypes.fish": "Fish",
+  "config.workspaceTasks.shellEnabledTaskTypes.nushell": "NuShell",
+  "config.workspaceTasks.shellEnabledTaskTypes.perl": "Perl",
+  "config.workspaceTasks.shellEnabledTaskTypes.pwsh": "PowerShell",
+  "config.workspaceTasks.shellEnabledTaskTypes.python": "Python",
+  "config.workspaceTasks.shellEnabledTaskTypes.ruby": "Ruby",
+  "config.workspaceTasks.shellEnabledTaskTypes.sh": "Shell",
+  "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
+  "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
+
+  "config.workspaceTasks.shellAdditionalExtensions": "Additional File Extensions for Shell Tasks",
+  "config.workspaceTasks.shellAdditionalExtensions.markdown": "Add extra file extensions (beyond the default ones) that should be treated as shell tasks. Use a key-value format where the key is a glob pattern (e.g., `**/*.myscript`) and the value is the path to the shell interpreter (e.g., `/usr/local/bin/myshell`). This allows you to run custom script files as tasks within the extension.",
+
+  "config.workspaceTasks.shellPaths": "Specify Shell Interpreter Paths",
+  "config.workspaceTasks.shellPaths.markdown": "Specify custom paths for shell interpreters. Use a key-value format where the key is the shell type (e.g., `bash`, `pwsh`) and the value is the path to the shell executable (e.g., `/usr/local/bin/bash`). This allows you to customize which shell interpreters are used for running shell tasks.",
+
 
   "config.workspaceTasks.groups.enabled": "Group Tasks",
   "config.workspaceTasks.groups.taskSeparator": "Task Separator",
@@ -70,6 +88,17 @@
 
   "config.workspaceTasks.act.path": "Path to Act executable",
   "config.workspaceTasks.act.path.markdown": "Specify the path to the [Act](https://github.com/nektos/act) executable. On Windows, if the path ends with `act`, `.exe` will be appended automatically. Act allows you to run GitHub Actions locally.",
+
+  "workspaceTasks.act.envFile": "Path to Act environment variables file",
+  "workspaceTasks.act.envFile.markdown": "Specify the path to a .env file containing environment variables for Act. This file will be used to provide environment variable values when running GitHub Actions locally with Act. For examples of the file format see the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure)",
+
+  "workspaceTasks.act.secretsFile": "Path to Act secrets file",
+  "workspaceTasks.act.secretsFile.markdown": "Specify the path to a .env file containing secrets for Act. This file will be used to provide secret values when running GitHub Actions locally with Act. For examples of the file format see the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure",
+
+  "workspaceTasks.act.variables": "Variables for Act",
+  "workspaceTasks.act.variables.markdown": "Variables to pass to 'act'. Each key-value pair represents a variable name and its corresponding value.",
+  "workspaceTasks.act.variablesFile": "Path to Act variables file",
+  "workspaceTasks.act.variablesFile.markdown": "Path to the variables file for `act`. The file format is the same as `.env` file format.",
 
   "config.workspaceTasks.ant.path": "Path to Ant executable",
   "config.workspaceTasks.ant.path.markdown": "Specify the path to the Ant executable. On Windows, if the path ends with `ant`, `.bat` will be appended automatically.",

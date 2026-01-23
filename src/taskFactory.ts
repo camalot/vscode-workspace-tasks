@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { AntTaskProvider } from './providers/antTaskProvider';
@@ -60,7 +61,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
 
       const gradleArgs = [taskLabel];
       if (args) {
-         gradleArgs.push(...args.split(' '));
+        gradleArgs.push(...args.split(' '));
       }
 
       let full: string;
@@ -68,19 +69,19 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
 
       // Check if command is a path with spaces
       if (gradleCmd.includes(' ')) {
-          shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd });
-          full = `"${gradleCmd}" ${gradleArgs.join(' ')}`;
+        shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd });
+        full = `"${gradleCmd}" ${gradleArgs.join(' ')}`;
       } else {
-          full = `${gradleCmd} ${gradleArgs.join(' ')}`;
-          shellExec = new vscode.ShellExecution(full, { cwd });
+        full = `${gradleCmd} ${gradleArgs.join(' ')}`;
+        shellExec = new vscode.ShellExecution(full, { cwd });
       }
 
       const task = new vscode.Task(
-          { type: 'gradle', script: taskLabel },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'gradle',
-          shellExec
+        { type: 'gradle', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'gradle',
+        shellExec
       );
       return { task, command: full, cwd };
     }
@@ -92,8 +93,8 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
 
       const composerArgs = ['run-script', taskLabel];
       if (args) {
-         composerArgs.push('--');
-         composerArgs.push(...args.split(' '));
+        composerArgs.push('--');
+        composerArgs.push(...args.split(' '));
       }
 
       // If composerCmd has spaces and is not quoted, quote it? ShellExecution handles args, but command string...
@@ -104,20 +105,20 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
 
       // Check if command is a path with spaces
       if (composerCmd.includes(' ')) {
-          // Use formatted command string for ShellExecution if we want to be safe or just pass executable and args array
-          shellExec = new vscode.ShellExecution(composerCmd, composerArgs, { cwd });
-          full = `"${composerCmd}" ${composerArgs.join(' ')}`;
+        // Use formatted command string for ShellExecution if we want to be safe or just pass executable and args array
+        shellExec = new vscode.ShellExecution(composerCmd, composerArgs, { cwd });
+        full = `"${composerCmd}" ${composerArgs.join(' ')}`;
       } else {
-          full = `${composerCmd} ${composerArgs.join(' ')}`;
-          shellExec = new vscode.ShellExecution(full, { cwd });
+        full = `${composerCmd} ${composerArgs.join(' ')}`;
+        shellExec = new vscode.ShellExecution(full, { cwd });
       }
 
       const task = new vscode.Task(
-          { type: 'composer', script: taskLabel },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'composer',
-          shellExec
+        { type: 'composer', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'composer',
+        shellExec
       );
       return { task, command: full, cwd };
     }
@@ -254,6 +255,148 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         return { task, command: fullCommand, cwd };
       }
       return undefined;
+    }
+    case 'github-actions': {
+      let actPath = vscode.workspace.getConfiguration('workspaceTasks').get<string>('act.path') || 'act';
+      // if the path is relative, set the working directory to the root of the workspace.
+      let actCwd = cwd;
+      if (!path.isAbsolute(actPath)) {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders && workspaceFolders.length > 0) {
+          actPath = path.join(workspaceFolders[0].uri.fsPath, actPath);
+          actCwd = workspaceFolders[0].uri.fsPath;
+        }
+      }
+
+      if (process.platform === 'win32' && actPath.endsWith('act')) {
+        // On Windows, if user specified 'act' without .exe, append it
+        if (!actPath.toLowerCase().endsWith('.exe')) {
+          // Check if act.exe exists in the same directory
+          const actExePath = actPath + '.exe';
+          actPath = actExePath;
+        }
+      }
+
+
+      const meta = item.metadata;
+      const actArgs: string[] = [];
+      const config = vscode.workspace.getConfiguration('workspaceTasks');
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+
+
+      // this should be the first argument.
+      if (meta?.type === 'workflow') {
+        if (meta.event === 'workflow_dispatch' && meta.inputs) {
+          const inputsObj = meta.inputs as Record<string, any>;
+          // Handle both old string[] interface (fallback) and new Record interface
+          if (Array.isArray(inputsObj)) {
+            for (const input of inputsObj) {
+              const val = await vscode.window.showInputBox({
+                prompt: `Enter input for '${input}'`,
+                placeHolder: 'Value',
+                ignoreFocusOut: true
+              });
+              if (val) {
+                actArgs.push('--input', `${input}=${val}`);
+              }
+            }
+          } else {
+            for (const [key, details] of Object.entries(inputsObj)) {
+              const desc = details.description || `Enter value for ${key}`;
+              const defaultVal = details.default !== undefined ? String(details.default) : '';
+              const required = details.required || false;
+              // type: string, boolean, choice, environment, ...
+              // For now treat all as string input
+
+              const val = await vscode.window.showInputBox({
+                prompt: desc,
+                placeHolder: `${key} (${details.type || 'string'})`,
+                value: defaultVal,
+                ignoreFocusOut: true,
+                validateInput: (text) => {
+                  if (required && !text) {
+                    return "This input is required";
+                  }
+                  return null;
+                }
+              });
+
+              if (val) {
+                actArgs.push('--input', `${key}=${val}`);
+              }
+            }
+          }
+          actArgs.push('workflow_dispatch');
+        } else {
+          actArgs.push(meta.event || 'push');
+        }
+
+        // Handle Env File
+        let envFile = config.get<string>('act.envFile');
+        if (envFile) {
+          actArgs.push('--env-file', envFile as string);
+        }
+
+        // Handle Variables File
+        let varsFile = config.get<string>('act.variablesFile');
+        if (varsFile) {
+          actArgs.push('--var-file', varsFile as string);
+        }
+
+        // Handle Secrets File
+        let secretsFile = config.get<string>('act.secretsFile');
+        if (secretsFile) {
+          actArgs.push('--secret-file', secretsFile as string);
+        }
+
+        // Handle Variables
+        const vars = config.get<Record<string, string>>('act.variables');
+        if (vars) {
+          for (const [key, value] of Object.entries(vars)) {
+            actArgs.push('--var', `${key}=${value}`);
+          }
+        }
+
+        const wf = vscode.workspace.getWorkspaceFolder(resourceUri);
+        if (wf) {
+          const relPath = path.relative(wf.uri.fsPath, resourceUri.fsPath);
+          actArgs.push('-W', relPath);
+        } else {
+          actArgs.push('-W', resourceUri.fsPath);
+        }
+
+      } else if (meta?.type === 'job') {
+        actArgs.push('-j', meta.jobId);
+        const wf = vscode.workspace.getWorkspaceFolder(resourceUri);
+        if (wf) {
+          const relPath = path.relative(wf.uri.fsPath, resourceUri.fsPath);
+          actArgs.push('-W', relPath);
+        }
+      } else {
+        actArgs.push('push');
+        const wf = vscode.workspace.getWorkspaceFolder(resourceUri);
+        if (wf) {
+          const relPath = path.relative(wf.uri.fsPath, resourceUri.fsPath);
+          actArgs.push('-W', relPath);
+        }
+      }
+
+      if (args) {
+        actArgs.push(...args.split(' '));
+      }
+
+      const task = new vscode.Task(
+        { type: 'github-actions', task: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'github-actions',
+        new vscode.ShellExecution(actPath, actArgs, { cwd: actCwd })
+      );
+      // Reconstruct command string for display/logging purposes mostly
+      const safeCmd = /\s/.test(actPath) ? `"${actPath}"` : actPath;
+      const full = `${safeCmd} ${actArgs.map(a => /\s/.test(a) ? `"${a}"` : a).join(' ')}`;
+
+      return { task, command: full, cwd: actCwd };
     }
     case 'vscode': {
       // Use existing VS Code task defined in .vscode/tasks.json

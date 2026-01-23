@@ -14,10 +14,10 @@ import { TaskFilesService } from './services/taskFilesService';
 import { TaskCacheService } from './services/taskCacheService';
 import { ExtensionConfigurationService } from './services/extensionConfigurationService';
 import { TaskIconService } from './services/taskIconService';
+import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { WorkspaceTasksProvider } from './providers/workspaceTasksProvider';
 import { AntTaskProvider } from './providers/antTaskProvider';
-import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
-import { GruntTaskProvider } from './providers/gruntTaskProvider';
+import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';import { GruntTaskProvider } from './providers/gruntTaskProvider';
 import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
@@ -28,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
   TaskFilesService.getInstance().initialize(context);
   TaskCacheService.getInstance().initialize(context);
   TaskIconService.getInstance().initialize(context);
+  WorkspaceTasksService.getInstance().initialize(context);
   const taskTreeDataProvider = new TaskTreeDataProvider(context);
 
   // Register Providers
@@ -43,6 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.registerProvider(new GulpTaskProvider());
   taskTreeDataProvider.registerProvider(new GruntTaskProvider());
   taskTreeDataProvider.registerProvider(new MsBuildTaskProvider());
+  taskTreeDataProvider.registerProvider(new GithubActionsTaskProvider());
   taskTreeDataProvider.registerProvider(new GradleTaskProvider());
   taskTreeDataProvider.registerProvider(new PipenvTaskProvider());
 

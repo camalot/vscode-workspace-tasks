@@ -45,7 +45,6 @@
     "c c++",
     "gradle",
     "tsc",
-    "nsis",
     "batch",
     "bash"
   ],
@@ -73,19 +72,20 @@
     "@typescript-eslint/parser": "^8.53.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "typescript-eslint": "^8.53.1",
     "eslint": "^9.39.2",
     "glob": "^13.0.0",
     "mocha": "^11.7.5",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1",
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "fast-xml-parser": "^5.3.3",
     "ignore": "^7.0.5",
-    "smol-toml": "^1.6.0"
+    "smol-toml": "^1.6.0",
+    "yaml": "^2.8.2"
   },
   "contributes": {
     "languages": [
@@ -232,6 +232,42 @@
       "type": "object",
       "title": "%view.name%",
       "properties": {
+        "workspaceTasks.act.path": {
+          "type": "string",
+          "default": "act",
+          "description": "%config.workspaceTasks.act.path%",
+          "markdownDescription": "%config.workspaceTasks.act.path.markdown%",
+          "scope": "resource"
+        },
+        "workspaceTasks.act.envFile": {
+          "type": "string",
+          "default": "",
+          "description": "%workspaceTasks.act.envFile%",
+          "markdownDescription": "%workspaceTasks.act.envFile.markdown%",
+          "scope": "resource"
+        },
+        "workspaceTasks.act.variablesFile": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a file containing variables to pass to act (e.g. .vars).",
+          "scope": "resource"
+        },
+        "workspaceTasks.act.variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "%workspaceTasks.act.variables%",
+          "markdownDescription": "%workspaceTasks.act.variables.markdown%",
+          "scope": "resource"
+        },
+        "workspaceTasks.act.secretsFile": {
+          "type": "string",
+          "default": ".secrets",
+          "description": "%workspaceTasks.act.secretsFile%",
+          "markdownDescription": "%workspaceTasks.act.secretsFile.markdown%",
+          "scope": "resource"
+        },
         "workspaceTasks.exclude": {
           "type": "array",
           "items": {
@@ -254,6 +290,122 @@
           "default": "",
           "description": "%config.workspaceTasks.groups.taskSeparator.description%",
           "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%"
+        },
+        "workspaceTasks.shellEnabledTaskTypes": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "%config.workspaceTasks.shellEnabledTaskTypes%",
+          "markdownDescription": "%config.workspaceTasks.shellEnabledTaskTypes.markdown%",
+          "properties": {
+            "bash": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.bash%"
+            },
+            "batch": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.batch%"
+            },
+            "fish": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%"
+            },
+            "nushell": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.nushell%"
+            },
+            "perl": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.perl%"
+            },
+            "pwsh": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.pwsh%"
+            },
+            "python": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.python%"
+            },
+            "ruby": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.ruby%"
+            },
+            "sh": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.sh%"
+            },
+            "zsh": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.zsh%"
+            },
+            "other": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.other%"
+            }
+          },
+          "default": {
+            "bash": true,
+            "sh": true,
+            "zsh": true,
+            "fish": true,
+            "nushell": true,
+            "perl": true,
+            "pwsh": true,
+            "python": true,
+            "ruby": true,
+            "other": true
+          }
+        },
+        "workspaceTasks.shellPaths": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "%config.workspaceTasks.shellPaths%",
+          "markdownDescription": "%config.workspaceTasks.shellPaths.markdown%",
+          "properties": {
+            "bash": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.bash%"
+            },
+            "sh": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.sh%"
+            },
+            "zsh": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.zsh%"
+            },
+            "fish": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%"
+            },
+            "nushell": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.nushell%"
+            },
+            "perl": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.perl%"
+            },
+            "pwsh": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.pwsh%"
+            },
+            "python": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.python%"
+            },
+            "ruby": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.ruby%"
+            }
+          }
+        },
+        "workspaceTasks.shellAdditionalExtensions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "%config.workspaceTasks.shellAdditionalExtensions%",
+          "markdownDescription": "%config.workspaceTasks.shellAdditionalExtensions.markdown%"
         },
         "workspaceTasks.enabledTaskTypes": {
           "type": "object",
@@ -313,25 +465,9 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.npm%"
             },
-            "perl": {
-              "type": "boolean",
-              "description": "%config.workspaceTasks.enabledTaskTypes.perl%"
-            },
             "pipenv": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.pipenv%"
-            },
-            "pwsh": {
-              "type": "boolean",
-              "description": "%config.workspaceTasks.enabledTaskTypes.pwsh%"
-            },
-            "python": {
-              "type": "boolean",
-              "description": "%config.workspaceTasks.enabledTaskTypes.python%"
-            },
-            "ruby": {
-              "type": "boolean",
-              "description": "%config.workspaceTasks.enabledTaskTypes.ruby%"
             },
             "tsc": {
               "type": "boolean",
@@ -368,23 +504,13 @@
             "maven": true,
             "msbuild": true,
             "npm": true,
-            "perl": false,
             "pipenv": true,
-            "pwsh": true,
-            "python": true,
-            "ruby": false,
             "tsc": true,
             "yarn": true,
             "venv": true,
             "vscode": true,
             "workspace": true
           }
-        },
-        "workspaceTasks.act.path": {
-          "type": "string",
-          "description": "%config.workspaceTasks.act.path%",
-          "markdownDescription": "%config.workspaceTasks.act.path.markdown%",
-          "default": "act"
         },
         "workspaceTasks.composer.path": {
           "type": "string",
