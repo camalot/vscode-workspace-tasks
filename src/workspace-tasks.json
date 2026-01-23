@@ -1,5 +1,53 @@
 {
   "$schema": "./../res/schemas/workspace-tasks.schema.json",
+  "pipenv": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/[pP]ip[fF]ile"]
+    },
+    "iconUri": "Pipfile",
+    "tasks": [
+      {
+        "label": "Install Dependencies",
+        "type": "shell",
+        "command": "pipenv install",
+        "group": "build"
+      },
+      {
+        "label": "Check Dependencies",
+        "type": "shell",
+        "command": "pipenv check",
+        "group": "build"
+      },
+      {
+        "label": "Generate Pipfile.lock",
+        "type": "shell",
+        "command": "pipenv lock",
+        "group": "build"
+      }
+    ]
+  },
+  "docker-compose": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/docker-compose.yml"]
+    },
+    "iconUri": "docker-compose.yml",
+    "tasks": [
+      {
+        "label": "Start Services",
+        "type": "shell",
+        "command": "docker-compose up -d",
+        "group": "build"
+      },
+      {
+        "label": "Stop Services",
+        "type": "shell",
+        "command": "docker-compose down",
+        "group": "build"
+      }
+    ]
+  },
   "dockerfile": {
     "version": "2.0.0",
     "globs": {
@@ -7,6 +55,7 @@
         "{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"
       ]
     },
+    "iconUri": "dockerfile",
     "inputs": [
       {
         "id": "Name",
@@ -30,12 +79,32 @@
       }
     ]
   },
+  "typescript": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/tsconfig.json"]
+    },
+    "iconUri": "tsconfig.json",
+    "tasks": [
+      {
+        "label": "Compile",
+        "type": "shell",
+        "command": "npx tsc -p {{ .FileName }}",
+        "group": "build"
+      },
+      {
+        "label": "Watch",
+        "type": "shell",
+        "command": "npx tsc -p {{ .FileName }} --watch",
+        "group": "build"
+      }
+    ]
+  },
   "npm": {
     "version": "2.0.0",
     "globs": {
       "include": ["**/package.json"]
     },
-    "iconUri": "package.json",
     "tasks": [
       {
         "label": "Install Dependencies",
@@ -48,10 +117,9 @@
   "venv": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/.venv/pyvenv.cfg"],
-      "exclude": ["**/node_modules/**", "**/.git/**"]
+      "include": ["**/.venv/pyvenv.cfg"]
     },
-    "iconUri": "{{ .FileName }}.py",
+    "iconUri": "venv.py",
     "tasks": [
       {
         "label": "Create Virtual Environment",

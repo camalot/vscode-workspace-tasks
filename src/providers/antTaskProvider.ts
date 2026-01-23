@@ -6,6 +6,8 @@ import { configuration } from "../libs/configuration";
 import { TaskItem } from "../taskItem";
 import { BaseTaskProvider, TaskProvider } from "../taskProvider";
 import constants from '../libs/constants';
+import { TaskFilesService } from "../services/taskFilesService";
+import { TaskIconService } from "../services/taskIconService";
 
 export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
 
@@ -18,8 +20,11 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
       return [];
     }
 
+    const iconService = TaskIconService.getInstance();
+
     const tasks: TaskItem[] = [];
-    const xmlFiles = await vscode.workspace.findFiles(constants.GLOB_ANT, constants.GLOB_GLOBAL_EXCLUDE);
+    const filesService = TaskFilesService.getInstance();
+    const xmlFiles = await filesService.findFiles([constants.GLOB_ANT]);
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_'
@@ -43,24 +48,20 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
         // Extract targets from the Ant file
         const targets = this.extractTargets(xmlData);
 
-        let iconPath: { light: vscode.Uri; dark: vscode.Uri } | undefined;
-        if (this.context) {
-          iconPath = {
-            light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
-            dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
-          };
-        }
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'build.xml'));
+        const iconPath = iconService.getTaskTypeIcon(this.type, fallback);
 
         for (const target of targets) {
           const item = new TaskItem(
             target.name,
             vscode.TreeItemCollapsibleState.None,
             this.type,
-            file,
+            iconPath?.DisplayUri || file,
             undefined,
-            iconPath
+            iconPath?.TaskIcon || undefined
           );
 
+          item.taskFileUri = file;
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = target.description || target.name;
 
@@ -191,7 +192,10 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
 
       // If it's a relative path and we have a workspace, resolve it
       if (!path.isAbsolute(antPath) && workspaceUri) {
-        resolvedPath = path.join(workspaceUri.fsPath, antPath);
+        const localPath = path.join(workspaceUri.fsPath, antPath);
+        if (fs.existsSync(localPath)) {
+            resolvedPath = localPath;
+        }
       }
 
       // If it's a full path to an executable file

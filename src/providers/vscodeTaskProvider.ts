@@ -3,6 +3,8 @@ import * as path from 'path';
 import { TaskProvider, BaseTaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
+import { TaskFilesService } from '../services/taskFilesService';
+import { TaskIconService } from '../services/taskIconService';
 
 export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -14,12 +16,15 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       return [];
     }
     const tasks: TaskItem[] = [];
-    const files = await vscode.workspace.findFiles(
-      constants.GLOB_VSCODE, constants.GLOB_GLOBAL_EXCLUDE
-    );
+    const filesService = TaskFilesService.getInstance();
+    const iconService = TaskIconService.getInstance();
+    const files = await filesService.findFiles([constants.GLOB_VSCODE]);
 
     for (const file of files) {
       try {
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'vscode.code-workspace'));
+        const iconUri = iconService.getTaskTypeIcon(this.type, fallback);
+
         const document = await vscode.workspace.openTextDocument(file);
         const text = document.getText();
         // Simple regex to strip comments.
@@ -44,29 +49,15 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
         if (json && json.tasks && Array.isArray(json.tasks)) {
           for (const task of json.tasks) {
             const label = task.label || 'Unnamed Task';
-
-            // Fake URI for icon (.code-workspace)
-            let iconUri = file;
-            if (file.path.endsWith('.json')) {
-              iconUri = file.with({ path: file.path.replace(/\.json$/, '.code-workspace') });
-            }
-
-            let iconPath: { light: vscode.Uri; dark: vscode.Uri } | undefined;
-            if (this.context) {
-                iconPath = {
-                  light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
-                  dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
-                };
-            }
-
             const item = new TaskItem(
               label,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconUri,
+              iconUri?.DisplayUri || file,
               undefined,
-              iconPath
+              iconUri?.TaskIcon || undefined
             );
+            item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             // We do NOT set defaultIconPath, so it uses resourceUri (iconUri)
 

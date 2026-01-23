@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { findFilesByGlobAndLanguage } from '../libs/fileUtils';
-import { TaskConfigService } from '../services/taskConfigService';
 import constants from '../libs/constants';
+import { TaskIconService } from '../services/taskIconService';
+import { TaskFilesService } from '../services/taskFilesService';
 
 export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvider {
     constructor() {
@@ -14,16 +14,18 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
             return [];
         }
         const tasks: TaskItem[] = [];
+        const iconService = TaskIconService.getInstance();
+        const filesService = TaskFilesService.getInstance();
 
-        const files = await findFilesByGlobAndLanguage(
-          constants.GLOB_MAKE, constants.GLOB_GLOBAL_EXCLUDE, constants.LANGUAGE_MAKE
-        );
+        const files = await filesService.findFiles([constants.GLOB_MAKE]);
 
         for (const file of files) {
             try {
                 const document = await vscode.workspace.openTextDocument(file);
                 const content = document.getText();
                 const lines = content.split('\n');
+
+                const iconUri = iconService.getTaskTypeIcon('makefile', file);
 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
@@ -36,9 +38,12 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
                          const item = new TaskItem(
                             target,
                             vscode.TreeItemCollapsibleState.None,
-                            'makefile',
-                            file
+                            this.type,
+                            iconUri?.DisplayUri || file,
+                            undefined,
+                            iconUri?.TaskIcon || undefined
                         );
+                        item.taskFileUri = file;
                         item.description = vscode.workspace.asRelativePath(file);
                         item.startLine = i;
 

@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { findFilesByGlobAndLanguage } from '../libs/fileUtils';
 import { WorkspaceTasksService } from '../services/workspaceTasksService';
 import { TaskConfigService } from '../services/taskConfigService';
 import constants from '../libs/constants';
 import * as path from 'path';
+import { TaskIconService } from '../services/taskIconService';
+import { TaskFilesService } from '../services/taskFilesService';
 
 export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -19,6 +20,8 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
     }
     const tasks: TaskItem[] = [];
     const service = WorkspaceTasksService.getInstance();
+    const iconService = TaskIconService.getInstance();
+    const filesService = TaskFilesService.getInstance();
 
     const providers = await service.getProviders();
     for (const provider of providers) {
@@ -36,7 +39,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
       const glob_include = config.globs?.include || [];
       const glob_exclude = config.globs?.exclude || [];
-      const exclude_joined = glob_exclude.concat(constants.GLOB_GLOBAL_EXCLUDE).join(',');
+      const exclude_joined = glob_exclude.concat(constants.GLOB_GLOBAL_EXCLUDE);
 
       let langId = provider || 'shell';
       if (provider === this.type) {
@@ -55,22 +58,18 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
           // Use sourceUri if available (the .workspace-tasks.json file)
           const resourceUri = taskDef.sourceUri;
 
-          let iconPath: { light: vscode.Uri; dark: vscode.Uri } | undefined;
-          if (this.context) {
-             iconPath = {
-                light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', 'task.svg')),
-                dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', 'task.svg'))
-             };
-          }
+          const iconUri = iconService.getTaskTypeIcon("task", resourceUri);
+
 
           const item = new TaskItem(
             taskDef.label,
             vscode.TreeItemCollapsibleState.None,
             this.type, // Unique task type
-            resourceUri,
+            iconUri?.DisplayUri || resourceUri,
             undefined,
-            iconPath
+            iconUri?.TaskIcon || undefined
           );
+          item.taskFileUri = resourceUri;
           item.taskSource = provider;
 
           // Default click action: Open file at line
@@ -87,28 +86,27 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
       console.debug(`Searching files for provider ${provider} with include globs: ${glob_include.join(',')} and exclude globs: ${glob_exclude.join(',')}`);
 
-      // Join globs safely
-      const includePattern = glob_include.length > 1 ? `{${glob_include.join(',')}}` : glob_include.join(',');
-
-      const files = await findFilesByGlobAndLanguage(
-        includePattern,
-        exclude_joined,
-        provider
-      );
+      const files = await filesService.findFiles(glob_include, exclude_joined);
       for (const file of files) {
+        const configIconUri = config.iconUri;
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), configIconUri || path.basename(file.fsPath || "")));
+        const iconUri = iconService.getTaskTypeIcon(langId, fallback);
+
         for (const taskDef of taskDefs) {
           console.debug(`Creating task item for file ${file.fsPath} with task ${taskDef.label}`);
           const item = new TaskItem(
             taskDef.label,
             vscode.TreeItemCollapsibleState.None,
             langId, // Use the language ID as the type
-            file
+            iconUri?.DisplayUri || fallback,
+            undefined,
+            iconUri?.TaskIcon || undefined
           );
+          item.taskFileUri = file;
 
           // Mark this item as backed by a workspace-defined task so TaskRunner
           // can resolve the declared command rather than using the default type handler
           item.taskSource = provider;
-
           item.description = vscode.workspace.asRelativePath(file);
 
           // We'll set command to simple open file for double click,

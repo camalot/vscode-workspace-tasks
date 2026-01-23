@@ -25,6 +25,7 @@ export class TaskConfigService {
         const taskTypeMap: Record<string, string> = {
             'npm': 'npm',
             'vscode': 'vscode',
+            'composer': 'composer',
             'script': 'shell',
             'makefile': 'make',
             'dockerfile': 'docker',

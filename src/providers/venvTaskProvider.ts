@@ -3,6 +3,8 @@ import * as path from 'path';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
+import { TaskFilesService } from '../services/taskFilesService';
+import { TaskIconService } from '../services/taskIconService';
 
 export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -13,7 +15,9 @@ export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
       return [];
     }
     const tasks: TaskItem[] = [];
-    const files = await vscode.workspace.findFiles(constants.GLOB_VENV, constants.GLOB_GLOBAL_EXCLUDE);
+    const filesService = TaskFilesService.getInstance();
+    const iconService = TaskIconService.getInstance();
+    const files = await filesService.findFiles([constants.GLOB_VENV]);
 
     for (const file of files) {
       const label = path.basename(file.fsPath);
@@ -28,6 +32,7 @@ export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
         iconUri
       );
 
+      item.taskFileUri = file;
       item.description = vscode.workspace.asRelativePath(file);
       item.command = {
         command: 'workspaceTasks.openFileAtLine',

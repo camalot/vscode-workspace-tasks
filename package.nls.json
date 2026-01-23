@@ -15,6 +15,10 @@
   "command.stopTask": "Stop Task",
   "command.refreshTasks": "Refresh Tasks",
   "command.openFileAtLine": "Open File",
+  "command.buyMeACoffee": "Buy Me a Coffee",
+  "command.githubSponsor": "Sponsor on GitHub",
+  "command.githubIssues": "Report an Issue",
+  "command.collapseAll": "Collapse All",
 
   "tree.favorites": "Favorites",
   "tree.queue": "Queue",
@@ -39,7 +43,6 @@
   "config.workspaceTasks.enabledTaskTypes.maven": "Maven",
   "config.workspaceTasks.enabledTaskTypes.msbuild": "MSBuild",
   "config.workspaceTasks.enabledTaskTypes.npm": "NPM",
-  "config.workspaceTasks.enabledTaskTypes.nsis": "NSIS",
   "config.workspaceTasks.enabledTaskTypes.perl": "Perl",
   "config.workspaceTasks.enabledTaskTypes.pipenv": "Pipenv",
   "config.workspaceTasks.enabledTaskTypes.pwsh": "PowerShell",
@@ -71,6 +74,11 @@
   "config.workspaceTasks.ant.ansicon.path.markdown": "Specify the path to the ANSICON executable. This is used to enable colored output for Ant tasks in the terminal.",
 
   "config.workspaceTasks.msbuild.path": "Path to MSBuild executable",
-  "config.workspaceTasks.msbuild.path.markdown": "Specify the path to the MSBuild executable. On Windows, if the path ends with `msbuild`, `.exe` will be appended automatically."
+  "config.workspaceTasks.msbuild.path.markdown": "Specify the path to the MSBuild executable. On Windows, if the path ends with `msbuild`, `.exe` will be appended automatically.",
 
+  "config.workspaceTasks.composer.path": "Path to Composer executable",
+  "config.workspaceTasks.composer.path.markdown": "Specify the path to the [Composer](https://getcomposer.org/) executable. On Windows, if the path ends with `composer`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.gradle.path": "Path to Gradle executable",
+  "config.workspaceTasks.gradle.path.markdown": "Specify the path to the [Gradle](https://gradle.org/) executable. On Windows, if the path ends with `gradle`, `.bat` will be appended automatically."
 }

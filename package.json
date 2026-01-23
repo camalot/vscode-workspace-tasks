@@ -16,9 +16,14 @@
     "url": "https://github.com/camalot/vscode-workspace-tasks.git"
   },
   "bugs": {
-    "url": "https://github.com/camalot/vscode-workspace-tasks/issues"
+    "url": "https://github.com/camalot/vscode-workspace-tasks/issues",
+    "new": "https://github.com/camalot/vscode-workspace-tasks/issues/new"
   },
-  "license": "MIT",
+  "sponsor": {
+    "github": "https://github.com/sponsors/camalot",
+    "buymeacoffee": "https://www.buymeacoffee.com/darthminos"
+  },
+  "license": "Apache-2.0",
   "publisher": "Ryan Conrad",
   "icon": "res/icon.png",
   "galleryBanner": {
@@ -57,7 +62,7 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint -c eslint.config.mjs .",
     "test": "node ./out/test/runTest.js"
   },
   "contributes": {
@@ -69,7 +74,21 @@
         ],
         "filenamePatterns": [
           ".tasksignore"
-        ]
+        ],
+        "icon": {
+          "light": "res/icons/light/task.svg",
+          "dark": "res/icons/dark/task.svg"
+        }
+      },
+      {
+        "id": "jsonc",
+        "filenames": [
+          ".workspace-tasks.json"
+        ],
+        "icon": {
+          "light": "res/icons/light/task.svg",
+          "dark": "res/icons/dark/task.svg"
+        }
       }
     ],
     "jsonValidation": [
@@ -101,6 +120,32 @@
         "command": "workspaceTasks.refresh",
         "title": "%command.refreshTasks%",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "workspaceTasks.collapseAll",
+        "title": "%command.collapseAll%",
+        "icon": "$(collapse-all)"
+      },
+      {
+        "command": "workspaceTasks.buyMeACoffee",
+        "title": "%command.buyMeACoffee%",
+        "icon": {
+          "light": "res/icons/light/coffee.svg",
+          "dark": "res/icons/dark/coffee.svg"
+        }
+      },
+      {
+        "command": "workspaceTasks.githubSponsor",
+        "title": "%command.githubSponsor%",
+        "icon": {
+          "light": "res/icons/light/github-sponsors.svg",
+          "dark": "res/icons/dark/github-sponsors.svg"
+        }
+      },
+      {
+        "command": "workspaceTasks.githubIssues",
+        "title": "%command.githubIssues%",
+        "icon": "$(github-inverted)"
       },
       {
         "command": "workspaceTasks.runTask",
@@ -242,10 +287,6 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.npm%"
             },
-            "nsis": {
-              "type": "boolean",
-              "description": "%config.workspaceTasks.enabledTaskTypes.nsis%"
-            },
             "perl": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.perl%"
@@ -313,6 +354,12 @@
             "workspace": true
           }
         },
+        "workspaceTasks.composer.path": {
+          "type": "string",
+          "description": "%config.workspaceTasks.composer.path%",
+          "markdownDescription": "%config.workspaceTasks.composer.path.markdown%",
+          "default": "composer"
+        },
         "workspaceTasks.msbuild.path": {
           "type": "string",
           "description": "%config.workspaceTasks.msbuild.path%",
@@ -336,14 +383,41 @@
           "description": "%config.workspaceTasks.ant.ansicon.path%",
           "markdownDescription": "%config.workspaceTasks.ant.ansicon.path.markdown%",
           "default": "ansicon.exe"
+        },
+        "workspaceTasks.gradle.path": {
+          "type": "string",
+          "description": "%config.workspaceTasks.gradle.path%",
+          "markdownDescription": "%config.workspaceTasks.gradle.path.markdown%",
+          "default": "gradlew"
         }
       }
     },
     "menus": {
       "view/title": [
         {
+          "command": "workspaceTasks.githubIssues",
+          "group": "navigation@1",
+          "when": "view == workspaceTasksView"
+        },
+        {
+          "command": "workspaceTasks.githubSponsor",
+          "group": "navigation@2",
+          "when": "view == workspaceTasksView"
+        },
+        {
+          "command": "workspaceTasks.buyMeACoffee",
+          "group": "navigation@3",
+          "when": "view == workspaceTasksView"
+        },
+        {
+          "command": "workspaceTasks.collapseAll",
+          "group": "navigation@4",
+          "when": "view == workspaceTasksView"
+        },
+        {
           "command": "workspaceTasks.refresh",
-          "group": "navigation"
+          "group": "navigation@5",
+          "when": "view == workspaceTasksView"
         }
       ],
       "view/item/context": [
@@ -407,6 +481,8 @@
     "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "eslint": "^8.28.0",
     "glob": "^8.0.3",
     "mocha": "^10.1.0",
@@ -417,6 +493,7 @@
   },
   "dependencies": {
     "fast-xml-parser": "^5.3.3",
-    "ignore": "^7.0.5"
+    "ignore": "^7.0.5",
+    "smol-toml": "^1.6.0"
   }
 }

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { TaskTreeDataProvider } from './taskTreeDataProvider';
-import { PackageJsonTaskProvider } from './providers/npmTaskProvider';
+import { NpmTaskProvider } from './providers/npmTaskProvider';
+import { ComposerTaskProvider } from './providers/composerTaskProvider';
 import { ScriptTaskProvider } from './providers/scriptTaskProvider';
 import { VscodeTaskProvider } from './providers/vscodeTaskProvider';
 import { VenvTaskProvider } from './providers/venvTaskProvider';
@@ -10,21 +10,29 @@ import { JustfileTaskProvider } from './providers/justfileTaskProvider';
 import { TaskItem } from './taskItem';
 import { TaskStateManager } from './taskStateManager';
 import { TaskRunner } from './taskRunner';
-import { TaskIgnoreService } from './services/taskIgnoreService';
+import { TaskFilesService } from './services/taskFilesService';
 import { TaskCacheService } from './services/taskCacheService';
+import { ExtensionConfigurationService } from './services/extensionConfigurationService';
+import { TaskIconService } from './services/taskIconService';
 import { WorkspaceTasksProvider } from './providers/workspaceTasksProvider';
 import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
 import { GruntTaskProvider } from './providers/gruntTaskProvider';
 import { GulpTaskProvider } from './providers/gulpTaskProvider';
+import { GradleTaskProvider } from './providers/gradleTaskProvider';
+import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 
 export function activate(context: vscode.ExtensionContext) {
+  ExtensionConfigurationService.getInstance().initialize(context);
   TaskStateManager.getInstance().initialize(context);
-  TaskIgnoreService.getInstance().initialize(); // Initialize ignore service
+  TaskFilesService.getInstance().initialize(context);
+  TaskCacheService.getInstance().initialize(context);
+  TaskIconService.getInstance().initialize(context);
   const taskTreeDataProvider = new TaskTreeDataProvider(context);
 
   // Register Providers
-  taskTreeDataProvider.registerProvider(new PackageJsonTaskProvider());
+  taskTreeDataProvider.registerProvider(new NpmTaskProvider());
+  taskTreeDataProvider.registerProvider(new ComposerTaskProvider());
   taskTreeDataProvider.registerProvider(new ScriptTaskProvider());
   taskTreeDataProvider.registerProvider(new VscodeTaskProvider());
   taskTreeDataProvider.registerProvider(new VenvTaskProvider());
@@ -35,6 +43,8 @@ export function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.registerProvider(new GulpTaskProvider());
   taskTreeDataProvider.registerProvider(new GruntTaskProvider());
   taskTreeDataProvider.registerProvider(new MsBuildTaskProvider());
+  taskTreeDataProvider.registerProvider(new GradleTaskProvider());
+  taskTreeDataProvider.registerProvider(new PipenvTaskProvider());
 
   // Initial refresh
   taskTreeDataProvider.refresh();
@@ -60,11 +70,36 @@ export function activate(context: vscode.ExtensionContext) {
     treeDataProvider: taskTreeDataProvider,
     dragAndDropController: taskTreeDataProvider.dragAndDropController
   });
+  taskTreeDataProvider.bindView(treeView);
   context.subscriptions.push(treeView);
 
   // Refresh command
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.refresh', () => {
     taskTreeDataProvider.refresh();
+  }));
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.collapseAll', () => {
+    taskTreeDataProvider.collapseAllTaskGroups();
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.buyMeACoffee', () => {
+    const url = ExtensionConfigurationService.getInstance().get('sponsor.buymeacoffee');
+    if (url) {
+        vscode.env.openExternal(vscode.Uri.parse(url));
+    }
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.githubSponsor', () => {
+    const url = ExtensionConfigurationService.getInstance().get('sponsor.github');
+    if (url) {
+        vscode.env.openExternal(vscode.Uri.parse(url));
+    }
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.githubIssues', () => {
+    const url = ExtensionConfigurationService.getInstance().get('bugs.new');
+    if (url) {
+        vscode.env.openExternal(vscode.Uri.parse(url));
+    }
   }));
 
   // Open File command

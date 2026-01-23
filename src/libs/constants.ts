@@ -25,12 +25,13 @@ const constants: Record<string, any> = {
   GLOB_PERL: "**/*.pl",
   GLOB_COMPOSER: "**/composer.json",
   GLOB_PYTHON: "**/*.py",
-  GLOB_PIPENV: "**/Pipfile",
+  GLOB_PIPENV: "**/[Pp]ip[Ff]ile",
   GLOB_POETRY: "**/pyproject.toml",
   GLOB_RUBY: "**/*.rb",
   GLOB_TSCONFIG: "**/tsconfig.{json,*.json}",
   GLOB_VSCODE: "**/.vscode/tasks.json",
   GLOB_MCP: "**/.vscode/mcp.json",
+  GLOB_WORKSPACE: "**/.workspace-tasks.{json,*.json}",
   GLOB_VENV: "**/.venv/Scripts/{activate.bat,activate.fish,Activate.ps1,deactivate.bat}",
 
 };

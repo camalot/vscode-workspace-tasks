@@ -52,7 +52,11 @@
             "type": "object",
             "properties": {
               "label": { "type": "string" },
-              "type": { "type": "string", "enum": ["shell", "process"] },
+              "type": {
+                "type": "string",
+                "minLength": 1,
+                "description": "This is the task type. (e.g. npm, shell, grunt, etc.)"
+              },
               "command": { "type": "string" },
               "args": { "type": "array", "items": { "type": "string" } },
               "options": {
@@ -93,7 +97,7 @@
                 ]
               }
             },
-            "required": ["label", "command"]
+            "required": ["label", "command", "type"]
           }
         }
       },

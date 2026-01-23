@@ -4,6 +4,8 @@ import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
+import { ComposerTaskProvider } from './providers/composerTaskProvider';
+import { GradleTaskProvider } from './providers/gradleTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -14,9 +16,10 @@ export interface CreatedTask {
 export async function createTaskForItem(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
   if (!item) { return undefined; }
 
-  const cwd = item.resourceUri ? path.dirname(item.resourceUri.fsPath) : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length ? vscode.workspace.workspaceFolders[0].uri.fsPath : process.cwd());
+  const effectiveResourceUri = item.taskFileUri || item.resourceUri;
+  const cwd = effectiveResourceUri ? path.dirname(effectiveResourceUri.fsPath) : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length ? vscode.workspace.workspaceFolders[0].uri.fsPath : process.cwd());
   const fallbackWorkspaceUri = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri : vscode.Uri.file(cwd);
-  const resourceUri = item.resourceUri ?? fallbackWorkspaceUri;
+  const resourceUri = effectiveResourceUri ?? fallbackWorkspaceUri;
   const taskLabel = item.originalLabel || item.label;
 
   // Prefer workspace-declared task when available
@@ -46,6 +49,75 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         taskLabel,
         'npm',
         new vscode.ShellExecution(full, { cwd })
+      );
+      return { task, command: full, cwd };
+    }
+    case 'gradle': {
+      // gradle [task] [args]
+      const gradleProvider = new GradleTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const gradleCmd = gradleProvider.getCommand(workspaceFolder?.uri);
+
+      const gradleArgs = [taskLabel];
+      if (args) {
+         gradleArgs.push(...args.split(' '));
+      }
+
+      let full: string;
+      let shellExec: vscode.ShellExecution;
+
+      // Check if command is a path with spaces
+      if (gradleCmd.includes(' ')) {
+          shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd });
+          full = `"${gradleCmd}" ${gradleArgs.join(' ')}`;
+      } else {
+          full = `${gradleCmd} ${gradleArgs.join(' ')}`;
+          shellExec = new vscode.ShellExecution(full, { cwd });
+      }
+
+      const task = new vscode.Task(
+          { type: 'gradle', script: taskLabel },
+          vscode.TaskScope.Workspace,
+          taskLabel,
+          'gradle',
+          shellExec
+      );
+      return { task, command: full, cwd };
+    }
+    case 'composer': {
+      // composer run-script [script] [args]
+      const composerProvider = new ComposerTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const composerCmd = composerProvider.getCommand(workspaceFolder?.uri);
+
+      const composerArgs = ['run-script', taskLabel];
+      if (args) {
+         composerArgs.push('--');
+         composerArgs.push(...args.split(' '));
+      }
+
+      // If composerCmd has spaces and is not quoted, quote it? ShellExecution handles args, but command string...
+      // If we use array form ShellExecution, we separate cmd and args.
+
+      let full: string;
+      let shellExec: vscode.ShellExecution;
+
+      // Check if command is a path with spaces
+      if (composerCmd.includes(' ')) {
+          // Use formatted command string for ShellExecution if we want to be safe or just pass executable and args array
+          shellExec = new vscode.ShellExecution(composerCmd, composerArgs, { cwd });
+          full = `"${composerCmd}" ${composerArgs.join(' ')}`;
+      } else {
+          full = `${composerCmd} ${composerArgs.join(' ')}`;
+          shellExec = new vscode.ShellExecution(full, { cwd });
+      }
+
+      const task = new vscode.Task(
+          { type: 'composer', script: taskLabel },
+          vscode.TaskScope.Workspace,
+          taskLabel,
+          'composer',
+          shellExec
       );
       return { task, command: full, cwd };
     }
@@ -99,8 +171,8 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const gulpCwd = workspaceFolder?.uri.fsPath || cwd;
 
       // If the gulpfile is not located in the cwd, ensure we pass it explicitly right after 'gulp'
-      if (item.resourceUri && path.dirname(item.resourceUri.fsPath) !== gulpCwd) {
-        gulpArgs = ['gulp', '--gulpfile', item.resourceUri.fsPath];
+      if (resourceUri && path.dirname(resourceUri.fsPath) !== gulpCwd) {
+        gulpArgs = ['gulp', '--gulpfile', resourceUri.fsPath];
         if (taskLabel && taskLabel.length > 0) { gulpArgs.push(taskLabel); }
       } else {
         if (taskLabel && taskLabel.length > 0) { gulpArgs.push(taskLabel); }
@@ -120,6 +192,9 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       console.log(`[TaskFactory] Gulp task created. cwd=${gulpCwd}, args=${JSON.stringify(gulpArgs)}`);
 
       return { task, command: `${gulpCmd} ${gulpArgs.join(' ')}`.trim(), cwd: gulpCwd };
+    }
+    case 'gradle': {
+
     }
     case 'ant': {
       const antProvider = new AntTaskProvider();
@@ -216,6 +291,17 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         return { task, command: fullCommand, cwd };
       }
       return undefined;
+    }
+    case 'pipenv': {
+      const full = `pipenv run ${taskLabel} ${args || ''}`.trim();
+      const task = new vscode.Task(
+        { type: 'pipenv', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'pipenv',
+        new vscode.ShellExecution(full, { cwd })
+      );
+      return { task, command: full, cwd };
     }
     case 'venv': {
       if (!item.resourceUri) { return undefined; }

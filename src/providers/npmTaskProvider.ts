@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskIgnoreService } from '../services/taskIgnoreService';
-import { TaskConfigService } from '../services/taskConfigService';
+import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
-import * as path from 'path';
+import { TaskIconService } from '../services/taskIconService';
 
-export class PackageJsonTaskProvider extends BaseTaskProvider implements TaskProvider {
+export class NpmTaskProvider extends BaseTaskProvider implements TaskProvider {
     constructor() {
         super('npm');
     }
@@ -14,26 +13,20 @@ export class PackageJsonTaskProvider extends BaseTaskProvider implements TaskPro
         if (!this.enabled) {
             return [];
         }
+
         const tasks: TaskItem[] = [];
-        const files = await vscode.workspace.findFiles(
-          constants.GLOB_NODEJS, constants.GLOB_GLOBAL_EXCLUDE
-        );
-        const ignoreService = TaskIgnoreService.getInstance();
+        const filesService = TaskFilesService.getInstance();
+        const iconService = TaskIconService.getInstance();
+        const files = await filesService.findFiles([constants.GLOB_NODEJS]);
 
         for (const file of files) {
-            if (ignoreService.shouldIgnore(file)) { continue; }
+            if (filesService.shouldIgnore(file)) { continue; }
 
             try {
                 const document = await vscode.workspace.openTextDocument(file);
                 const content = document.getText();
+                const iconUri = iconService.getTaskTypeIcon(this.type, file);
 
-                let iconPath: { light: vscode.Uri; dark: vscode.Uri } | undefined;
-                if (this.context) {
-                  iconPath = {
-                    light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
-                    dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
-                  };
-                }
                 // Simple parsing for now
                 const json = JSON.parse(content);
                 if (json.scripts) {
@@ -42,10 +35,11 @@ export class PackageJsonTaskProvider extends BaseTaskProvider implements TaskPro
                             script,
                             vscode.TreeItemCollapsibleState.None,
                             this.type,
-                            file,
+                            iconUri?.DisplayUri || file,
                             undefined,
-                            iconPath
+                            iconUri?.TaskIcon || undefined
                         );
+                        item.taskFileUri = file;
                         item.description = vscode.workspace.asRelativePath(file);
 
                         // Find line number

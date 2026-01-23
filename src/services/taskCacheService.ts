@@ -6,10 +6,16 @@ export class TaskCacheService {
     private static instance: TaskCacheService;
     private fileTaskMap: Map<string, TaskItem[]> = new Map();
     private allTasks: TaskItem[] = [];
+    private context?: vscode.ExtensionContext;
 
     private providers: TaskProvider[] = [];
 
     private constructor() {}
+
+    public initialize(context: vscode.ExtensionContext): TaskCacheService {
+        this.context = context;
+        return this;
+    }
 
     public static getInstance(): TaskCacheService {
         if (!TaskCacheService.instance) {
@@ -25,13 +31,41 @@ export class TaskCacheService {
     public async refresh(): Promise<TaskItem[]> {
         this.allTasks = [];
         this.fileTaskMap.clear();
+        const seenIds = new Set<string>();
 
         for (const provider of this.providers) {
             try {
                 const tasks = await provider.getTasks();
-                this.allTasks.push(...tasks);
 
                 for (const task of tasks) {
+
+                    // Ensure task has the requested ID format
+                    if (task.label) {
+                        let wsPath = '';
+                        let fileUriStr = '';
+                        const uri = task.taskFileUri || task.resourceUri;
+                        if (uri) {
+                            fileUriStr = uri.toString();
+                            const ws = vscode.workspace.getWorkspaceFolder(uri);
+                            if (ws) {
+                                wsPath = ws.uri.fsPath;
+                            }
+                        }
+                        task.id = `${wsPath}|${fileUriStr}|${task.label}`;
+                    }
+
+                    if (task.id) {
+                        let uniqueId = task.id;
+                        let counter = 1;
+                        while (seenIds.has(uniqueId)) {
+                            uniqueId = `${task.id}|${counter++}`;
+                        }
+                        task.id = uniqueId;
+                        seenIds.add(uniqueId);
+                    }
+
+                    this.allTasks.push(task);
+
                     if (task.resourceUri) {
                         const key = task.resourceUri.toString();
                         if (!this.fileTaskMap.has(key)) {

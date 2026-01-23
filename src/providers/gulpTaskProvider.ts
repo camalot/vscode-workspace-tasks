@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskIgnoreService } from '../services/taskIgnoreService';
+import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
+import { TaskIconService } from '../services/taskIconService';
 
 export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -13,26 +15,24 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
     if (!this.enabled) { return []; }
 
     const tasks: TaskItem[] = [];
-    const ignoreService = TaskIgnoreService.getInstance();
+    const filesService = TaskFilesService.getInstance();
+    const iconService = TaskIconService.getInstance();
 
     // Support both gulpfile.js and gulpfile.mjs
-    const files = await vscode.workspace.findFiles(constants.GLOB_GULP, constants.GLOB_GLOBAL_EXCLUDE);
+    const files = await filesService.findFiles([constants.GLOB_GULP]);
 
     for (const file of files) {
       try {
-        if (ignoreService.shouldIgnore(file)) { continue; }
 
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
         const lines = content.split('\n');
-
+        const displayUri = vscode.Uri.file(path.join(path.dirname(file.fsPath), 'gulpfile.js'));
+        const iconUri = iconService.getTaskTypeIcon('gulp', displayUri);
         // We'll also collect named functions/exports so identifiers referenced in series/parallel can be resolved
         const fileText = content;
 
-        let iconUri = file;
-        if (file.path.endsWith('.mjs')) {
-          iconUri = file.with({ path: file.path.replace(/\.mjs$/, '.js') });
-        }
+
 
         // First pass: find explicit task definitions and exports
         for (let i = 0; i < lines.length; i++) {
@@ -46,10 +46,11 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               name,
               vscode.TreeItemCollapsibleState.None,
               'gulp',
-              file,
+              iconUri?.DisplayUri || file,
               undefined,
-              iconUri // use a .js uri for icon when file is .mjs
+              iconUri?.TaskIcon || undefined
             );
+            item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
             item.command = {
@@ -70,10 +71,11 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               name,
               vscode.TreeItemCollapsibleState.None,
               'gulp',
-              file,
+              iconUri?.DisplayUri || file,
               undefined,
-              iconUri
+              iconUri?.TaskIcon || undefined
             );
+            item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
             item.command = {
@@ -94,10 +96,11 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               name,
               vscode.TreeItemCollapsibleState.None,
               'gulp',
-              file,
+              iconUri?.DisplayUri || file,
               undefined,
-              iconUri
+              iconUri?.TaskIcon || undefined
             );
+            item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
             item.command = {
@@ -127,10 +130,11 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
                 name,
                 vscode.TreeItemCollapsibleState.None,
                 'gulp',
-                file,
+                iconUri?.DisplayUri || file,
                 undefined,
-                iconUri
+                iconUri?.TaskIcon || undefined
               );
+              item.taskFileUri = file;
               item.description = vscode.workspace.asRelativePath(file);
               item.command = {
                 command: 'workspaceTasks.openFileAtLine',
@@ -157,10 +161,11 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
                   id,
                   vscode.TreeItemCollapsibleState.None,
                   'gulp',
-                  file,
+                  iconUri?.DisplayUri || file,
                   undefined,
-                  iconUri
+                  iconUri?.TaskIcon || undefined
                 );
+                item.taskFileUri = file;
                 item.description = vscode.workspace.asRelativePath(file);
                 item.command = {
                   command: 'workspaceTasks.openFileAtLine',

@@ -9,3 +9,5 @@ vsc-extension-quickstart.md
 webpack.config.js
 tsconfig.json
 sample/**
+assets/
+.github/

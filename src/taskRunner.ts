@@ -2,9 +2,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskItem } from './taskItem';
 import { TaskStateManager } from './taskStateManager';
-import { WorkspaceTasksService } from './services/workspaceTasksService';
-import { AntTaskProvider } from './providers/antTaskProvider';
-import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
 
 export class TaskRunner {
   private static instance: TaskRunner;

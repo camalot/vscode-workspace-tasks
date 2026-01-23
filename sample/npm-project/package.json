@@ -6,7 +6,13 @@
     "test": "echo 'Testing...'",
     "build": "echo 'Building...'",
     "long_running": "node -e \"setTimeout(() => { console.log('Done'); }, 5000)\"",
-    "fail": "node -e \"setTimeout(() => { console.log('Done'); }, 5000); process.exit(1)\""
+    "fail": "node -e \"setTimeout(() => { console.log('Done'); }, 5000); process.exit(1)\"",
+    "dev-test-clean": "echo clean",
+    "dev-build-all": "echo build-all",
+    "dev-build-publish": "echo build-publish",
+    "test-unit": "echo test-unit",
+    "test-e2e": "echo test-e2e",
+    "deploy": "echo deploy"
   },
   "devDependencies": {
     "grunt": "^1.6.1",

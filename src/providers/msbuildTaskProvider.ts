@@ -6,6 +6,8 @@ import { configuration } from "../libs/configuration";
 import { TaskItem } from "../taskItem";
 import { BaseTaskProvider, TaskProvider } from "../taskProvider";
 import constants from '../libs/constants';
+import { TaskIconService } from "../services/taskIconService";
+import { TaskFilesService } from "../services/taskFilesService";
 
 export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -17,8 +19,11 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
       return [];
     }
 
+    const iconService = TaskIconService.getInstance();
+    const filesService = TaskFilesService.getInstance();
+
     const tasks: TaskItem[] = [];
-    const buildFiles = await vscode.workspace.findFiles(constants.GLOB_MSBUILD, constants.GLOB_GLOBAL_EXCLUDE);
+    const buildFiles = await filesService.findFiles([constants.GLOB_MSBUILD]);
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_',
@@ -33,6 +38,8 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
         if (fileStat.size > 1024 * 1024) { // Ignore files larger than 1MB
           continue;
         }
+
+        const iconUri = iconService.getTaskTypeIcon(this.type, file);
         const content = await vscode.workspace.fs.readFile(file);
         const xmlString = new TextDecoder().decode(content);
         const xmlData = parser.parse(xmlString);
@@ -43,26 +50,28 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
 
         const targets = this.extractTargets(xmlData);
 
-        let iconPath: { light: vscode.Uri; dark: vscode.Uri } | string | vscode.IconPath | undefined;
-        if (this.context) {
-          iconPath = {
-            light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${this.type}.svg`)),
-            dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${this.type}.svg`))
-          };
-        }
-
         for (const target of targets) {
           const item = new TaskItem(
             target.name,
             vscode.TreeItemCollapsibleState.None,
             this.type,
-            file,
+            iconUri?.DisplayUri || file,
             undefined,
-            iconPath
+            iconUri?.TaskIcon || undefined
           );
 
+          item.taskFileUri = file;
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = target.description || target.name;
+
+          // need to find the startline
+          item.startLine = this.findTargetStartLine(xmlString, target.name);
+
+          item.command = {
+            command: 'workspaceTasks.openFileAtLine',
+            title: 'Open File',
+            arguments: [file, item.startLine || 0]
+          };
 
           tasks.push(item);
         }
@@ -99,6 +108,19 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
     return targets;
   }
 
+  private findTargetStartLine(xmlContent: string, targetName: string): number {
+    const escapedName = targetName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`<Target\\s+(?:[^>]*?\\s+)?Name=["']${escapedName}["']`, 'i');
+
+    const match = regex.exec(xmlContent);
+    if (match) {
+      const matchIndex = match.index;
+      const subString = xmlContent.substring(0, matchIndex);
+      return subString.split('\n').length - 1;
+    }
+    return 0;
+  }
+
   public getCommand(workspaceUri?: vscode.Uri): string {
     const msbuildPath = configuration.get<string>("msbuild.path");
 
@@ -107,7 +129,10 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
 
       // If it's a relative path and we have a workspace, resolve it
       if (!path.isAbsolute(msbuildPath) && workspaceUri) {
-        resolvedPath = path.join(workspaceUri.fsPath, msbuildPath);
+         const localPath = path.join(workspaceUri.fsPath, msbuildPath);
+         if (fs.existsSync(localPath)) {
+            resolvedPath = localPath;
+         }
       }
 
       // If it's a full path to an executable file

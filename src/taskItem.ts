@@ -7,6 +7,12 @@ export class TaskItem extends vscode.TreeItem {
     public originalLabel: string;
     public defaultIconPath: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } | undefined;
     public taskSource: string | undefined;
+    public taskFileUri?: vscode.Uri;
+    public parent?: TaskItem;
+
+    // Static counter for ensure unique IDs within a session if needed,
+    // though determinstic IDs are better for state preservation.
+    private static idCounter = 0;
 
     constructor(
         public readonly label: string,
@@ -17,6 +23,15 @@ export class TaskItem extends vscode.TreeItem {
         defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri }
     ) {
         super(label, collapsibleState);
+        // Deterministic ID base
+        const baseId = `${taskType}:${label}:${resourceUri?.toString() || 'workspace'}`;
+        // Verify if we need uniqueness for duplicates?
+        // We will handle duplicates by appending a counter at the Provider/Tree construction level if needed,
+        // but let's just use a simple counter here to ensure technical uniqueness to avoid the error.
+        // However, this breaks state preservation across refreshes.
+        // Better: Use the baseId. The TreeProvider should ensure it doesn't create duplicate logical items.
+        // If we really have duplicate tasks, we should distinguish them (e.g. by provider source).
+        this.id = baseId;
         this.originalLabel = label;
         this.tooltip = `${this.label} (${this.taskType})`;
         this.description = this.taskType;
