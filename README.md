@@ -4,6 +4,10 @@ A powerful VS Code extension that provides a comprehensive task explorer for you
 
 ## Features
 
+### Screenshots
+
+![Workspace-Tasks Sidebar Collapsed](assets\images\workspace-tasks-sidebar-collapse.png)
+
 ### Task Discovery
 
 Workspace Tasks automatically scans your workspace for the following types of task files:
