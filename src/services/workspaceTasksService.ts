@@ -1,34 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-let fileTasksData: any = {};
-
-function loadBuiltInConfig(): any {
-  const fs = require('fs');
-  const candidates = [
-    path.join(__dirname, '..', 'workspace-tasks.json'),
-    path.join(__dirname, '..', '..', 'src', 'workspace-tasks.json'),
-    path.resolve(process.cwd(), 'src', 'workspace-tasks.json'),
-    path.resolve(process.cwd(), 'workspace-tasks.json')
-  ];
-
-  for (const p of candidates) {
-    try {
-      if (fs.existsSync(p)) {
-        const data = fs.readFileSync(p, 'utf8');
-        console.debug(`Loaded built-in workspace-tasks.json from ${p}`);
-        return JSON.parse(data);
-      }
-    } catch (e) {
-      // continue
-    }
-  }
-
-  console.warn('Built-in workspace-tasks.json not found in runtime; continuing with empty config.');
-  return {};
-}
-
-fileTasksData = loadBuiltInConfig();
-
+// @ts-ignore
+import * as fileTasksData from '../workspace-tasks.json';
 import { TaskFilesService } from './taskFilesService';
 import { parseJsonWithComments } from '../libs/jsonUtils'
 

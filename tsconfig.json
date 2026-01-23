@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "module": "Node16",
-    "target": "ES2022",
+    "module": "node20",
+    "target": "es2024",
     "outDir": "out",
     "lib": [
-      "ES2022"
+      "ES2024"
     ],
     "sourceMap": true,
     "rootDir": "src",
     /* enable all strict type-checking options */
     "strict": true,
-    "moduleResolution": "Node16",
+    "moduleResolution": "nodenext",
     /* Additional Checks */
     "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
     "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */

@@ -4,7 +4,6 @@ import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
-import { tryDynamicImport } from '../utils/dynamicImport';
 
 export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskProvider {
 
