@@ -180,7 +180,7 @@ Control which files and directories are excluded from task discovery using `.tas
 
 **Example `.tasksignore` file:**
 
-```
+``` ignore
 # Ignore all test scripts
 **/test/**
 **/*.test.sh
@@ -307,7 +307,6 @@ Workspace Tasks provides comprehensive support for various build tools, task run
 
 > [!NOTE]
 > Some task types require their respective tools to be installed on your system to execute (e.g., `npm`, `make`, `docker`, `gradle`). The extension will discover and display tasks regardless of whether the tool is installed, but execution requires the tool to be available in your PATH.
-
 
 ## Requirements
 
