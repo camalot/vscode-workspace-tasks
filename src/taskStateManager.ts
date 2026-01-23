@@ -8,6 +8,7 @@ interface SerializedTaskItem {
     taskType: string;
     resourceUri?: string;
     startLine?: number;
+    originalLabel?: string;
 }
 
 export class TaskStateManager {
@@ -15,9 +16,10 @@ export class TaskStateManager {
     private states: Map<string, TaskStatus> = new Map();
     private executions: Map<string, vscode.TaskExecution> = new Map();
     private favorites: Set<string> = new Set();
-    private queue: TaskItem[] = [];
+    // private queue: TaskItem[] = []; // Removed: Single queue support
+    private queues: Map<string, TaskItem[]> = new Map(); // Added: Multiple queues support
     private context: vscode.ExtensionContext | undefined;
-    private queueName: string = 'Queue'; // TODO: support localization from package.nls.json (%tree.queue%)
+    // private queueName: string = 'Queue'; // Removed: No longer single queue name property
 
     private constructor() {}
 
@@ -32,18 +34,37 @@ export class TaskStateManager {
         this.context = context;
         const savedFavorites = context.globalState.get<string[]>('favorites', []);
         this.favorites = new Set(savedFavorites);
-        this.queueName = context.globalState.get<string>('queueName', 'Queue'); // TODO: support localization from package.nls.json (%tree.queue%)
 
-        // Restore Queue
-        const savedQueue = context.globalState.get<SerializedTaskItem[]>('queueItems', []);
-        this.queue = savedQueue.map(sq => {
+        // Restore Queues
+        // Check for new persistence format first
+        const savedQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>('savedQueues');
+
+        if (savedQueues) {
+            Object.entries(savedQueues).forEach(([queueName, items]) => {
+                this.queues.set(queueName, this.deserializeTasks(items));
+            });
+        } else {
+            // Legacy Migration: Check for old 'queueItems'
+            const legacyQueue = context.globalState.get<SerializedTaskItem[]>('queueItems', []);
+            if (legacyQueue.length > 0) {
+                 const legacyName = context.globalState.get<string>('queueName', 'Queue');
+                 this.queues.set(legacyName, this.deserializeTasks(legacyQueue));
+                 // Optionally clear old state, but keeping it for safety/rollback is fine
+            }
+        }
+    }
+
+    private deserializeTasks(serialized: SerializedTaskItem[]): TaskItem[] {
+        return serialized.map(sq => {
             const uri = sq.resourceUri ? vscode.Uri.parse(sq.resourceUri) : undefined;
+            const label = sq.originalLabel || sq.label; // Prefer original label
             const item = new TaskItem(
-                sq.label,
+                label,
                 vscode.TreeItemCollapsibleState.None,
                 sq.taskType,
                 uri
             );
+            item.originalLabel = label;
             item.startLine = sq.startLine;
             // Restore context value
             item.contextValue = 'queuedTask';
@@ -66,38 +87,58 @@ export class TaskStateManager {
         });
     }
 
-    private saveQueue() {
+    private saveQueues() {
         if (!this.context) return;
-        const serialized: SerializedTaskItem[] = this.queue.map(q => ({
-            label: q.label,
-            taskType: q.taskType,
-            resourceUri: q.resourceUri ? q.resourceUri.toString() : undefined,
-            startLine: q.startLine
-        }));
-        this.context.globalState.update('queueItems', serialized);
+
+        const serializedQueues: Record<string, SerializedTaskItem[]> = {};
+
+        for (const [name, tasks] of this.queues) {
+            if (tasks.length > 0) {
+                serializedQueues[name] = tasks.map(q => ({
+                    label: q.label,
+                    originalLabel: q.originalLabel || q.label,
+                    taskType: q.taskType,
+                    resourceUri: q.resourceUri ? q.resourceUri.toString() : undefined,
+                    startLine: q.startLine
+                }));
+            }
+        }
+        this.context.globalState.update('savedQueues', serializedQueues);
     }
 
-    public getQueueName(): string {
-        return this.queueName;
+    public getQueue(name: string): TaskItem[] | undefined {
+        return this.queues.get(name);
     }
 
-    public setQueueName(name: string) {
-        this.queueName = name;
-        this.context?.globalState.update('queueName', name);
+    public getQueueNames(): string[] {
+        return Array.from(this.queues.keys());
     }
 
-    public getQueue(): TaskItem[] {
-        return this.queue;
+    public getAllQueues(): Map<string, TaskItem[]> {
+        return this.queues;
     }
 
     public getContext(): vscode.ExtensionContext | undefined {
         return this.context;
     }
 
-    public addToQueue(item: TaskItem) {
+    public createQueue(name: string) {
+        if (!this.queues.has(name)) {
+            this.queues.set(name, []);
+            this.saveQueues();
+        }
+    }
+
+    public addToQueue(item: TaskItem, queueName: string) {
+        if (!this.queues.has(queueName)) {
+            this.queues.set(queueName, []);
+        }
+
+        const queue = this.queues.get(queueName)!;
+
         // Avoid duplicates based on ID
         const id = this.getTaskId(item);
-        if (!this.queue.some(t => this.getTaskId(t) === id)) {
+        if (!queue.some(t => this.getTaskId(t) === id)) {
             // FIX: If item is a grouped item, label is partial. Use originalLabel if available.
             const fullLabel = item.originalLabel || item.label;
 
@@ -122,56 +163,79 @@ export class TaskStateManager {
                 queueItem.description = wsFolder ? wsFolder.name : '';
             }
 
-            this.queue.push(queueItem);
-            this.saveQueue();
+            queue.push(queueItem);
+            this.saveQueues();
         }
     }
 
-    public removeFromQueue(item: TaskItem) {
+    public removeFromQueue(item: TaskItem, queueName?: string) {
         const id = this.getTaskId(item);
-        this.queue = this.queue.filter(t => this.getTaskId(t) !== id);
-        this.saveQueue();
+
+        if (queueName && this.queues.has(queueName)) {
+             const queue = this.queues.get(queueName)!;
+             const newQueue = queue.filter(t => this.getTaskId(t) !== id);
+             this.queues.set(queueName, newQueue);
+             if (newQueue.length === 0) {
+                 this.queues.delete(queueName);
+             }
+        } else {
+            // Search all queues
+            for (const [name, tasks] of this.queues) {
+                const idx = tasks.findIndex(t => this.getTaskId(t) === id);
+                if (idx > -1) {
+                    tasks.splice(idx, 1);
+                     if (tasks.length === 0) {
+                        this.queues.delete(name);
+                    } else {
+                        this.queues.set(name, tasks);
+                    }
+                }
+            }
+        }
+
+        this.saveQueues();
     }
 
-    public clearQueue() {
-        this.queue = [];
-        this.saveQueue();
+    public clearQueue(queueName: string) {
+        this.queues.delete(queueName);
+        this.saveQueues();
+    }
+
+    public renameQueue(oldName: string, newName: string) {
+        if (this.queues.has(oldName)) {
+            const tasks = this.queues.get(oldName)!;
+            this.queues.delete(oldName);
+            this.queues.set(newName, tasks);
+            this.saveQueues();
+        }
     }
 
     public moveQueueItem(sourceItem: TaskItem, targetItem: TaskItem) {
-        const sourceId = this.getTaskId(sourceItem);
-        const targetId = this.getTaskId(targetItem);
+        let targetQueueName: string | undefined;
+        let sourceQueueName: string | undefined;
 
-        const sourceIndex = this.queue.findIndex(t => this.getTaskId(t) === sourceId);
-        const targetIndex = this.queue.findIndex(t => this.getTaskId(t) === targetId);
+        for (const [name, tasks] of this.queues) {
+            if (tasks.some(t => this.getTaskId(t) === this.getTaskId(sourceItem))) sourceQueueName = name;
+            if (tasks.some(t => this.getTaskId(t) === this.getTaskId(targetItem))) targetQueueName = name;
+        }
 
-        if (sourceIndex > -1 && targetIndex > -1 && sourceIndex !== targetIndex) {
-            const [item] = this.queue.splice(sourceIndex, 1);
-            // If we are moving down, the removal shifted indices, but targetIndex refers to original.
-            // But targetIndex is computed BEFORE removal.
-            // If source < target, removing source shifts target down by 1.
+        if (sourceQueueName && targetQueueName && sourceQueueName === targetQueueName) {
+            const queue = this.queues.get(sourceQueueName)!;
+            const sourceId = this.getTaskId(sourceItem);
+            const targetId = this.getTaskId(targetItem);
 
-            // Re-calculate or just logic it out.
-            // Simple approach: remove then insert.
+            const sourceIndex = queue.findIndex(t => this.getTaskId(t) === sourceId);
+            const targetIndex = queue.findIndex(t => this.getTaskId(t) === targetId);
 
-            // If I want to place BEFORE the target:
-            // If source was before target, removing source decreases target index.
-            // If source was after target, removing source doesn't affect target index.
-
-            // Let's rely on indices calculated before modification?
-            // No, array is modified.
-            // Better:
-            const newTargetIndex = this.queue.findIndex(t => this.getTaskId(t) === targetId);
-            // Insert *after* or *before*?
-            // Standard drag behavior is insert before if dropping on top section, or after?
-            // VS Code list DND usually implies "insert at this position".
-
-            this.queue.splice(newTargetIndex, 0, item);
-            this.saveQueue();
+            if (sourceIndex > -1 && targetIndex > -1 && sourceIndex !== targetIndex) {
+                 const [item] = queue.splice(sourceIndex, 1);
+                 // We re-find target index because it might have shifted
+                 const newTargetIndex = queue.findIndex(t => this.getTaskId(t) === targetId);
+                 queue.splice(newTargetIndex, 0, item);
+                 this.saveQueues();
+            }
         }
     }
-
-
 
     public isFavorite(id: string): boolean {
         return this.favorites.has(id);

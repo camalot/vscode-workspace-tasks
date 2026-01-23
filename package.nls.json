@@ -55,6 +55,7 @@
   "config.workspaceTasks.enabledTaskTypes.vscode": "VS Code",
   "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
 
+  "config.workspaceTasks.groups.enabled": "Group Tasks",
   "config.workspaceTasks.groups.taskSeparator": "Task Separator",
   "config.workspaceTasks.groups.taskSeparator.description": "Separator used to split task name into groups.",
   "config.workspaceTasks.groups.taskSeparator.markdown": "Separator used to split task name into groups. For example, a task named `build-frontend` with a separator of `-` would be grouped under `build`. An empty string means no grouping will be applied.",

@@ -4,7 +4,7 @@
   "description": "A Task Explorer for VS Code",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.108.0"
+    "vscode": "^1.108.1"
   },
   "author": {
     "name": "Ryan Conrad",
@@ -62,10 +62,10 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint -c eslint.config.mjs src",
-    "test": "node ./out/test/runTest.js"
+    "lint": "eslint src",
+    "test": "vscode-test"
   },
-    "devDependencies": {
+  "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/vscode": "^1.108.1",
@@ -73,6 +73,7 @@
     "@typescript-eslint/parser": "^8.53.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
+    "typescript-eslint": "^8.53.1",
     "eslint": "^9.39.2",
     "glob": "^13.0.0",
     "mocha": "^11.7.5",
@@ -495,5 +496,4 @@
       ]
     }
   }
-
 }

@@ -123,29 +123,25 @@ Tasks without file associations (no `globs` defined) appear under the workspace 
 
 ### Queue System
 
-The queue system allows you to create and manage a sequential list of tasks that run one after another. This is perfect for complex workflows like building, testing, and deploying your application.
+The queue system now supports multiple named queues so you can maintain separate sequences of tasks (for example: "Build", "CI Pipeline", "Deploy"). Each queue is persisted and restored between VS Code sessions.
 
 **Key Features:**
 
-- **Add Tasks to Queue**: Click the list icon (or right-click and select "Add to Queue") on any task to add it to your execution queue.
-- **Visual Management**: The queue appears as a dedicated group at the top of the task tree with an ordered list icon.
-- **Drag & Drop Reordering**: Simply drag and drop tasks within the queue to change their execution order.
-- **Flexible Execution**:
-  - Run the entire queue sequentially from start to finish
-  - Start execution from any specific task in the queue
-  - Stop the queue at any time
-- **Persistent Storage**: Your queue is automatically saved and restored across VS Code sessions.
-- **Custom Naming**: Right-click the queue group to rename it (e.g., "Build & Deploy", "CI Pipeline").
-- **Quick Clear**: Remove all tasks from the queue at once using the "Clear Queue" command.
-- **Status Indicators**: Tasks show their current status (running, success, failure) with visual indicators.
+- **Multiple Named Queues**: Create and manage more than one queue. Each queue appears as its own group in the tree with an ordered list icon.
+- **Add Tasks to Queue**: Click the list icon (or right-click and select "Add to Queue") on any task. If no queues exist you'll be prompted to name the new queue (the prompt defaults to "Queue"). If one or more queues exist you will be shown a choice of existing queues or a "New Queue..." option (the new queue prompt defaults to "Queue").
+- **Queue Details**: Queue items show the task icon, label, workspace name and relative file path (e.g., `MyProject • package.json`) so you get the same context as in the main task view.
+- **Drag & Drop Reordering**: Drag and drop tasks within a queue to change execution order. Reordering across queues is supported where applicable.
+- **Run & Control**: Run a specific queue from the queue group's context menu or use the "Run Queue" command. If multiple queues exist you'll be prompted to select which queue to run. You can also start from a specific task or stop execution.
+- **Rename & Clear**: Right-click a queue group to rename it or clear all tasks from that queue. When all tasks are removed from a queue it is automatically deleted and its persisted data is removed.
+- **Persistent Storage**: Each queue and its tasks are saved to global storage and restored when the extension starts.
+- **Status Indicators**: Tasks in queues display the same running/success/failure icons and state as normal task entries.
 
 **Example Workflow:**
 
-1. Add "npm install" to the queue
-2. Add "npm run build" to the queue
-3. Add "npm run test" to the queue
-4. Add "npm run deploy" to the queue
-5. Click "Run Queue" to execute all tasks in order
+1. Add tasks to a queue named "CI Pipeline"
+2. Reorder tasks as needed
+3. Run the "CI Pipeline" queue or start from a single queued task
+4. Clear or rename the queue when desired
 
 ### Favorites
 

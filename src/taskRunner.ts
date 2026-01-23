@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskItem } from './taskItem';
 import { TaskStateManager } from './taskStateManager';
+import { createTaskForItem } from './taskFactory';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -34,7 +35,6 @@ export class TaskRunner {
     const taskLabel = item.originalLabel || item.label;
 
 // Delegate task creation to the Task Factory to centralize logic and make it testable
-    const { createTaskForItem } = await import('./taskFactory');
     const created = await createTaskForItem(item, args);
     if (created) {
       task = created.task;
@@ -67,10 +67,10 @@ export class TaskRunner {
       }
   }
 
-  public async runQueue(startItem?: TaskItem) {
-    const queue = TaskStateManager.getInstance().getQueue();
-    if (queue.length === 0) {
-      vscode.window.showInformationMessage("Queue is empty.");
+  public async runQueue(queueName: string, startItem?: TaskItem) {
+    const queue = TaskStateManager.getInstance().getQueue(queueName);
+    if (!queue || queue.length === 0) {
+      vscode.window.showInformationMessage(`Queue '${queueName}' is empty or does not exist.`);
       return;
     }
 
@@ -94,7 +94,7 @@ export class TaskRunner {
         const id = TaskStateManager.getInstance().getTaskId(item);
         const status = TaskStateManager.getInstance().getStatus(id);
         if (status === 'failure') {
-          vscode.window.showErrorMessage(`Queue stopped: Task '${item.label}' failed.`);
+          vscode.window.showErrorMessage(`Queue '${queueName}' stopped: Task '${item.label}' failed.`);
           break;
         }
       } catch (e) {

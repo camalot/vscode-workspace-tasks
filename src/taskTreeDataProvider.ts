@@ -5,6 +5,7 @@ import { TaskTypeFactory } from './taskTypeItems';
 import { TaskStateManager } from './taskStateManager';
 import { TaskTreeDragAndDropController } from './taskTreeDragAndDropController';
 import { TaskCacheService } from './services/taskCacheService';
+import { TaskIconService } from './services/taskIconService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
@@ -20,6 +21,13 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   constructor(private context: vscode.ExtensionContext) {
     this.dragAndDropController = new TaskTreeDragAndDropController();
+
+    // Restore collapseLevel from workspace state (default to 0)
+    // Actually we only care about restoring if it was 0, as other modes are temporary toggles usuallly?
+    // But if persistence is tricky for groups, maybe we just default to 0.
+    // The issue with persistence is likely that the TreeView doesn't know about these IDs until we feed them to it.
+
+    // NOTE: VS Code persists expansion state based on ID.
   }
 
   public bindView(view: vscode.TreeView<TaskItem>) {
@@ -39,17 +47,15 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     if (!this.view) { return; }
 
     // Toggle logic:
-    // 0 -> 1 (Collapse Groups)
+    // 0 -> 1 (Expand All)
     // 1 -> 2 (Collapse All Roots)
-    // 2 -> 0 (Expand All)
+    // 2 -> 0 (Collapse Groups / Default)
     this.collapseLevel = (this.collapseLevel + 1) % 3;
 
     if (this.collapseLevel === 1) {
-       // Collapse Groups:
-       // We refresh the tree with new IDs (salt='collapsed') and defaults to Collapsed.
-       // after refresh, we ensure roots are expanded.
-       this.pendingRevealLevel = 1;
-       // FAST REFRESH (Cached Only)
+       // Expand All (Level 1)
+       // Refresh with 'expanded' IDs and defaults.
+       this.pendingRevealLevel = 0;
        this._onDidChangeTreeData.fire();
        return;
     }
@@ -61,9 +67,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
        return;
     }
     else {
-        // Expand All (Level 0)
-        // Refresh with 'expanded' IDs and defaults.
-        this.pendingRevealLevel = 0;
+        // Default / Collapse Groups (Level 0)
+        // Groups Collapsed:
+        // We refresh the tree with new IDs (salt='default') and defaults to Collapsed.
+        // after refresh, we ensure roots are expanded.
+        this.pendingRevealLevel = 1;
+        // FAST REFRESH (Cached Only)
         this._onDidChangeTreeData.fire();
         return;
     }
@@ -120,33 +129,43 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
 
     // Determine group state based on collapseLevel
-    // Level 1 = Groups Collapsed.
-    // Level 2 = Groups Collapsed (Roots Collapsed).
-    // Level 0 = Groups Expanded (Default).
+    // Level 1 = Groups Expanded (Expand All).
+    // Level 2 = Roots Collapsed.
+    // Level 0 = Groups Collapsed (Default).
 
     // Determine Group Items Collapsible State and ID Salt
-    let groupState = vscode.TreeItemCollapsibleState.Expanded;
-    let groupSalt = 'expanded';
+    // If we're in Default (Level 0), we use Collapsed as default, but VS Code persistence should handle expansions.
+    // If VS Code is forcing collapsed, we might need to be less aggressive with default.
+    // However, user Requirement: "start off collapsed".
+    // This implies that on *first* load (or if no state exists), it should be collapsed.
+
+    let groupState = vscode.TreeItemCollapsibleState.Collapsed;
+    let groupSalt = '';
+
     if (this.collapseLevel === 1) {
-        groupState = vscode.TreeItemCollapsibleState.Collapsed;
-        groupSalt = 'collapsed';
+        groupState = vscode.TreeItemCollapsibleState.Expanded;
+        groupSalt = 'expanded';
     } else if (this.collapseLevel === 2) {
-        // When Workspace Roots are collapsed, we don't care much about children state,
-        // but let's keep them collapsed or whatever avoids rendering work.
-        groupState = vscode.TreeItemCollapsibleState.Collapsed;
-        groupSalt = 'roots_collapsed';
+         groupSalt = 'roots_collapsed';
     }
 
     // Determine Workspace Root Items Collapsible State and ID Salt
     // If Level 2, Root is Collapsed.
     const rootState = (this.collapseLevel === 2) ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.Expanded;
-    const rootSalt = (this.collapseLevel === 2) ? 'collapsed' : 'expanded';
+    const rootSalt = (this.collapseLevel === 2) ? 'collapsed' : '';
 
-    // Map<WorkspaceName, Map<TaskType, TaskItem[]>>
+    const mkId = (base: string, salt: string) => salt ? `${base}:${salt}` : base;
+
+    // Map<WorkspaceId, Map<TaskType, TaskItem[]>>
+    // We use Workspace URI as key to ensure uniqueness even if names are identical
     const workspaceMap = new Map<string, Map<string, TaskItem[]>>();
+    const workspaceInfoMap = new Map<string, string>(); // URI -> Name mapping
+
     const favoriteTasks: TaskItem[] = [];
 
     const stateManager = TaskStateManager.getInstance();
+
+    // console.log(`[TaskTreeDataProvider] organizeTasks - Collapse Level: ${this.collapseLevel}`);
 
     for (const task of tasks) {
       const id = stateManager.getTaskId(task);
@@ -159,26 +178,37 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           vscode.TreeItemCollapsibleState.None,
           task.taskType,
           task.resourceUri,
-          task.command
+          task.command,
+          task.defaultIconPath
         );
         favTask.originalLabel = task.originalLabel || task.label;
         favTask.startLine = task.startLine;
 
         // Set description to workspace folder
         const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
-        favTask.description = workspaceFolder ? workspaceFolder.name : '';
+        let description = workspaceFolder ? workspaceFolder.name : '';
+
+        if (task.resourceUri && workspaceFolder) {
+            const relativePath = vscode.workspace.asRelativePath(task.resourceUri, false);
+            if (relativePath && relativePath !== description) {
+                description = `${description} • ${relativePath}`;
+            }
+        }
+        favTask.description = description;
 
         favTask.updateContextValue();
         favoriteTasks.push(favTask);
       }
 
       if (!task.resourceUri) {
+        const workspaceId = 'workspace_generic';
         const workspaceName = 'Workspace';
+        workspaceInfoMap.set(workspaceId, workspaceName);
 
-        let projectMap = workspaceMap.get(workspaceName);
+        let projectMap = workspaceMap.get(workspaceId);
         if (!projectMap) {
           projectMap = new Map<string, TaskItem[]>();
-          workspaceMap.set(workspaceName, projectMap);
+          workspaceMap.set(workspaceId, projectMap);
         }
 
         let typeTasks = projectMap.get(task.taskType);
@@ -193,11 +223,13 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(task.resourceUri);
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';
+      const workspaceId = workspaceFolder ? workspaceFolder.uri.toString() : 'external';
+      workspaceInfoMap.set(workspaceId, workspaceName);
 
-      let projectMap = workspaceMap.get(workspaceName);
+      let projectMap = workspaceMap.get(workspaceId);
       if (!projectMap) {
         projectMap = new Map<string, TaskItem[]>();
-        workspaceMap.set(workspaceName, projectMap);
+        workspaceMap.set(workspaceId, projectMap);
       }
 
       let typeTasks = projectMap.get(task.taskType);
@@ -211,38 +243,53 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     // Build the tree items
     const rootItems: TaskItem[] = [];
 
-    // Add Queue Group
-    const queueTasks = stateManager.getQueue();
-    if (queueTasks.length > 0) {
-      const queueGroup = new TaskItem(
-        stateManager.getQueueName(),
-        vscode.TreeItemCollapsibleState.Expanded,
-        'queue'
-      );
-      queueGroup.iconPath = new vscode.ThemeIcon('list-ordered');
-
-      // Create Queued Items
-      for (const task of queueTasks) {
-        const queuedItem = new TaskItem(
-          task.label,
-          vscode.TreeItemCollapsibleState.None,
-          task.taskType,
-          task.resourceUri,
-          task.command
+    // Add Queue Groups
+    const allQueues = stateManager.getAllQueues();
+    for (const [queueName, queueTasks] of allQueues) {
+      if (queueTasks.length > 0) {
+        const queueGroup = new TaskItem(
+          queueName,
+          vscode.TreeItemCollapsibleState.Expanded,
+          'queue'
         );
-        queuedItem.originalLabel = task.originalLabel || task.label;
-        queuedItem.startLine = task.startLine;
-        // Set description to workspace folder
-        const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
-        queuedItem.description = workspaceFolder ? workspaceFolder.name : '';
+        queueGroup.iconPath = new vscode.ThemeIcon('list-ordered');
+        queueGroup.id = `queue:${queueName}`;
 
-        // Explicitly set context value for queued items to allow distinct actions
-        queuedItem.contextValue = 'queuedTask';
-        queuedItem.parent = queueGroup;
+        // Create Queued Items
+        for (const task of queueTasks) {
+          const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType);
+          const iconPath = iconObj ? (iconObj.TaskIcon || iconObj.DisplayUri) : undefined;
 
-        queueGroup.children.push(queuedItem);
+          const queuedItem = new TaskItem(
+            task.label,
+            vscode.TreeItemCollapsibleState.None,
+            task.taskType,
+            task.resourceUri,
+            task.command,
+            iconPath
+          );
+          queuedItem.originalLabel = task.originalLabel || task.label;
+          queuedItem.startLine = task.startLine;
+          // Set description to workspace folder and file path
+          const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
+          let description = workspaceFolder ? workspaceFolder.name : '';
+
+          if (task.resourceUri && workspaceFolder) {
+              const relativePath = vscode.workspace.asRelativePath(task.resourceUri, false);
+              if (relativePath && relativePath !== description) {
+                  description = `${description} • ${relativePath}`;
+              }
+          }
+          queuedItem.description = description;
+
+          // Explicitly set context value for queued items to allow distinct actions
+          queuedItem.contextValue = 'queuedTask';
+          queuedItem.parent = queueGroup;
+
+          queueGroup.children.push(queuedItem);
+        }
+        rootItems.push(queueGroup);
       }
-      rootItems.push(queueGroup);
     }
 
     // Add Favorites Group
@@ -253,7 +300,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         'favorites'
       );
       // Salt favorites
-      favGroup.id = `favorites:${rootSalt}`;
+      favGroup.id = mkId('favorites', rootSalt);
       favGroup.iconPath = new vscode.ThemeIcon('star-full');
 
       // Group favorites by type
@@ -269,7 +316,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
       for (const [type, tasks] of favTypeMap) {
         const typeItem = TaskTypeFactory.create(type, groupState);
-        typeItem.id = `fav:${type}:${groupSalt}`;
+        typeItem.id = mkId(`fav:${type}`, groupSalt);
         typeItem.children = tasks;
         typeItem.parent = favGroup;
         for (const child of tasks) {
@@ -304,11 +351,16 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       for (const t of flatTasks) { t.parent = tasksRoot; }
       rootItems.push(tasksRoot);
     } else {
-      // Sort workspaceNames
-      const sortedWorkspaceNames = Array.from(workspaceMap.keys()).sort();
+      // Sort workspaceIds by name using the lookup map
+      const sortedWorkspaceIds = Array.from(workspaceMap.keys()).sort((a, b) => {
+         const nameA = workspaceInfoMap.get(a) || '';
+         const nameB = workspaceInfoMap.get(b) || '';
+         return nameA.localeCompare(nameB);
+      });
 
-      for (const workspaceName of sortedWorkspaceNames) {
-        const projectMap = workspaceMap.get(workspaceName)!;
+      for (const workspaceId of sortedWorkspaceIds) {
+        const projectMap = workspaceMap.get(workspaceId)!;
+        const workspaceName = workspaceInfoMap.get(workspaceId)!;
 
         const workspaceItem = new TaskItem(
           workspaceName,
@@ -316,20 +368,26 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           'workspace'
         );
         // Salt the ID of workspace item too!
-        workspaceItem.id = `workspace:${workspaceName}:${rootSalt}`;
+        // Make ID robust using workspace ID (URI or special string)
+        workspaceItem.id = mkId(`workspace:${workspaceId}`, rootSalt);
 
         // Try to enable folder icon for workspace item explicitly found via URI
         // Not essential but might look better
         workspaceItem.iconPath = vscode.ThemeIcon.Folder;
 
+        // console.log(`[TaskTreeDataProvider] Workspace Item Created: ID=${workspaceItem.id}, Label=${workspaceItem.label}, State=${workspaceItem.collapsibleState}`);
+
         for (const [taskType, typeTasks] of projectMap) {
           // Use Factory to create typed item
           const typeItem = TaskTypeFactory.create(taskType, groupState);
-          typeItem.id = `type:${taskType}:${workspaceName}:${groupSalt}`;
+          // Use workspaceId in ID key for robustness
+          typeItem.id = mkId(`type:${taskType}:${workspaceId}`, groupSalt);
           typeItem.children = this.groupTasksByName(typeTasks, taskSeparator);
           typeItem.parent = workspaceItem;
           // groupTasksByName already sets parent for its direct children? No, I need to check
           for (const child of typeItem.children) { child.parent = typeItem; }
+
+          // console.log(`[TaskTreeDataProvider] Group Item Created: ID=${typeItem.id}, Type=${taskType}, State=${typeItem.collapsibleState} (Requested: ${groupState})`);
 
           workspaceItem.children.push(typeItem);
         }

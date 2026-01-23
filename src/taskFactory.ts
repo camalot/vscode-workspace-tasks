@@ -167,8 +167,9 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       let gulpArgs: string[] = ['gulp'];
 
       // Prefer workspace folder root as cwd so local install (node_modules) is resolved correctly
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const gulpCwd = workspaceFolder?.uri.fsPath || cwd;
+      // Use the workspace root (first workspace folder) as the default cwd so we prefer the workspace-local gulp installation
+      const defaultWorkspaceRoot = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
+      const gulpCwd = defaultWorkspaceRoot || cwd;
 
       // If the gulpfile is not located in the cwd, ensure we pass it explicitly right after 'gulp'
       if (resourceUri && path.dirname(resourceUri.fsPath) !== gulpCwd) {
@@ -192,9 +193,6 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       console.log(`[TaskFactory] Gulp task created. cwd=${gulpCwd}, args=${JSON.stringify(gulpArgs)}`);
 
       return { task, command: `${gulpCmd} ${gulpArgs.join(' ')}`.trim(), cwd: gulpCwd };
-    }
-    case 'gradle': {
-
     }
     case 'ant': {
       const antProvider = new AntTaskProvider();

@@ -27,7 +27,7 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_',
-      isArray: (name, jpath, isLeafNode, isAttribute) => {
+      isArray: (name) => {
         return name === 'Target';
       }
     });

@@ -4,6 +4,7 @@ import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
+import { tryDynamicImport } from '../utils/dynamicImport';
 
 export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskProvider {
 
@@ -24,13 +25,16 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
     const iconService = TaskIconService.getInstance();
     const files = await filesService.findFiles(this.getGlobPatterns());
 
+    // Parse using the statically imported parser
+    let parseFunc: ((s: string) => any) | undefined = parse;
+
     for (const file of files) {
       try {
         const content = await vscode.workspace.fs.readFile(file);
         const textContent = new TextDecoder().decode(content);
         let tomlObj: any;
         try {
-            tomlObj = parse(textContent);
+            tomlObj = parseFunc(textContent);
         } catch (e) {
             console.warn(`Error parsing TOML file ${file.fsPath}:`, e);
             continue;
