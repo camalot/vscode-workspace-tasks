@@ -36,7 +36,7 @@ export class TaskTreeDragAndDropController implements vscode.TreeDragAndDropCont
         // Find source item across all queues
         let sourceItem: TaskItem | undefined;
         const allQueues = TaskStateManager.getInstance().getAllQueues();
-        for (const [name, tasks] of allQueues) {
+        for (const [_, tasks] of allQueues) {
             const found = tasks.find(t => TaskStateManager.getInstance().getTaskId(t) === sourceId);
             if (found) {
                 sourceItem = found;

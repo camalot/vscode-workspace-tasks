@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { TaskItem } from '../taskItem';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
@@ -131,7 +130,7 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
 
     // Parse Jobs
     if (workflow.jobs) {
-        for (const [jobId, jobDef] of Object.entries(workflow.jobs)) {
+        for (const [jobId, _] of Object.entries(workflow.jobs)) {
              // Find line number using simple string match fallback or if we had source map
              // YAML parser might give source map but let's stick to simple match for line number for now
              // Or we just default to 0.

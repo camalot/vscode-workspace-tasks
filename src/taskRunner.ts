@@ -28,43 +28,38 @@ export class TaskRunner {
     const cwd = item.resourceUri ? path.dirname(item.resourceUri.fsPath) : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length ? vscode.workspace.workspaceFolders[0].uri.fsPath : process.cwd());
 
     // Fallback Uri for commands that need one
-    const fallbackWorkspaceUri = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri : vscode.Uri.file(cwd);
-    const resourceUri = item.resourceUri ?? fallbackWorkspaceUri;
+    // const fallbackWorkspaceUri = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri : vscode.Uri.file(cwd);
+    // const resourceUri = item.resourceUri ?? fallbackWorkspaceUri;
 
     // Use originalLabel if available (for grouped tasks), otherwise label
     const taskLabel = item.originalLabel || item.label;
 
-// Delegate task creation to the Task Factory to centralize logic and make it testable
+    // Delegate task creation to the Task Factory to centralize logic and make it testable
     const created = await createTaskForItem(item, args);
-    if (created) {
-      task = created.task;
-      // Extra debug info for gulp tasks
-      if (item.taskType === 'gulp') {
-        console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);
-      }
-    }
-
-    if (!task) {
+    if (!created || !created.task) {
       vscode.window.showWarningMessage(`No runnable task could be created for '${taskLabel}'.`);
       return;
     }
+    task = created.task;
+    // Extra debug info for gulp tasks
+    if (item.taskType === 'gulp') {
+      console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);
+    }
 
-    if (task) {
-      const id = TaskStateManager.getInstance().getTaskId(item);
-      TaskStateManager.getInstance().setStatus(id, 'running');
-      vscode.commands.executeCommand('workspaceTasks.refresh'); // Trigger refresh
+    const id = TaskStateManager.getInstance().getTaskId(item);
+    TaskStateManager.getInstance().setStatus(id, 'running');
+    vscode.commands.executeCommand('workspaceTasks.refresh'); // Trigger refresh
 
-        try {
-        const execution = await vscode.tasks.executeTask(task);
-          TaskStateManager.getInstance().setExecution(id, execution);
-        } catch (e) {
-          console.error('[TaskRunner] executeTask failed:', e);
-          TaskStateManager.getInstance().setStatus(id, 'failure');
-          vscode.commands.executeCommand('workspaceTasks.refresh');
-          vscode.window.showErrorMessage(`Failed to run task: ${e}`);
-          throw e;
-        }
-      }
+    try {
+      const execution = await vscode.tasks.executeTask(task);
+      TaskStateManager.getInstance().setExecution(id, execution);
+    } catch (e) {
+      console.error('[TaskRunner] executeTask failed:', e);
+      TaskStateManager.getInstance().setStatus(id, 'failure');
+      vscode.commands.executeCommand('workspaceTasks.refresh');
+      vscode.window.showErrorMessage(`Failed to run task: ${e}`);
+      throw e;
+    }
   }
 
   public async runQueue(queueName: string, startItem?: TaskItem) {
@@ -105,14 +100,16 @@ export class TaskRunner {
     }
   }
 
+  // TODO: The polling approach with setInterval to wait for task completion is inefficient
+  // and can lead to resource waste. Consider using VSCode's task events (onDidEndTask,
+  // onDidEndTaskProcess) instead of polling. This would be more efficient and provide
+  // immediate notification when tasks complete.
   private waitForTask(item: TaskItem): Promise<void> {
     return new Promise((resolve) => {
       const id = TaskStateManager.getInstance().getTaskId(item);
-
-      // Poll for status change (simple but effective for this context)
-      // Or ideally use an event listener.
-      // Since we can't easily hook into the exact onDidEndTaskProcess here without passing it around,
-      // let's rely on checking the StateManager which is updated by the extension via event.
+      const maxWaitMs = 5 * 60 * 1000; // 5 minutes
+      const pollInterval = 500;
+      let elapsed = 0;
 
       const interval = setInterval(() => {
         const status = TaskStateManager.getInstance().getStatus(id);
@@ -120,8 +117,15 @@ export class TaskRunner {
           // 'idle' might mean it was stopped or reset
           clearInterval(interval);
           resolve();
+        } else {
+          elapsed += pollInterval;
+          if (elapsed >= maxWaitMs) {
+            clearInterval(interval);
+            resolve(); // Timeout reached, resolve anyway
+            console.warn(`[TaskRunner] waitForTask timed out after ${maxWaitMs / 1000}s for task id: ${id}`);
+          }
         }
-      }, 500);
+      }, pollInterval);
     });
   }
 }

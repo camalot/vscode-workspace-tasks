@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { AntTaskProvider } from './providers/antTaskProvider';
@@ -14,7 +13,6 @@ import { NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './providers
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
-import { ExecutableService } from './services/executableService';
 import { MiseTaskProvider } from './providers/miseTaskProvider';
 
 export interface CreatedTask {
@@ -261,7 +259,9 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const defaultWorkspaceRoot = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
       const gulpProvider = new GulpTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: gulpProviderCmd, cwd: gulpProviderCwd } = gulpProvider.getCommand(workspaceFolder?.uri);
+      // const { command: gulpProviderCmd, cwd: gulpProviderCwd } = gulpProvider.getCommand(workspaceFolder?.uri);
+      // gulpProviderCmd is never used since we build the command manually using 'npx gulp'
+      const { command: _, cwd: gulpProviderCwd } = gulpProvider.getCommand(workspaceFolder?.uri);
       const gulpCwd = gulpProviderCwd || defaultWorkspaceRoot || cwd;
 
       // If the gulpfile is not located in the cwd, ensure we pass it explicitly right after 'gulp'
