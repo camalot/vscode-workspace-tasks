@@ -5,10 +5,23 @@ import * as path from 'path';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
+import { ExecutableService } from '../services/executableService';
 
 export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
     super('justfile');
+  }
+
+  public getCommand(resourceUri?: vscode.Uri) {
+    const execService = ExecutableService.getInstance();
+    return execService.getCommand({
+      configKey: 'workspaceTasks.applicationPath.just',
+      defaultValue: 'just',
+      configName: 'just',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: '.exe',
+      windowsEnforceExtension: true
+    }, resourceUri);
   }
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {

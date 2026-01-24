@@ -72,7 +72,7 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
   }
 
   public getCommand(workspaceUri?: vscode.Uri): string {
-    const composerPath = configuration.get<string>("composer.path");
+    const composerPath = configuration.get<string>("appplicationPath.composer");
     if (composerPath) {
       let resolvedPath = composerPath;
       // If relative path and workspaceUri exists

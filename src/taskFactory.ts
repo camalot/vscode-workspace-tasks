@@ -7,6 +7,8 @@ import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
 import { ComposerTaskProvider } from './providers/composerTaskProvider';
 import { GradleTaskProvider } from './providers/gradleTaskProvider';
+import { JustfileTaskProvider } from './providers/justfileTaskProvider';
+import { ExecutableService } from './services/executableService';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -271,7 +273,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return undefined;
     }
     case 'github-actions': {
-      let actPath = vscode.workspace.getConfiguration('workspaceTasks').get<string>('act.path') || 'act';
+      let actPath = vscode.workspace.getConfiguration('workspaceTasks').get<string>('applicationPath.act') || 'act';
       // if the path is relative, set the working directory to the root of the workspace.
       let actCwd = cwd;
       if (!path.isAbsolute(actPath)) {
@@ -498,15 +500,20 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command: `${command} ${commandArgs.join(' ')}`, cwd };
     }
     case 'justfile': {
-      const full = `just "${taskLabel}" ${args || ''}`.trim();
+      const justProvider = new JustfileTaskProvider();
+      const { command: justCommand, cwd: justCwd } = justProvider.getCommand(resourceUri);
+
+      const safeCommand = justCommand.includes(' ') ? `"${justCommand}"` : justCommand;
+      const fullCmd = `${safeCommand} "${taskLabel}" ${args || ''}`.trim();
+
       const task = new vscode.Task(
         { type: 'justfile', task: taskLabel },
         vscode.TaskScope.Workspace,
         taskLabel,
         'just',
-        new vscode.ShellExecution(full, { cwd })
+        new vscode.ShellExecution(fullCmd, { cwd: justCwd })
       );
-      return { task, command: full, cwd };
+      return { task, command: fullCmd, cwd: justCwd };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

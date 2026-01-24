@@ -122,7 +122,7 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
   }
 
   public getCommand(workspaceUri?: vscode.Uri): string {
-    const msbuildPath = configuration.get<string>("msbuild.path");
+    const msbuildPath = configuration.get<string>("applicationPath.msbuild");
 
     if (msbuildPath) {
       let resolvedPath = msbuildPath;

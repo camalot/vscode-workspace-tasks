@@ -150,7 +150,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
       return false;
     }
 
-    const ansiPath: string = configuration.get("ant.ansicon.path") || "";
+    const ansiPath: string = configuration.get("applicationPath.ansicon") || "";
     if (!ansiPath) {
       return false;
     }
@@ -171,7 +171,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
   }
 
   public getAnsiconPath(): string {
-    const ansiPath: string = configuration.get("ant.ansicon.path") || "";
+    const ansiPath: string = configuration.get("applicationPath.ansicon") || "";
     if (!ansiPath) {
       return "ansicon.exe";
     }
@@ -186,7 +186,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
   }
 
   public getCommand(workspaceUri?: vscode.Uri): string {
-    const antPath = configuration.get<string>("ant.path");
+    const antPath = configuration.get<string>("applicationPath.ant");
     if (antPath) {
       let resolvedPath = antPath;
 

@@ -258,13 +258,6 @@
       "type": "object",
       "title": "%view.name%",
       "properties": {
-        "workspaceTasks.act.path": {
-          "type": "string",
-          "default": "act",
-          "description": "%config.workspaceTasks.act.path%",
-          "markdownDescription": "%config.workspaceTasks.act.path.markdown%",
-          "scope": "resource"
-        },
         "workspaceTasks.act.envFile": {
           "type": "string",
           "default": "",
@@ -293,6 +286,12 @@
           "description": "%workspaceTasks.act.secretsFile%",
           "markdownDescription": "%workspaceTasks.act.secretsFile.markdown%",
           "scope": "resource"
+        },
+        "workspaceTasks.ant.ansicon.enabled": {
+          "type": "boolean",
+          "description": "%config.workspaceTasks.ant.ansicon.enabled%",
+          "markdownDescription": "%config.workspaceTasks.ant.ansicon.enabled.markdown%",
+          "default": true
         },
         "workspaceTasks.exclude": {
           "type": "array",
@@ -553,41 +552,48 @@
             "workspace": true
           }
         },
-        "workspaceTasks.composer.path": {
+        "workspaceTasks.applicationPath.act": {
+          "type": "string",
+          "default": "act",
+          "description": "%config.workspaceTasks.act.path%",
+          "markdownDescription": "%config.workspaceTasks.act.path.markdown%",
+          "scope": "resource"
+        },
+        "workspaceTasks.applicationPath.composer": {
           "type": "string",
           "description": "%config.workspaceTasks.composer.path%",
           "markdownDescription": "%config.workspaceTasks.composer.path.markdown%",
           "default": "composer"
         },
-        "workspaceTasks.msbuild.path": {
+        "workspaceTasks.applicationPath.msbuild": {
           "type": "string",
           "description": "%config.workspaceTasks.msbuild.path%",
           "markdownDescription": "%config.workspaceTasks.msbuild.path.markdown%",
           "default": "msbuild"
         },
-        "workspaceTasks.ant.path": {
+        "workspaceTasks.applicationPath.ant": {
           "type": "string",
           "description": "%config.workspaceTasks.ant.path%",
           "markdownDescription": "%config.workspaceTasks.ant.path.markdown%",
           "default": "ant"
         },
-        "workspaceTasks.ant.ansicon.enabled": {
-          "type": "boolean",
-          "description": "%config.workspaceTasks.ant.ansicon.enabled%",
-          "markdownDescription": "%config.workspaceTasks.ant.ansicon.enabled.markdown%",
-          "default": true
-        },
-        "workspaceTasks.ant.ansicon.path": {
+        "workspaceTasks.applicationPath.ansicon": {
           "type": "string",
           "description": "%config.workspaceTasks.ant.ansicon.path%",
           "markdownDescription": "%config.workspaceTasks.ant.ansicon.path.markdown%",
           "default": "ansicon.exe"
         },
-        "workspaceTasks.gradle.path": {
+        "workspaceTasks.applicationPath.gradle": {
           "type": "string",
           "description": "%config.workspaceTasks.gradle.path%",
           "markdownDescription": "%config.workspaceTasks.gradle.path.markdown%",
           "default": "gradlew"
+        },
+        "workspaceTasks.applicationPath.just": {
+          "type": "string",
+          "description": "%config.workspaceTasks.just.path%",
+          "markdownDescription": "%config.workspaceTasks.just.path.markdown%",
+          "default": "just"
         }
       }
     },

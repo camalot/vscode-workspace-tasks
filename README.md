@@ -131,7 +131,7 @@ Configure how act runs in your VS Code settings (`settings.json`):
 ```json
 {
   // Path to act executable (absolute or relative to workspace root)
-  "workspaceTasks.act.path": "act",  // or "tools/act/act.exe" for custom location
+  "workspaceTasks.applicationPath.act": "act",  // or "tools/act/act.exe" for custom location
 
   // Environment file for act (sets environment variables)
   "workspaceTasks.act.envFile": ".env",
@@ -220,7 +220,7 @@ GitHub Actions
 
 - Install [act](https://github.com/nektos/act) on your system
 - Docker must be running (act uses Docker containers to execute workflows)
-- Configure `workspaceTasks.act.path` if act is not in your PATH
+- Configure `workspaceTasks.applicationPath.act` if act is not in your PATH
 
 **Tips:**
 

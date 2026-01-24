@@ -79,7 +79,7 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
   }
 
   public getCommand(workspaceUri?: vscode.Uri): string {
-    const gradlePath = configuration.get<string>("gradle.path");
+    const gradlePath = configuration.get<string>("applicationPath.gradle");
     if (gradlePath) {
       let resolvedPath = gradlePath;
       // If relative path and workspaceUri exists
