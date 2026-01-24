@@ -68,7 +68,7 @@
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
   "config.workspaceTasks.shellAdditionalExtensions": "Additional File Extensions for Shell Tasks",
-  "config.workspaceTasks.shellAdditionalExtensions.markdown": "Add extra file extensions (beyond the default ones) that should be treated as shell tasks. Use a key-value format where the key is a glob pattern (e.g., `**/*.myscript`) and the value is the path to the shell interpreter (e.g., `/usr/local/bin/myshell`). This allows you to run custom script files as tasks within the extension.",
+  "config.workspaceTasks.shellAdditionalExtensions.markdown": "Add extra file extensions (beyond the default ones) that should be treated as shell tasks. Use a key-value format where the key is a file extension without the leading dot (e.g., `myscript`) and the value is the path to the shell interpreter (e.g., `/usr/local/bin/myshell`). This allows you to run custom script files as tasks within the extension.",
 
   "config.workspaceTasks.shellPaths": "Specify Shell Interpreter Paths",
   "config.workspaceTasks.shellPaths.markdown": "Specify custom paths for shell interpreters. Use a key-value format where the key is the shell type (e.g., `bash`, `pwsh`) and the value is the path to the shell executable (e.g., `/usr/local/bin/bash`). This allows you to customize which shell interpreters are used for running shell tasks.",
@@ -77,7 +77,7 @@
   "config.workspaceTasks.groups.enabled": "Group Tasks",
   "config.workspaceTasks.groups.taskSeparator": "Task Separator",
   "config.workspaceTasks.groups.taskSeparator.description": "Separator used to split task name into groups.",
-  "config.workspaceTasks.groups.taskSeparator.markdown": "Separator used to split task name into groups. For example, a task named `build-frontend` with a separator of `-` would be grouped under `build`. An empty string means no grouping will be applied.",
+  "config.workspaceTasks.groups.taskSeparator.markdown": "Separator used to split task name into groups. For example, a task named `build:frontend` with a separator of `:` would be grouped under `build`. An empty string means no grouping will be applied.",
 
   "config.workspaceTasks.exclude": "Exclude Patterns",
   "config.workspaceTasks.exclude.description": "Glob patterns to exclude from tasks.",

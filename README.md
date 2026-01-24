@@ -132,16 +132,16 @@ Configure how act runs in your VS Code settings (`settings.json`):
 {
   // Path to act executable (absolute or relative to workspace root)
   "workspaceTasks.act.path": "act",  // or "tools/act/act.exe" for custom location
-  
+
   // Environment file for act (sets environment variables)
   "workspaceTasks.act.envFile": ".env",
-  
+
   // Variables file (alternative to inline variables)
   "workspaceTasks.act.variablesFile": ".act.vars",
-  
+
   // Secrets file (for sensitive data like API keys)
   "workspaceTasks.act.secretsFile": ".act.secrets",
-  
+
   // Inline variables (passed as --var key=value)
   "workspaceTasks.act.variables": {
     "ENVIRONMENT": "development",
@@ -185,7 +185,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build
         run: npm run build
-  
+
   test:
     runs-on: ubuntu-latest
     steps:

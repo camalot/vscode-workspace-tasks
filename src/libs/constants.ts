@@ -15,7 +15,6 @@ const constants: Record<string, any> = {
   GLOB_JUST: "{**/justfile,**/.justfile,**/*.just}",
   GLOB_MAVEN: "**/pom.xml",
   GLOB_MSBUILD: "**/*.{csproj,vbproj,vcxproj,xml,proj,sln}",
-  GLOB_SHELL: "{**/*.sh,**/*.bash,**/*.zsh,**/*.fish,**/*.csh,**/*.ksh,**/*.cmd,**/*.bat,**/*.ps1}",
   GLOB_SHELL_EXCLUDE: "**/.venv/**",
   GLOB_GULP: "{**/gulpfile.js,**/gulpfile.mjs}",
   GLOB_GRUNT: "**/[Gg]runtfile.js",

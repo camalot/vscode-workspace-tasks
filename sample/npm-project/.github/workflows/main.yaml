@@ -1,4 +1,4 @@
-name: CI
+name: "NPM Test Workflow"
 on: push
 
 jobs:

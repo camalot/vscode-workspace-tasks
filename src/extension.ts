@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TaskTreeDataProvider } from './taskTreeDataProvider';
 import { NpmTaskProvider } from './providers/npmTaskProvider';
 import { ComposerTaskProvider } from './providers/composerTaskProvider';
-import { ScriptTaskProvider } from './providers/scriptTaskProvider';
+import { ShellTaskProvider } from './providers/shellTaskProvider';
 import { VscodeTaskProvider } from './providers/vscodeTaskProvider';
 import { VenvTaskProvider } from './providers/venvTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register Providers
   taskTreeDataProvider.registerProvider(new NpmTaskProvider());
   taskTreeDataProvider.registerProvider(new ComposerTaskProvider());
-  taskTreeDataProvider.registerProvider(new ScriptTaskProvider());
+  taskTreeDataProvider.registerProvider(new ShellTaskProvider());
   taskTreeDataProvider.registerProvider(new VscodeTaskProvider());
   taskTreeDataProvider.registerProvider(new VenvTaskProvider());
   taskTreeDataProvider.registerProvider(new MakefileTaskProvider());

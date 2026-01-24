@@ -15,6 +15,9 @@
 		"workspaceTasks.shellEnabledTaskTypes": {
 			"batch": true
 		},
-		"workspaceTasks.act.path": "tools/act/act"
+		"workspaceTasks.act.path": "tools/act/act",
+		"workspaceTasks.ant.ansicon.path": "D:\\Development\\projects\\github\\vscode-workspace-tasks\\sample\\vscode-project\\tools\\ansicon\\ansicon.exe",
+		"workspaceTasks.ant.path": "D:\\Development\\projects\\github\\vscode-workspace-tasks\\sample\\vscode-project\\tools\\ant\\bin\\ant",
+		"workspaceTasks.act.secretsFile": "./.act/.secrets"
 	}
 }

@@ -122,22 +122,36 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       );
       return { task, command: full, cwd };
     }
-    case 'script': {
+    case 'shell': {
       if (!item.resourceUri) { return undefined; }
-      let command = item.resourceUri.fsPath;
-      if (process.platform === 'win32' && (command.endsWith('.ps1'))) {
-        command = `powershell -ExecutionPolicy Bypass -File "${command}" ${args || ''}`.trim();
-      } else if (process.platform !== 'win32' && command.endsWith('.sh')) {
-        command = `bash "${command}" ${args || ''}`.trim();
+      const interpreter = item.metadata?.interpreter || '';
+
+      // If interpreter is provided, construct command
+      // e.g. "python", "script.py" -> "python script.py"
+      // e.g. "wsl.exe /bin/bash", "script.sh" -> "wsl.exe /bin/bash script.sh"
+
+      let command: string;
+
+      if (interpreter) {
+          // Check if we need to append .exe on Windows for the interpreter binary?
+          // The user said: "The paths to the interpreters should not be changed... On windows, it might need to change the executable to end in .exe"
+          // We'll trust the ShellExecution to handle path resolution for the binary.
+
+          command = `${interpreter} "${item.resourceUri.fsPath}"`;
       } else {
-        command = `"${command}" ${args || ''}`.trim();
+        // Legacy fallback or just execute file directly
+         command = `"${item.resourceUri.fsPath}"`;
+      }
+
+      if (args) {
+          command += ` ${args}`;
       }
 
       const task = new vscode.Task(
-        { type: 'script', script: taskLabel },
+        { type: 'shell', script: taskLabel },
         vscode.TaskScope.Workspace,
         taskLabel,
-        'script',
+        'shell',
         new vscode.ShellExecution(command, { cwd })
       );
       return { task, command, cwd };

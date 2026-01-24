@@ -2,12 +2,13 @@
   "name": "vscode-workspace-tasks",
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for VS Code",
+  "readme": "README.md",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.108.1"
   },
   "author": {
-    "name": "Ryan Conrad",
+    "name": "darthminos",
     "email": "camalot@gmail.com"
   },
   "homepage": "https://github.com/camalot/vscode-workspace-tasks",
@@ -24,7 +25,7 @@
     "buymeacoffee": "https://www.buymeacoffee.com/darthminos"
   },
   "license": "Apache-2.0",
-  "publisher": "Ryan Conrad",
+  "publisher": "darthminos",
   "icon": "res/icon.png",
   "galleryBanner": {
     "color": "#333333",
@@ -90,7 +91,10 @@
   "contributes": {
     "languages": [
       {
-        "id": "ignore",
+        "id": "tasksignore",
+        "aliases": [
+          "Tasks Ignore"
+        ],
         "extensions": [
           ".tasksignore"
         ],
@@ -98,19 +102,41 @@
           ".tasksignore"
         ],
         "icon": {
-          "light": "res/icons/light/task.svg",
-          "dark": "res/icons/dark/task.svg"
-        }
+          "light": "res/icons/light/wst.svg",
+          "dark": "res/icons/dark/wst.svg"
+        },
+        "configuration": "./res/syntaxes/tasksignore-language-configuration.json"
       },
       {
-        "id": "jsonc",
-        "filenames": [
-          ".workspace-tasks.json"
+        "id": "workspace-tasks",
+        "aliases": [
+          "Workspace Tasks"
+        ],
+        "filenamePatterns": [
+          "**/.workspace-tasks.json",
+          "**/workspace-tasks.json"
         ],
         "icon": {
-          "light": "res/icons/light/task.svg",
-          "dark": "res/icons/dark/task.svg"
-        }
+          "light": "res/icons/light/wst.svg",
+          "dark": "res/icons/dark/wst.svg"
+        },
+        "mimetypes": [
+          "application/json",
+          "text/json"
+        ],
+        "configuration": "./res/syntaxes/workspace-tasks-language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tasksignore",
+        "scopeName": "ignore.tasksignore",
+        "path": "./res/syntaxes/tasksignore.tmLanguage.json"
+      },
+      {
+        "language": "workspace-tasks",
+        "scopeName": "source.workspace-tasks",
+        "path": "./res/syntaxes/workspace-tasks.tmLanguage.json"
       }
     ],
     "jsonValidation": [
@@ -344,6 +370,7 @@
           },
           "default": {
             "bash": true,
+            "batch": true,
             "sh": true,
             "zsh": true,
             "fish": true,
@@ -363,39 +390,53 @@
           "properties": {
             "bash": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.bash%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.bash%",
+              "default": "bash"
             },
-            "sh": {
+            "batch": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.sh%"
-            },
-            "zsh": {
-              "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.zsh%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.batch%",
+              "default": "cmd.exe"
             },
             "fish": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%",
+              "default": "fish"
             },
             "nushell": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.nushell%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.nushell%",
+              "default": "nu"
             },
             "perl": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.perl%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.perl%",
+              "default": "perl"
             },
             "pwsh": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.pwsh%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.pwsh%",
+              "default": "pwsh"
             },
             "python": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.python%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.python%",
+              "default": "python"
             },
             "ruby": {
               "type": "string",
-              "description": "%config.workspaceTasks.shellEnabledTaskTypes.ruby%"
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.ruby%",
+              "default": "ruby"
+            },
+            "sh": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.sh%",
+              "default": "sh"
+            },
+            "zsh": {
+              "type": "string",
+              "description": "%config.workspaceTasks.shellEnabledTaskTypes.zsh%",
+              "default": "zsh"
             }
           }
         },
@@ -499,7 +540,7 @@
             "gradle": true,
             "grunt": true,
             "gulp": true,
-            "just": false,
+            "just": true,
             "make": true,
             "maven": true,
             "msbuild": true,
