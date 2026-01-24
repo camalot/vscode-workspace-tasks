@@ -555,44 +555,44 @@
         "workspaceTasks.applicationPath.act": {
           "type": "string",
           "default": "act",
-          "description": "%config.workspaceTasks.act.path%",
-          "markdownDescription": "%config.workspaceTasks.act.path.markdown%",
+          "description": "%config.workspaceTasks.applicationPath.act%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.act.markdown%",
           "scope": "resource"
         },
         "workspaceTasks.applicationPath.composer": {
           "type": "string",
-          "description": "%config.workspaceTasks.composer.path%",
-          "markdownDescription": "%config.workspaceTasks.composer.path.markdown%",
+          "description": "%config.workspaceTasks.applicationPath.composer%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.composer.markdown%",
           "default": "composer"
         },
         "workspaceTasks.applicationPath.msbuild": {
           "type": "string",
-          "description": "%config.workspaceTasks.msbuild.path%",
-          "markdownDescription": "%config.workspaceTasks.msbuild.path.markdown%",
+          "description": "%config.workspaceTasks.applicationPath.msbuild%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.msbuild.markdown%",
           "default": "msbuild"
         },
         "workspaceTasks.applicationPath.ant": {
           "type": "string",
-          "description": "%config.workspaceTasks.ant.path%",
-          "markdownDescription": "%config.workspaceTasks.ant.path.markdown%",
+          "description": "%config.workspaceTasks.applicationPath.ant%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.ant.markdown%",
           "default": "ant"
         },
         "workspaceTasks.applicationPath.ansicon": {
           "type": "string",
-          "description": "%config.workspaceTasks.ant.ansicon.path%",
-          "markdownDescription": "%config.workspaceTasks.ant.ansicon.path.markdown%",
+          "description": "%config.workspaceTasks.applicationPath.ansicon%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.ansicon.markdown%",
           "default": "ansicon.exe"
         },
         "workspaceTasks.applicationPath.gradle": {
           "type": "string",
-          "description": "%config.workspaceTasks.gradle.path%",
-          "markdownDescription": "%config.workspaceTasks.gradle.path.markdown%",
+          "description": "%config.workspaceTasks.applicationPath.gradle%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.gradle.markdown%",
           "default": "gradlew"
         },
         "workspaceTasks.applicationPath.just": {
           "type": "string",
-          "description": "%config.workspaceTasks.just.path%",
-          "markdownDescription": "%config.workspaceTasks.just.path.markdown%",
+          "description": "%config.workspaceTasks.applicationPath.just%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.just.markdown%",
           "default": "just"
         }
       }
