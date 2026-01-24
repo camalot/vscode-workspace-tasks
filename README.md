@@ -1,9 +1,6 @@
 # Workspace Tasks
 
-> [!NOTE]
-> CURRENT STATUS IS **UNPUBLISHED**
-
-[![package_json version](https://img.shields.io/github/package-json/v/camalot/workspace%2dtasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
 A powerful VS Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 
