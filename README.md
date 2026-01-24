@@ -1,4 +1,5 @@
 # Workspace Tasks
+<!-- markdownlint-disable-file MD033 -->
 
 [![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
@@ -101,7 +102,6 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
 > **Note:** The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
-
 
 ## ⭐ Favorites
 
@@ -338,7 +338,7 @@ jobs:
 
 The task tree shows:
 
-```
+```text
 GitHub Actions
 └── Build & Test
     ├── Run Workflow (push)
@@ -439,7 +439,7 @@ Add workspace-wide exclusions in `settings.json`:
 Each task type watches specific file patterns:
 
 | Task Type | Patterns | Notes |
-|-----------|----------|-------|
+| ----------- | ---------- | ------- |
 | npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
 | Ant | `**/*.xml` | Parses build file targets |
 | Composer | `**/composer.json` | PHP dependency scripts |
@@ -471,6 +471,7 @@ All patterns respect `.gitignore` and `.tasksignore` exclusions.
 The extension discovers tasks regardless of whether tools are installed, but **execution requires** the corresponding tool in your system PATH:
 
 **Package Managers:**
+
 - [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/) for npm tasks
 - [pnpm](https://pnpm.io/) for pnpm tasks
 - [Yarn](https://yarnpkg.com/) for Yarn tasks
@@ -478,22 +479,26 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - [Pipenv](https://pipenv.pypa.io/) for Python Pipenv tasks
 
 **Build Systems:**
+
 - [Apache Ant](https://ant.apache.org/) for Ant tasks
 - [Gradle](https://gradle.org/) for Gradle tasks
 - [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) for .NET tasks
 - [Make](https://www.gnu.org/software/make/) for Makefile tasks
 
 **Task Runners:**
+
 - [Grunt](https://gruntjs.com/) for Grunt tasks
 - [Gulp](https://gulpjs.com/) for Gulp tasks
 - [Just](https://github.com/casey/just) for Just tasks
 - [mise](https://mise.jdx.dev/) for mise tasks
 
 **DevOps:**
+
 - [Docker](https://www.docker.com/) for Docker and Docker Compose tasks
 - [act](https://github.com/nektos/act) and Docker for GitHub Actions workflows
 
 **Scripts:**
+
 - Bash, Zsh, or other shell interpreters for shell scripts
 - PowerShell for `.ps1` scripts
 - Command Prompt for `.bat` and `.cmd` scripts
@@ -553,4 +558,6 @@ This project is licensed under the [Apache 2.0 License](LICENSE).
 
 ---
 
+<!-- markdownlint-disable MD036 -->
 **Made with ❤️ for the VS Code community**
+<!-- markdownlint-enable MD036 -->
