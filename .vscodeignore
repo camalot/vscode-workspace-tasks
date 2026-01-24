@@ -17,3 +17,6 @@ assets/
 **/*.map
 **/*.ts
 **/.vscode-test.*
+
+*.sln
+scripts/**

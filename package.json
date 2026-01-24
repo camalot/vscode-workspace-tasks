@@ -1,9 +1,9 @@
 {
-  "name": "vscode-workspace-tasks",
+  "name": "workspace-tasks",
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for VS Code",
   "readme": "README.md",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -18,9 +18,10 @@
   },
   "bugs": {
     "url": "https://github.com/camalot/vscode-workspace-tasks/issues",
-    "new": "https://github.com/camalot/vscode-workspace-tasks/issues/new"
+    "new": "https://github.com/camalot/vscode-workspace-tasks/issues/new/choose"
   },
   "sponsor": {
+    "url": "https://github.com/sponsors/camalot",
     "github": "https://github.com/sponsors/camalot",
     "buymeacoffee": "https://www.buymeacoffee.com/darthminos"
   },
@@ -82,6 +83,7 @@
     "@typescript-eslint/parser": "^8.53.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
     "eslint": "^9.39.2",
     "glob": "^13.0.0",
     "mocha": "^11.7.5",

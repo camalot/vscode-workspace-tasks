@@ -294,7 +294,7 @@ Run GitHub Actions workflows locally using [act](https://github.com/nektos/act) 
 
 Configure act in your VS Code settings (`settings.json`):
 
-```json
+```jsonc
 {
   // Path to act executable
   "workspaceTasks.applicationPath.act": "act",

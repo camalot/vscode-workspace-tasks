@@ -92,10 +92,10 @@ body:
       label: Environment
       description: Please provide information about your environment
       value: |
-        - **VS Code Version**: 
-        - **Extension Version**: 
-        - **Operating System**: 
-        - **Task Tool Version** (if applicable): 
+        - **VS Code Version**:
+        - **Extension Version**:
+        - **Operating System**:
+        - **Task Tool Version** (if applicable):
       render: markdown
     validations:
       required: true

@@ -61,7 +61,7 @@ body:
       label: File Patterns
       description: What files or patterns should be used to detect this tool?
       placeholder: |
-        e.g., 
+        e.g.,
         - BUILD, BUILD.bazel, *.BUILD
         - Rakefile, *.rake
         - pyproject.toml (for Poetry)
