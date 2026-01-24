@@ -42,10 +42,12 @@ class Configuration {
   public update(key: string, value: any): Thenable<void> {
     if (key.includes(".")) {
       const keys = key.split(".");
-      key = keys[0];
-      const v = this.get<any>(key);
-      v[keys[1]] = value;
-      value = v;
+      const parentKey = keys[0];
+      const v = this.get<any>(parentKey);
+      if (v && typeof v === 'object') {
+        v[keys[1]] = value;
+        return this.configuration.update(parentKey, v, ConfigurationTarget.Global);
+      }
     }
     return this.configuration.update(key, value, ConfigurationTarget.Global);
   }
@@ -53,10 +55,12 @@ class Configuration {
   public updateWs(key: string, value: any): Thenable<void> {
     if (key.includes(".")) {
       const keys = key.split(".");
-      key = keys[0];
-      const v = this.get<any>(key);
-      v[keys[1]] = value;
-      value = v;
+      const parentKey = keys[0];
+      const v = this.get<any>(parentKey);
+      if (v && typeof v === 'object') {
+        v[keys[1]] = value;
+        return this.configuration.update(parentKey, v, ConfigurationTarget.Workspace);
+      }
     }
     return this.configuration.update(key, value, ConfigurationTarget.Workspace);
   }

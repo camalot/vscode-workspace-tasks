@@ -7,10 +7,11 @@ import * as fs from 'fs';
 import constants from '../libs/constants';
 import { configuration } from '../libs/configuration';
 import { TaskIconService } from '../services/taskIconService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
 
 export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('gradle');
+    super('gradle', constants.GLOB_GRADLE);
   }
 
   async getTasks(): Promise<TaskItem[]> {
@@ -78,45 +79,28 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
     return tasks;
   }
 
-  public getCommand(workspaceUri?: vscode.Uri): string {
-    const gradlePath = configuration.get<string>("applicationPath.gradle");
-    if (gradlePath) {
-      let resolvedPath = gradlePath;
-      // If relative path and workspaceUri exists
-      if (!path.isAbsolute(gradlePath) && workspaceUri) {
-        const localPath = path.join(workspaceUri.fsPath, gradlePath);
-        if (fs.existsSync(localPath)) {
-          resolvedPath = localPath;
-        }
-      }
+  public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
 
-      if (fs.existsSync(resolvedPath)) {
-        return resolvedPath;
-      }
+    const result = execService.getCommand({
+      configKey: 'applicationPath.gradle',
+      defaultValue: 'gradle',
+      configName: 'gradle',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: '.bat',
+      windowsEnforceExtension: true
+    }, workspaceUri);
 
-      // On Windows, try adding .bat if it ends with gradlew
-      if (process.platform === 'win32') {
-        if (resolvedPath.endsWith('gradlew')) {
-          return resolvedPath + '.bat';
-        }
-      }
-
-      return resolvedPath;
-    }
-    // If not configured, check for gradlew in workspace root
-    if (workspaceUri) {
+    // If user did not configure a gradle path, prefer the workspace's gradlew wrapper when present
+    const configured = configuration.get<string>('applicationPath.gradle');
+    if (!configured && workspaceUri) {
       const gradlew = process.platform === 'win32' ? 'gradlew.bat' : 'gradlew';
       const gradlewPath = path.join(workspaceUri.fsPath, gradlew);
       if (fs.existsSync(gradlewPath)) {
-        return gradlewPath;
+        return { command: gradlewPath, args: [], cwd: workspaceUri.fsPath };
       }
     }
 
-    // On Windows, return "default" with .bat extension
-    if (process.platform === 'win32') {
-      return 'gradlew.bat';
-    }
-
-    return 'gradlew';
+    return result;
   }
 }

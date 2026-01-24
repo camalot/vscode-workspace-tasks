@@ -8,7 +8,7 @@ import { TaskIconService } from '../services/taskIconService';
 
 export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('venv');
+    super('venv', constants.GLOB_VENV);
   }
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
@@ -23,13 +23,15 @@ export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
       const label = path.basename(file.fsPath);
 
       // Fake URI to force .py icon
-      const iconUri = file.with({ path: file.path + '.py' });
+      const iconUri = iconService.getTaskTypeIcon('python', file.with({ path: file.path + '.py' }));
 
       const item = new TaskItem(
         label,
         vscode.TreeItemCollapsibleState.None,
         this.type,
-        iconUri
+        iconUri?.DisplayUri || file,
+        undefined,
+        iconUri?.TaskIcon || undefined
       );
 
       item.taskFileUri = file;

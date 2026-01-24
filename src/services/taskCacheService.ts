@@ -9,6 +9,7 @@ export class TaskCacheService {
     private context?: vscode.ExtensionContext;
 
     private providers: TaskProvider[] = [];
+    private providerTasks: Map<string, TaskItem[]> = new Map();
 
     private constructor() {}
 
@@ -28,56 +29,91 @@ export class TaskCacheService {
         this.providers.push(provider);
     }
 
-    public async refresh(): Promise<TaskItem[]> {
+    public getProviders(): TaskProvider[] {
+        return this.providers;
+    }
+
+    public async refreshProvider(type: string): Promise<void> {
+        const provider = this.providers.find(p => (p as any).type === type);
+        if (!provider) { return; }
+
+        try {
+            const tasks = await provider.getTasks();
+            this.providerTasks.set(type, tasks);
+        } catch (e) {
+            console.error(`Error refreshing provider ${type}`, e);
+            this.providerTasks.set(type, []);
+        }
+        this.rebuildCache();
+    }
+
+    private rebuildCache() {
         this.allTasks = [];
         this.fileTaskMap.clear();
         const seenIds = new Set<string>();
 
-        for (const provider of this.providers) {
-            try {
-                const tasks = await provider.getTasks();
+        // Ensure deterministic order of providers for stable IDs
+        const sortedTypes = Array.from(this.providerTasks.keys()).sort();
 
-                for (const task of tasks) {
-
-                    // Ensure task has the requested ID format
-                    if (task.label) {
-                        let wsPath = '';
-                        let fileUriStr = '';
-                        const uri = task.taskFileUri || task.resourceUri;
-                        if (uri) {
-                            fileUriStr = uri.toString();
-                            const ws = vscode.workspace.getWorkspaceFolder(uri);
-                            if (ws) {
-                                wsPath = ws.uri.fsPath;
-                            }
+        for (const type of sortedTypes) {
+            const tasks = this.providerTasks.get(type) || [];
+            for (const task of tasks) {
+                 // Ensure task has the requested ID format
+                 if (task.label) {
+                    let wsPath = '';
+                    let fileUriStr = '';
+                    const uri = task.taskFileUri || task.resourceUri;
+                    if (uri) {
+                        fileUriStr = uri.toString();
+                        const ws = vscode.workspace.getWorkspaceFolder(uri);
+                        if (ws) {
+                            wsPath = ws.uri.fsPath;
                         }
-                        task.id = `${wsPath}|${fileUriStr}|${task.label}`;
                     }
-
-                    if (task.id) {
-                        let uniqueId = task.id;
-                        let counter = 1;
-                        while (seenIds.has(uniqueId)) {
-                            uniqueId = `${task.id}|${counter++}`;
-                        }
-                        task.id = uniqueId;
-                        seenIds.add(uniqueId);
-                    }
-
-                    this.allTasks.push(task);
-
-                    if (task.resourceUri) {
-                        const key = task.resourceUri.toString();
-                        if (!this.fileTaskMap.has(key)) {
-                            this.fileTaskMap.set(key, []);
-                        }
-                        this.fileTaskMap.get(key)?.push(task);
-                    }
+                    task.id = `${wsPath}|${fileUriStr}|${task.label}`;
                 }
-            } catch (e) {
-                console.error('Error refreshing provider tasks', e);
+
+                if (task.id) {
+                    let uniqueId = task.id;
+                    let counter = 1;
+                    while (seenIds.has(uniqueId)) {
+                        uniqueId = `${task.id}|${counter++}`;
+                    }
+                    task.id = uniqueId;
+                    seenIds.add(uniqueId);
+                }
+
+                this.allTasks.push(task);
+
+                if (task.resourceUri) {
+                    const key = task.resourceUri.toString();
+                    if (!this.fileTaskMap.has(key)) {
+                        this.fileTaskMap.set(key, []);
+                    }
+                    this.fileTaskMap.get(key)?.push(task);
+                }
             }
         }
+    }
+
+    public async refresh(): Promise<TaskItem[]> {
+        this.providerTasks.clear();
+
+        const promises = this.providers.map(async (provider) => {
+            const type = (provider as any).type;
+            if (type) {
+                try {
+                    const tasks = await provider.getTasks();
+                    this.providerTasks.set(type, tasks);
+                } catch (e) {
+                    console.error(`Error refreshing provider ${type}`, e);
+                    this.providerTasks.set(type, []);
+                }
+            }
+        });
+
+        await Promise.all(promises);
+        this.rebuildCache();
         return this.allTasks;
     }
 

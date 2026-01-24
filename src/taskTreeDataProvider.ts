@@ -18,6 +18,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private pendingRevealLevel: number | undefined = undefined;
   // Use a dedicated emitter for roots updates to synchronize reveal actions
   private onRootsUpdated: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+  private refreshTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   constructor(private context: vscode.ExtensionContext) {
     this.dragAndDropController = new TaskTreeDragAndDropController();
@@ -36,6 +37,31 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   registerProvider(provider: TaskProvider) {
     TaskCacheService.getInstance().registerProvider(provider);
+    if (provider.filePattern) {
+        const watcher = vscode.workspace.createFileSystemWatcher(provider.filePattern);
+        const onChange = () => this.handleFileChange(provider);
+
+        watcher.onDidChange(onChange);
+        watcher.onDidCreate(onChange);
+        watcher.onDidDelete(onChange);
+
+        this.context.subscriptions.push(watcher);
+    }
+  }
+
+  private handleFileChange(provider: TaskProvider) {
+      if (!provider.type) { return; }
+      const type = provider.type;
+
+      if (this.refreshTimeouts.has(type)) {
+          clearTimeout(this.refreshTimeouts.get(type));
+      }
+
+      this.refreshTimeouts.set(type, setTimeout(async () => {
+          this.refreshTimeouts.delete(type);
+          await TaskCacheService.getInstance().refreshProvider(type);
+          this._onDidChangeTreeData.fire();
+      }, 1000));
   }
 
   async refresh(): Promise<void> {

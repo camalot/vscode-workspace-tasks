@@ -4,15 +4,17 @@ import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
+import { ExecutableResult } from '../services/executableService';
 
 export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskProvider {
 
-  constructor(type: string) {
-    super(type);
+  constructor(type: string, pattern?: string) {
+    super(type, pattern);
   }
 
   protected abstract getGlobPatterns(): string[];
   protected abstract getScriptsPath(): string;
+  public abstract getCommand(workspaceUri?: vscode.Uri): ExecutableResult;
 
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
@@ -85,14 +87,44 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
 
   private resolveScripts(obj: any, path: string): any {
       const parts = path.split('.');
-      let current = obj;
+      let scopes: any[] = [obj];
+
       for (const part of parts) {
-          if (current === undefined || current === null) {
-              return undefined;
+          const nextScopes: any[] = [];
+          for (const scope of scopes) {
+              if (scope === undefined || scope === null || typeof scope !== 'object') {
+                  continue;
+              }
+
+              if (part === '*') {
+                  // Add all values of current object
+                  for (const key of Object.keys(scope)) {
+                      if (Object.prototype.hasOwnProperty.call(scope, key)) {
+                        nextScopes.push(scope[key]);
+                      }
+                  }
+              } else {
+                  if (Object.prototype.hasOwnProperty.call(scope, part)) {
+                      nextScopes.push(scope[part]);
+                  }
+              }
           }
-          current = current[part];
+          scopes = nextScopes;
       }
-      return current;
+
+      // Merge results
+      if (scopes.length === 0) { return undefined; }
+
+      const result: any = {};
+      for (const s of scopes) {
+          if (s && typeof s === 'object') {
+              Object.assign(result, s);
+          }
+      }
+
+      // If result is empty but we expected something?
+      // If we found nothing valid, result might be empty.
+      return result;
   }
 
   private findScriptLine(content: string, scriptName: string): number {

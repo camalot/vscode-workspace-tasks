@@ -5,10 +5,22 @@ import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
 
 export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('gulp');
+    super('gulp', constants.GLOB_GULP);
+  }
+
+  public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
+    return execService.getCommand({
+      defaultValue: 'npx gulp',
+      configName: 'gulp',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: undefined,
+      windowsEnforceExtension: false
+    }, workspaceUri);
   }
 
   async getTasks(): Promise<TaskItem[]> {

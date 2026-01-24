@@ -28,7 +28,13 @@ const BUILT_IN_SHELLS: Record<string, ShellConfig> = {
 
 export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('shell');
+    // Collect all extensions
+    const extensions = new Set<string>();
+    for(const key in BUILT_IN_SHELLS) {
+        BUILT_IN_SHELLS[key].extensions.forEach(ext => extensions.add(ext));
+    }
+    const glob = `**/*.{${Array.from(extensions).join(',')}}`;
+    super('shell', glob);
   }
 
   async getTasks(): Promise<TaskItem[]> {

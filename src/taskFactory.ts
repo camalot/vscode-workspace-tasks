@@ -7,7 +7,13 @@ import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
 import { ComposerTaskProvider } from './providers/composerTaskProvider';
 import { GradleTaskProvider } from './providers/gradleTaskProvider';
+import { GruntTaskProvider } from './providers/gruntTaskProvider';
+import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { JustfileTaskProvider } from './providers/justfileTaskProvider';
+import { NpmTaskProvider } from './providers/npmTaskProvider';
+import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
+import { MakefileTaskProvider } from './providers/makefileTaskProvider';
+import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
 import { ExecutableService } from './services/executableService';
 
 export interface CreatedTask {
@@ -45,38 +51,40 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
   // Fallbacks by task type
   switch (item.taskType) {
     case 'npm': {
-      const full = `npm run "${taskLabel}" ${args || ''}`.trim();
+      const npmProvider = new NpmTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: npmCmd, args: npmInitialArgs, cwd: npmCwd } = npmProvider.getCommand(workspaceFolder?.uri);
+
+      const npmArgs = npmInitialArgs ? [...npmInitialArgs] : [];
+      npmArgs.push('run', `${taskLabel}`);
+      if (args) { npmArgs.push(...args.split(' ')); }
+
+      const full = `${npmCmd} ${npmArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd: npmCwd });
+
       const task = new vscode.Task(
         { type: 'npm', script: taskLabel },
         vscode.TaskScope.Workspace,
         taskLabel,
         'npm',
-        new vscode.ShellExecution(full, { cwd })
+        shellExec
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd: npmCwd };
     }
     case 'gradle': {
       // gradle [task] [args]
       const gradleProvider = new GradleTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const gradleCmd = gradleProvider.getCommand(workspaceFolder?.uri);
+      const { command: gradleCmd, args: gradleInitialArgs, cwd: gradleCwd } = gradleProvider.getCommand(workspaceFolder?.uri);
 
-      const gradleArgs = [taskLabel];
+      const gradleArgs = gradleInitialArgs ? [...gradleInitialArgs] : [];
+      gradleArgs.push(taskLabel);
       if (args) {
         gradleArgs.push(...args.split(' '));
       }
 
-      let full: string;
-      let shellExec: vscode.ShellExecution;
-
-      // Check if command is a path with spaces
-      if (gradleCmd.includes(' ')) {
-        shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd });
-        full = `"${gradleCmd}" ${gradleArgs.join(' ')}`;
-      } else {
-        full = `${gradleCmd} ${gradleArgs.join(' ')}`;
-        shellExec = new vscode.ShellExecution(full, { cwd });
-      }
+      const full = `${gradleCmd} ${gradleArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd: gradleCwd });
 
       const task = new vscode.Task(
         { type: 'gradle', script: taskLabel },
@@ -85,35 +93,23 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'gradle',
         shellExec
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd: gradleCwd };
     }
     case 'composer': {
       // composer run-script [script] [args]
       const composerProvider = new ComposerTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const composerCmd = composerProvider.getCommand(workspaceFolder?.uri);
+      const { command: composerCmd, args: composerInitialArgs, cwd: composerCwd } = composerProvider.getCommand(workspaceFolder?.uri);
 
-      const composerArgs = ['run-script', taskLabel];
+      const composerArgs = composerInitialArgs ? [...composerInitialArgs] : [];
+      composerArgs.push('run-script', taskLabel);
       if (args) {
         composerArgs.push('--');
         composerArgs.push(...args.split(' '));
       }
 
-      // If composerCmd has spaces and is not quoted, quote it? ShellExecution handles args, but command string...
-      // If we use array form ShellExecution, we separate cmd and args.
-
-      let full: string;
-      let shellExec: vscode.ShellExecution;
-
-      // Check if command is a path with spaces
-      if (composerCmd.includes(' ')) {
-        // Use formatted command string for ShellExecution if we want to be safe or just pass executable and args array
-        shellExec = new vscode.ShellExecution(composerCmd, composerArgs, { cwd });
-        full = `"${composerCmd}" ${composerArgs.join(' ')}`;
-      } else {
-        full = `${composerCmd} ${composerArgs.join(' ')}`;
-        shellExec = new vscode.ShellExecution(full, { cwd });
-      }
+      const full = `${composerCmd} ${composerArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(composerCmd, composerArgs, { cwd: composerCwd });
 
       const task = new vscode.Task(
         { type: 'composer', script: taskLabel },
@@ -122,7 +118,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'composer',
         shellExec
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd: composerCwd };
     }
     case 'shell': {
       if (!item.resourceUri) { return undefined; }
@@ -159,12 +155,22 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command, cwd };
     }
     case 'grunt': {
-      const gruntCmd = process.platform === 'win32' ? 'grunt.cmd' : 'grunt';
-      const gruntArgs: string[] = [];
+      const gruntProvider = new GruntTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: gruntCmd, args: gruntInitialArgs, cwd: gruntCwd } = gruntProvider.getCommand(workspaceFolder?.uri);
+
+      const gruntArgs: string[] = gruntInitialArgs ? [...gruntInitialArgs] : [];
       if (taskLabel && taskLabel.length > 0) { gruntArgs.push(taskLabel); }
-      const fileName = resourceUri ? path.basename(resourceUri.fsPath).toLowerCase() : undefined;
-      if (fileName && fileName !== 'gruntfile.js' && item.resourceUri) {
-        gruntArgs.push('--gruntfile', item.resourceUri.fsPath);
+      if (item.resourceUri) {
+        const dir = path.dirname(item.resourceUri.fsPath);
+        const rel = path.relative(gruntCwd, dir);
+        const fileName = path.basename(item.resourceUri.fsPath).toLowerCase();
+
+        // If the file is not in the CWD (workspace root) or the filename is not "gruntfile.js",
+        // we need to pass the --gruntfile argument explicitly.
+        if ((rel.length > 0 && rel !== '.') || fileName !== 'gruntfile.js') {
+          gruntArgs.push('--gruntfile', item.resourceUri.fsPath);
+        }
       }
       if (args) { gruntArgs.push(...args.split(' ')); }
 
@@ -173,9 +179,9 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         vscode.TaskScope.Workspace,
         taskLabel,
         'grunt',
-        new vscode.ShellExecution(gruntCmd, gruntArgs, { cwd })
+        new vscode.ShellExecution(gruntCmd, gruntArgs, { cwd: gruntCwd })
       );
-      return { task, command: `${gruntCmd} ${gruntArgs.join(' ')}`.trim(), cwd };
+      return { task, command: `${gruntCmd} ${gruntArgs.join(' ')}`.trim(), cwd: gruntCwd };
     }
     case 'gulp': {
       // Use npx to prefer workspace-local gulp if available
@@ -186,7 +192,10 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       // Prefer workspace folder root as cwd so local install (node_modules) is resolved correctly
       // Use the workspace root (first workspace folder) as the default cwd so we prefer the workspace-local gulp installation
       const defaultWorkspaceRoot = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
-      const gulpCwd = defaultWorkspaceRoot || cwd;
+      const gulpProvider = new GulpTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: gulpProviderCmd, cwd: gulpProviderCwd } = gulpProvider.getCommand(workspaceFolder?.uri);
+      const gulpCwd = gulpProviderCwd || defaultWorkspaceRoot || cwd;
 
       // If the gulpfile is not located in the cwd, ensure we pass it explicitly right after 'gulp'
       if (resourceUri && path.dirname(resourceUri.fsPath) !== gulpCwd) {
@@ -217,18 +226,20 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
       const workspaceUri = workspaceFolder?.uri;
 
+      const { command: antCommand, args: antInitialArgs, cwd: antCwd } = antProvider.getCommand(workspaceUri);
+
       let command: string;
       let commandArgs: string[];
-      let antCommand: string;
 
       if (useAnsicon) {
-        command = antProvider.getAnsiconPath();
-        antCommand = antProvider.getCommand(workspaceUri);
-        commandArgs = [antCommand].concat(antProvider.getCommandArgs(taskLabel, true, item.resourceUri?.fsPath));
+        command = antProvider.getAnsicon(workspaceUri).command;
+        commandArgs = [antCommand];
+        if (antInitialArgs) { commandArgs.push(...antInitialArgs); }
+        commandArgs = commandArgs.concat(antProvider.getCommandArgs(taskLabel, true, item.taskFileUri?.fsPath));
       } else {
-        antCommand = antProvider.getCommand(workspaceUri);
         command = antCommand;
-        commandArgs = antProvider.getCommandArgs(taskLabel, false, item.resourceUri?.fsPath);
+        commandArgs = antInitialArgs ? [...antInitialArgs] : [];
+        commandArgs.push(...antProvider.getCommandArgs(taskLabel, false, item.taskFileUri?.fsPath));
       }
 
       if (args) { commandArgs.push(...args.split(' ')); }
@@ -241,18 +252,18 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           vscode.TaskScope.Workspace,
           taskLabel,
           'ant',
-          new vscode.ShellExecution(fullCommand, { cwd })
+          new vscode.ShellExecution(fullCommand, { cwd: antCwd })
         );
-        return { task, command: fullCommand, cwd };
+        return { task, command: fullCommand, cwd: antCwd };
       } else {
         const task = new vscode.Task(
           { type: 'ant', target: taskLabel },
           vscode.TaskScope.Workspace,
           taskLabel,
           'ant',
-          new vscode.ShellExecution(command, commandArgs, { cwd })
+          new vscode.ShellExecution(command, commandArgs, { cwd: antCwd })
         );
-        return { task, command: `${command} ${commandArgs.join(' ')}`, cwd };
+        return { task, command: `${command} ${commandArgs.join(' ')}`, cwd: antCwd };
       }
     }
     case 'workspace-task': {
@@ -273,31 +284,15 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return undefined;
     }
     case 'github-actions': {
-      let actPath = vscode.workspace.getConfiguration('workspaceTasks').get<string>('applicationPath.act') || 'act';
-      // if the path is relative, set the working directory to the root of the workspace.
-      let actCwd = cwd;
-      if (!path.isAbsolute(actPath)) {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders && workspaceFolders.length > 0) {
-          actPath = path.join(workspaceFolders[0].uri.fsPath, actPath);
-          actCwd = workspaceFolders[0].uri.fsPath;
-        }
-      }
-
-      if (process.platform === 'win32' && actPath.endsWith('act')) {
-        // On Windows, if user specified 'act' without .exe, append it
-        if (!actPath.toLowerCase().endsWith('.exe')) {
-          // Check if act.exe exists in the same directory
-          const actExePath = actPath + '.exe';
-          actPath = actExePath;
-        }
-      }
-
+      const ghProvider = new GithubActionsTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: actPath, args: actInitialArgs, cwd: actCwd } = ghProvider.getCommand(workspaceFolder?.uri);
 
       const meta = item.metadata;
-      const actArgs: string[] = [];
+      const actArgs: string[] = actInitialArgs ? [...actInitialArgs] : [];
       const config = vscode.workspace.getConfiguration('workspaceTasks');
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      // workspaceFolder already defined above
+      // const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
 
 
       // this should be the first argument.
@@ -417,26 +412,53 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     case 'vscode': {
       // Use existing VS Code task defined in .vscode/tasks.json
       const tasks = await vscode.tasks.fetchTasks();
-      const found = tasks.find(t => t.name === taskLabel && t.source === 'Workspace');
+      const targetWorkspaceFolder = item.resourceUri ? vscode.workspace.getWorkspaceFolder(item.resourceUri) : undefined;
+
+      const found = tasks.find(t => {
+        const nameMatch = t.name === taskLabel && t.source === 'Workspace';
+        if (!nameMatch) { return false; }
+
+        // If we know the target workspace folder, ensure the task belongs to it
+        if (targetWorkspaceFolder && typeof t.scope === 'object' && 'uri' in t.scope) {
+           return t.scope.uri.toString() === targetWorkspaceFolder.uri.toString();
+        }
+
+        // If we don't know the folder, or the task has global/workspace scope, accepts it as fallback
+        return true;
+      });
+
       if (found) {
         return { task: found, cwd };
       }
       return undefined;
     }
     case 'makefile': {
-      const full = `make "${taskLabel}" ${args || ''}`.trim();
+      const makeProvider = new MakefileTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: makeCmd, args: makeInitialArgs, cwd: makeCwd } = makeProvider.getCommand(workspaceFolder?.uri);
+
+      const makeArgs = makeInitialArgs ? [...makeInitialArgs] : [];
+      makeArgs.push(taskLabel);
+      if (args) { makeArgs.push(...args.split(' ')); }
+
+      const full = `${makeCmd} ${makeArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(makeCmd, makeArgs, { cwd: makeCwd });
+
       const task = new vscode.Task(
         { type: 'makefile', script: taskLabel },
         vscode.TaskScope.Workspace,
         taskLabel,
         'makefile',
-        new vscode.ShellExecution(full, { cwd })
+        shellExec
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd: makeCwd };
     }
     case 'dockerfile': {
       const command = await WorkspaceTasksService.getInstance().resolveTaskCommand(taskLabel, 'DockerFile', resourceUri);
       if (command) {
+        // Dockerfile provider uses resolveTaskCommand which returns a string presumably from user config map?
+        // It does not use ExecutableService.getCommand directly here on taskFactory level.
+        // So we leave it as is.
         const fullCommand = args ? `${command} ${args}` : command;
         const task = new vscode.Task(
           { type: 'dockerfile', task: taskLabel },
@@ -450,26 +472,36 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return undefined;
     }
     case 'pipenv': {
-      const full = `pipenv run ${taskLabel} ${args || ''}`.trim();
+      const pipenvProvider = new PipenvTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: pipenvCmd, args: pipenvInitialArgs, cwd: pipenvCwd } = pipenvProvider.getCommand(workspaceFolder?.uri);
+
+      const pipenvArgs = pipenvInitialArgs ? [...pipenvInitialArgs] : [];
+      pipenvArgs.push('run', taskLabel);
+      if (args) { pipenvArgs.push(...args.split(' ')); }
+
+      const full = `${pipenvCmd} ${pipenvArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(pipenvCmd, pipenvArgs, { cwd: pipenvCwd });
+
       const task = new vscode.Task(
         { type: 'pipenv', script: taskLabel },
         vscode.TaskScope.Workspace,
         taskLabel,
         'pipenv',
-        new vscode.ShellExecution(full, { cwd })
+        shellExec
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd: pipenvCwd };
     }
     case 'venv': {
-      if (!item.resourceUri) { return undefined; }
-      let command = item.resourceUri.fsPath;
-      if (command.endsWith('.py') && (command.includes('activate') || command.includes('deactivate'))) {
+      const taskUri = item.taskFileUri || item.resourceUri;
+      if (!taskUri) { return undefined; }
+      let command = taskUri.fsPath;
+      if (command.endsWith('.py') && (command.toLowerCase().includes('activate') || command.toLowerCase().includes('deactivate'))) {
         command = command.substring(0, command.length - 3);
       }
       if (process.platform === 'win32' && (command.toLowerCase().endsWith('.ps1'))) {
-        command = `powershell -ExecutionPolicy Bypass -File "${command}" ${args || ''}`.trim();
-      } else if (process.platform !== 'win32' && (command.endsWith('.fish'))) {
-        command = `fish "${command}" ${args || ''}`.trim();
+        // get powershell tool path from configuration
+        command = `powershell -NoProfile -ExecutionPolicy Bypass -File "${command}" ${args || ''}`.trim();
       } else {
         command = `"${command}" ${args || ''}`.trim();
       }
@@ -487,31 +519,35 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const msbuildProvider = new MsBuildTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
       const workspaceUri = workspaceFolder?.uri;
-      const command = msbuildProvider.getCommand(workspaceUri);
-      const commandArgs = msbuildProvider.getCommandArgs(taskLabel, item.resourceUri.fsPath);
+      const { command: msbuildCmd, args: msbuildInitialArgs, cwd: msbuildCwd } = msbuildProvider.getCommand(workspaceUri);
+      const commandArgs = msbuildInitialArgs ? [...msbuildInitialArgs] : [];
+      commandArgs.push(...msbuildProvider.getCommandArgs(taskLabel, item.resourceUri.fsPath));
       if (args) { commandArgs.push(...args.split(' ')); }
       const task = new vscode.Task(
         { type: 'msbuild', target: taskLabel },
         vscode.TaskScope.Workspace,
         taskLabel,
         'msbuild',
-        new vscode.ShellExecution(command, commandArgs, { cwd })
+        new vscode.ShellExecution(msbuildCmd, commandArgs, { cwd: msbuildCwd })
       );
-      return { task, command: `${command} ${commandArgs.join(' ')}`, cwd };
+      return { task, command: `${msbuildCmd} ${commandArgs.join(' ')}`, cwd: msbuildCwd };
     }
     case 'justfile': {
       const justProvider = new JustfileTaskProvider();
-      const { command: justCommand, cwd: justCwd } = justProvider.getCommand(resourceUri);
+      const { command: justCommand, args: justInitialArgs, cwd: justCwd } = justProvider.getCommand(resourceUri);
 
-      const safeCommand = justCommand.includes(' ') ? `"${justCommand}"` : justCommand;
-      const fullCmd = `${safeCommand} "${taskLabel}" ${args || ''}`.trim();
+      const justArgs = justInitialArgs ? [...justInitialArgs] : [];
+      justArgs.push(taskLabel);
+      if (args) { justArgs.push(...args.split(' ')); }
+
+      const fullCmd = `${justCommand} ${justArgs.join(' ')}`.trim();
 
       const task = new vscode.Task(
         { type: 'justfile', task: taskLabel },
         vscode.TaskScope.Workspace,
         taskLabel,
         'just',
-        new vscode.ShellExecution(fullCmd, { cwd: justCwd })
+        new vscode.ShellExecution(justCommand, justArgs, { cwd: justCwd })
       );
       return { task, command: fullCmd, cwd: justCwd };
     }

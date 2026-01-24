@@ -15,6 +15,7 @@
     "myshell",
     "PIPENV",
     "Pipfile",
+    "pycache",
     "pyproject",
     "pyvenv",
     "runtfile",

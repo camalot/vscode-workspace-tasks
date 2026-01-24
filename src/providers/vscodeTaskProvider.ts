@@ -8,7 +8,7 @@ import { TaskIconService } from '../services/taskIconService';
 
 export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('vscode');
+    super('vscode', constants.GLOB_VSCODE);
   }
 
   async getTasks(): Promise<TaskItem[]> {

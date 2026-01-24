@@ -111,10 +111,16 @@
   "config.workspaceTasks.applicationPath.msbuild.markdown": "Specify the path to the MSBuild executable. On Windows, if the path ends with `msbuild`, `.exe` will be appended automatically.",
 
   "config.workspaceTasks.applicationPath.composer": "Path to Composer executable",
-  "config.workspaceTasks.applicationPath.composer.markdown": "Specify the path to the [Composer](https://getcomposer.org/) executable. On Windows, if the path ends with `composer`, `.exe` will be appended automatically.",
+  "config.workspaceTasks.applicationPath.composer.markdown": "Specify the path to the [Composer](https://getcomposer.org/) executable. On Windows, if the path ends with `composer`, `.bat` will be appended automatically.",
   "config.workspaceTasks.applicationPath.gradle": "Path to Gradle executable",
   "config.workspaceTasks.applicationPath.gradle.markdown": "Specify the path to the [Gradle](https://gradle.org/) executable. On Windows, if the path ends with `gradle`, `.bat` will be appended automatically.",
 
   "config.workspaceTasks.applicationPath.just": "Path to Just executable",
-  "config.workspaceTasks.applicationPath.just.markdown": "Specify the path to the [Just](https://just.systems/) executable. On Windows, if the path ends with `just`, `.exe` will be appended automatically."
+  "config.workspaceTasks.applicationPath.just.markdown": "Specify the path to the [Just](https://just.systems/) executable. On Windows, if the path ends with `just`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.pipenv": "Path to Pipenv executable",
+  "config.workspaceTasks.applicationPath.pipenv.markdown": "Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. On Windows, if the path ends with `pipenv`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.make": "Path to Make executable",
+  "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically."
 }

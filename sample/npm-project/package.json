@@ -17,7 +17,12 @@
   "devDependencies": {
     "grunt": "^1.6.1",
     "grunt-cli": "^1.5.0",
-    "gulp": "^5.0.1"
+    "gulp": "^5.0.1",
+    "gulp-sass": "^6.0.1",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-uglify": "^3.0.2",
+    "sass": "^1.97.3"
   },
   "dependencies": {
   }

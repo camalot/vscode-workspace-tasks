@@ -9,13 +9,13 @@ import { ExecutableService } from '../services/executableService';
 
 export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('justfile');
+    super('justfile', constants.GLOB_JUST);
   }
 
   public getCommand(resourceUri?: vscode.Uri) {
     const execService = ExecutableService.getInstance();
     return execService.getCommand({
-      configKey: 'workspaceTasks.applicationPath.just',
+      configKey: 'applicationPath.just',
       defaultValue: 'just',
       configName: 'just',
       resolveToAbsolutePath: false,

@@ -10,7 +10,7 @@ import { TaskFilesService } from '../services/taskFilesService';
 
 export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('workspace-task');
+    super('workspace-task', constants.GLOB_WORKSPACE);
   }
 
   async getTasks(): Promise<TaskItem[]> {

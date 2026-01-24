@@ -1,19 +1,16 @@
-import * as path from "path";
-import * as fs from "fs";
 import * as vscode from 'vscode';
 import { XMLParser } from 'fast-xml-parser';
-import { configuration } from "../libs/configuration";
 import { TaskItem } from "../taskItem";
 import { BaseTaskProvider, TaskProvider } from "../taskProvider";
 import constants from '../libs/constants';
 import { TaskIconService } from "../services/taskIconService";
 import { TaskFilesService } from "../services/taskFilesService";
+import { ExecutableService, ExecutableResult } from "../services/executableService";
 
 export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('msbuild');
+        super('msbuild', constants.GLOB_MSBUILD);
   }
-
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       return [];
@@ -121,43 +118,16 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
     return 0;
   }
 
-  public getCommand(workspaceUri?: vscode.Uri): string {
-    const msbuildPath = configuration.get<string>("applicationPath.msbuild");
-
-    if (msbuildPath) {
-      let resolvedPath = msbuildPath;
-
-      // If it's a relative path and we have a workspace, resolve it
-      if (!path.isAbsolute(msbuildPath) && workspaceUri) {
-         const localPath = path.join(workspaceUri.fsPath, msbuildPath);
-         if (fs.existsSync(localPath)) {
-            resolvedPath = localPath;
-         }
-      }
-
-      // If it's a full path to an executable file
-      if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isFile()) {
-        return resolvedPath;
-      }
-
-      // If it's a directory, assume MSBuild.exe inside
-      if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
-        const exePath = path.join(resolvedPath, 'MSBuild.exe');
-        if (fs.existsSync(exePath)) {
-          return exePath;
-        }
-      }
-
-      // Should we check for .exe extension on Windows?
-      if (process.platform === 'win32' && !resolvedPath.toLowerCase().endsWith('.exe')) {
-        return resolvedPath + '.exe';
-      }
-
-      return resolvedPath;
-    }
-
-    // Default
-    return "MSBuild.exe";
+  public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
+    return execService.getCommand({
+      configKey: 'applicationPath.msbuild',
+      defaultValue: 'MSBuild.exe',
+      configName: 'msbuild',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: '.exe',
+      windowsEnforceExtension: true
+    }, workspaceUri);
   }
 
   public getCommandArgs(targetName: string, buildFile: string): string[] {

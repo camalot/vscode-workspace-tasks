@@ -7,10 +7,11 @@ import * as fs from 'fs';
 import constants from '../libs/constants';
 import { configuration } from '../libs/configuration';
 import { TaskIconService } from '../services/taskIconService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
 
 export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('composer');
+    super('composer', constants.GLOB_COMPOSER);
   }
 
   async getTasks(): Promise<TaskItem[]> {
@@ -71,38 +72,15 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
     return tasks;
   }
 
-  public getCommand(workspaceUri?: vscode.Uri): string {
-    const composerPath = configuration.get<string>("appplicationPath.composer");
-    if (composerPath) {
-      let resolvedPath = composerPath;
-      // If relative path and workspaceUri exists
-      if (!path.isAbsolute(composerPath) && workspaceUri) {
-        const localPath = path.join(workspaceUri.fsPath, composerPath);
-        if (fs.existsSync(localPath)) {
-          resolvedPath = localPath;
-        }
-      }
-
-      if (fs.existsSync(resolvedPath)) {
-        return resolvedPath;
-      }
-      // On Windows, try adding .bat
-      if (process.platform === 'win32' && !resolvedPath.toLowerCase().endsWith('.bat') && !resolvedPath.toLowerCase().endsWith('.exe')) {
-        if (fs.existsSync(resolvedPath + '.bat')) {
-          return resolvedPath + '.bat';
-        }
-        if (resolvedPath.endsWith('composer')) {
-          return resolvedPath + '.exe';
-        }
-      }
-      // If file not found, return configured path anyway (might be in PATH but user wanted to be specific?)
-      // Or maybe user put just "composer.phar" which is in PATH?
-      return resolvedPath;
-    }
-
-    if (process.platform === 'win32') {
-      return 'composer.exe';
-    }
-    return 'composer';
+  public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
+    return execService.getCommand({
+      configKey: 'applicationPath.composer',
+      defaultValue: 'composer',
+      configName: 'composer',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: '.bat',
+      windowsEnforceExtension: true
+    }, workspaceUri);
   }
 }

@@ -8,11 +8,12 @@ import { BaseTaskProvider, TaskProvider } from "../taskProvider";
 import constants from '../libs/constants';
 import { TaskFilesService } from "../services/taskFilesService";
 import { TaskIconService } from "../services/taskIconService";
+import { ExecutableService, ExecutableResult } from "../services/executableService";
 
 export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
 
   constructor() {
-    super('ant');
+    super('ant', constants.GLOB_ANT);
   }
 
   async getTasks(): Promise<TaskItem[]> {
@@ -147,97 +148,37 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
 
     if (!configuration.get<boolean>("ant.ansicon.enabled")) {
+      console.debug("[AntTaskProvider] Ant ansicon usage is disabled in configuration.");
       return false;
     }
 
-    const ansiPath: string = configuration.get("applicationPath.ansicon") || "";
-    if (!ansiPath) {
-      return false;
-    }
-
-    let ansiconExe = ansiPath;
-    // Ensure the path ends with ansicon.exe
-    if (!ansiconExe.toLowerCase().endsWith("ansicon.exe")) {
-      ansiconExe = path.join(ansiconExe, "ansicon.exe");
-    }
-
-    // Check if the ansicon.exe file exists
-    try {
-      return fs.existsSync(ansiconExe);
-    } catch (error) {
-      console.debug(`Could not access ansicon at ${ansiconExe}`);
-      return false;
-    }
+      return true;
   }
 
-  public getAnsiconPath(): string {
-    const ansiPath: string = configuration.get("applicationPath.ansicon") || "";
-    if (!ansiPath) {
-      return "ansicon.exe";
-    }
+  public getAnsicon(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
 
-    let ansiconExe = ansiPath;
-    // Ensure the path ends with ansicon.exe
-    if (!ansiconExe.toLowerCase().endsWith("ansicon.exe")) {
-      ansiconExe = path.join(ansiconExe, "ansicon.exe");
-    }
+    return execService.getCommand({
+      configKey: 'applicationPath.ansicon',
+      defaultValue: 'ansicon.exe',
+      configName: 'ansicon',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: '.exe',
+      windowsEnforceExtension: true
+    }, workspaceUri);
 
-    return ansiconExe;
   }
 
-  public getCommand(workspaceUri?: vscode.Uri): string {
-    const antPath = configuration.get<string>("applicationPath.ant");
-    if (antPath) {
-      let resolvedPath = antPath;
+  public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
 
-      // If it's a relative path and we have a workspace, resolve it
-      if (!path.isAbsolute(antPath) && workspaceUri) {
-        const localPath = path.join(workspaceUri.fsPath, antPath);
-        if (fs.existsSync(localPath)) {
-            resolvedPath = localPath;
-        }
-      }
-
-      // If it's a full path to an executable file
-      if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isFile()) {
-        // On Windows, if the file doesn't have .bat or .exe extension, check for .bat version
-        if (process.platform === "win32" && !resolvedPath.toLowerCase().endsWith(".bat") && !resolvedPath.toLowerCase().endsWith(".exe")) {
-          const batVersion = resolvedPath + ".bat";
-          if (fs.existsSync(batVersion)) {
-            return batVersion;
-          }
-        }
-        return resolvedPath;
-      }
-
-      // If it's a directory, look for the executable
-      if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
-        const executable = process.platform === "win32" ? "ant.bat" : "ant";
-
-        // Check for bin subdirectory (standard Ant installation structure)
-        const binPath = path.join(resolvedPath, "bin", executable);
-        if (fs.existsSync(binPath)) {
-          return binPath;
-        }
-
-        // Check directly in the provided directory
-        const directPath = path.join(resolvedPath, executable);
-        if (fs.existsSync(directPath)) {
-          return directPath;
-        }
-      }
-
-      // Otherwise assume it's a command name or path
-      // For Windows, ensure .bat extension on the resolved path
-      if (process.platform === "win32" && !resolvedPath.toLowerCase().endsWith(".bat") && !resolvedPath.toLowerCase().endsWith(".exe")) {
-        const result = resolvedPath + ".bat";
-        return result;
-      }
-      return resolvedPath;
-    }
-
-    // Default to ant/ant.bat in PATH
-    const defaultCmd = process.platform === "win32" ? "ant.bat" : "ant";
-    return defaultCmd;
+    return execService.getCommand({
+      configKey: 'applicationPath.ant',
+      defaultValue: 'ant',
+      configName: 'ant',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: '.bat',
+      windowsEnforceExtension: true
+    }, workspaceUri);
   }
 }

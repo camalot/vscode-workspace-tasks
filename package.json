@@ -204,6 +204,7 @@
         "command": "workspaceTasks.runTaskWithArgs",
         "title": "%command.runTaskWithArgs%",
         "icon": "$(debug-continue)"
+
       },
       {
         "command": "workspaceTasks.stopTask",
@@ -594,6 +595,18 @@
           "description": "%config.workspaceTasks.applicationPath.just%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.just.markdown%",
           "default": "just"
+        },
+        "workspaceTasks.applicationPath.make": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.make%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.make.markdown%",
+          "default": "make"
+        },
+        "workspaceTasks.applicationPath.pipenv": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.pipenv%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.pipenv.markdown%",
+          "default": "pipenv"
         }
       }
     },
@@ -629,17 +642,17 @@
         {
           "command": "workspaceTasks.runQueue",
           "when": "viewItem == queue",
-          "group": "inline"
+          "group": "inline@1"
         },
         {
           "command": "workspaceTasks.renameQueue",
           "when": "viewItem == queue",
-          "group": "inline"
+          "group": "inline@2"
         },
         {
           "command": "workspaceTasks.clearQueue",
           "when": "viewItem == queue",
-          "group": "inline"
+          "group": "inline@3"
         },
         {
           "command": "workspaceTasks.runTask",

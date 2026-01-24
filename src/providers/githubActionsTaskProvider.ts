@@ -5,6 +5,7 @@ import * as yaml from 'yaml';
 import { TaskItem } from '../taskItem';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskIconService } from '../services/taskIconService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
 import constants from '../libs/constants';
 
 interface WorkflowInput {
@@ -26,8 +27,21 @@ interface Workflow {
 
 export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super("github-actions");
+    super('github-actions', constants.GLOB_GITHUB_ACTIONS);
   }
+
+  public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
+    return execService.getCommand({
+      configKey: 'applicationPath.act',
+      defaultValue: 'act',
+      configName: 'act',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: '.exe',
+      windowsEnforceExtension: true
+    }, workspaceUri);
+  }
+
   public async getTasks(): Promise<TaskItem[]> {
     const tasks: TaskItem[] = [];
     const files = await vscode.workspace.findFiles(constants.GLOB_GITHUB_ACTIONS, '**/node_modules/**');

@@ -9,7 +9,7 @@
         {
             "label": "List Files",
             "type": "shell",
-            "command": "ls -la"
+            "command": "Get-ChildItem"
         },
         {
             "label": "Long Running",

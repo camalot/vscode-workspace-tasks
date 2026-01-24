@@ -4,10 +4,23 @@ import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
 
 export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-    super('grunt');
+    super('grunt', constants.GLOB_GRUNT);
+  }
+
+  public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
+    const execService = ExecutableService.getInstance();
+    return execService.getCommand({
+      configKey: 'applicationPath.grunt',
+      defaultValue: 'npx grunt',
+      configName: 'grunt',
+      resolveToAbsolutePath: false,
+      windowsExecutableExtension: undefined,
+      windowsEnforceExtension: false
+    }, workspaceUri);
   }
 
   async getTasks(): Promise<TaskItem[]> {
