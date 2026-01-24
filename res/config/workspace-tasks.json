@@ -8,19 +8,19 @@
     "iconUri": "Pipfile",
     "tasks": [
       {
-        "label": "Install Dependencies",
+        "label": "~ Install Dependencies",
         "type": "shell",
         "command": "pipenv install",
         "group": "build"
       },
       {
-        "label": "Check Dependencies",
+        "label": "~ Check Dependencies",
         "type": "shell",
         "command": "pipenv check",
         "group": "build"
       },
       {
-        "label": "Generate Pipfile.lock",
+        "label": "~ Generate Pipfile.lock",
         "type": "shell",
         "command": "pipenv lock",
         "group": "build"
@@ -35,13 +35,13 @@
     "iconUri": "docker-compose.yml",
     "tasks": [
       {
-        "label": "Start Services",
+        "label": "~ Start Services",
         "type": "shell",
         "command": "docker-compose up -d",
         "group": "build"
       },
       {
-        "label": "Stop Services",
+        "label": "~ Stop Services",
         "type": "shell",
         "command": "docker-compose down",
         "group": "build"
@@ -72,7 +72,7 @@
     ],
     "tasks": [
       {
-        "label": "Build Docker Image",
+        "label": "~ Build Docker Image",
         "type": "shell",
         "command": "docker build -t {{ .Name }}:{{ .Tag }} .",
         "group": "build"
@@ -87,13 +87,13 @@
     "iconUri": "tsconfig.json",
     "tasks": [
       {
-        "label": "Compile",
+        "label": "~ Compile",
         "type": "shell",
         "command": "npx tsc -p {{ .FileName }}",
         "group": "build"
       },
       {
-        "label": "Watch",
+        "label": "~ Watch",
         "type": "shell",
         "command": "npx tsc -p {{ .FileName }} --watch",
         "group": "build"
@@ -105,11 +105,44 @@
     "globs": {
       "include": ["**/package.json"]
     },
+    "inputs": [
+      {
+        "id": "Package",
+        "type": "promptString",
+        "description": "Enter the package name to update",
+        "placeholder": "Leave empty to update all packages",
+        "default": ""
+      }
+    ],
     "tasks": [
       {
-        "label": "Install Dependencies",
+        "label": "~ NPM Install",
         "type": "shell",
         "command": "npm install",
+        "group": "build"
+      },
+      {
+        "label": "~ NPM Audit",
+        "type": "shell",
+        "command": "npm audit",
+        "group": "build"
+      },
+      {
+        "label": "~ NPM Audit Fix",
+        "type": "shell",
+        "command": "npm audit fix",
+        "group": "build"
+      },
+      {
+        "label": "~ NPM Update",
+        "type": "shell",
+        "command": "npm update",
+        "group": "build"
+      },
+      {
+        "label": "~ NPM Update [package]",
+        "type": "shell",
+        "command": "npm update {{ .Package }}",
         "group": "build"
       }
     ]
@@ -122,7 +155,7 @@
     "iconUri": "venv.py",
     "tasks": [
       {
-        "label": "Create Virtual Environment",
+        "label": "~ Create Virtual Environment",
         "type": "shell",
         "command": "echo \"python -m venv .venv ${workspaceFolder}\"",
         "group": "build"
