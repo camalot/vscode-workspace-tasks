@@ -1,0 +1,18 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_size = 2
+
+[*.{yaml,yml}]
+indent_style = space
+
+[*.{sh,bash,zsh}]
+indent_style = space
+
+[*.{jinja,jinja2}]
+indent_style = space

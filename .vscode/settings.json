@@ -1,0 +1,31 @@
+{
+  "cSpell.words": [
+    "akefile",
+    "Ansicon",
+    "buildfile",
+    "buymeacoffee",
+    "camalot",
+    "darthminos",
+    "Dockerfiles",
+    "Favorited",
+    "gradlew",
+    "gulpfile",
+    "justfile",
+    "justfiles",
+    "msbuild",
+    "myshell",
+    "PIPENV",
+    "Pipfile",
+    "pycache",
+    "pyproject",
+    "pyvenv",
+    "runtfile",
+    "smol",
+    "tasksignore",
+    "venv"
+  ],
+  "files.associations": {
+    "workspace-tasks.json": "jsonc",
+    ".workspace-tasks.json": "jsonc"
+  }
+}

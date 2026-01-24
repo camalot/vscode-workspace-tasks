@@ -1,0 +1,9 @@
+{
+	"scopeName": "ignore.tasksignore",
+	"patterns": [
+		{
+			"match": "^\\s*#.*",
+			"name": "comment.line.number-sign.tasksignore"
+		}
+	]
+}

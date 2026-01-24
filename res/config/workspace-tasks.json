@@ -1,0 +1,231 @@
+{
+  "$schema": "../schemas/workspace-tasks.schema.json",
+  "pipenv": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/[pP]ip[fF]ile"
+      ]
+    },
+    "iconUri": "Pipfile",
+    "tasks": [
+      {
+        "label": "~ Install Dependencies",
+        "type": "shell",
+        "command": "pipenv install",
+        "group": "build"
+      },
+      {
+        "label": "~ Check Dependencies",
+        "type": "shell",
+        "command": "pipenv check",
+        "group": "build"
+      },
+      {
+        "label": "~ Generate Pipfile.lock",
+        "type": "shell",
+        "command": "pipenv lock",
+        "group": "build"
+      }
+    ]
+  },
+  "docker-compose": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/docker-compose.yml"
+      ]
+    },
+    "iconUri": "docker-compose.yml",
+    "tasks": [
+      {
+        "label": "~ Start Services",
+        "type": "shell",
+        "command": "docker-compose up -d",
+        "group": "build"
+      },
+      {
+        "label": "~ Stop Services",
+        "type": "shell",
+        "command": "docker-compose down",
+        "group": "build"
+      }
+    ]
+  },
+  "dockerfile": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"
+      ]
+    },
+    "iconUri": "dockerfile",
+    "inputs": [
+      {
+        "id": "Name",
+        "type": "promptString",
+        "description": "Enter the name for the Docker image",
+        "default": "${workspaceFolderBasename}"
+      },
+      {
+        "id": "Tag",
+        "type": "promptString",
+        "description": "Enter the tag for the Docker image",
+        "default": "latest"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "~ Build Docker Image",
+        "type": "shell",
+        "command": "docker build -t {{ .Name }}:{{ .Tag }} .",
+        "group": "build"
+      }
+    ]
+  },
+  "typescript": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/tsconfig.json"
+      ]
+    },
+    "iconUri": "tsconfig.json",
+    "tasks": [
+      {
+        "label": "~ Compile",
+        "type": "shell",
+        "command": "npx tsc -p {{ .FileName }}",
+        "group": "build"
+      },
+      {
+        "label": "~ Watch",
+        "type": "shell",
+        "command": "npx tsc -p {{ .FileName }} --watch",
+        "group": "build"
+      }
+    ]
+  },
+  "npm": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/package.json"
+      ]
+    },
+    "inputs": [
+      {
+        "id": "Package",
+        "type": "promptString",
+        "description": "Enter the package name to update",
+        "placeholder": "Leave empty to update all packages",
+        "default": ""
+      }
+    ],
+    "tasks": [
+      {
+        "label": "~ NPM Install",
+        "type": "shell",
+        "command": "npm install",
+        "group": "build"
+      },
+      {
+        "label": "~ NPM Audit",
+        "type": "shell",
+        "command": "npm audit",
+        "group": "build"
+      },
+      {
+        "label": "~ NPM Audit Fix",
+        "type": "shell",
+        "command": "npm audit fix",
+        "group": "build"
+      },
+      {
+        "label": "~ NPM Update [package]",
+        "type": "shell",
+        "command": "npm update {{ .Package }}",
+        "group": "build"
+      }
+    ]
+  },
+  "pnpm": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/package.json"
+      ]
+    },
+    "inputs": [
+      {
+        "id": "Package",
+        "type": "promptString",
+        "description": "Enter the package name to update",
+        "placeholder": "Leave empty to update all packages",
+        "default": ""
+      }
+    ],
+    "tasks": [
+      {
+        "label": "~ PNPM Install",
+        "type": "shell",
+        "command": "pnpm install",
+        "group": "build"
+      },
+      {
+        "label": "~ PNPM Update [package]",
+        "type": "shell",
+        "command": "pnpm update {{ .Package }}",
+        "group": "build"
+      }
+    ]
+  },
+  "yarn": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/package.json"
+      ]
+    },
+    "inputs": [
+      {
+        "id": "Package",
+        "type": "promptString",
+        "description": "Enter the package name to update",
+        "placeholder": "Leave empty to update all packages",
+        "default": ""
+      }
+    ],
+    "tasks": [
+      {
+        "label": "~ Yarn Install",
+        "type": "shell",
+        "command": "yarn install",
+        "group": "build"
+      },
+      {
+        "label": "~ Yarn Update [package]",
+        "type": "shell",
+        "command": "yarn upgrade {{ .Package }}",
+        "group": "build"
+      }
+    ]
+  },
+  "venv": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/.venv/pyvenv.cfg"
+      ]
+    },
+    "iconUri": "venv.py",
+    "tasks": [
+      {
+        "label": "~ Create Virtual Environment",
+        "type": "shell",
+        "command": "echo \"python -m venv .venv ${workspaceFolder}\"",
+        "group": "build"
+      }
+    ]
+  }
+}

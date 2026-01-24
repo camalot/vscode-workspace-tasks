@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "File Tasks Configuration",
+  "description": "Schema for defining file-based tasks in a workspace",
+  "$id": "http://json-schema.org/draft-07/schema#workspace-tasks",
+  "type": "object",
+  "patternProperties": {
+    "^[a-z0-9\\-]+$": {
+      "type": "object",
+      "description": "Configuration for a specific language ID",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "The task configuration version."
+        },
+        "globs": {
+          "type": "object",
+          "description": "Glob patterns for file discovery",
+          "properties": {
+            "include": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Patterns to include"
+            },
+            "exclude": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Patterns to exclude"
+            }
+          },
+          "required": ["include"]
+        },
+        "inputs": {
+          "type": "array",
+          "description": "Inputs to be used in task commands",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "type": { "type": "string", "enum": ["promptString", "pickString"] },
+              "description": { "type": "string" },
+              "default": { "type": "string" },
+              "options": { "type": "array", "items": { "type": "string" } }
+            },
+            "required": ["id", "type", "description"]
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "description": "List of tasks to be generated for files matching the language ID",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "type": {
+                "type": "string",
+                "minLength": 1,
+                "description": "This is the task type. (e.g. npm, shell, grunt, etc.)"
+              },
+              "command": { "type": "string" },
+              "args": { "type": "array", "items": { "type": "string" } },
+              "options": {
+                "type": "object",
+                "properties": {
+                  "cwd": { "type": "string" },
+                  "env": { "type": "object" }
+                }
+              },
+              "group": {
+                "oneOf": [
+                  { "type": "string", "enum": ["build", "test", "none"] },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": { "type": "string", "enum": ["build", "test", "none"] },
+                      "isDefault": { "type": "boolean" }
+                    }
+                  }
+                ]
+              },
+              "presentation": {
+                "type": "object",
+                "properties": {
+                  "echo": { "type": "boolean" },
+                  "reveal": { "type": "string", "enum": ["always", "silent", "never"] },
+                  "focus": { "type": "boolean" },
+                  "panel": { "type": "string", "enum": ["shared", "dedicated", "new"] },
+                  "showReuseMessage": { "type": "boolean" },
+                  "clear": { "type": "boolean" }
+                }
+              },
+              "problemMatcher": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "array", "items": { "type": "string" } },
+                  { "type": "object" }
+                ]
+              }
+            },
+            "required": ["label", "command", "type"]
+          }
+        }
+      },
+      "required": ["tasks"]
+    }
+  }
+}

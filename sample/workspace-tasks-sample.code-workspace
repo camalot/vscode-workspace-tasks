@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "npm-project"
+		},
+		{
+			"path": "scripts-project"
+		},
+		{
+			"path": "vscode-project"
+		}
+	],
+	"settings": {
+		"powershell.cwd": "npm-grouping",
+		"workspaceTasks.shellEnabledTaskTypes": {
+			"batch": true
+		},
+		"workspaceTasks.applicationPath.act": "tools/act/act",
+		"workspaceTasks.applicationPath.ansicon": "tools\\ansicon\\ansicon.exe",
+		"workspaceTasks.applicationPath.ant": "tools\\ant\\bin\\ant",
+		"workspaceTasks.act.secretsFile": "./.act/.secrets",
+		"workspaceTasks.applicationPath.just": "tools/just/just",
+		"workspaceTasks.act.envFile": ""
+	}
+}

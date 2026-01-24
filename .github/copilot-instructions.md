@@ -1,0 +1,45 @@
+# VSCode Extension Development Guidelines
+
+## Code Maintenance
+
+When maintaining code for VSCode extensions, consider the following best practices:
+
+* Regularly update dependencies to their latest versions to benefit from new features and security patches.
+* Refactor code to improve readability and maintainability, following established design patterns.
+* Write clear and concise comments to explain complex logic and decisions in the code.
+* Ensure that the extension adheres to VSCode's extension guidelines and best practices.
+* Monitor the extension's performance and optimize code to reduce load times and resource usage.
+* Stay informed about updates to the VSCode API that may affect your extension.
+* If there are deprecated APIs being used, plan and implement updates to use the recommended alternatives.
+* Use maintained and well-supported libraries and tools to avoid security vulnerabilities and compatibility issues.
+
+## VSCode API Reference
+
+* Explore the full VSCode API [here](https://code.visualstudio.com/api/references/vscode-api).
+* You can also find the API documentation in the `node_modules/@types/vscode/index.d.ts` file within your project.
+
+## Testing Instructions
+
+When writing tests for VSCode extensions, consider the following guidelines:
+
+* Use the `vscode-test` package to run your extension tests in an isolated VSCode environment.
+* Mock VSCode APIs using libraries like `sinon` or `jest` to isolate your tests from the actual VSCode implementation.
+* Structure your tests to cover various scenarios, including edge cases, to ensure robustness.
+* Utilize the `beforeEach` and `afterEach` hooks to set up and tear down test environments properly.
+* Refer to the [VSCode Extension Testing Guide](https://code.visualstudio.com/api/working-with-extensions/testing-extension) for detailed instructions and best practices.
+
+## Code Style Guidelines
+
+* Follow consistent naming conventions for variables, functions, classes, and files.
+  - Files should use camelCase as the naming convention.
+  - Use PascalCase for class names.
+  - Use camelCase for variable and function names.
+
+* Use descriptive names that convey the purpose of the entity.
+* Maintain consistent indentation (e.g., 2 or 4 spaces) throughout the codebase.
+* Limit line length to a maximum of 120 characters for better readability.
+* Use single quotes for strings unless double quotes are necessary.
+* Include JSDoc comments for all public functions and classes to enhance code documentation.
+* Organize imports logically, grouping related imports together and separating them with a blank line.
+* Avoid using `any` type in TypeScript; prefer specific types or generics for better type safety.
+* Regularly run a linter (e.g., ESLint) to enforce code style rules and catch potential issues early.

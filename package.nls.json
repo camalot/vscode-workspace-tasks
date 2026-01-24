@@ -1,0 +1,127 @@
+{
+  "view.name": "Workspace Tasks",
+  "description": "Manage and run tasks in your workspace",
+  "displayName": "Workspace Tasks Management for VSCode",
+
+  "command.addToFavorites": "Add to Favorites",
+  "command.removeFromFavorites": "Remove from Favorites",
+  "command.addToQueue": "Add to Queue",
+  "command.runQueue": "Run Queue",
+  "command.clearQueue": "Clear Queue",
+  "command.removeFromQueue": "Remove from Queue",
+  "command.renameQueue": "Rename Queue",
+  "command.runTaskWithArgs": "Run Task with Arguments",
+  "command.runTask": "Run Task",
+  "command.stopTask": "Stop Task",
+  "command.refreshTasks": "Refresh Tasks",
+  "command.openFileAtLine": "Open File",
+  "command.buyMeACoffee": "Buy Me a Coffee",
+  "command.githubSponsor": "Sponsor on GitHub",
+  "command.githubIssues": "Report an Issue",
+  "command.collapseAll": "Collapse All",
+
+  "tree.favorites": "Favorites",
+  "tree.queue": "Queue",
+  "tree.tasks": "Tasks",
+
+  "config.workspaceTasks.autoRefresh": "Automatically refresh tasks when changes are detected",
+  "config.workspaceTasks.autoRefresh.description": "Automatically refresh tasks when changes are detected",
+  "config.workspaceTasks.autoRefresh.markdown": "When enabled, the extension will automatically refresh the task list whenever changes are detected in the workspace.",
+
+  "config.workspaceTasks.enabledTaskTypes": "Supported Task Types",
+  "config.workspaceTasks.enabledTaskTypes.description": "Select the types of tasks that the extension should support and display in the task list.",
+  "config.workspaceTasks.enabledTaskTypes.markdown": "Choose the task types (e.g., npm, script, makefile) that the extension will recognize and show in the task list.",
+
+  "config.workspaceTasks.enabledTaskTypes.ant": "Ant",
+  "config.workspaceTasks.enabledTaskTypes.composer": "Composer",
+  "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
+  "config.workspaceTasks.enabledTaskTypes.github-action": "GitHub Actions",
+  "config.workspaceTasks.enabledTaskTypes.gradle": "Gradle",
+  "config.workspaceTasks.enabledTaskTypes.grunt": "Grunt",
+  "config.workspaceTasks.enabledTaskTypes.gulp": "Gulp",
+  "config.workspaceTasks.enabledTaskTypes.just": "Just",
+  "config.workspaceTasks.enabledTaskTypes.makefile": "Makefile",
+  "config.workspaceTasks.enabledTaskTypes.maven": "Maven",
+  "config.workspaceTasks.enabledTaskTypes.msbuild": "MSBuild",
+  "config.workspaceTasks.enabledTaskTypes.npm": "NPM",
+  "config.workspaceTasks.enabledTaskTypes.pipenv": "Pipenv",
+  "config.workspaceTasks.enabledTaskTypes.pnpm": "PNPM",
+  "config.workspaceTasks.enabledTaskTypes.shell": "Scripts",
+  "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
+  "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
+  "config.workspaceTasks.enabledTaskTypes.venv": "Virtual Environment",
+  "config.workspaceTasks.enabledTaskTypes.vscode": "VS Code",
+  "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
+
+  "config.workspaceTasks.shellEnabledTaskTypes": "Supported Shell Task Types",
+  "config.workspaceTasks.shellEnabledTaskTypes.markdown": "Enable support for specific shell script types. This allows the extension to recognize and run tasks defined in these shell scripts.",
+
+  "config.workspaceTasks.shellEnabledTaskTypes.bash": "Bash",
+  "config.workspaceTasks.shellEnabledTaskTypes.batch": "Batch",
+  "config.workspaceTasks.shellEnabledTaskTypes.fish": "Fish",
+  "config.workspaceTasks.shellEnabledTaskTypes.nushell": "NuShell",
+  "config.workspaceTasks.shellEnabledTaskTypes.perl": "Perl",
+  "config.workspaceTasks.shellEnabledTaskTypes.pwsh": "PowerShell",
+  "config.workspaceTasks.shellEnabledTaskTypes.python": "Python",
+  "config.workspaceTasks.shellEnabledTaskTypes.ruby": "Ruby",
+  "config.workspaceTasks.shellEnabledTaskTypes.sh": "Shell",
+  "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
+  "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
+
+  "config.workspaceTasks.shellAdditionalExtensions": "Additional File Extensions for Shell Tasks",
+  "config.workspaceTasks.shellAdditionalExtensions.markdown": "Add extra file extensions (beyond the default ones) that should be treated as shell tasks. Use a key-value format where the key is a file extension without the leading dot (e.g., `myscript`) and the value is the path to the shell interpreter (e.g., `/usr/local/bin/myshell`). This allows you to run custom script files as tasks within the extension.",
+
+  "config.workspaceTasks.shellPaths": "Specify Shell Interpreter Paths",
+  "config.workspaceTasks.shellPaths.markdown": "Specify custom paths for shell interpreters. Use a key-value format where the key is the shell type (e.g., `bash`, `pwsh`) and the value is the path to the shell executable (e.g., `/usr/local/bin/bash`). This allows you to customize which shell interpreters are used for running shell tasks.",
+
+
+  "config.workspaceTasks.groups.enabled": "Group Tasks",
+  "config.workspaceTasks.groups.taskSeparator": "Task Separator",
+  "config.workspaceTasks.groups.taskSeparator.description": "Separator used to split task name into groups.",
+  "config.workspaceTasks.groups.taskSeparator.markdown": "Separator used to split task name into groups. For example, a task named `build:frontend` with a separator of `:` would be grouped under `build`. An empty string means no grouping will be applied.",
+
+  "config.workspaceTasks.exclude": "Exclude Patterns",
+  "config.workspaceTasks.exclude.description": "Glob patterns to exclude from tasks.",
+  "config.workspaceTasks.exclude.markdown": "Glob patterns to exclude from tasks. For example, to ignore all tasks in `sample` folders, add `**/sample/**`. Note that the patterns follow the [glob syntax](https://github.com/micromatch/glob). `**/node_modules/**` and `**/.git/**` are always ignored",
+
+  "config.workspaceTasks.groups.enabled.description": "Group tasks by type, folder, and custom separator.",
+  "config.workspaceTasks.groups.enabled.markdown": "When enabled, tasks will be grouped based on the specified separator and other grouping rules.",
+
+  "config.workspaceTasks.applicationPath.act": "Path to Act executable",
+  "config.workspaceTasks.applicationPath.act.markdown": "Specify the path to the [Act](https://github.com/nektos/act) executable. On Windows, if the path ends with `act`, `.exe` will be appended automatically. Act allows you to run GitHub Actions locally.",
+
+  "workspaceTasks.act.envFile": "Path to Act environment variables file",
+  "workspaceTasks.act.envFile.markdown": "Specify the path to a .env file containing environment variables for Act. This file will be used to provide environment variable values when running GitHub Actions locally with Act. For examples of the file format see the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure)",
+
+  "workspaceTasks.act.secretsFile": "Path to Act secrets file",
+  "workspaceTasks.act.secretsFile.markdown": "Specify the path to a .env file containing secrets for Act. This file will be used to provide secret values when running GitHub Actions locally with Act. For examples of the file format see the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure).",
+
+  "workspaceTasks.act.variables": "Variables for Act",
+  "workspaceTasks.act.variables.markdown": "Variables to pass to 'act'. Each key-value pair represents a variable name and its corresponding value.",
+  "workspaceTasks.act.variablesFile": "Path to Act variables file",
+  "workspaceTasks.act.variablesFile.markdown": "Path to the variables file for `act`. The file format is the same as `.env` file format.",
+
+  "config.workspaceTasks.applicationPath.ant": "Path to Ant executable",
+  "config.workspaceTasks.applicationPath.ant.markdown": "Specify the path to the Ant executable. On Windows, if the path ends with `ant`, `.bat` will be appended automatically.",
+  "config.workspaceTasks.ant.ansicon.enabled": "Enable ANSICON for Ant tasks",
+  "config.workspaceTasks.ant.ansicon.enabled.markdown": "When enabled, ANSICON will be used for Ant tasks to provide colored output in the terminal.",
+  "config.workspaceTasks.applicationPath.ansicon": "Path to ANSICON executable",
+  "config.workspaceTasks.applicationPath.ansicon.markdown": "Specify the path to the ANSICON executable. This is used to enable colored output for Ant tasks in the terminal.",
+
+  "config.workspaceTasks.applicationPath.msbuild": "Path to MSBuild executable",
+  "config.workspaceTasks.applicationPath.msbuild.markdown": "Specify the path to the MSBuild executable. On Windows, if the path ends with `msbuild`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.composer": "Path to Composer executable",
+  "config.workspaceTasks.applicationPath.composer.markdown": "Specify the path to the [Composer](https://getcomposer.org/) executable. On Windows, if the path ends with `composer`, `.bat` will be appended automatically.",
+  "config.workspaceTasks.applicationPath.gradle": "Path to Gradle executable",
+  "config.workspaceTasks.applicationPath.gradle.markdown": "Specify the path to the [Gradle](https://gradle.org/) executable. On Windows, if the path ends with `gradle`, `.bat` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.just": "Path to Just executable",
+  "config.workspaceTasks.applicationPath.just.markdown": "Specify the path to the [Just](https://just.systems/) executable. On Windows, if the path ends with `just`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.pipenv": "Path to Pipenv executable",
+  "config.workspaceTasks.applicationPath.pipenv.markdown": "Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. On Windows, if the path ends with `pipenv`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.make": "Path to Make executable",
+  "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically."
+}

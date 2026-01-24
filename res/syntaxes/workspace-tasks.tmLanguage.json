@@ -1,0 +1,8 @@
+{
+	"scopeName": "source.workspace-tasks",
+	"patterns": [
+		{
+			"include": "source.json.comments"
+		}
+	]
+}
