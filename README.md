@@ -1,6 +1,7 @@
 # Workspace Tasks
 
->[!NOTE] CURRENT STATUS IS **UNPUBLISHED**
+> [!NOTE]
+> CURRENT STATUS IS **UNPUBLISHED**
 
 [![package_json version](https://img.shields.io/github/package-json/v/camalot/workspace%2dtasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
