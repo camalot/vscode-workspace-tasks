@@ -9,6 +9,7 @@ interface SerializedTaskItem {
     resourceUri?: string;
     startLine?: number;
     originalLabel?: string;
+    metadata?: any;
 }
 
 export class TaskStateManager {
@@ -66,6 +67,7 @@ export class TaskStateManager {
             );
             item.originalLabel = label;
             item.startLine = sq.startLine;
+            item.metadata = sq.metadata;
             // Restore context value
             item.contextValue = 'queuedTask';
             // Restore description (workspace folder name)
@@ -99,7 +101,8 @@ export class TaskStateManager {
                     originalLabel: q.originalLabel || q.label,
                     taskType: q.taskType,
                     resourceUri: q.resourceUri ? q.resourceUri.toString() : undefined,
-                    startLine: q.startLine
+                    startLine: q.startLine,
+                    metadata: q.metadata
                 }));
             }
         }
@@ -153,6 +156,7 @@ export class TaskStateManager {
             queueItem.startLine = item.startLine;
             // Ensure originalLabel is set consistently
             queueItem.originalLabel = fullLabel;
+            queueItem.metadata = item.metadata;
 
             // Set context value for queue
             queueItem.contextValue = 'queuedTask';

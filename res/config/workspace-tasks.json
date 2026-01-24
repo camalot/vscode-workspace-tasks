@@ -3,7 +3,9 @@
   "pipenv": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/[pP]ip[fF]ile"]
+      "include": [
+        "**/[pP]ip[fF]ile"
+      ]
     },
     "iconUri": "Pipfile",
     "tasks": [
@@ -30,7 +32,9 @@
   "docker-compose": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/docker-compose.yml"]
+      "include": [
+        "**/docker-compose.yml"
+      ]
     },
     "iconUri": "docker-compose.yml",
     "tasks": [
@@ -82,7 +86,9 @@
   "typescript": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/tsconfig.json"]
+      "include": [
+        "**/tsconfig.json"
+      ]
     },
     "iconUri": "tsconfig.json",
     "tasks": [
@@ -103,7 +109,9 @@
   "npm": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/package.json"]
+      "include": [
+        "**/package.json"
+      ]
     },
     "inputs": [
       {
@@ -134,12 +142,6 @@
         "group": "build"
       },
       {
-        "label": "~ NPM Update",
-        "type": "shell",
-        "command": "npm update",
-        "group": "build"
-      },
-      {
         "label": "~ NPM Update [package]",
         "type": "shell",
         "command": "npm update {{ .Package }}",
@@ -147,10 +149,74 @@
       }
     ]
   },
+  "pnpm": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/package.json"
+      ]
+    },
+    "inputs": [
+      {
+        "id": "Package",
+        "type": "promptString",
+        "description": "Enter the package name to update",
+        "placeholder": "Leave empty to update all packages",
+        "default": ""
+      }
+    ],
+    "tasks": [
+      {
+        "label": "~ PNPM Install",
+        "type": "shell",
+        "command": "pnpm install",
+        "group": "build"
+      },
+      {
+        "label": "~ PNPM Update [package]",
+        "type": "shell",
+        "command": "pnpm update {{ .Package }}",
+        "group": "build"
+      }
+    ]
+  },
+  "yarn": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/package.json"
+      ]
+    },
+    "inputs": [
+      {
+        "id": "Package",
+        "type": "promptString",
+        "description": "Enter the package name to update",
+        "placeholder": "Leave empty to update all packages",
+        "default": ""
+      }
+    ],
+    "tasks": [
+      {
+        "label": "~ Yarn Install",
+        "type": "shell",
+        "command": "yarn install",
+        "group": "build"
+      },
+      {
+        "label": "~ Yarn Update [package]",
+        "type": "shell",
+        "command": "yarn upgrade {{ .Package }}",
+        "group": "build"
+      }
+    ]
+  },
   "venv": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/.venv/pyvenv.cfg"]
+      "include": [
+        "**/.venv/pyvenv.cfg"
+      ]
     },
     "iconUri": "venv.py",
     "tasks": [

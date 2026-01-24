@@ -1,0 +1,139 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior in Workspace Tasks
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below to help us understand and reproduce the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide detailed steps to reproduce the issue
+      placeholder: |
+        1. Open workspace with...
+        2. Click on...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe what should have happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Task Type
+      description: Which task type is affected? (if applicable)
+      options:
+        - npm/yarn/pnpm
+        - Gulp
+        - Grunt
+        - Make
+        - Ant
+        - Gradle
+        - MSBuild
+        - Composer
+        - Pipenv
+        - Just
+        - Docker/Docker Compose
+        - GitHub Actions
+        - Shell Scripts
+        - VS Code Tasks
+        - Workspace Tasks (.workspace-tasks.json)
+        - Favorites
+        - Queues
+        - Other/General
+        - Not applicable
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages / Logs
+      description: |
+        Please copy and paste any relevant error messages or log output.
+        You can find logs in the Output panel (View → Output → Workspace Tasks).
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Please provide information about your environment
+      value: |
+        - **VS Code Version**: 
+        - **Extension Version**: 
+        - **Operating System**: 
+        - **Task Tool Version** (if applicable): 
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: workspace-structure
+    attributes:
+      label: Workspace Structure
+      description: |
+        If relevant, provide a simplified view of your workspace structure
+        (e.g., relevant file names, directory structure)
+      placeholder: |
+        project-root/
+        ├── package.json
+        ├── gulpfile.js
+        └── .vscode/
+            └── tasks.json
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here (screenshots, related issues, etc.)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this bug hasn't been reported
+          required: true
+        - label: I have checked the extension output logs for error messages
+          required: false
+        - label: I have tried reloading VS Code to see if the issue persists
+          required: false

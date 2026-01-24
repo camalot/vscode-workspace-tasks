@@ -91,6 +91,9 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
         events.push(...Object.keys(workflow.on));
     }
 
+    // Capture generic metadata for the file-level item
+    let fileMetadata: any = { type: 'file', events };
+
     // Add Tasks for Events
     for (const event of events) {
         const item = new TaskItem(
@@ -113,12 +116,18 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
              const dispatch = workflow.on['workflow_dispatch'] as WorkflowDispatch;
              if (dispatch && dispatch.inputs) {
                  metadata.inputs = dispatch.inputs;
+                 // Add inputs to file metadata as well for 'workflow_dispatch' reuse
+                 if (fileMetadata.events.includes('workflow_dispatch')) {
+                     fileMetadata.inputs = dispatch.inputs;
+                 }
              }
         }
 
         item.metadata = metadata;
         workflowItem.children.push(item);
     }
+
+    workflowItem.metadata = fileMetadata;
 
     // Parse Jobs
     if (workflow.jobs) {

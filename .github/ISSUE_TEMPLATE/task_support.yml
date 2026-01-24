@@ -1,0 +1,164 @@
+name: 🔧 New Task/Tool Support
+description: Request support for a new task type or build tool
+title: "[Task Support]: "
+labels: ["enhancement", "task-provider", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new task type! Please provide detailed information about the tool or task type you'd like supported.
+
+  - type: input
+    id: tool-name
+    attributes:
+      label: Tool/Task Type Name
+      description: What is the name of the tool or task type?
+      placeholder: e.g., Bazel, Rake, Poetry
+    validations:
+      required: true
+
+  - type: input
+    id: tool-url
+    attributes:
+      label: Tool Website/Repository
+      description: Provide a link to the tool's official website or repository
+      placeholder: https://
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Tool Description
+      description: Briefly describe what the tool does and why it should be supported
+      placeholder: |
+        This tool is used for...
+        It's commonly used in... projects
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tool-category
+    attributes:
+      label: Tool Category
+      description: What category does this tool belong to?
+      options:
+        - Build System
+        - Task Runner
+        - Package Manager
+        - Test Framework
+        - Container/Orchestration
+        - CI/CD Tool
+        - Script/Command Runner
+        - Language-Specific Tool
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: file-patterns
+    attributes:
+      label: File Patterns
+      description: What files or patterns should be used to detect this tool?
+      placeholder: |
+        e.g., 
+        - BUILD, BUILD.bazel, *.BUILD
+        - Rakefile, *.rake
+        - pyproject.toml (for Poetry)
+    validations:
+      required: true
+
+  - type: textarea
+    id: task-examples
+    attributes:
+      label: Task Examples
+      description: Provide examples of typical tasks/commands for this tool
+      placeholder: |
+        e.g., for Poetry:
+        - poetry install
+        - poetry run pytest
+        - poetry build
+        - poetry publish
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: config-example
+    attributes:
+      label: Configuration File Example
+      description: Provide a sample configuration file showing how tasks are defined
+      placeholder: Paste a minimal example of the tool's configuration file
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: parsing-info
+    attributes:
+      label: Task Parsing Information
+      description: |
+        How are tasks defined in this tool? How should they be parsed?
+        Include information about:
+        - How to list available tasks
+        - Command syntax to discover tasks
+        - File format (JSON, YAML, custom, etc.)
+      placeholder: |
+        Tasks can be discovered by running: `tool list-tasks`
+        Tasks are defined in the [tasks] section of the config file
+    validations:
+      required: true
+
+  - type: dropdown
+    id: popularity
+    attributes:
+      label: Popularity/Usage
+      description: How widely used is this tool?
+      options:
+        - Very popular in my language/framework ecosystem
+        - Growing in popularity
+        - Niche but important for specific use cases
+        - New/emerging tool
+    validations:
+      required: true
+
+  - type: textarea
+    id: execution-info
+    attributes:
+      label: Task Execution
+      description: How are tasks executed? What command is used?
+      placeholder: |
+        e.g.,
+        - Command: `poetry run <task>`
+        - Requires installation: yes/no
+        - Available on: Linux, macOS, Windows
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: |
+        Any other relevant information:
+        - Similar tools already supported
+        - Special considerations
+        - Links to documentation
+        - Community interest
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this tool support hasn't been requested
+          required: true
+        - label: This tool is actively maintained and has stable releases
+          required: false
+        - label: I can provide sample projects/files for testing
+          required: false
+        - label: I am willing to help test the implementation
+          required: false

@@ -191,40 +191,77 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     const stateManager = TaskStateManager.getInstance();
 
+    // Helper to recursively check and add favorites
+    const checkFavorite = (item: TaskItem) => {
+      const id = stateManager.getTaskId(item);
+      if (stateManager.isFavorite(id)) {
+          // Clone task for favorites view
+          const favTask = new TaskItem(
+              item.label,
+              item.collapsibleState === vscode.TreeItemCollapsibleState.None ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed,
+              item.taskType,
+              item.resourceUri,
+              item.command,
+              item.defaultIconPath
+          );
+          favTask.originalLabel = item.originalLabel || item.label;
+          favTask.startLine = item.startLine;
+          favTask.metadata = item.metadata;
+
+          // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
+          // For favorites, we might want to flatten or keep structure.
+          // If the item itself is favorited, we likely want access to its children.
+          if (item.children.length > 0) {
+             // Create copies of children for the favorite item
+             favTask.children = item.children.map(child => {
+                 const childCopy = new TaskItem(
+                     child.label,
+                     child.collapsibleState,
+                     child.taskType,
+                     child.resourceUri,
+                     child.command,
+                     child.defaultIconPath
+                 );
+                 childCopy.originalLabel = child.originalLabel;
+                 childCopy.startLine = child.startLine;
+                 childCopy.metadata = child.metadata;
+                 childCopy.parent = favTask;
+                 // We don't recurse deeper for now as typically tasks are 1-2 levels deep.
+                 // But for GitHub Actions -> Events -> (maybe Jobs?), we might need more.
+                 // Actually GH Actions is "File -> Event / Job". Depth is 1.
+                 return childCopy;
+             });
+          }
+
+          // Set description to workspace folder
+          const workspaceFolder = item.resourceUri ? vscode.workspace.getWorkspaceFolder(item.resourceUri) : undefined;
+          let description = workspaceFolder ? workspaceFolder.name : '';
+
+          if (item.resourceUri && workspaceFolder) {
+              const relativePath = vscode.workspace.asRelativePath(item.resourceUri, false);
+              if (relativePath && relativePath !== description) {
+                  description = `${description} • ${relativePath}`;
+              }
+          }
+          favTask.description = description;
+
+          favTask.updateContextValue();
+          favTask.id = `fav:${favTask.id}`;
+          favoriteTasks.push(favTask);
+      }
+
+      // Check children only if the parent wasn't added?
+      // Or should we support having a parent AND a child favorited separately?
+      // Yes, user might favorite a specific job.
+      if (item.children) {
+          item.children.forEach(child => checkFavorite(child));
+      }
+    };
+
     // console.log(`[TaskTreeDataProvider] organizeTasks - Collapse Level: ${this.collapseLevel}`);
 
     for (const task of tasks) {
-      const id = stateManager.getTaskId(task);
-
-      // Check favorites
-      if (stateManager.isFavorite(id)) {
-        // Clone task for favorites view
-        const favTask = new TaskItem(
-          task.label,
-          vscode.TreeItemCollapsibleState.None,
-          task.taskType,
-          task.resourceUri,
-          task.command,
-          task.defaultIconPath
-        );
-        favTask.originalLabel = task.originalLabel || task.label;
-        favTask.startLine = task.startLine;
-
-        // Set description to workspace folder
-        const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
-        let description = workspaceFolder ? workspaceFolder.name : '';
-
-        if (task.resourceUri && workspaceFolder) {
-            const relativePath = vscode.workspace.asRelativePath(task.resourceUri, false);
-            if (relativePath && relativePath !== description) {
-                description = `${description} • ${relativePath}`;
-            }
-        }
-        favTask.description = description;
-
-        favTask.updateContextValue();
-        favoriteTasks.push(favTask);
-      }
+      checkFavorite(task);
 
       if (!task.resourceUri) {
         const workspaceId = 'workspace_generic';
@@ -296,6 +333,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           );
           queuedItem.originalLabel = task.originalLabel || task.label;
           queuedItem.startLine = task.startLine;
+          queuedItem.metadata = task.metadata;
           // Set description to workspace folder and file path
           const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
           let description = workspaceFolder ? workspaceFolder.name : '';
@@ -311,6 +349,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           // Explicitly set context value for queued items to allow distinct actions
           queuedItem.contextValue = 'queuedTask';
           queuedItem.parent = queueGroup;
+          queuedItem.id = `queue:${queueName}:${queuedItem.id}`;
 
           queueGroup.children.push(queuedItem);
         }

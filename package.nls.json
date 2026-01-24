@@ -45,6 +45,7 @@
   "config.workspaceTasks.enabledTaskTypes.msbuild": "MSBuild",
   "config.workspaceTasks.enabledTaskTypes.npm": "NPM",
   "config.workspaceTasks.enabledTaskTypes.pipenv": "Pipenv",
+  "config.workspaceTasks.enabledTaskTypes.pnpm": "PNPM",
   "config.workspaceTasks.enabledTaskTypes.shell": "Scripts",
   "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",

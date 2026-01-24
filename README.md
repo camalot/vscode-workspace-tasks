@@ -1,53 +1,236 @@
 # Workspace Tasks
 
-A powerful VS Code extension that provides a comprehensive task explorer for your workspace. It automatically discovers and organizes tasks from various file types, allowing you to run, queue, and manage them efficiently.
+>[!NOTE] CURRENT STATUS IS **UNPUBLISHED**
 
-## Features
+[![package_json version](https://img.shields.io/github/package-json/v/camalot/workspace%2dtasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
-### Screenshots
+A powerful VS Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 
-![Workspace-Tasks Sidebar Collapsed](assets\images\workspace-tasks-sidebar-collapse.png)
+![Workspace-Tasks Sidebar Collapsed](res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](res/assets/images/sidebar-queues-favorites.png)
 
-### Task Discovery
+## 📑 Table of Contents
 
-Workspace Tasks automatically scans your workspace for the following types of task files:
+- [✨ Key Features](#-key-features)
+- [🛠️ Supported Task Types](#️-supported-task-types)
+- [⭐ Favorites](#-favorites)
+- [📋 Task Queues](#-task-queues)
+- [📥 Installation](#-installation)
+- [🚀 Quick Start](#-quick-start)
+- [⚙️ Configuration](#️-configuration)
+  - [Custom Workspace Tasks](#custom-workspace-tasks)
+  - [GitHub Actions Integration](#github-actions-integration)
+  - [Task Ignore Patterns](#task-ignore-patterns)
+- [🔧 Advanced Features](#-advanced-features)
+- [📋 Requirements](#-requirements)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
-- **[npm](https://www.npmjs.com/)**: Scripts defined in `package.json` files
-- **[Ant](https://ant.apache.org/)**: Targets defined in Apache Ant build files (`*.xml`)
-- **[Composer](https://getcomposer.org/)**: PHP scripts defined in `composer.json` files
-- **[Gradle](https://gradle.org/)**: Tasks defined in Gradle build files (`*.gradle`)
-- **[Grunt](https://gruntjs.com/)**: Tasks registered in `Gruntfile.js`
-- **[Gulp](https://gulpjs.com/)**: Tasks defined in `gulpfile.js` or `gulpfile.mjs`
-- **[Just](https://github.com/casey/just)**: Command runner recipes in `justfile`, `.justfile`, or `*.just` files
-- **[Make](https://www.gnu.org/software/make/)**: Targets defined in `Makefile` files
-- **[MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)**: Targets in .NET project files (`*.csproj`, `*.vbproj`, `*.sln`, etc.)
-- **[Pipenv](https://pipenv.pypa.io/)**: Python scripts defined in `Pipfile`
-- **VS Code Tasks**: Tasks defined in `.vscode/tasks.json` files
-- **Shell Scripts**: Executable scripts (`.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`)
-- **Python Virtual Environments**: Activation/deactivation scripts in `.venv/Scripts/` directories
-- **[Docker](https://www.docker.com/)**: Docker container build tasks from Dockerfiles
-- **[Docker Compose](https://docs.docker.com/compose/)**: Multi-container orchestration tasks from `docker-compose.yml` files
-- **[GitHub Actions](https://github.com/features/actions)**: Local workflow execution via [act](https://github.com/nektos/act) from `.github/workflows/*.yml` files
-- **Workspace Tasks**: Custom tasks defined in `.workspace-tasks.json` files (see below)
+## ✨ Key Features
 
-Tasks are organized hierarchically by workspace folder, task type, and individual tasks.
+- **🔍 Automatic Task Discovery** - Scans your workspace for tasks from 20+ file types and build systems
+- **⭐ Favorites** - Pin frequently used tasks for instant access
+- **📋 Multiple Task Queues** - Create and manage named sequences of tasks
+- **▶️ One-Click Execution** - Run tasks directly from the sidebar with visual status indicators
+- **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
+- **🔀 Drag & Drop** - Reorder tasks in queues with drag and drop
+- **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
+- **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
+- **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
+- **💾 Persistent State** - Favorites and queues are saved across VS Code sessions
+
+## 🛠️ Supported Task Types
+
+Workspace Tasks automatically discovers and organizes tasks from a wide variety of tools and frameworks:
+
+### Package Managers & Build Tools
+
+<p align="left">
+  <img src="res/icons/dark/npm.png" width="32" alt="npm" title="npm"/>
+  <img src="res/icons/dark/yarn.png" width="32" alt="Yarn" title="Yarn"/>
+  <img src="res/icons/dark/pnpm.png" width="32" alt="pnpm" title="pnpm"/>
+  <img src="res/icons/dark/composer.png" width="32" alt="Composer" title="Composer"/>
+  <img src="res/icons/dark/pipenv.png" width="32" alt="Pipenv" title="Pipenv"/>
+  <img src="res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
+  <img src="res/icons/dark/maven.png" width="32" alt="Maven" title="Maven"/>
+  <img src="res/icons/dark/msbuild.png" width="32" alt="MSBuild" title="MSBuild"/>
+</p>
+
+- **[npm](https://www.npmjs.com/)** - Scripts from `package.json`
+- **[Yarn](https://yarnpkg.com/)** - Scripts from `package.json`
+- **[pnpm](https://pnpm.io/)** - Scripts from `package.json`
+- **[Composer](https://getcomposer.org/)** - PHP scripts from `composer.json`
+- **[Pipenv](https://pipenv.pypa.io/)** - Python scripts from `Pipfile`
+- **[Apache Ant](https://ant.apache.org/)** - Targets from `*.xml` build files
+- **[Gradle](https://gradle.org/)** - Tasks from `*.gradle` files
+- **[MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)** - .NET project targets
+
+### Task Runners
+
+<p align="left">
+  <img src="res/icons/dark/gulp.png" width="32" alt="Gulp" title="Gulp"/>
+  <img src="res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
+  <img src="res/icons/dark/justfile.png" width="32" alt="Just" title="Just"/>
+</p>
+
+- **[Gulp](https://gulpjs.com/)** - Tasks from `gulpfile.js` or `gulpfile.mjs`
+- **[Grunt](https://gruntjs.com/)** - Tasks from `Gruntfile.js`
+- **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
+- **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
+
+### DevOps & Containers
+
+<p align="left">
+  <img src="res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
+</p>
+
+- **[Docker](https://www.docker.com/)** - Build tasks from `Dockerfile`
+- **[Docker Compose](https://docs.docker.com/compose/)** - Services from `docker-compose.yml`
+- **[GitHub Actions](https://github.com/features/actions)** - Workflows from `.github/workflows/*.yml` (via [act](https://github.com/nektos/act))
+
+### Scripts & Other
+
+<p align="left">
+  <img src="res/icons/dark/shell.png" width="32" alt="Shell Scripts" title="Shell Scripts"/>
+  <img src="res/icons/dark/python.png" width="32" alt="Python" title="Python"/>
+  <img src="res/icons/dark/vscode.png" width="32" alt="VS Code" title="VS Code"/>
+</p>
+
+- **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`
+- **Python Virtual Environments** - Activation scripts in `.venv/Scripts/`
+- **VS Code Tasks** - Tasks from `.vscode/tasks.json`
+- **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
+
+> **Note:** The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
+
+
+## ⭐ Favorites
+
+Pin your most frequently used tasks for instant access. Favorites appear in a dedicated section at the top of the task tree, making your common operations just one click away.
+
+**How to Use:**
+
+1. Click the star icon (☆) next to any task to add it to favorites
+2. Access all favorited tasks from the "Favorites" group at the top
+3. Click the filled star (⭐) to remove from favorites
+
+**Features:**
+
+- **Quick Access** - All favorites in one place, organized by task type
+- **Persistent** - Saved automatically across VS Code sessions
+- **Workspace-Specific** - Each workspace maintains its own favorites list
+- **Visual Indicators** - Star icons show in both favorites section and original location
+- **Context Display** - Tasks show their workspace folder name in multi-root workspaces
+
+**Perfect For:**
+
+- Build, test, and deploy tasks you use daily
+- Development scripts you run frequently
+- Tasks from different workspace folders you need regularly
+
+## 📋 Task Queues
+
+Create and manage multiple named queues to run sequences of tasks in order. Perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
+
+**How to Use:**
+
+1. Click the list icon next to any task (or right-click → "Add to Queue")
+2. Choose an existing queue or create a new one
+3. Drag and drop tasks to reorder them
+4. Run the entire queue or start from a specific task
+
+**Features:**
+
+- **Multiple Queues** - Create separate queues for different workflows (e.g., "Build", "Deploy", "CI Pipeline")
+- **Drag & Drop Reordering** - Easily reorder tasks within and across queues
+- **Visual Context** - Each queue item shows the task icon, label, workspace name, and file path
+- **Queue Controls** - Run entire queue, start from specific task, or stop execution
+- **Queue Management** - Rename queues, clear all tasks, or delete empty queues
+- **Persistent Storage** - Queues are saved and restored between sessions
+- **Status Indicators** - Real-time visual feedback with running/success/failure icons
+
+**Example Workflow:**
+
+```
+CI Pipeline Queue:
+1. Install Dependencies (npm install)
+2. Lint Code (npm run lint)
+3. Run Tests (npm test)
+4. Build Production (npm run build)
+5. Deploy to Staging (deploy.sh)
+```
+
+Right-click the queue group to run all tasks in sequence, rename the queue, or clear it.
+
+## 📥 Installation
+
+### From VS Code Marketplace
+
+1. Open VS Code
+2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "Workspace Tasks"
+4. Click **Install**
+
+### From Command Line
+
+```bash
+code --install-extension darthminos.workspace-tasks
+```
+
+### Requirements
+
+- **VS Code** 1.108.1 or later
+- **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
+
+## 🚀 Quick Start
+
+1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
+2. **Open the Workspace Tasks view** from the Activity Bar (sidebar)
+3. **Browse tasks** organized by workspace folder and task type
+4. **Run a task** by clicking the play icon (▶️)
+5. **Add to favorites** by clicking the star icon (☆)
+6. **Create a queue** by clicking the list icon to organize task sequences
+
+**Tips:**
+
+- Double-click a task to open its definition file
+- Right-click for more options (copy name, add to queue, etc.)
+- Use the collapse button (⊟) to toggle view states
+- Create `.tasksignore` files to exclude unwanted tasks
+
+## ⚙️ Configuration
 
 ### Custom Workspace Tasks
 
-Create a `.workspace-tasks.json` file in your workspace to define custom tasks that can be associated with specific file patterns or defined globally. This powerful feature allows you to:
+Create a `.workspace-tasks.json` file in your workspace to define custom reusable tasks with dynamic inputs. This is perfect for tasks that don't fit existing file types or need variable substitution.
 
-- Define reusable task templates with variable inputs
-- Create tasks that work across multiple file types
-- Build custom workflows without modifying VS Code's `tasks.json`
+#### Basic Example
 
-#### Example: Dockerfile Tasks
+```json
+{
+  "shell": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Clean Build Artifacts",
+        "type": "workspace",
+        "command": "rm -rf dist build out",
+        "group": "build"
+      }
+    ]
+  }
+}
+```
+
+#### File-Associated Tasks with Inputs
+
+Tasks can be associated with file patterns and accept user inputs:
 
 ```json
 {
   "dockerfile": {
     "version": "2.0.0",
     "globs": {
-      "include": ["{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"],
+      "include": ["{**/Dockerfile,**/dockerfile,**/*.dockerfile}"],
       "exclude": ["**/node_modules/**", "**/.git/**"]
     },
     "inputs": [
@@ -76,73 +259,52 @@ Create a `.workspace-tasks.json` file in your workspace to define custom tasks t
 }
 ```
 
-#### Example: Global Workspace Tasks
+#### Schema Reference
 
-Tasks without file associations (no `globs` defined) appear under the workspace folder:
-
-```json
-{
-  "shell": {
-    "version": "2.0.0",
-    "inputs": [],
-    "tasks": [
-      {
-        "label": "Clean Build Artifacts",
-        "type": "workspace",
-        "command": "rm -rf dist build out",
-        "group": "build"
-      },
-      {
-        "label": "Install Dependencies",
-        "type": "workspace",
-        "command": "npm install && pip install -r requirements.txt",
-        "group": "build"
-      }
-    ]
-  }
-}
-```
+- **Top-level keys** - Task type identifiers (e.g., `dockerfile`, `shell`)
+- **version** - Schema version (`"2.0.0"`)
+- **globs** (optional) - File pattern matching
+  - **include** - Array of glob patterns to match
+  - **exclude** - Array of glob patterns to ignore
+- **inputs** - Array of input definitions
+  - **id** - Unique input identifier
+  - **type** - `promptString` or `pickString`
+  - **description** - Prompt text for user
+  - **default** - Default value (supports `${workspaceFolderBasename}`)
+  - **options** - Array of choices (for `pickString`)
+- **tasks** - Array of task definitions
+  - **label** - Display name
+  - **type** - Must be `"workspace"`
+  - **command** - Shell command (use `{{ .InputId }}` for variables)
+  - **group** - Task group (`"build"`, `"test"`, etc.)
 
 ### GitHub Actions Integration
 
-Run your GitHub Actions workflows locally using [act](https://github.com/nektos/act), a powerful tool that allows you to test workflows without pushing to GitHub. Workspace Tasks automatically discovers workflow files and provides a rich interface for executing them.
+Run GitHub Actions workflows locally using [act](https://github.com/nektos/act) to test workflows without pushing to GitHub. Workspace Tasks provides a rich interface for executing workflows with full input support.
 
-**Features:**
+#### Features
 
-- **Automatic Discovery**: Scans `.github/workflows/*.yml` files and parses workflow definitions
-- **Event Support**: Run workflows for different event triggers:
-  - `push` - Simulate push events
-  - `pull_request` - Test pull request workflows
-  - `workflow_dispatch` - Manual workflow triggers with input support
-  - Any custom event defined in your workflow's `on:` clause
-- **Job Execution**: Run individual jobs from multi-job workflows
-- **Rich Input Prompts**: For `workflow_dispatch` events, the extension presents interactive prompts with:
-  - Input descriptions from workflow YAML
-  - Default values pre-filled
-  - Required field validation
-  - Type hints (string, boolean, choice, etc.)
-- **Status Indicators**: Real-time visual feedback with running/success/failure icons
-- **Configuration Options**: Full control over act execution environment
+- **Automatic Discovery** - Scans `.github/workflows/*.yml` files
+- **Event Support** - Run workflows for `push`, `pull_request`, `workflow_dispatch`, and custom events
+- **Job Execution** - Run individual jobs from multi-job workflows
+- **Input Prompts** - Interactive prompts for `workflow_dispatch` inputs with validation
+- **Status Indicators** - Real-time visual feedback during execution
 
-**Configuration Settings:**
+#### Configuration
 
-Configure how act runs in your VS Code settings (`settings.json`):
+Configure act in your VS Code settings (`settings.json`):
 
 ```json
 {
-  // Path to act executable (absolute or relative to workspace root)
-  "workspaceTasks.applicationPath.act": "act",  // or "tools/act/act.exe" for custom location
+  // Path to act executable
+  "workspaceTasks.applicationPath.act": "act",
 
-  // Environment file for act (sets environment variables)
+  // Environment files
   "workspaceTasks.act.envFile": ".env",
-
-  // Variables file (alternative to inline variables)
+  "workspaceTasks.act.secretsFile": ".act.secrets",
   "workspaceTasks.act.variablesFile": ".act.vars",
 
-  // Secrets file (for sensitive data like API keys)
-  "workspaceTasks.act.secretsFile": ".act.secrets",
-
-  // Inline variables (passed as --var key=value)
+  // Inline variables
   "workspaceTasks.act.variables": {
     "ENVIRONMENT": "development",
     "VERSION": "1.0.0"
@@ -150,17 +312,14 @@ Configure how act runs in your VS Code settings (`settings.json`):
 }
 ```
 
-**Workflow Example:**
+#### Usage Example
 
-Given a workflow file `.github/workflows/build.yml`:
+Given a workflow `.github/workflows/build.yml`:
 
 ```yaml
 name: Build & Test
-
 on:
   push:
-    branches: [main, develop]
-  pull_request:
   workflow_dispatch:
     inputs:
       environment:
@@ -168,151 +327,57 @@ on:
         required: true
         default: 'staging'
         type: choice
-        options:
-          - development
-          - staging
-          - production
-      debug:
-        description: 'Enable debug logging'
-        required: false
-        default: 'false'
-        type: boolean
+        options: [development, staging, production]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build
-        run: npm run build
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Test
-        run: npm test
+      - run: npm run build
 ```
 
-**Task Tree Structure:**
-
-The extension will create the following task structure:
+The task tree shows:
 
 ```
 GitHub Actions
 └── Build & Test
     ├── Run Workflow (push)
-    ├── Run Workflow (pull_request)
-    ├── Run Workflow (workflow_dispatch)  // Shows input prompts when run
-    ├── Run Job: build
-    └── Run Job: test
+    ├── Run Workflow (workflow_dispatch)  ← Shows input prompts
+    └── Run Job: build
 ```
-
-**Running Workflows:**
-
-1. **Event-based Execution**: Click "Run Workflow (push)" to simulate a push event
-2. **Manual Dispatch**: Click "Run Workflow (workflow_dispatch)" - you'll be prompted for inputs:
-   - Environment selection with description and default value
-   - Debug toggle with type hint
-3. **Job Execution**: Run specific jobs in isolation with "Run Job: build" or "Run Job: test"
 
 **Requirements:**
 
-- Install [act](https://github.com/nektos/act) on your system
-- Docker must be running (act uses Docker containers to execute workflows)
-- Configure `workspaceTasks.applicationPath.act` if act is not in your PATH
+- [act](https://github.com/nektos/act) installed on your system
+- [Docker](https://www.docker.com/) running (act uses containers)
+- Configure `workspaceTasks.applicationPath.act` if act is not in PATH
 
 **Tips:**
 
-- Use `.act.secrets` to store GitHub tokens and API keys (add to `.gitignore`)
-- Configure environment variables in `.env` for consistent local testing
-- Test `workflow_dispatch` inputs locally before pushing to GitHub
-- Run individual jobs to speed up debugging specific workflow steps
+- Store secrets in `.act.secrets` and add to `.gitignore`
+- Test `workflow_dispatch` inputs locally before pushing
+- Run individual jobs to debug specific workflow steps
 
-#### Configuration Schema
+### Task Ignore Patterns
 
-- **Top-level keys**: Define task types (e.g., `dockerfile`, `shell`, `python`)
-- **version**: Schema version (currently "2.0.0")
-- **globs** (optional): File patterns to associate tasks with
-  - **include**: Array of glob patterns to match files
-  - **exclude**: Array of glob patterns to ignore
-- **inputs**: Array of input definitions for dynamic values
-  - **id**: Unique identifier for the input
-  - **type**: Input type (`promptString` or `pickString`)
-  - **description**: User-facing prompt
-  - **default**: Default value (supports `${workspaceFolderBasename}`)
-  - **options**: Array of choices (for `pickString` type)
-- **tasks**: Array of task definitions
-  - **label**: Display name for the task
-  - **type**: Must be "workspace"
-  - **command**: Shell command to execute (use `{{ .InputId }}` for variable substitution)
-  - **group**: Optional task group (e.g., "build", "test")
+Control task discovery using `.tasksignore` files (similar to `.gitignore`). This keeps your task list focused on relevant tasks.
 
-### Queue System
+#### How It Works
 
-The queue system now supports multiple named queues so you can maintain separate sequences of tasks (for example: "Build", "CI Pipeline", "Deploy"). Each queue is persisted and restored between VS Code sessions.
+- **Per-Directory Control** - Place `.tasksignore` in any directory to exclude files from that location and subdirectories
+- **Gitignore Syntax** - Uses standard gitignore pattern syntax
+- **Global Exclusions** - Configure workspace-wide exclusions in VS Code settings
+- **Smart Defaults** - `**/node_modules/**` is automatically excluded
 
-**Key Features:**
+#### Example `.tasksignore`
 
-- **Multiple Named Queues**: Create and manage more than one queue. Each queue appears as its own group in the tree with an ordered list icon.
-- **Add Tasks to Queue**: Click the list icon (or right-click and select "Add to Queue") on any task. If no queues exist you'll be prompted to name the new queue (the prompt defaults to "Queue"). If one or more queues exist you will be shown a choice of existing queues or a "New Queue..." option (the new queue prompt defaults to "Queue").
-- **Queue Details**: Queue items show the task icon, label, workspace name and relative file path (e.g., `MyProject • package.json`) so you get the same context as in the main task view.
-- **Drag & Drop Reordering**: Drag and drop tasks within a queue to change execution order. Reordering across queues is supported where applicable.
-- **Run & Control**: Run a specific queue from the queue group's context menu or use the "Run Queue" command. If multiple queues exist you'll be prompted to select which queue to run. You can also start from a specific task or stop execution.
-- **Rename & Clear**: Right-click a queue group to rename it or clear all tasks from that queue. When all tasks are removed from a queue it is automatically deleted and its persisted data is removed.
-- **Persistent Storage**: Each queue and its tasks are saved to global storage and restored when the extension starts.
-- **Status Indicators**: Tasks in queues display the same running/success/failure icons and state as normal task entries.
-
-**Example Workflow:**
-
-1. Add tasks to a queue named "CI Pipeline"
-2. Reorder tasks as needed
-3. Run the "CI Pipeline" queue or start from a single queued task
-4. Clear or rename the queue when desired
-
-### Favorites
-
-Mark frequently used tasks as favorites for instant access. Favorites appear in a dedicated section at the top of the task tree, separate from the main task hierarchy.
-
-**Key Features:**
-
-- **Easy Management**: Click the star icon (☆) next to any task to add it to favorites. Click the filled star (⭐) to remove it.
-- **Quick Access**: All favorited tasks appear in the "Favorites" group, organized by task type.
-- **Persistent Storage**: Your favorites are automatically saved and restored across VS Code sessions.
-- **Cross-Workspace**: Each workspace maintains its own list of favorite tasks.
-- **Visual Indicators**: Favorited tasks show a star icon in both the Favorites section and their original location.
-- **Workspace Context**: Tasks in the Favorites section display their workspace folder name for multi-root workspaces.
-
-**Use Cases:**
-
-- Pin your most-used build, test, or deploy tasks
-- Keep development tasks separate from deployment tasks
-- Quick access to tasks across multiple workspace folders
-- Create a personal "quick launch" menu of common operations
-
-### Task Ignore
-
-Control which files and directories are excluded from task discovery using `.tasksignore` files. This works similarly to `.gitignore` and helps keep your task list clean and focused.
-
-**How It Works:**
-
-- **Per-Directory Control**: Place a `.tasksignore` file in any directory to exclude files from that directory and its subdirectories.
-- **Gitignore Syntax**: Uses the same pattern syntax as `.gitignore` files:
-  - `*.tmp` - Ignore all files ending with .tmp
-  - `build/` - Ignore the build directory
-  - `**/test/**` - Ignore all test directories
-  - `!important.sh` - Exception: don't ignore this file
-- **Global Exclusions**: Configure workspace-wide exclusions in VS Code settings using `workspaceTasks.exclude` array.
-- **Smart Defaults**: `**/node_modules/**` is automatically excluded for all task types to improve performance.
-
-**Example `.tasksignore` file:**
-
-``` ignore
+```ignore
 # Ignore all test scripts
 **/test/**
 **/*.test.sh
 
-# Ignore build output directories
+# Ignore build output
 build/
 dist/
 out/
@@ -322,146 +387,171 @@ out/
 *.bak
 ```
 
-**Configuration in settings.json:**
+#### Global Configuration
+
+Add workspace-wide exclusions in `settings.json`:
 
 ```json
-"workspaceTasks.exclude": [
-  "**/.git/**",
-  "**/vendor/**",
-  "**/__pycache__/**"
-]
+{
+  "workspaceTasks.exclude": [
+    "**/.git/**",
+    "**/vendor/**",
+    "**/__pycache__/**"
+  ]
+}
 ```
 
-> [!NOTE]
-> `**/node_modules/**` is automatically added to the exclusion list for all task types by default.
+> **Note:** `**/node_modules/**` is automatically excluded for all task types.
+
+## 🔧 Advanced Features
 
 ### Execution and Navigation
 
-Interact with your tasks through an intuitive interface with multiple execution and navigation options.
-
 **Running Tasks:**
 
-- **Single Click Execution**: Click the play button (▶) next to any task to run it immediately.
-- **Context Menu**: Right-click any task for additional options like "Run Task", "Add to Queue", or "Add to Favorites".
-- **Terminal Output**: Task output appears in the integrated terminal with clear status indicators.
-- **Multiple Simultaneous Tasks**: Run multiple tasks at the same time; each opens in its own terminal.
-- **Keyboard Shortcuts**: Use VS Code's command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) to search and run tasks by name.
+- **Single Click** - Click the play button (▶️) to run immediately
+- **Context Menu** - Right-click for options like "Run Task", "Add to Queue", "Add to Favorites"
+- **Terminal Output** - Task output appears in the integrated terminal with status indicators
+- **Multiple Tasks** - Run multiple tasks simultaneously in separate terminals
+- **Command Palette** - Use `Ctrl+Shift+P` / `Cmd+Shift+P` to search and run tasks by name
 
 **Stopping Tasks:**
 
-- **Stop Button**: Click the stop button (⏹) next to running tasks to terminate them.
-- **Force Stop**: Long-running or unresponsive tasks can be forcefully terminated.
-- **Status Tracking**: Visual indicators show when tasks are running, completed successfully, or failed.
+- **Stop Button** - Click the stop button (⏹) next to running tasks
+- **Force Stop** - Forcefully terminate unresponsive tasks
+- **Status Tracking** - Visual indicators show running/success/failure states
 
 **Navigation:**
 
-- **Quick File Access**: Double-click any task or click the open file icon to jump directly to the task definition in its source file.
-- **Line Precision**: Opens the file at the exact line where the task is defined for quick editing.
-- **File Path Display**: Hover over tasks to see the full file path and task command.
-- **Breadcrumb Navigation**: The tree structure shows the relationship between workspace folders, task types, and individual tasks.
+- **Quick File Access** - Double-click tasks to jump to their definition in the source file
+- **Line Precision** - Opens files at the exact line where tasks are defined
+- **File Path Display** - Hover over tasks to see full paths and commands
+- **Hierarchical Browsing** - Tree structure shows workspace → task type → individual tasks
 
 **Additional Actions:**
 
-- **Copy Task Name**: Right-click to copy task names for use in documentation or scripts.
-- **Refresh Tasks**: Manually refresh the task list to pick up changes without reloading VS Code.
-- **Collapse/Expand Groups**: Use the collapse all button (⊟) to toggle between different view states:
+- **Copy Task Name** - Right-click to copy for use in documentation
+- **Refresh Tasks** - Manually refresh to pick up changes without reloading VS Code
+- **Collapse/Expand** - Use the collapse all button (⊟) to toggle view states:
   - First click: Collapse task type groups
   - Second click: Collapse workspace folders
   - Third click: Expand everything
 
-## Installation
+### Supported File Patterns
 
-1. Install the extension from the VS Code Marketplace.
-2. Open a workspace with supported task files.
-3. The "Workspace Tasks" view will appear in the Activity Bar.
+Each task type watches specific file patterns:
 
-## Usage
+| Task Type | Patterns | Notes |
+|-----------|----------|-------|
+| npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
+| Ant | `**/*.xml` | Parses build file targets |
+| Composer | `**/composer.json` | PHP dependency scripts |
+| Gradle | `**/*.gradle` | Java/Android build tasks |
+| Grunt | `**/Gruntfile.js` | Registered tasks |
+| Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
+| Just | `**/{justfile,.justfile,*.just}` | Command recipes |
+| Make | `**/Makefile` | Build targets |
+| MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
+| Pipenv | `**/Pipfile` | Python scripts |
+| Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
+| Docker | `**/Dockerfile*` | Container builds |
+| Docker Compose | `**/docker-compose.yml` | Service orchestration |
+| GitHub Actions | `**/.github/workflows/*.yml` | CI/CD workflows |
+| VS Code | `**/.vscode/tasks.json` | Native VS Code tasks |
+| Workspace | `.workspace-tasks.json` | Custom tasks |
 
-1. **View Tasks**: Expand the Workspace Tasks view to see all discovered tasks organized by type and location.
-2. **Run Individual Tasks**: Click the play icon next to any task to execute it.
-3. **Manage Queue**: Add tasks to the queue, reorder them, and run the entire sequence.
-4. **Use Favorites**: Mark important tasks as favorites for easy access.
-5. **Customize**: Rename the queue and use `.tasksignore` to filter unwanted tasks.
+All patterns respect `.gitignore` and `.tasksignore` exclusions.
 
-## Supported File Types
+## 📋 Requirements
 
-Workspace Tasks provides comprehensive support for various build tools, task runners, and scripting environments. Each task type is automatically discovered and organized in the task explorer.
+### VS Code Version
 
-### Build Systems & Project Management
+- **Minimum:** VS Code 1.108.1 or later
 
-| Task Type | File Patterns | Description |
-| --------- | ------------- | ----------- |
-| **[npm](https://www.npmjs.com/)** | `**/package.json` | Discovers scripts from the `scripts` section of Node.js package files. Click a task to open the package.json file. |
-| **[Ant](https://ant.apache.org/)** | `**/*.xml` | Finds targets in Apache Ant build files. Supports target dependencies and descriptions. |
-| **[Gradle](https://gradle.org/)** | `**/*.gradle` | Extracts tasks from Gradle build scripts for Java/Android projects. Parses both task definitions and task configurations. |
-| **[MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)** | `**/*.{csproj,vbproj,vcxproj,sln,proj,xml}` | Discovers targets in .NET project files and Visual Studio solutions. |
-| **[Make](https://www.gnu.org/software/make/)** | `**/Makefile` | Identifies targets from Makefiles used in C/C++ and other native projects. |
-| **[Composer](https://getcomposer.org/)** | `**/composer.json` | Finds scripts defined in PHP Composer configuration files. |
-| **[Pipenv](https://pipenv.pypa.io/)** | `**/Pipfile`, `**/pipfile` | Discovers scripts from Python Pipenv project files. |
+### External Tools
 
-### Task Runners
+The extension discovers tasks regardless of whether tools are installed, but **execution requires** the corresponding tool in your system PATH:
 
-| Task Type | File Patterns | Description |
-| --------- | ------------- | ----------- |
-| **[Gulp](https://gulpjs.com/)** | `**/gulpfile.js`, `**/gulpfile.mjs` | Detects tasks from Gulp build files. Supports both CommonJS and ES module formats. |
-| **[Grunt](https://gruntjs.com/)** | `**/Gruntfile.js`, `**/gruntfile.js` | Finds tasks registered with `registerTask` or `registerMultiTask` in Grunt files. |
-| **[Just](https://github.com/casey/just)** | `**/justfile`, `**/.justfile`, `**/*.just` | Discovers recipes from Just command runner files. |
+**Package Managers:**
+- [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/) for npm tasks
+- [pnpm](https://pnpm.io/) for pnpm tasks
+- [Yarn](https://yarnpkg.com/) for Yarn tasks
+- [Composer](https://getcomposer.org/) for PHP Composer tasks
+- [Pipenv](https://pipenv.pypa.io/) for Python Pipenv tasks
 
-### Scripts & Environments
+**Build Systems:**
+- [Apache Ant](https://ant.apache.org/) for Ant tasks
+- [Gradle](https://gradle.org/) for Gradle tasks
+- [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) for .NET tasks
+- [Make](https://www.gnu.org/software/make/) for Makefile tasks
 
-| Task Type | File Patterns | Description |
-| --------- | ------------- | ----------- |
-| **Shell Scripts** | `**/*.{sh,bash,zsh,fish,csh,ksh,cmd,bat,ps1}` | Detects executable shell scripts across multiple shell environments (Bash, Zsh, PowerShell, Batch, etc.). |
-| **Python venv** | `**/.venv/Scripts/activate.*`, `**/.venv/Scripts/deactivate.*` | Finds Python virtual environment activation and deactivation scripts. |
-| **[Docker](https://www.docker.com/)** | `**/Dockerfile`, `**/dockerfile`, `**/*.dockerfile` | Identifies Docker container definition files for building images. |
-| **[Docker Compose](https://docs.docker.com/compose/)** | `**/docker-compose.yml` | Discovers multi-container application orchestration tasks. Common tasks include starting services (`up`), stopping services (`down`), viewing logs, and rebuilding containers. |
-| **[GitHub Actions](https://github.com/features/actions)** | `**/.github/workflows/*.{yml,yaml}` | Parses GitHub Actions workflow files for local execution with [act](https://github.com/nektos/act). Supports multiple event types, workflow_dispatch inputs, and individual job execution. |
+**Task Runners:**
+- [Grunt](https://gruntjs.com/) for Grunt tasks
+- [Gulp](https://gulpjs.com/) for Gulp tasks
+- [Just](https://github.com/casey/just) for Just tasks
 
-### VS Code & Custom
+**DevOps:**
+- [Docker](https://www.docker.com/) for Docker and Docker Compose tasks
+- [act](https://github.com/nektos/act) and Docker for GitHub Actions workflows
 
-| Task Type | File Patterns | Description |
-| --------- | ------------- | ----------- |
-| **VS Code Tasks** | `**/.vscode/tasks.json` | Loads tasks defined in VS Code's native task configuration files. |
-| **Workspace Tasks** | `.workspace-tasks.json` | Custom task definitions with dynamic inputs and file associations (see Custom Workspace Tasks section). |
+**Scripts:**
+- Bash, Zsh, or other shell interpreters for shell scripts
+- PowerShell for `.ps1` scripts
+- Command Prompt for `.bat` and `.cmd` scripts
 
-### Task Type Features
+> **Installation Instructions:** Visit each tool's official website (linked above) for installation guides specific to your operating system.
 
-- **File-Associated Tasks**: Most task types are linked to their source files. Click any task to open the file at the task definition line.
-- **Hierarchical Organization**: Tasks are grouped by workspace folder and task type for easy navigation.
-- **Context Menus**: Right-click tasks for additional actions like adding to queue, marking as favorite, or copying task names.
-- **Custom Icons**: Each task type displays a distinctive icon matching VS Code's file type icons or custom task-specific icons.
-- **Live Discovery**: The task list updates automatically when you create, modify, or delete task files.
-- **Pattern Matching**: All file patterns respect your workspace's `.gitignore` and custom `.tasksignore` files.
+## 🤝 Contributing
 
-> [!NOTE]
-> Some task types require their respective tools to be installed on your system to execute (e.g., `npm`, `make`, `docker`, `gradle`). The extension will discover and display tasks regardless of whether the tool is installed, but execution requires the tool to be available in your PATH.
+Contributions are welcome! If you'd like to improve Workspace Tasks, here's how:
 
-## Requirements
+### How to Contribute
 
-- **VS Code Version**: 1.74.0 or later
-- **External Tools**: For task execution, the corresponding tools must be installed on your system and available in your PATH:
-  - [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/) for npm tasks
-  - [Apache Ant](https://ant.apache.org/) for Ant tasks
-  - [Composer](https://getcomposer.org/) for Composer tasks
-  - [Gradle](https://gradle.org/) for Gradle tasks
-  - [Grunt](https://gruntjs.com/) for Grunt tasks
-  - [Gulp](https://gulpjs.com/) for Gulp tasks
-  - [Just](https://github.com/casey/just) for Just tasks
-  - [Make](https://www.gnu.org/software/make/) for Makefile tasks
-  - [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) for .NET project tasks
-  - [Pipenv](https://pipenv.pypa.io/) for Pipenv tasks
-  - [Docker](https://www.docker.com/) for Dockerfile tasks
-  - [Docker Compose](https://docs.docker.com/compose/) for Docker Compose tasks
-  - [act](https://github.com/nektos/act) and [Docker](https://www.docker.com/) for GitHub Actions workflows
-  - Bash, PowerShell, or other shell interpreters for shell scripts
+1. **Report Issues** - Found a bug or have a feature request? [Open an issue](https://github.com/camalot/vscode-workspace-tasks/issues) on GitHub
+2. **Submit Pull Requests** - Fork the repository, make your changes, and submit a PR
+3. **Improve Documentation** - Help make the docs clearer or add examples
+4. **Share Feedback** - Let us know how you use the extension and what could be better
 
-> [!NOTE]
-> The extension will discover and display tasks even if the required tools are not installed. However, you'll need the appropriate tool installed to actually execute the tasks.
+### Development Setup
 
-## Contributing
+```bash
+# Clone the repository
+git clone https://github.com/camalot/vscode-workspace-tasks.git
+cd vscode-workspace-tasks
 
-Contributions are welcome! Please submit issues and pull requests on GitHub.
+# Install dependencies
+npm install
 
-## License
+# Open in VS Code
+code .
+
+# Start the watch task to compile TypeScript
+npm run watch
+
+# Press F5 to launch the Extension Development Host
+```
+
+### Guidelines
+
+- Follow the existing code style and conventions
+- Write clear commit messages
+- Add tests for new features when applicable
+- Update documentation for user-facing changes
+- Ensure all tests pass before submitting
+
+### Project Structure
+
+- `src/` - TypeScript source code
+  - `providers/` - Task providers for each task type
+  - `services/` - Shared services (caching, configuration, etc.)
+  - `libs/` - Utility libraries
+- `res/` - Resources (icons, schemas, syntaxes)
+- `sample/` - Sample workspaces for testing
+
+## 📄 License
 
 This project is licensed under the [Apache 2.0 License](LICENSE).
+
+---
+
+**Made with ❤️ for the VS Code community**

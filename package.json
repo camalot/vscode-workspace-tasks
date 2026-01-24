@@ -37,17 +37,26 @@
     "npm",
     "grunt",
     "gulp",
+    "just",
+    "maven",
+    "msbuild",
+    "vscode",
     "yarn",
+    "pnpm",
+    "venv",
+    "docker",
+    "github actions",
     "ant",
     "makefile",
     "composer",
     "php",
     "multi-root ready",
-    "c c++",
     "gradle",
     "tsc",
     "batch",
-    "bash"
+    "bash",
+    "pipenv",
+    "make"
   ],
   "categories": [
     "Other"
@@ -204,7 +213,6 @@
         "command": "workspaceTasks.runTaskWithArgs",
         "title": "%command.runTaskWithArgs%",
         "icon": "$(debug-continue)"
-
       },
       {
         "command": "workspaceTasks.stopTask",
@@ -510,6 +518,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.pipenv%"
             },
+            "pnpm": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.pnpm%"
+            },
             "tsc": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.tsc%"
@@ -548,6 +560,7 @@
             "pipenv": true,
             "tsc": true,
             "yarn": true,
+            "pnpm": true,
             "venv": true,
             "vscode": true,
             "workspace": true

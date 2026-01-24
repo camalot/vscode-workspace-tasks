@@ -6,7 +6,7 @@
       {
         "label": "Example Workspace Task",
         "type": "shell",
-        "command": "echo 'Hello World'",
+        "command": "wsl.exe uname -a",
         "group": "build"
       }
     ]

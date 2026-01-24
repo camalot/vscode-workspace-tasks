@@ -10,7 +10,7 @@ import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { GruntTaskProvider } from './providers/gruntTaskProvider';
 import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { JustfileTaskProvider } from './providers/justfileTaskProvider';
-import { NpmTaskProvider } from './providers/npmTaskProvider';
+import { NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './providers/npmTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
@@ -70,6 +70,48 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec
       );
       return { task, command: full, cwd: npmCwd };
+    }
+    case 'yarn': {
+      const yarnProvider = new YarnTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: yarnCmd, args: yarnInitialArgs, cwd: yarnCwd } = yarnProvider.getCommand(workspaceFolder?.uri);
+
+      const yarnArgs = yarnInitialArgs ? [...yarnInitialArgs] : [];
+      yarnArgs.push('run', `${taskLabel}`);
+      if (args) { yarnArgs.push(...args.split(' ')); }
+
+      const full = `${yarnCmd} ${yarnArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd: yarnCwd });
+
+      const task = new vscode.Task(
+        { type: 'yarn', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'yarn',
+        shellExec
+      );
+      return { task, command: full, cwd: yarnCwd };
+    }
+    case 'pnpm': {
+      const pnpmProvider = new PnpmTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: pnpmCmd, args: pnpmInitialArgs, cwd: pnpmCwd } = pnpmProvider.getCommand(workspaceFolder?.uri);
+
+      const pnpmArgs = pnpmInitialArgs ? [...pnpmInitialArgs] : [];
+      pnpmArgs.push('run', `${taskLabel}`);
+      if (args) { pnpmArgs.push(...args.split(' ')); }
+
+      const full = `${pnpmCmd} ${pnpmArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd: pnpmCwd });
+
+      const task = new vscode.Task(
+        { type: 'pnpm', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'pnpm',
+        shellExec
+      );
+      return { task, command: full, cwd: pnpmCwd };
     }
     case 'gradle': {
       // gradle [task] [args]
@@ -286,7 +328,17 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     case 'github-actions': {
       const ghProvider = new GithubActionsTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: actPath, args: actInitialArgs, cwd: actCwd } = ghProvider.getCommand(workspaceFolder?.uri);
+      let { command: actPath, args: actInitialArgs, cwd: actCwd } = ghProvider.getCommand(workspaceFolder?.uri);
+
+      // Attempt to determine the project root if the workflow is in a nested folder
+      // This is crucial for act to find .secrets, .env in the project root instead of workspace root
+      const githubDirMatch = resourceUri.fsPath.match(/[\\/]\.github[\\/]/);
+      if (githubDirMatch) {
+         const projectRoot = resourceUri.fsPath.substring(0, githubDirMatch.index);
+         if (projectRoot) {
+            actCwd = projectRoot;
+         }
+      }
 
       const meta = item.metadata;
       const actArgs: string[] = actInitialArgs ? [...actInitialArgs] : [];
@@ -368,28 +420,76 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           }
         }
 
-        const wf = vscode.workspace.getWorkspaceFolder(resourceUri);
-        if (wf) {
-          const relPath = path.relative(wf.uri.fsPath, resourceUri.fsPath);
-          actArgs.push('-W', relPath);
-        } else {
-          actArgs.push('-W', resourceUri.fsPath);
-        }
+        const relPath = path.relative(actCwd, resourceUri.fsPath);
+        actArgs.push('-W', relPath);
 
       } else if (meta?.type === 'job') {
         actArgs.push('-j', meta.jobId);
-        const wf = vscode.workspace.getWorkspaceFolder(resourceUri);
-        if (wf) {
-          const relPath = path.relative(wf.uri.fsPath, resourceUri.fsPath);
-          actArgs.push('-W', relPath);
-        }
+        const relPath = path.relative(actCwd, resourceUri.fsPath);
+        actArgs.push('-W', relPath);
       } else {
-        actArgs.push('push');
-        const wf = vscode.workspace.getWorkspaceFolder(resourceUri);
-        if (wf) {
-          const relPath = path.relative(wf.uri.fsPath, resourceUri.fsPath);
-          actArgs.push('-W', relPath);
+        // Fallback or generic file execution
+        let useEvent = 'push';
+
+        // Check for file-level metadata with supported events
+        if (meta?.type === 'file' && meta?.events) {
+          const events = meta.events as string[];
+          if (events.length > 0) {
+            const selected = await vscode.window.showQuickPick(events, {
+              placeHolder: 'Select event to trigger',
+            });
+            if (selected) {
+              useEvent = selected;
+            } else {
+              // User cancelled selection
+              return undefined;
+            }
+          }
         }
+
+        // If selected event is workflow_dispatch, handle inputs
+         if (useEvent === 'workflow_dispatch' && meta?.inputs) {
+              const inputsObj = meta.inputs as Record<string, any>;
+              if (Array.isArray(inputsObj)) {
+                for (const input of inputsObj) {
+                  const val = await vscode.window.showInputBox({
+                    prompt: `Enter input for '${input}'`,
+                    placeHolder: 'Value',
+                    ignoreFocusOut: true
+                  });
+                  if (val) {
+                    actArgs.push('--input', `${input}=${val}`);
+                  }
+                }
+              } else {
+                for (const [key, details] of Object.entries(inputsObj)) {
+                  const desc = details.description || `Enter value for ${key}`;
+                  const defaultVal = details.default !== undefined ? String(details.default) : '';
+                  const required = details.required || false;
+
+                  const val = await vscode.window.showInputBox({
+                    prompt: desc,
+                    placeHolder: `${key} (${details.type || 'string'})`,
+                    value: defaultVal,
+                    ignoreFocusOut: true,
+                    validateInput: (text) => {
+                      if (required && !text) {
+                        return "This input is required";
+                      }
+                      return null;
+                    }
+                  });
+
+                  if (val) {
+                    actArgs.push('--input', `${key}=${val}`);
+                  }
+                }
+              }
+        }
+
+        actArgs.push(useEvent);
+        const relPath = path.relative(actCwd, resourceUri.fsPath);
+        actArgs.push('-W', relPath);
       }
 
       if (args) {
