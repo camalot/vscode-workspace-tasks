@@ -133,7 +133,7 @@ Create and manage multiple named queues to run sequences of tasks in order. Perf
 
 **How to Use:**
 
-1. Click the list icon next to any task (or right-click → "Add to Queue")
+1. Click the list icon next to any task
 2. Choose an existing queue or create a new one
 3. Drag and drop tasks to reorder them
 4. Run the entire queue or start from a specific task
@@ -150,7 +150,7 @@ Create and manage multiple named queues to run sequences of tasks in order. Perf
 
 **Example Workflow:**
 
-```
+```text
 CI Pipeline Queue:
 1. Install Dependencies (npm install)
 2. Lint Code (npm run lint)
@@ -159,7 +159,7 @@ CI Pipeline Queue:
 5. Deploy to Staging (deploy.sh)
 ```
 
-Right-click the queue group to run all tasks in sequence, rename the queue, or clear it.
+Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
 
 ## 📥 Installation
 
@@ -193,7 +193,6 @@ code --install-extension darthminos.workspace-tasks
 **Tips:**
 
 - Double-click a task to open its definition file
-- Right-click for more options (copy name, add to queue, etc.)
 - Use the collapse button (⊟) to toggle view states
 - Create `.tasksignore` files to exclude unwanted tasks
 
@@ -410,7 +409,6 @@ Add workspace-wide exclusions in `settings.json`:
 **Running Tasks:**
 
 - **Single Click** - Click the play button (▶️) to run immediately
-- **Context Menu** - Right-click for options like "Run Task", "Add to Queue", "Add to Favorites"
 - **Terminal Output** - Task output appears in the integrated terminal with status indicators
 - **Multiple Tasks** - Run multiple tasks simultaneously in separate terminals
 - **Command Palette** - Use `Ctrl+Shift+P` / `Cmd+Shift+P` to search and run tasks by name
@@ -430,7 +428,6 @@ Add workspace-wide exclusions in `settings.json`:
 
 **Additional Actions:**
 
-- **Copy Task Name** - Right-click to copy for use in documentation
 - **Refresh Tasks** - Manually refresh to pick up changes without reloading VS Code
 - **Collapse/Expand** - Use the collapse all button (⊟) to toggle view states:
   - First click: Collapse task type groups

@@ -1,5 +1,3 @@
 ---
-# These are supported funding model platforms
-github: camalot # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
-patreon: darthminos # Replace with a single Patreon username
-custom: ['https://paypal.me/camalotdesigns/10', 'https://www.twitch.tv/products/darthminos']
+github: camalot
+buy_me_a_coffee: darthminos
