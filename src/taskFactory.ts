@@ -15,6 +15,7 @@ import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
 import { ExecutableService } from './services/executableService';
+import { MiseTaskProvider } from './providers/miseTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -112,6 +113,30 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec
       );
       return { task, command: full, cwd: pnpmCwd };
+    }
+    case "mise": {
+      // mise run <taskLabel> [args]
+      const miseProvider = new MiseTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: miseCmd, args: miseInitialArgs, cwd: miseCwd } = miseProvider.getCommand(workspaceFolder?.uri);
+
+      const miseArgs = miseInitialArgs ? [...miseInitialArgs] : [];
+      miseArgs.push('run', taskLabel);
+      if (args) {
+        miseArgs.push(...args.split(' '));
+      }
+
+      const full = `${miseCmd} ${miseArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(miseCmd, miseArgs, { cwd: miseCwd });
+
+      const task = new vscode.Task(
+        { type: 'mise', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'mise',
+        shellExec
+      );
+      return { task, command: full, cwd: miseCwd };
     }
     case 'gradle': {
       // gradle [task] [args]

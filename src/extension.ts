@@ -5,6 +5,7 @@ import { ComposerTaskProvider } from './providers/composerTaskProvider';
 import { ShellTaskProvider } from './providers/shellTaskProvider';
 import { VscodeTaskProvider } from './providers/vscodeTaskProvider';
 import { VenvTaskProvider } from './providers/venvTaskProvider';
+import { MiseTaskProvider } from './providers/miseTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { JustfileTaskProvider } from './providers/justfileTaskProvider';
 import { TaskItem } from './taskItem';
@@ -40,6 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.registerProvider(new VscodeTaskProvider());
   taskTreeDataProvider.registerProvider(new VenvTaskProvider());
   taskTreeDataProvider.registerProvider(new MakefileTaskProvider());
+  taskTreeDataProvider.registerProvider(new MiseTaskProvider());
   taskTreeDataProvider.registerProvider(new WorkspaceTasksProvider());
   taskTreeDataProvider.registerProvider(new JustfileTaskProvider());
   taskTreeDataProvider.registerProvider(new AntTaskProvider());
@@ -181,7 +183,9 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const queues = TaskStateManager.getInstance().getQueueNames();
-    if (queues.length === 0) return;
+    if (queues.length === 0) {
+      return;
+    }
 
     const selected = await vscode.window.showQuickPick(queues, { placeHolder: 'Select queue to clear'});
     if (selected) {

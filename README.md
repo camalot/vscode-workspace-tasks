@@ -68,12 +68,14 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="res/icons/dark/gulp.png" width="32" alt="Gulp" title="Gulp"/>
   <img src="res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
   <img src="res/icons/dark/justfile.png" width="32" alt="Just" title="Just"/>
+  <img src="res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
 </p>
 
 - **[Gulp](https://gulpjs.com/)** - Tasks from `gulpfile.js` or `gulpfile.mjs`
 - **[Grunt](https://gruntjs.com/)** - Tasks from `Gruntfile.js`
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
+- **[mise](https://mise.jdx.dev/)** - Tasks from `mise.toml` or `mise-tasks/` directory
 
 ### DevOps & Containers
 
@@ -446,6 +448,7 @@ Each task type watches specific file patterns:
 | Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
 | Just | `**/{justfile,.justfile,*.just}` | Command recipes |
 | Make | `**/Makefile` | Build targets |
+| mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
 | MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
 | Pipenv | `**/Pipfile` | Python scripts |
 | Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
@@ -484,6 +487,7 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - [Grunt](https://gruntjs.com/) for Grunt tasks
 - [Gulp](https://gulpjs.com/) for Gulp tasks
 - [Just](https://github.com/casey/just) for Just tasks
+- [mise](https://mise.jdx.dev/) for mise tasks
 
 **DevOps:**
 - [Docker](https://www.docker.com/) for Docker and Docker Compose tasks

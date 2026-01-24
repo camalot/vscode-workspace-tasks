@@ -1,0 +1,37 @@
+[tools]
+# Define specific tool versions
+nodejs = "22"
+python = "3.11"
+go = "1.20"
+terraform = "1.0.0"
+
+[env]
+# Set environment variables that are loaded when entering the project directory
+NODE_ENV = "production"
+DATABASE_URL = "postgres://user:password@localhost:5432/mydb"
+
+[tasks.build]
+# Define a single-command task
+description = "Build the CLI"
+run = "cargo build"
+alias = "b" # can be run with `mise run b`
+
+[tasks.test]
+# Define a multi-command task
+description = "Run automated tests"
+run = [
+    "cargo test",
+    "./scripts/test-e2e.sh",
+]
+# Optionally set the working directory
+# dir = "{{cwd}}" # Default is the project's base directory
+
+[hooks.enter]
+# Define commands to run when entering the directory
+# This might be used for things like setting secrets via another tool
+shell = "bash"
+script = """
+echo -e '⏳ Setting up environment...'
+# source <(cat .1pass | op --account my.1password.com inject)
+echo -e '☑️ Done!'
+"""
