@@ -29,13 +29,13 @@ export class RecentTasksService {
     this.recentTasks = this.context.workspaceState.get<RecentTaskEntry[]>(this.STORAGE_KEY, []);
 
     // Load max from configuration
-    const cfgMax = vscode.workspace.getConfiguration('workspaceTasks').get<number>('groups.recentTasks.maxItems');
+    const cfgMax = vscode.workspace.getConfiguration('workspaceTasks').get<number>('recentTasks.maxItems');
     this.maxRecentTasks = (typeof cfgMax === 'number') ? cfgMax : 20;
 
     // Listen for configuration changes and update max accordingly
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
-      if (e.affectsConfiguration('workspaceTasks.groups.recentTasks.maxItems')) {
-        const newVal = vscode.workspace.getConfiguration('workspaceTasks').get<number>('groups.recentTasks.maxItems');
+      if (e.affectsConfiguration('workspaceTasks.recentTasks.maxItems')) {
+        const newVal = vscode.workspace.getConfiguration('workspaceTasks').get<number>('recentTasks.maxItems');
         const parsed = (typeof newVal === 'number') ? newVal : 20;
         if (parsed !== this.maxRecentTasks) {
           this.maxRecentTasks = parsed;
