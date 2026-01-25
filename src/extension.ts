@@ -22,6 +22,7 @@ import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';import { G
 import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
+import { MavenTaskProvider } from './providers/mavenTaskProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   ExtensionConfigurationService.getInstance().initialize(context);
@@ -48,6 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.registerProvider(new GulpTaskProvider());
   taskTreeDataProvider.registerProvider(new GruntTaskProvider());
   taskTreeDataProvider.registerProvider(new MsBuildTaskProvider());
+  taskTreeDataProvider.registerProvider(new MavenTaskProvider());
   taskTreeDataProvider.registerProvider(new GithubActionsTaskProvider());
   taskTreeDataProvider.registerProvider(new GradleTaskProvider());
   taskTreeDataProvider.registerProvider(new PipenvTaskProvider());

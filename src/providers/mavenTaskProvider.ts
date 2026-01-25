@@ -23,7 +23,7 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
     const iconService = TaskIconService.getInstance();
     // Use the glob constant for maven
     const mavenFiles = await filesService.findFiles([constants.GLOB_MAVEN]);
-    
+
     // Standard Maven lifecycle phases
     const standardGoals = [
       'clean',
@@ -75,7 +75,7 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
           item.taskFileUri = file;
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = `Run mvn ${goal}`;
-          
+
           tasks.push(item);
         }
 
@@ -91,6 +91,7 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
     return execService.getCommand({
+      configKey: 'applicationPath.maven',
       defaultValue: 'mvn',
       configName: 'mvn',
       windowsExecutableExtension: '.cmd'

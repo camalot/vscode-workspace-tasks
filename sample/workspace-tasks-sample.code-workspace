@@ -23,6 +23,7 @@
 		"workspaceTasks.applicationPath.ant": "tools\\ant\\bin\\ant",
 		"workspaceTasks.act.secretsFile": "./.act/.secrets",
 		"workspaceTasks.applicationPath.just": "tools/just/just",
-		"workspaceTasks.act.envFile": ""
+		"workspaceTasks.act.envFile": "",
+		"workspaceTasks.applicationPath.maven": "tools/maven/bin/mvn"
 	}
 }
