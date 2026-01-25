@@ -43,7 +43,7 @@ export class RecentTasksService {
           if (this.recentTasks.length > this.maxRecentTasks) {
             this.recentTasks = this.recentTasks.slice(0, this.maxRecentTasks);
             this.save();
-            vscode.commands.executeCommand('workspaceTasks.refresh');
+            vscode.commands.executeCommand('workspaceTasks.refreshTree');
           }
         }
       }
@@ -143,6 +143,21 @@ export class RecentTasksService {
         return candidates[0];
     }
 
+    public remove(item: TaskItem) {
+        if (!item || !item.id) {
+            return;
+        }
+
+        let canonicalId = item.id;
+        // Strip prefixes if present
+        if (canonicalId.startsWith('recent:')) {
+            canonicalId = canonicalId.substring(7);
+        }
+
+        this.recentTasks = this.recentTasks.filter(t => t.taskId !== canonicalId);
+        this.save();
+    }
+
     public addRecentTask(taskId: string) {
         // IMPORTANT: Ensure we are using the canonical ID for deduplication
         // The ID passed in comes from a found TaskItem, which likely has a "pure" ID.
@@ -174,7 +189,7 @@ export class RecentTasksService {
         this.save();
 
         // Refresh tree
-        vscode.commands.executeCommand('workspaceTasks.refresh');
+        vscode.commands.executeCommand('workspaceTasks.refreshTree');
     }
 
     private save() {
@@ -184,7 +199,7 @@ export class RecentTasksService {
     public clear(): void {
         this.recentTasks = [];
         this.save();
-        vscode.commands.executeCommand('workspaceTasks.refresh');
+        vscode.commands.executeCommand('workspaceTasks.refreshTree');
     }
 
     public getRecentTasks(): TaskItem[] {

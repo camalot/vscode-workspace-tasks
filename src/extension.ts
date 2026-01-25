@@ -17,6 +17,8 @@ import { ExtensionConfigurationService } from './services/extensionConfiguration
 import { TaskIconService } from './services/taskIconService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { RecentTasksService } from './services/recentTasksService';
+import { FavoritesService } from './services/favoritesService';
+import { QueueService } from './services/queueService';
 import { WorkspaceTasksProvider } from './providers/workspaceTasksProvider';
 import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';import { GruntTaskProvider } from './providers/gruntTaskProvider';
@@ -33,6 +35,8 @@ export async function activate(context: vscode.ExtensionContext) {
   TaskIconService.getInstance().initialize(context);
   WorkspaceTasksService.getInstance().initialize(context);
   RecentTasksService.getInstance().initialize(context);
+  FavoritesService.getInstance().initialize(context);
+  QueueService.getInstance().initialize(context);
   const taskTreeDataProvider = new TaskTreeDataProvider(context);
 
   // Register Providers
@@ -87,6 +91,9 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.refresh', () => {
     taskTreeDataProvider.refresh();
   }));
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.refreshTree', () => {
+    taskTreeDataProvider.refreshLocal();
+  }));
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.collapseAll', () => {
     taskTreeDataProvider.collapseAllTaskGroups();
   }));
@@ -115,6 +122,13 @@ export async function activate(context: vscode.ExtensionContext) {
   // Clear Recent Tasks
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.clearRecentTasks', () => {
     (RecentTasksService.getInstance() as any).clear();
+    taskTreeDataProvider.refreshLocal();
+  }));
+
+  // Remove from Recent Tasks
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.removeFromRecentTasks', (item: TaskItem) => {
+    (RecentTasksService.getInstance() as any).remove(item);
+    taskTreeDataProvider.refreshLocal();
   }));
 
   // Open File command
@@ -178,8 +192,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Queue Commands
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.addToQueue', async (item: TaskItem) => {
-    const stateManager = TaskStateManager.getInstance();
-    const queues = stateManager.getQueueNames();
+    const queueService = QueueService.getInstance();
+    const queues = queueService.getQueueNames();
     let targetQueue: string | undefined;
 
     if (queues.length === 0) {
@@ -195,8 +209,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     if (targetQueue) {
-        stateManager.addToQueue(item, targetQueue);
-        taskTreeDataProvider.refresh();
+        queueService.addToQueue(item, targetQueue);
+        taskTreeDataProvider.refreshLocal();
     }
   }));
 
@@ -205,26 +219,26 @@ export async function activate(context: vscode.ExtensionContext) {
     if (item.parent && item.parent.contextValue === 'queue') {
          queueName = item.parent.label as string;
     }
-    TaskStateManager.getInstance().removeFromQueue(item, queueName);
-    taskTreeDataProvider.refresh();
+    QueueService.getInstance().removeFromQueue(item, queueName);
+    taskTreeDataProvider.refreshLocal();
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.clearQueue', async (item?: TaskItem) => {
     if (item && item.contextValue === 'queue') {
-        TaskStateManager.getInstance().clearQueue(item.label as string);
-        taskTreeDataProvider.refresh();
+        QueueService.getInstance().clearQueue(item.label as string);
+        taskTreeDataProvider.refreshLocal();
         return;
     }
 
-    const queues = TaskStateManager.getInstance().getQueueNames();
+    const queues = QueueService.getInstance().getQueueNames();
     if (queues.length === 0) {
       return;
     }
 
     const selected = await vscode.window.showQuickPick(queues, { placeHolder: 'Select queue to clear'});
     if (selected) {
-         TaskStateManager.getInstance().clearQueue(selected);
-         taskTreeDataProvider.refresh();
+         QueueService.getInstance().clearQueue(selected);
+         taskTreeDataProvider.refreshLocal();
     }
   }));
 
@@ -234,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
          return;
     }
 
-    const queues = TaskStateManager.getInstance().getQueueNames();
+    const queues = QueueService.getInstance().getQueueNames();
     if (queues.length === 0) {
          vscode.window.showInformationMessage("No queues to run.");
          return;
@@ -266,8 +280,8 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     if (newName && newName.trim().length > 0) {
-      TaskStateManager.getInstance().renameQueue(currentName, newName.trim());
-      taskTreeDataProvider.refresh();
+      QueueService.getInstance().renameQueue(currentName, newName.trim());
+      taskTreeDataProvider.refreshLocal();
     }
   }));
 
@@ -293,8 +307,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     if (taskToAdd) {
-      const stateManager = TaskStateManager.getInstance();
-      const queues = stateManager.getQueueNames();
+      const queueService = QueueService.getInstance();
+      const queues = queueService.getQueueNames();
       let targetQueue: string | undefined;
 
       if (queues.length === 0) {
@@ -310,8 +324,8 @@ export async function activate(context: vscode.ExtensionContext) {
       }
 
       if (targetQueue) {
-        stateManager.addToQueue(taskToAdd, targetQueue);
-        taskTreeDataProvider.refresh();
+        queueService.addToQueue(taskToAdd, targetQueue);
+        taskTreeDataProvider.refreshLocal();
         vscode.window.showInformationMessage(`Added '${taskToAdd.label}' to Queue '${targetQueue}'.`);
       }
     }
@@ -337,21 +351,21 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     if (taskToAdd) {
-      TaskStateManager.getInstance().addToFavorites(taskToAdd);
-      taskTreeDataProvider.refresh();
+      FavoritesService.getInstance().addToFavorites(taskToAdd);
+      taskTreeDataProvider.refreshLocal();
       vscode.window.showInformationMessage(`Added '${taskToAdd.label}' to Favorites.`);
     }
   }));
 
   // Favorites Commands
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.addToFavorites', (item: TaskItem) => {
-    TaskStateManager.getInstance().addToFavorites(item);
-    taskTreeDataProvider.refresh();
+    FavoritesService.getInstance().addToFavorites(item);
+    taskTreeDataProvider.refreshLocal();
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.removeFromFavorites', (item: TaskItem) => {
-    TaskStateManager.getInstance().removeFromFavorites(item);
-    taskTreeDataProvider.refresh();
+    FavoritesService.getInstance().removeFromFavorites(item);
+    taskTreeDataProvider.refreshLocal();
   }));
 
   // Task Events
@@ -362,7 +376,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const status = e.exitCode === 0 ? 'success' : 'failure';
       stateManager.setStatus(id, status);
       stateManager.clearExecution(id);
-      taskTreeDataProvider.refresh();
+      taskTreeDataProvider.refreshLocal();
     }
   }));
 

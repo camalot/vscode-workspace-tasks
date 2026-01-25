@@ -7,6 +7,8 @@ import { TaskTreeDragAndDropController } from './taskTreeDragAndDropController';
 import { TaskCacheService } from './services/taskCacheService';
 import { TaskIconService } from './services/taskIconService';
 import { RecentTasksService } from './services/recentTasksService';
+import { FavoritesService } from './services/favoritesService';
+import { QueueService } from './services/queueService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
@@ -67,6 +69,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   async refresh(): Promise<void> {
     await TaskCacheService.getInstance().refresh();
+    this._onDidChangeTreeData.fire();
+  }
+
+  refreshLocal(): void {
     this._onDidChangeTreeData.fire();
   }
 
@@ -193,11 +199,13 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const recentTasks = (RecentTasksService.getInstance() as any).getRecentTasks();
 
     const stateManager = TaskStateManager.getInstance();
+    const favoritesService = FavoritesService.getInstance();
+    const queueService = QueueService.getInstance();
 
     // Helper to recursively check and add favorites
     const checkFavorite = (item: TaskItem) => {
       const id = stateManager.getTaskId(item);
-      if (stateManager.isFavorite(id)) {
+      if (favoritesService.isFavorite(id)) {
           // Clone task for favorites view
           const favTask = new TaskItem(
               item.label,
@@ -248,8 +256,33 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           }
           favTask.description = description;
 
+          // Must set ID before updating context value so that getTaskId works correctly on the clone
+          // But wait, the clone has a fresh ID from constructor.
+          // We want the clone to behave like the original for status lookup, but be unique in tree.
+          // TaskStateManager.getTaskId strips 'fav:', so that logic works.
+          // BUT, we need to ensure the ID is set to `fav:...` AFTER updateContextValue calls getTaskId(this)
+          // NO, updateContextValue calls getTaskId(this).
+          // If we set favTask.id = `fav:${favTask.id}` afterwards, then during updateContextValue, it has the ORIGINAL id (or similar).
+
+          // Let's set the ID first to what it WOULD be on the original to ensure getTaskId retrieves the canonical ID correctly?
+          // No, the new TaskItem constructor logic sets ID based on params.
+          // We should explicitly set the ID to match the item's ID first (preserving base ID for lookup)
+          // Then applying the prefix.
+
+          // Fix: Ensure the favTask has the ID of the original item initially so lookups work?
+          // The constructor generates a new ID.
+          // Let's force the ID to match the original item's ID first.
+          favTask.id = item.id;
+
           favTask.updateContextValue();
-          favTask.id = `fav:${favTask.id}`;
+          // Override context value to ensure it is 'favoriteTask' even if logic inside updateContextValue missed it?
+          // updateContextValue uses isFavorite(id). Since we set favTask.id = item.id, getTaskId should return the canonical ID.
+          // And isFavorite(canonicalId) should be true.
+          // So contextValue should be 'favoriteTask' or 'runningTask'.
+
+          // Finally, prefix the ID for tree uniqueness
+          favTask.id = `fav:${item.id}`;
+
           favoriteTasks.push(favTask);
       }
 
@@ -326,7 +359,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const workspaceRoots: TaskItem[] = [];
 
     // Add Queue Groups
-    const allQueues = stateManager.getAllQueues();
+    const allQueues = queueService.getAllQueues();
     for (const [queueName, queueTasks] of allQueues) {
       if (queueTasks.length > 0) {
         const queueGroup = new TaskItem(
@@ -368,6 +401,16 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           // Explicitly set context value for queued items to allow distinct actions
           queuedItem.contextValue = 'queuedTask';
           queuedItem.parent = queueGroup;
+
+          // Re-sync ID just like favorites
+          queuedItem.id = task.id; // Use original task ID for status lookup
+          queuedItem.updateContextValue(); // Updates status (running/success/fail)
+
+          // Force context value to queued task if not running
+          if (queuedItem.contextValue !== 'runningTask') {
+              queuedItem.contextValue = 'queuedTask';
+          }
+
           queuedItem.id = `queue:${queueName}:${queuedItem.id}`;
 
           queueGroup.children.push(queuedItem);
@@ -466,6 +509,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                 copy.id = `recent:${t.id}`;
                 copy.contextValue = t.contextValue;
                 copy.updateContextValue();
+                if (copy.contextValue !== 'runningTask') {
+                    copy.contextValue = 'recentTask';
+                }
                 return copy;
            });
 
@@ -500,6 +546,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             copy.id = `recent:${t.id}`;
             copy.contextValue = t.contextValue;
             copy.updateContextValue();
+            if (copy.contextValue !== 'runningTask') {
+                copy.contextValue = 'recentTask';
+            }
             return copy;
         });
       }

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { TaskStateManager } from './taskStateManager';
+import { FavoritesService } from './services/favoritesService';
 
 export class TaskItem extends vscode.TreeItem {
   public children: TaskItem[] = [];
@@ -49,7 +50,7 @@ export class TaskItem extends vscode.TreeItem {
       // It's a task leaf node
       const id = TaskStateManager.getInstance().getTaskId(this);
       const status = TaskStateManager.getInstance().getStatus(id);
-      const isFavorite = TaskStateManager.getInstance().isFavorite(id);
+      const isFavorite = FavoritesService.getInstance().isFavorite(id);
 
       if (status === 'running') {
         this.contextValue = 'runningTask';
@@ -57,7 +58,19 @@ export class TaskItem extends vscode.TreeItem {
       } else {
         // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
         if (this.contextValue !== 'queuedTask') {
-          this.contextValue = isFavorite ? 'favoriteTask' : 'task';
+            // For favorites view, we want to ensure it has 'favoriteTask' context value
+            // But if it is running, it takes precedence above.
+
+            // Should we have a specific 'favoriteTask' context?
+            // If the item is in the favorites LIST, it should definitely be 'favoriteTask'.
+            // If it is in the normal list, but is favorited, it should ALSO be 'favoriteTask' (to show "Remove") or maybe we want a distinct value?
+            // The existing logic was: isFavorite ? 'favoriteTask' : 'task'.
+            // This works for both locations if we want "Remove" available on both.
+            // But maybe the user wants 'favoriteTask' to imply "In Favorites Group".
+            // The issue report says: "interaction buttons include Add to Favorites, not Remove".
+            // This implies isFavorite is FALSE during the check.
+
+            this.contextValue = isFavorite ? 'favoriteTask' : 'task';
         }
 
         if (status === 'success') {

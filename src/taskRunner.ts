@@ -3,6 +3,7 @@ import * as path from 'path';
 import { TaskItem } from './taskItem';
 import { TaskStateManager } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';
+import { QueueService } from './services/queueService';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -48,7 +49,7 @@ export class TaskRunner {
 
     const id = TaskStateManager.getInstance().getTaskId(item);
     TaskStateManager.getInstance().setStatus(id, 'running');
-    vscode.commands.executeCommand('workspaceTasks.refresh'); // Trigger refresh
+    vscode.commands.executeCommand('workspaceTasks.refreshTree'); // Trigger refresh
 
     try {
       const execution = await vscode.tasks.executeTask(task);
@@ -56,14 +57,14 @@ export class TaskRunner {
     } catch (e) {
       console.error('[TaskRunner] executeTask failed:', e);
       TaskStateManager.getInstance().setStatus(id, 'failure');
-      vscode.commands.executeCommand('workspaceTasks.refresh');
+      vscode.commands.executeCommand('workspaceTasks.refreshTree');
       vscode.window.showErrorMessage(`Failed to run task: ${e}`);
       throw e;
     }
   }
 
   public async runQueue(queueName: string, startItem?: TaskItem) {
-    const queue = TaskStateManager.getInstance().getQueue(queueName);
+    const queue = QueueService.getInstance().getQueue(queueName);
     if (!queue || queue.length === 0) {
       vscode.window.showInformationMessage(`Queue '${queueName}' is empty or does not exist.`);
       return;

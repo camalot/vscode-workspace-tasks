@@ -227,6 +227,11 @@
         "icon": "$(debug-restart)"
       },
       {
+        "command": "workspaceTasks.removeFromRecentTasks",
+        "title": "%command.removeFromRecentTasks%",
+        "icon": "$(trash)"
+      },
+      {
         "command": "workspaceTasks.clearRecentTasks",
         "title": "%command.clearRecentTasks%",
         "icon": "$(clear-all)"
@@ -702,12 +707,12 @@
         },
         {
           "command": "workspaceTasks.runTask",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask",
           "group": "inline@3"
         },
         {
           "command": "workspaceTasks.runTaskWithArgs",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask",
           "group": "inline@3"
         },
         {
@@ -722,7 +727,7 @@
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "viewItem == task",
+          "when": "viewItem == task || viewItem == queuedTask || viewItem == recentTask",
           "group": "inline@1"
         },
         {
@@ -732,13 +737,18 @@
         },
         {
           "command": "workspaceTasks.addToQueue",
-          "when": "viewItem == task || viewItem == favoriteTask",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == recentTask",
           "group": "inline@2"
         },
         {
           "command": "workspaceTasks.removeFromQueue",
           "when": "viewItem == queuedTask",
           "group": "inline@2"
+        },
+        {
+          "command": "workspaceTasks.removeFromRecentTasks",
+          "when": "viewItem == recentTask",
+          "group": "inline@0"
         },
         {
           "command": "workspaceTasks.clearRecentTasks",

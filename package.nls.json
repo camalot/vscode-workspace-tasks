@@ -8,6 +8,7 @@
   "command.addToQueue": "Add to Queue",
   "command.runQueue": "Run Queue",
   "command.clearQueue": "Clear Queue",
+  "command.removeFromRecentTasks": "Remove from Recent Tasks",
   "command.clearRecentTasks": "Clear Recent Tasks",
   "command.removeFromQueue": "Remove from Queue",
   "command.renameQueue": "Rename Queue",
