@@ -142,6 +142,31 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }));
 
+  // Restart Task Command
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.restartTask', async (item: TaskItem) => {
+    const id = TaskStateManager.getInstance().getTaskId(item);
+    const execution = TaskStateManager.getInstance().getExecution(id);
+    if (execution) {
+      execution.terminate();
+      // Wait a moment to ensure termination
+      setTimeout(() => {
+        TaskRunner.getInstance().runTask(item);
+      }, 500);
+    } else {
+      // If not running, just run the task
+      TaskRunner.getInstance().runTask(item);
+    }
+  }));
+
+  // Stop Task Command
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.stopTask', (item: TaskItem) => {
+    const id = TaskStateManager.getInstance().getTaskId(item);
+    const execution = TaskStateManager.getInstance().getExecution(id);
+    if (execution) {
+      execution.terminate();
+    }
+  }));
+
   // Queue Commands
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.addToQueue', async (item: TaskItem) => {
     const stateManager = TaskStateManager.getInstance();
@@ -237,14 +262,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }));
 
-  // Stop Task Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.stopTask', (item: TaskItem) => {
-    const id = TaskStateManager.getInstance().getTaskId(item);
-    const execution = TaskStateManager.getInstance().getExecution(id);
-    if (execution) {
-      execution.terminate();
-    }
-  }));
 
   // Context Menu Commands
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.context.addToQueue', async (uri: vscode.Uri) => {

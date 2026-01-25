@@ -222,6 +222,11 @@
         "icon": "$(stop)"
       },
       {
+        "command": "workspaceTasks.restartTask",
+        "title": "%command.restartTask%",
+        "icon": "$(debug-restart)"
+      },
+      {
         "command": "workspaceTasks.addToFavorites",
         "title": "%command.addToFavorites%",
         "icon": "$(star)"
@@ -686,9 +691,14 @@
           "group": "inline@3"
         },
         {
+          "command": "workspaceTasks.restartTask",
+          "when": "viewItem == runningTask",
+          "group": "inline@1"
+        },
+        {
           "command": "workspaceTasks.stopTask",
           "when": "viewItem == runningTask",
-          "group": "inline@3"
+          "group": "inline@2"
         },
         {
           "command": "workspaceTasks.addToFavorites",

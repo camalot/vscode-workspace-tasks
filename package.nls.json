@@ -13,6 +13,7 @@
   "command.runTaskWithArgs": "Run Task with Arguments",
   "command.runTask": "Run Task",
   "command.stopTask": "Stop Task",
+  "command.restartTask": "Restart Task",
   "command.refreshTasks": "Refresh Tasks",
   "command.openFileAtLine": "Open File",
   "command.buyMeACoffee": "Buy Me a Coffee",
