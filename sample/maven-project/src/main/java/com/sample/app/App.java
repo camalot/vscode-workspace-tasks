@@ -1,4 +1,4 @@
-package main.java.com.sample.app;
+package com.sample.app;
 
 public class App {
 
