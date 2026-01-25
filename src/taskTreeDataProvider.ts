@@ -31,7 +31,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     });
 
     // Restore collapseLevel from workspace state (default to 0)
-    // Actually we only care about restoring if it was 0, as other modes are temporary toggles usuallly?
+    // Actually we only care about restoring if it was 0, as other modes are temporary toggles usually?
     // But if persistence is tricky for groups, maybe we just default to 0.
     // The issue with persistence is likely that the TreeView doesn't know about these IDs until we feed them to it.
 
@@ -140,7 +140,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           const level = this.pendingRevealLevel;
           this.pendingRevealLevel = undefined;
           setTimeout(async () => {
-              if (!this.view) return;
+              if (!this.view) {
+                return;
+              }
               for (const root of this.currentRoots) {
                 try {
                     if (level === 1) {
@@ -704,8 +706,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Sort groups/leafs? Usually folders first
     rootItems.sort((a, b) => {
-      if (a.contextValue === 'folder' && b.contextValue !== 'folder') return -1;
-      if (a.contextValue !== 'folder' && b.contextValue === 'folder') return 1;
+      if (a.contextValue === 'folder' && b.contextValue !== 'folder') {
+        return -1;
+      }
+      if (a.contextValue !== 'folder' && b.contextValue === 'folder') {
+        return 1;
+      }
       return a.label.localeCompare(b.label);
     });
 
