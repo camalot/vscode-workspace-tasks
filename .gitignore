@@ -7,6 +7,8 @@ tools/
 **/.secrets
 **/.act
 
+changelog.yml
+
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode,intellij,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,linux,macos,visualstudiocode,intellij,node
 
