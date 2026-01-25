@@ -261,10 +261,19 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
     };
 
+    // Helper to recursively update context value
+    const updateContextRecursively = (item: TaskItem) => {
+      item.updateContextValue();
+      if (item.children) {
+          item.children.forEach(child => updateContextRecursively(child));
+      }
+    };
+
     // console.log(`[TaskTreeDataProvider] organizeTasks - Collapse Level: ${this.collapseLevel}`);
 
     for (const task of tasks) {
       checkFavorite(task);
+      updateContextRecursively(task);
 
       if (!task.resourceUri) {
         const workspaceId = 'workspace_generic';
@@ -288,7 +297,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // ... rest of loop processing for normal view
 
       // Update context value for the original task item to reflect current state
-      task.updateContextValue();
+      // task.updateContextValue(); // Moved to start of loop and made recursive
 
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(task.resourceUri);
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';

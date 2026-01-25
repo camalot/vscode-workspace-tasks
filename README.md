@@ -11,6 +11,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 
 - [✨ Key Features](#-key-features)
 - [🛠️ Supported Task Types](#️-supported-task-types)
+- [🌱 Recent Tasks](#-recent-tasks)
 - [⭐ Favorites](#-favorites)
 - [📋 Task Queues](#-task-queues)
 - [📥 Installation](#-installation)
@@ -28,6 +29,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 
 - **🔍 Automatic Task Discovery** - Scans your workspace for tasks from 20+ file types and build systems
 - **⭐ Favorites** - Pin frequently used tasks for instant access
+- **🌱 Recent Tasks** - Tracks the most recently executed tasks
 - **📋 Multiple Task Queues** - Create and manage named sequences of tasks
 - **▶️ One-Click Execution** - Run tasks directly from the sidebar with visual status indicators
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
@@ -102,7 +104,29 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **VS Code Tasks** - Tasks from `.vscode/tasks.json`
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
-> **Note:** The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
+> [!Note]
+> The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
+
+## 🌱 Recent Tasks
+
+As you run tasks they are tracked in a dedicated section at the top of the task tree to easily be able to access again. State of recent tasks will persist between VSCode sessions.
+
+### Configuration
+
+#### Recent Tasks Item Grouping
+
+When enabled, task items are grouped by the task type. Default is `false`.
+
+![Recent Tasks - Grouping](res/assets/images/settings-groups-recenttasks-enabled.png)
+
+#### Maximum Recent Tasks
+
+The maximum number of task items to track in the recent tasks. Default is `20`.
+To disable tracking of recent tasks set to `0`.
+
+![Recent Tasks - Max Items](res/assets/images/settings-recenttasks-maxitems.png)
+
+####
 
 ## ⭐ Favorites
 

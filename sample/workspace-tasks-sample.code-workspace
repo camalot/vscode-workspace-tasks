@@ -25,7 +25,6 @@
 		"workspaceTasks.applicationPath.just": "tools/just/just",
 		"workspaceTasks.act.envFile": "",
 		"workspaceTasks.applicationPath.maven": "tools/maven/bin/mvn",
-		"workspaceTasks.groups.recentTasks.enabled": false,
-		"workspaceTasks.recentTasks.maxItems": 5
+		"workspaceTasks.groups.recentTasks.enabled": false
 	}
 }
