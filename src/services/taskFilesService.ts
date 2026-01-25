@@ -46,6 +46,7 @@ export class TaskFilesService {
       this.globalIgnore.add("**/node_modules/**"); // Always ignore node_modules
       this.globalIgnore.add("**/.git/**"); // Always ignore .git
       this.globalIgnore.add("**/__pycache__/**"); // Always ignore __pycache__
+      this.globalIgnore.add("**/.vscode-test/**");
       if (Array.isArray(excludes) && excludes.length > 0) {
         this.globalIgnore.add(excludes);
       }

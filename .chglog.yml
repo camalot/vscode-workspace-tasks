@@ -1,0 +1,5 @@
+debug: false
+package-name: "workspace-tasks"
+conventional-commits: true
+exclude-merge-commits: true
+owner: "camalot"

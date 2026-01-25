@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for VS Code",
   "readme": "README.md",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -73,11 +73,12 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "changelog": "chglog format --template repo > CHANGELOG.md"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
+    "@types/node": "25.x",
     "@types/vscode": "^1.108.1",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
@@ -222,6 +223,21 @@
         "icon": "$(stop)"
       },
       {
+        "command": "workspaceTasks.restartTask",
+        "title": "%command.restartTask%",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "workspaceTasks.removeFromRecentTasks",
+        "title": "%command.removeFromRecentTasks%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "workspaceTasks.clearRecentTasks",
+        "title": "%command.clearRecentTasks%",
+        "icon": "$(clear-all)"
+      },
+      {
         "command": "workspaceTasks.addToFavorites",
         "title": "%command.addToFavorites%",
         "icon": "$(star)"
@@ -319,6 +335,21 @@
           "default": true,
           "description": "%config.workspaceTasks.groups.enabled.description%",
           "markdownDescription": "%config.workspaceTasks.groups.enabled.markdown%"
+        },
+        "workspaceTasks.groups.recentTasks.enabled": {
+          "title": "%config.workspaceTasks.groups.recentTasks.enabled%",
+          "type": "boolean",
+          "default": false,
+          "description": "%config.workspaceTasks.groups.recentTasks.enabled%",
+          "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%"
+        },
+        "workspaceTasks.recentTasks.maxItems": {
+          "title": "%config.workspaceTasks.recentTasks.maxItems%",
+          "type": "number",
+          "default": 20,
+          "minimum": 0,
+          "description": "%config.workspaceTasks.recentTasks.maxItems.description%",
+          "markdownDescription": "%config.workspaceTasks.recentTasks.maxItems.markdown%"
         },
         "workspaceTasks.groups.taskSeparator": {
           "title": "%config.workspaceTasks.groups.taskSeparator%",
@@ -617,6 +648,12 @@
           "markdownDescription": "%config.workspaceTasks.applicationPath.make.markdown%",
           "default": "make"
         },
+        "workspaceTasks.applicationPath.maven": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.maven%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.maven.markdown%",
+          "default": "mvn"
+        },
         "workspaceTasks.applicationPath.pipenv": {
           "type": "string",
           "description": "%config.workspaceTasks.applicationPath.pipenv%",
@@ -671,22 +708,27 @@
         },
         {
           "command": "workspaceTasks.runTask",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask",
           "group": "inline@3"
         },
         {
           "command": "workspaceTasks.runTaskWithArgs",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask",
           "group": "inline@3"
+        },
+        {
+          "command": "workspaceTasks.restartTask",
+          "when": "viewItem == runningTask",
+          "group": "inline@1"
         },
         {
           "command": "workspaceTasks.stopTask",
           "when": "viewItem == runningTask",
-          "group": "inline@3"
+          "group": "inline@2"
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "viewItem == task",
+          "when": "viewItem == task || viewItem == queuedTask || viewItem == recentTask",
           "group": "inline@1"
         },
         {
@@ -696,13 +738,23 @@
         },
         {
           "command": "workspaceTasks.addToQueue",
-          "when": "viewItem == task || viewItem == favoriteTask",
+          "when": "viewItem == task || viewItem == favoriteTask || viewItem == recentTask",
           "group": "inline@2"
         },
         {
           "command": "workspaceTasks.removeFromQueue",
           "when": "viewItem == queuedTask",
           "group": "inline@2"
+        },
+        {
+          "command": "workspaceTasks.removeFromRecentTasks",
+          "when": "viewItem == recentTask",
+          "group": "inline@0"
+        },
+        {
+          "command": "workspaceTasks.clearRecentTasks",
+          "when": "viewItem == recent",
+          "group": "inline@1"
         }
       ]
     }

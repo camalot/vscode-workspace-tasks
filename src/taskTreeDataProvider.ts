@@ -6,6 +6,9 @@ import { TaskStateManager } from './taskStateManager';
 import { TaskTreeDragAndDropController } from './taskTreeDragAndDropController';
 import { TaskCacheService } from './services/taskCacheService';
 import { TaskIconService } from './services/taskIconService';
+import { RecentTasksService } from './services/recentTasksService';
+import { FavoritesService } from './services/favoritesService';
+import { QueueService } from './services/queueService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
@@ -22,6 +25,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   constructor(private context: vscode.ExtensionContext) {
     this.dragAndDropController = new TaskTreeDragAndDropController();
+
+    TaskCacheService.getInstance().onDidUpdate(() => {
+      this._onDidChangeTreeData.fire();
+    });
 
     // Restore collapseLevel from workspace state (default to 0)
     // Actually we only care about restoring if it was 0, as other modes are temporary toggles usuallly?
@@ -66,6 +73,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   async refresh(): Promise<void> {
     await TaskCacheService.getInstance().refresh();
+  }
+
+  refreshLocal(): void {
     this._onDidChangeTreeData.fire();
   }
 
@@ -152,6 +162,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private organizeTasks(tasks: TaskItem[]): TaskItem[] {
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const groupsEnabled = config.get<boolean>('groups.enabled', true);
+    const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
 
     // Determine group state based on collapseLevel
@@ -188,13 +199,16 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const workspaceInfoMap = new Map<string, string>(); // URI -> Name mapping
 
     const favoriteTasks: TaskItem[] = [];
+    const recentTasks = (RecentTasksService.getInstance() as any).getRecentTasks();
 
     const stateManager = TaskStateManager.getInstance();
+    const favoritesService = FavoritesService.getInstance();
+    const queueService = QueueService.getInstance();
 
     // Helper to recursively check and add favorites
     const checkFavorite = (item: TaskItem) => {
       const id = stateManager.getTaskId(item);
-      if (stateManager.isFavorite(id)) {
+      if (favoritesService.isFavorite(id)) {
           // Clone task for favorites view
           const favTask = new TaskItem(
               item.label,
@@ -245,8 +259,33 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           }
           favTask.description = description;
 
+          // Must set ID before updating context value so that getTaskId works correctly on the clone
+          // But wait, the clone has a fresh ID from constructor.
+          // We want the clone to behave like the original for status lookup, but be unique in tree.
+          // TaskStateManager.getTaskId strips 'fav:', so that logic works.
+          // BUT, we need to ensure the ID is set to `fav:...` AFTER updateContextValue calls getTaskId(this)
+          // NO, updateContextValue calls getTaskId(this).
+          // If we set favTask.id = `fav:${favTask.id}` afterwards, then during updateContextValue, it has the ORIGINAL id (or similar).
+
+          // Let's set the ID first to what it WOULD be on the original to ensure getTaskId retrieves the canonical ID correctly?
+          // No, the new TaskItem constructor logic sets ID based on params.
+          // We should explicitly set the ID to match the item's ID first (preserving base ID for lookup)
+          // Then applying the prefix.
+
+          // Fix: Ensure the favTask has the ID of the original item initially so lookups work?
+          // The constructor generates a new ID.
+          // Let's force the ID to match the original item's ID first.
+          favTask.id = item.id;
+
           favTask.updateContextValue();
-          favTask.id = `fav:${favTask.id}`;
+          // Override context value to ensure it is 'favoriteTask' even if logic inside updateContextValue missed it?
+          // updateContextValue uses isFavorite(id). Since we set favTask.id = item.id, getTaskId should return the canonical ID.
+          // And isFavorite(canonicalId) should be true.
+          // So contextValue should be 'favoriteTask' or 'runningTask'.
+
+          // Finally, prefix the ID for tree uniqueness
+          favTask.id = `fav:${item.id}`;
+
           favoriteTasks.push(favTask);
       }
 
@@ -258,10 +297,19 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
     };
 
+    // Helper to recursively update context value
+    const updateContextRecursively = (item: TaskItem) => {
+      item.updateContextValue();
+      if (item.children) {
+          item.children.forEach(child => updateContextRecursively(child));
+      }
+    };
+
     // console.log(`[TaskTreeDataProvider] organizeTasks - Collapse Level: ${this.collapseLevel}`);
 
     for (const task of tasks) {
       checkFavorite(task);
+      updateContextRecursively(task);
 
       if (!task.resourceUri) {
         const workspaceId = 'workspace_generic';
@@ -284,6 +332,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
       // ... rest of loop processing for normal view
 
+      // Update context value for the original task item to reflect current state
+      // task.updateContextValue(); // Moved to start of loop and made recursive
+
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(task.resourceUri);
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';
       const workspaceId = workspaceFolder ? workspaceFolder.uri.toString() : 'external';
@@ -305,9 +356,13 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Build the tree items
     const rootItems: TaskItem[] = [];
+    const queueGroups: TaskItem[] = [];
+    let favGroup: TaskItem | undefined;
+    let recentGroup: TaskItem | undefined;
+    const workspaceRoots: TaskItem[] = [];
 
     // Add Queue Groups
-    const allQueues = stateManager.getAllQueues();
+    const allQueues = queueService.getAllQueues();
     for (const [queueName, queueTasks] of allQueues) {
       if (queueTasks.length > 0) {
         const queueGroup = new TaskItem(
@@ -349,17 +404,27 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           // Explicitly set context value for queued items to allow distinct actions
           queuedItem.contextValue = 'queuedTask';
           queuedItem.parent = queueGroup;
+
+          // Re-sync ID just like favorites
+          queuedItem.id = task.id; // Use original task ID for status lookup
+          queuedItem.updateContextValue(); // Updates status (running/success/fail)
+
+          // Force context value to queued task if not running
+          if (queuedItem.contextValue !== 'runningTask') {
+              queuedItem.contextValue = 'queuedTask';
+          }
+
           queuedItem.id = `queue:${queueName}:${queuedItem.id}`;
 
           queueGroup.children.push(queuedItem);
         }
-        rootItems.push(queueGroup);
+        queueGroups.push(queueGroup);
       }
     }
 
     // Add Favorites Group
     if (favoriteTasks.length > 0) {
-      const favGroup = new TaskItem(
+      favGroup = new TaskItem(
         'Favorites', // TODO: support localization from package.nls.json (%tree.favorites%)
         rootState,
         'favorites'
@@ -394,7 +459,102 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // Sort favorite groups by name
       favGroup.children.sort((a, b) => a.label.localeCompare(b.label));
 
-      rootItems.push(favGroup);
+    }
+
+    // Add Recent Tasks Group
+    if (recentTasks.length > 0) {
+      recentGroup = new TaskItem(
+        'Recent Tasks',
+        rootState,
+        'recent'
+      );
+      // Salt recent
+      recentGroup.id = mkId('recent', rootSalt);
+      recentGroup.iconPath = new vscode.ThemeIcon('history');
+      // Ensure this group has the proper context so inline action shows only the clear button
+      recentGroup.contextValue = 'recent';
+
+      if (recentGroupsEnabled) {
+        // Group by type
+        const recentTypeMap = new Map<string, TaskItem[]>(); // Maintain insertion order for recency?
+        // Wait, if we group by type, we lose the strict "most recent" global ordering in visual representation.
+        // But user asked for order from "most recently executed".
+        // Inside each group, they should be ordered by recency.
+
+        // Map will iterate in insertion order which matches RecentTasksService order (most recent first).
+
+        for (const task of recentTasks) {
+          let list = recentTypeMap.get(task.taskType);
+          if (!list) {
+            list = [];
+            recentTypeMap.set(task.taskType, list);
+          }
+          list.push(task);
+        }
+
+        for (const [type, tasks] of recentTypeMap) {
+           const typeItem = TaskTypeFactory.create(type, groupState);
+           typeItem.id = mkId(`recent:${type}`, groupSalt);
+           typeItem.children = tasks.map((t: TaskItem) => {
+                const copy = new TaskItem(
+                    t.label,
+                    vscode.TreeItemCollapsibleState.None,
+                    t.taskType,
+                    t.resourceUri,
+                    t.command,
+                    t.defaultIconPath
+                );
+                copy.originalLabel = t.originalLabel || t.label;
+                copy.startLine = t.startLine;
+                copy.metadata = t.metadata;
+                copy.description = t.description; // Preserve description (folder name etc)
+                copy.parent = typeItem;
+                copy.id = `recent:${t.id}`;
+                copy.contextValue = t.contextValue;
+                copy.updateContextValue();
+                if (copy.contextValue !== 'runningTask') {
+                    copy.contextValue = 'recentTask';
+                }
+                return copy;
+           });
+
+           typeItem.parent = recentGroup;
+           recentGroup.children.push(typeItem);
+        }
+        // Do NOT sort groups by name? Recent is temporal.
+        // But user said "ordered from 'most recently executed'".
+        // If grouped by type, groups order implies ... ?
+        // Maybe sort groups by the timestamp of the *latest* task in them?
+        // Since we iterated in recency order build the map, the map keys order (insertion order)
+        // will be order of first appearance of that type. Which is correct for "most recent type first".
+        // So we leave it as is (insertion order).
+
+      } else {
+        // Flat list
+        recentGroup.children = recentTasks.map((t: TaskItem) => {
+            const copy = new TaskItem(
+                t.label,
+                vscode.TreeItemCollapsibleState.None,
+                t.taskType,
+                t.resourceUri,
+                t.command,
+                t.defaultIconPath
+            );
+            // We should ideally show descriptions if same name exists
+            copy.originalLabel = t.originalLabel || t.label;
+            copy.startLine = t.startLine;
+            copy.metadata = t.metadata;
+            copy.description = t.description;
+            copy.parent = recentGroup;
+            copy.id = `recent:${t.id}`;
+            copy.contextValue = t.contextValue;
+            copy.updateContextValue();
+            if (copy.contextValue !== 'runningTask') {
+                copy.contextValue = 'recentTask';
+            }
+            return copy;
+        });
+      }
     }
 
     if (!groupsEnabled) {
@@ -414,7 +574,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
       tasksRoot.children = flatTasks;
       for (const t of flatTasks) { t.parent = tasksRoot; }
-      rootItems.push(tasksRoot);
+      workspaceRoots.push(tasksRoot);
     } else {
       // Sort workspaceIds by name using the lookup map
       const sortedWorkspaceIds = Array.from(workspaceMap.keys()).sort((a, b) => {
@@ -459,9 +619,23 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // Sort types by name
         workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
 
-        rootItems.push(workspaceItem);
+        workspaceRoots.push(workspaceItem);
       }
     }
+
+    // Assemble final root order: Recent, Favorites, Queues, Projects
+    if (recentGroup) {
+      rootItems.push(recentGroup);
+    }
+    if (favGroup) {
+      rootItems.push(favGroup);
+    }
+    if (queueGroups.length > 0) {
+      rootItems.push(...queueGroups);
+    }
+
+    // Add remaining project roots
+    rootItems.push(...workspaceRoots);
 
     return rootItems;
   }

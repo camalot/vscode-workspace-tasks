@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ExecutableService } from '../../services/executableService';
-import { configuration } from '../../libs/configuration';
 
 suite('ExecutableService Tests', () => {
   test('getCommand falls back to default when configuration is empty', async () => {

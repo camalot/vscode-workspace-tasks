@@ -3,9 +3,7 @@ import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import * as path from 'path';
-import * as fs from 'fs';
 import constants from '../libs/constants';
-import { configuration } from '../libs/configuration';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 

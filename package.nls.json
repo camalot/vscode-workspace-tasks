@@ -8,11 +8,14 @@
   "command.addToQueue": "Add to Queue",
   "command.runQueue": "Run Queue",
   "command.clearQueue": "Clear Queue",
+  "command.removeFromRecentTasks": "Remove from Recent Tasks",
+  "command.clearRecentTasks": "Clear Recent Tasks",
   "command.removeFromQueue": "Remove from Queue",
   "command.renameQueue": "Rename Queue",
   "command.runTaskWithArgs": "Run Task with Arguments",
   "command.runTask": "Run Task",
   "command.stopTask": "Stop Task",
+  "command.restartTask": "Restart Task",
   "command.refreshTasks": "Refresh Tasks",
   "command.openFileAtLine": "Open File",
   "command.buyMeACoffee": "Buy Me a Coffee",
@@ -23,6 +26,7 @@
   "tree.favorites": "Favorites",
   "tree.queue": "Queue",
   "tree.tasks": "Tasks",
+  "tree.recentTasks": "Recent Tasks",
 
   "config.workspaceTasks.autoRefresh": "Automatically refresh tasks when changes are detected",
   "config.workspaceTasks.autoRefresh.description": "Automatically refresh tasks when changes are detected",
@@ -74,7 +78,6 @@
   "config.workspaceTasks.shellPaths": "Specify Shell Interpreter Paths",
   "config.workspaceTasks.shellPaths.markdown": "Specify custom paths for shell interpreters. Use a key-value format where the key is the shell type (e.g., `bash`, `pwsh`) and the value is the path to the shell executable (e.g., `/usr/local/bin/bash`). This allows you to customize which shell interpreters are used for running shell tasks.",
 
-
   "config.workspaceTasks.groups.enabled": "Group Tasks",
   "config.workspaceTasks.groups.taskSeparator": "Task Separator",
   "config.workspaceTasks.groups.taskSeparator.description": "Separator used to split task name into groups.",
@@ -86,6 +89,13 @@
 
   "config.workspaceTasks.groups.enabled.description": "Group tasks by type, folder, and custom separator.",
   "config.workspaceTasks.groups.enabled.markdown": "When enabled, tasks will be grouped based on the specified separator and other grouping rules.",
+
+  "config.workspaceTasks.groups.recentTasks.enabled": "Group Recent Tasks",
+  "config.workspaceTasks.groups.recentTasks.enabled.markdown": "When enabled, recent tasks will be grouped based on the specified separator and other grouping rules.",
+
+  "config.workspaceTasks.recentTasks.maxItems": "Max Recent Tasks",
+  "config.workspaceTasks.recentTasks.maxItems.description": "Maximum number of recent tasks to display.",
+  "config.workspaceTasks.recentTasks.maxItems.markdown": "Maximum number of recent tasks to display in the Recent Tasks group. Once the limit is reached, the oldest tasks will drop off the list. Set to 0 to disable the Recent Tasks group.",
 
   "config.workspaceTasks.applicationPath.act": "Path to Act executable",
   "config.workspaceTasks.applicationPath.act.markdown": "Specify the path to the [Act](https://github.com/nektos/act) executable. On Windows, if the path ends with `act`, `.exe` will be appended automatically. Act allows you to run GitHub Actions locally.",
@@ -123,5 +133,8 @@
   "config.workspaceTasks.applicationPath.pipenv.markdown": "Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. On Windows, if the path ends with `pipenv`, `.exe` will be appended automatically.",
 
   "config.workspaceTasks.applicationPath.make": "Path to Make executable",
-  "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically."
+  "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.maven": "Path to Maven executable",
+  "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically."
 }

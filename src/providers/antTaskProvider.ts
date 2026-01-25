@@ -1,5 +1,4 @@
 import * as path from "path";
-import * as fs from "fs";
 import * as vscode from 'vscode';
 import { XMLParser } from 'fast-xml-parser';
 import { configuration } from "../libs/configuration";

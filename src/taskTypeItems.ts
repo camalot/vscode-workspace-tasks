@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { TaskItem } from './taskItem';
 import { TaskIconService } from './services/taskIconService';
 
@@ -112,6 +111,17 @@ export class VenvTaskTypeItem extends TaskTypeGroupItem {
       this.iconPath = iconUri.TaskIcon;
     }
 
+  }
+}
+
+export class MiseTaskTypeItem extends TaskTypeGroupItem {
+  constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
+    super('mise', vscode.Uri.file('/mise.toml'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+    const iconService = TaskIconService.getInstance();
+    const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/mise.toml'));
+    if (iconUri?.TaskIcon) {
+      this.iconPath = iconUri.TaskIcon;
+    }
   }
 }
 
@@ -258,6 +268,8 @@ export class TaskTypeFactory {
         return new WorkspaceTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'composer':
         return new ComposerTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+      case 'mise':
+        return new MiseTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       default:
         return new GenericTaskTypeItem(type, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
     }

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { AntTaskProvider } from './providers/antTaskProvider';
@@ -14,7 +13,8 @@ import { NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './providers
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
-import { ExecutableService } from './services/executableService';
+import { MiseTaskProvider } from './providers/miseTaskProvider';
+import { MavenTaskProvider } from './providers/mavenTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -112,6 +112,54 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec
       );
       return { task, command: full, cwd: pnpmCwd };
+    }
+    case "mise": {
+      // mise run <taskLabel> [args]
+      const miseProvider = new MiseTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: miseCmd, args: miseInitialArgs, cwd: miseCwd } = miseProvider.getCommand(workspaceFolder?.uri);
+
+      const miseArgs = miseInitialArgs ? [...miseInitialArgs] : [];
+      miseArgs.push('run', taskLabel);
+      if (args) {
+        miseArgs.push(...args.split(' '));
+      }
+
+      const full = `${miseCmd} ${miseArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(miseCmd, miseArgs, { cwd: miseCwd });
+
+      const task = new vscode.Task(
+        { type: 'mise', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'mise',
+        shellExec
+      );
+      return { task, command: full, cwd: miseCwd };
+    }
+    case 'maven': {
+      // mvn <goal> [args]
+      const mavenProvider = new MavenTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: mvnCmd, args: mvnInitialArgs, cwd: mvnCwd } = mavenProvider.getCommand(workspaceFolder?.uri);
+
+      const mvnArgs = mvnInitialArgs ? [...mvnInitialArgs] : [];
+      mvnArgs.push(taskLabel);
+      if (args) {
+        mvnArgs.push(...args.split(' '));
+      }
+
+      const full = `${mvnCmd} ${mvnArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(mvnCmd, mvnArgs, { cwd: mvnCwd });
+
+      const task = new vscode.Task(
+        { type: 'maven', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'maven',
+        shellExec
+      );
+      return { task, command: full, cwd: mvnCwd };
     }
     case 'gradle': {
       // gradle [task] [args]
@@ -236,7 +284,9 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const defaultWorkspaceRoot = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
       const gulpProvider = new GulpTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: gulpProviderCmd, cwd: gulpProviderCwd } = gulpProvider.getCommand(workspaceFolder?.uri);
+      // const { command: gulpProviderCmd, cwd: gulpProviderCwd } = gulpProvider.getCommand(workspaceFolder?.uri);
+      // gulpProviderCmd is never used since we build the command manually using 'npx gulp'
+      const { command: _, cwd: gulpProviderCwd } = gulpProvider.getCommand(workspaceFolder?.uri);
       const gulpCwd = gulpProviderCwd || defaultWorkspaceRoot || cwd;
 
       // If the gulpfile is not located in the cwd, ensure we pass it explicitly right after 'gulp'
@@ -497,7 +547,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const task = new vscode.Task(
-        { type: 'github-actions', task: taskLabel },
+        { type: 'github-actions', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'github-actions',

@@ -1,4 +1,5 @@
 # Workspace Tasks
+<!-- markdownlint-disable-file MD033 -->
 
 [![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
@@ -10,6 +11,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 
 - [✨ Key Features](#-key-features)
 - [🛠️ Supported Task Types](#️-supported-task-types)
+- [🌱 Recent Tasks](#-recent-tasks)
 - [⭐ Favorites](#-favorites)
 - [📋 Task Queues](#-task-queues)
 - [📥 Installation](#-installation)
@@ -27,6 +29,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 
 - **🔍 Automatic Task Discovery** - Scans your workspace for tasks from 20+ file types and build systems
 - **⭐ Favorites** - Pin frequently used tasks for instant access
+- **🌱 Recent Tasks** - Tracks the most recently executed tasks
 - **📋 Multiple Task Queues** - Create and manage named sequences of tasks
 - **▶️ One-Click Execution** - Run tasks directly from the sidebar with visual status indicators
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
@@ -59,6 +62,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Composer](https://getcomposer.org/)** - PHP scripts from `composer.json`
 - **[Pipenv](https://pipenv.pypa.io/)** - Python scripts from `Pipfile`
 - **[Apache Ant](https://ant.apache.org/)** - Targets from `*.xml` build files
+- **[Apache Maven](https://maven.apache.org/)** - Lifecycle goals from `pom.xml`
 - **[Gradle](https://gradle.org/)** - Tasks from `*.gradle` files
 - **[MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)** - .NET project targets
 
@@ -68,12 +72,14 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="res/icons/dark/gulp.png" width="32" alt="Gulp" title="Gulp"/>
   <img src="res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
   <img src="res/icons/dark/justfile.png" width="32" alt="Just" title="Just"/>
+  <img src="res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
 </p>
 
 - **[Gulp](https://gulpjs.com/)** - Tasks from `gulpfile.js` or `gulpfile.mjs`
 - **[Grunt](https://gruntjs.com/)** - Tasks from `Gruntfile.js`
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
+- **[mise](https://mise.jdx.dev/)** - Tasks from `mise.toml` or `mise-tasks/` directory
 
 ### DevOps & Containers
 
@@ -98,8 +104,29 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **VS Code Tasks** - Tasks from `.vscode/tasks.json`
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
-> **Note:** The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
+> [!Note]
+> The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
 
+## 🌱 Recent Tasks
+
+As you run tasks they are tracked in a dedicated section at the top of the task tree to easily be able to access again. State of recent tasks will persist between VSCode sessions.
+
+### Configuration
+
+#### Recent Tasks Item Grouping
+
+When enabled, task items are grouped by the task type. Default is `false`.
+
+![Recent Tasks - Grouping](res/assets/images/settings-groups-recenttasks-enabled.png)
+
+#### Maximum Recent Tasks
+
+The maximum number of task items to track in the recent tasks. Default is `20`.
+To disable tracking of recent tasks set to `0`.
+
+![Recent Tasks - Max Items](res/assets/images/settings-recenttasks-maxitems.png)
+
+####
 
 ## ⭐ Favorites
 
@@ -336,7 +363,7 @@ jobs:
 
 The task tree shows:
 
-```
+```text
 GitHub Actions
 └── Build & Test
     ├── Run Workflow (push)
@@ -352,7 +379,7 @@ GitHub Actions
 
 **Tips:**
 
-- Store secrets in `.act.secrets` and add to `.gitignore`
+- Store secrets in a `.secrets` file and add to `.gitignore`
 - Test `workflow_dispatch` inputs locally before pushing
 - Run individual jobs to debug specific workflow steps
 
@@ -365,7 +392,11 @@ Control task discovery using `.tasksignore` files (similar to `.gitignore`). Thi
 - **Per-Directory Control** - Place `.tasksignore` in any directory to exclude files from that location and subdirectories
 - **Gitignore Syntax** - Uses standard gitignore pattern syntax
 - **Global Exclusions** - Configure workspace-wide exclusions in VS Code settings
-- **Smart Defaults** - `**/node_modules/**` is automatically excluded
+- **Smart Defaults**: Ignored by default
+  - `**/node_modules/**`
+  - `**/.git/**`
+  - `**/.vscode-test/**`
+  - `**/__pycache__/**`
 
 #### Example `.tasksignore`
 
@@ -398,8 +429,6 @@ Add workspace-wide exclusions in `settings.json`:
 }
 ```
 
-> **Note:** `**/node_modules/**` is automatically excluded for all task types.
-
 ## 🔧 Advanced Features
 
 ### Execution and Navigation
@@ -411,10 +440,10 @@ Add workspace-wide exclusions in `settings.json`:
 - **Multiple Tasks** - Run multiple tasks simultaneously in separate terminals
 - **Command Palette** - Use `Ctrl+Shift+P` / `Cmd+Shift+P` to search and run tasks by name
 
-**Stopping Tasks:**
+**Stopping & Restarting Tasks:**
 
-- **Stop Button** - Click the stop button (⏹) next to running tasks
-- **Force Stop** - Forcefully terminate unresponsive tasks
+- **Stop Button** - Click the stop button (⏹) next to running tasks to terminate a running or unresponsive task.
+- **Restart Button** - Click the restart button (🔄️) next to running tasks to stop the currently executing task and run it again.
 - **Status Tracking** - Visual indicators show running/success/failure states
 
 **Navigation:**
@@ -437,7 +466,7 @@ Add workspace-wide exclusions in `settings.json`:
 Each task type watches specific file patterns:
 
 | Task Type | Patterns | Notes |
-|-----------|----------|-------|
+| ----------- | ---------- | ------- |
 | npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
 | Ant | `**/*.xml` | Parses build file targets |
 | Composer | `**/composer.json` | PHP dependency scripts |
@@ -446,6 +475,8 @@ Each task type watches specific file patterns:
 | Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
 | Just | `**/{justfile,.justfile,*.just}` | Command recipes |
 | Make | `**/Makefile` | Build targets |
+| Maven | `**/pom.xml` | Lifecycle goals |
+| mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
 | MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
 | Pipenv | `**/Pipfile` | Python scripts |
 | Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
@@ -468,6 +499,7 @@ All patterns respect `.gitignore` and `.tasksignore` exclusions.
 The extension discovers tasks regardless of whether tools are installed, but **execution requires** the corresponding tool in your system PATH:
 
 **Package Managers:**
+
 - [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/) for npm tasks
 - [pnpm](https://pnpm.io/) for pnpm tasks
 - [Yarn](https://yarnpkg.com/) for Yarn tasks
@@ -475,21 +507,26 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - [Pipenv](https://pipenv.pypa.io/) for Python Pipenv tasks
 
 **Build Systems:**
+
 - [Apache Ant](https://ant.apache.org/) for Ant tasks
 - [Gradle](https://gradle.org/) for Gradle tasks
 - [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) for .NET tasks
 - [Make](https://www.gnu.org/software/make/) for Makefile tasks
 
 **Task Runners:**
+
 - [Grunt](https://gruntjs.com/) for Grunt tasks
 - [Gulp](https://gulpjs.com/) for Gulp tasks
 - [Just](https://github.com/casey/just) for Just tasks
+- [mise](https://mise.jdx.dev/) for mise tasks
 
 **DevOps:**
+
 - [Docker](https://www.docker.com/) for Docker and Docker Compose tasks
 - [act](https://github.com/nektos/act) and Docker for GitHub Actions workflows
 
 **Scripts:**
+
 - Bash, Zsh, or other shell interpreters for shell scripts
 - PowerShell for `.ps1` scripts
 - Command Prompt for `.bat` and `.cmd` scripts
@@ -549,4 +586,6 @@ This project is licensed under the [Apache 2.0 License](LICENSE).
 
 ---
 
+<!-- markdownlint-disable MD036 -->
 **Made with ❤️ for the VS Code community**
+<!-- markdownlint-enable MD036 -->

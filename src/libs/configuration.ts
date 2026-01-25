@@ -1,5 +1,5 @@
 import {
-  ConfigurationChangeEvent, Event, EventEmitter, workspace,
+  ConfigurationChangeEvent, EventEmitter, workspace,
   WorkspaceConfiguration, ConfigurationTarget
 } from "vscode";
 

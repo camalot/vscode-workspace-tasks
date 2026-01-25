@@ -183,12 +183,10 @@ export class WorkspaceTasksService {
 
   public async resolveTaskCommand(taskLabel: string, languageId: string, resourceUri: vscode.Uri): Promise<string | undefined> {
     await this.loadWorkspaceConfig();
-    let langKey = languageId;
     let config = this.config[languageId];
     if (!config) {
       const key = Object.keys(this.config).find(k => k.toLowerCase() === languageId.toLowerCase());
       if (key) {
-        langKey = key;
         config = this.config[key];
       }
     }
@@ -206,13 +204,13 @@ export class WorkspaceTasksService {
     command = command.replace(/{{ \.FileName }}/g, fileName);
 
     // Extensionless name?
-    const fileNameNoExt = path.basename(resourceUri.fsPath, path.extname(resourceUri.fsPath));
-    if (fileName.toLowerCase() === 'dockerfile') {
+    // const fileNameNoExt = path.basename(resourceUri.fsPath, path.extname(resourceUri.fsPath));
+    // if (fileName.toLowerCase() === 'dockerfile') {
       // For Dockerfile, workspaceFolderBasename is often used.
-      const ws = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const wsName = ws ? ws.name : path.basename(path.dirname(resourceUri.fsPath));
+      // const ws = vscode.workspace.getWorkspaceFolder(resourceUri);
+      // const wsName = ws ? ws.name : path.basename(path.dirname(resourceUri.fsPath));
       // Check if we need a specific var for that or if user uses inputs
-    }
+    // }
 
 
     // 2. Identify Inputs
