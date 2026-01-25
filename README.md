@@ -355,7 +355,7 @@ GitHub Actions
 
 **Tips:**
 
-- Store secrets in `.act.secrets` and add to `.gitignore`
+- Store secrets in a `.secrets` file and add to `.gitignore`
 - Test `workflow_dispatch` inputs locally before pushing
 - Run individual jobs to debug specific workflow steps
 
@@ -368,7 +368,11 @@ Control task discovery using `.tasksignore` files (similar to `.gitignore`). Thi
 - **Per-Directory Control** - Place `.tasksignore` in any directory to exclude files from that location and subdirectories
 - **Gitignore Syntax** - Uses standard gitignore pattern syntax
 - **Global Exclusions** - Configure workspace-wide exclusions in VS Code settings
-- **Smart Defaults** - `**/node_modules/**` is automatically excluded
+- **Smart Defaults**: Ignored by default
+  - `**/node_modules/**`
+  - `**/.git/**`
+  - `**/.vscode-test/**`
+  - `**/__pycache__/**`
 
 #### Example `.tasksignore`
 
@@ -401,8 +405,6 @@ Add workspace-wide exclusions in `settings.json`:
 }
 ```
 
-> **Note:** `**/node_modules/**` is automatically excluded for all task types.
-
 ## 🔧 Advanced Features
 
 ### Execution and Navigation
@@ -414,10 +416,10 @@ Add workspace-wide exclusions in `settings.json`:
 - **Multiple Tasks** - Run multiple tasks simultaneously in separate terminals
 - **Command Palette** - Use `Ctrl+Shift+P` / `Cmd+Shift+P` to search and run tasks by name
 
-**Stopping Tasks:**
+**Stopping & Restarting Tasks:**
 
-- **Stop Button** - Click the stop button (⏹) next to running tasks
-- **Force Stop** - Forcefully terminate unresponsive tasks
+- **Stop Button** - Click the stop button (⏹) next to running tasks to terminate a running or unresponsive task.
+- **Restart Button** - Click the restart button (🔄️) next to running tasks to stop the currently executing task and run it again.
 - **Status Tracking** - Visual indicators show running/success/failure states
 
 **Navigation:**
