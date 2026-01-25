@@ -750,7 +750,7 @@ class JupyterTerm implements vscode.Pseudoterminal {
 
              // 2. Find the cell
              if (this.cellIndex < doc.cellCount) {
-                 const cell = doc.cellAt(this.cellIndex);
+                 //const cell = doc.cellAt(this.cellIndex);
 
                  // 3. Execute
                  // Using generic notebook command as jupyter.runcell behavior on ipynb is ambiguous

@@ -564,6 +564,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         'folder'
       );
 
+      const taskIcon = TaskIconService.getInstance().getTaskTypeIcon('task');
+      if (taskIcon?.TaskIcon) {
+        tasksRoot.iconPath = taskIcon.TaskIcon;
+      }
+
       const flatTasks: TaskItem[] = [];
       for (const projectMap of workspaceMap.values()) {
         for (const typeTasks of projectMap.values()) {
