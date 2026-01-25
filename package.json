@@ -344,12 +344,12 @@
           "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%"
         },
         "workspaceTasks.recentTasks.maxItems": {
-          "title": "%config.workspaceTasks.groups.recentTasks.maxItems%",
+          "title": "%config.workspaceTasks.recentTasks.maxItems%",
           "type": "number",
           "default": 20,
           "minimum": 0,
-          "description": "%config.workspaceTasks.groups.recentTasks.maxItems.description%",
-          "markdownDescription": "%config.workspaceTasks.groups.recentTasks.maxItems.markdown%"
+          "description": "%config.workspaceTasks.recentTasks.maxItems.description%",
+          "markdownDescription": "%config.workspaceTasks.recentTasks.maxItems.markdown%"
         },
         "workspaceTasks.groups.taskSeparator": {
           "title": "%config.workspaceTasks.groups.taskSeparator%",
