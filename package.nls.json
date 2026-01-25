@@ -123,5 +123,8 @@
   "config.workspaceTasks.applicationPath.pipenv.markdown": "Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. On Windows, if the path ends with `pipenv`, `.exe` will be appended automatically.",
 
   "config.workspaceTasks.applicationPath.make": "Path to Make executable",
-  "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically."
+  "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.maven": "Path to Maven executable",
+  "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically."
 }

@@ -617,6 +617,12 @@
           "markdownDescription": "%config.workspaceTasks.applicationPath.make.markdown%",
           "default": "make"
         },
+        "workspaceTasks.applicationPath.maven": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.maven%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.maven.markdown%",
+          "default": "mvn"
+        },
         "workspaceTasks.applicationPath.pipenv": {
           "type": "string",
           "description": "%config.workspaceTasks.applicationPath.pipenv%",

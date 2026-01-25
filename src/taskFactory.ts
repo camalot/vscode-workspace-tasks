@@ -14,6 +14,7 @@ import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
 import { MiseTaskProvider } from './providers/miseTaskProvider';
+import { MavenTaskProvider } from './providers/mavenTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -135,6 +136,30 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec
       );
       return { task, command: full, cwd: miseCwd };
+    }
+    case 'maven': {
+      // mvn <goal> [args]
+      const mavenProvider = new MavenTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: mvnCmd, args: mvnInitialArgs, cwd: mvnCwd } = mavenProvider.getCommand(workspaceFolder?.uri);
+
+      const mvnArgs = mvnInitialArgs ? [...mvnInitialArgs] : [];
+      mvnArgs.push(taskLabel);
+      if (args) {
+        mvnArgs.push(...args.split(' '));
+      }
+
+      const full = `${mvnCmd} ${mvnArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(mvnCmd, mvnArgs, { cwd: mvnCwd });
+
+      const task = new vscode.Task(
+        { type: 'maven', script: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'maven',
+        shellExec
+      );
+      return { task, command: full, cwd: mvnCwd };
     }
     case 'gradle': {
       // gradle [task] [args]

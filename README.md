@@ -60,6 +60,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Composer](https://getcomposer.org/)** - PHP scripts from `composer.json`
 - **[Pipenv](https://pipenv.pypa.io/)** - Python scripts from `Pipfile`
 - **[Apache Ant](https://ant.apache.org/)** - Targets from `*.xml` build files
+- **[Apache Maven](https://maven.apache.org/)** - Lifecycle goals from `pom.xml`
 - **[Gradle](https://gradle.org/)** - Tasks from `*.gradle` files
 - **[MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)** - .NET project targets
 
@@ -448,6 +449,7 @@ Each task type watches specific file patterns:
 | Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
 | Just | `**/{justfile,.justfile,*.just}` | Command recipes |
 | Make | `**/Makefile` | Build targets |
+| Maven | `**/pom.xml` | Lifecycle goals |
 | mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
 | MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
 | Pipenv | `**/Pipfile` | Python scripts |

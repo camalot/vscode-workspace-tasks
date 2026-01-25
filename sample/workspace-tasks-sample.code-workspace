@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "vscode-project"
+		},
+		{
+			"path": "maven-project"
 		}
 	],
 	"settings": {
