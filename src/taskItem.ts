@@ -52,6 +52,10 @@ export class TaskItem extends vscode.TreeItem {
       const status = TaskStateManager.getInstance().getStatus(id);
       const isFavorite = FavoritesService.getInstance().isFavorite(id);
 
+      if (this.taskType === 'jupyter') {
+        this.contextValue = 'jupyterTask';
+      }
+
       if (status === 'running') {
         this.contextValue = 'runningTask';
         this.iconPath = new vscode.ThemeIcon('loading~spin');

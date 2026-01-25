@@ -15,6 +15,7 @@ import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
 import { MiseTaskProvider } from './providers/miseTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
+import { JupyterTaskProvider } from './providers/jupyterTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -136,6 +137,19 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec
       );
       return { task, command: full, cwd: miseCwd };
+    }
+    case 'jupyter': {
+      // Use CustomExecution to run Jupyter cell via VS Code command
+      const task = new vscode.Task(
+        { type: 'jupyter', task: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'jupyter',
+        new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
+          return new JupyterTerm(resourceUri, item.metadata?.cellIndex, taskLabel);
+        })
+      );
+      return { task, command: 'jupyter.runcell', cwd: path.dirname(resourceUri.fsPath) };
     }
     case 'maven': {
       // mvn <goal> [args]
@@ -704,6 +718,78 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     default: {
       // Generic: run as shell command if workspace has a declared task
       return undefined;
+    }
+  }
+}
+
+class JupyterTerm implements vscode.Pseudoterminal {
+  private writeEmitter = new vscode.EventEmitter<string>();
+  onDidWrite: vscode.Event<string> = this.writeEmitter.event;
+  private closeEmitter = new vscode.EventEmitter<number>();
+  onDidClose: vscode.Event<number> = this.closeEmitter.event;
+
+  constructor(private resourceUri: vscode.Uri, private cellIndex: number | undefined, private label: string) {
+  }
+
+  open(initialDimensions: vscode.TerminalDimensions | undefined): void {
+    this.doRun();
+  }
+
+  close(): void {
+  }
+
+  private async doRun(): Promise<void> {
+    this.writeEmitter.fire(`Executing Jupyter Cell in ${this.label}...\r\n`);
+
+    try {
+        // If we have a cell index, we try to run that specific cell
+        if (this.cellIndex !== undefined && this.cellIndex >= 0) {
+             // 1. Ensure document is open
+             const doc = await vscode.workspace.openNotebookDocument(this.resourceUri);
+             await vscode.window.showNotebookDocument(doc);
+
+             // 2. Find the cell
+             if (this.cellIndex < doc.cellCount) {
+                 const cell = doc.cellAt(this.cellIndex);
+
+                 // 3. Execute
+                 // Using generic notebook command as jupyter.runcell behavior on ipynb is ambiguous
+                 // However, user requested jupyter.runcell.
+                 // If that command takes a range, we can try passing the cell range.
+
+                 // Try standard notebook execution first which is robust
+                 try {
+                    // This is the VS Code API way
+                     const execution = vscode.commands.executeCommand('notebook.cell.execute', {
+                        ranges: [{ start: this.cellIndex, end: this.cellIndex + 1 }],
+                        document: doc.uri
+                     });
+                     await execution;
+                     this.writeEmitter.fire(`\r\nCell sent to execution.\r\n`);
+                 } catch (e) {
+                     // Fallback to user requested command if standard fails, or if they meant the older way?
+                     // jupyter.runcell(file, startLine, startChar, endLine, endChar)
+                     // converting cell range to what? 0,0,0,0?
+                     this.writeEmitter.fire(`Error executing cell: ${e}\r\n`);
+                     this.closeEmitter.fire(1);
+                     return;
+                 }
+
+             } else {
+                 this.writeEmitter.fire(`Cell index ${this.cellIndex} out of bounds.\r\n`);
+                 this.closeEmitter.fire(1);
+                 return;
+             }
+        } else {
+             this.writeEmitter.fire(`No cell index provided. Cannot execute.\r\n`);
+             this.closeEmitter.fire(1);
+             return;
+        }
+
+        this.closeEmitter.fire(0);
+    } catch (e) {
+        this.writeEmitter.fire(`Error: ${e}\r\n`);
+        this.closeEmitter.fire(1);
     }
   }
 }

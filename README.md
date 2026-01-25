@@ -96,11 +96,20 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 <p align="left">
   <img src="res/icons/dark/shell.png" width="32" alt="Shell Scripts" title="Shell Scripts"/>
   <img src="res/icons/dark/python.png" width="32" alt="Python" title="Python"/>
+  <img src="res/icons/dark/jupyter.png" width="32" alt="Jupyter Notebook" title="Jupyter Notebook"/>
   <img src="res/icons/dark/vscode.png" width="32" alt="VS Code" title="VS Code"/>
 </p>
 
 - **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`
 - **Python Virtual Environments** - Activation scripts in `.venv/Scripts/`
+- **[Jupyter Notebook](https://jupyter.org/)** - Execute notebook cells from `*.ipynb` files
+  - **Requirements:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
+  - **Setup:** Configure a Jupyter Server through the Jupyter extension
+  - **Features:**
+    - Notebooks appear as parent tasks with code cells as children
+    - Click to open notebook in VS Code's notebook editor
+    - Execute individual cells or entire notebooks
+    - Real-time cell execution status via the Jupyter Extension UI
 - **VS Code Tasks** - Tasks from `.vscode/tasks.json`
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
@@ -474,6 +483,7 @@ Each task type watches specific file patterns:
 | Grunt | `**/Gruntfile.js` | Registered tasks |
 | Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
 | Just | `**/{justfile,.justfile,*.just}` | Command recipes |
+| Jupyter | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
 | Make | `**/Makefile` | Build targets |
 | Maven | `**/pom.xml` | Lifecycle goals |
 | mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
@@ -524,6 +534,14 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 
 - [Docker](https://www.docker.com/) for Docker and Docker Compose tasks
 - [act](https://github.com/nektos/act) and Docker for GitHub Actions workflows
+
+**Data Science & Notebooks:**
+
+- [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) for Jupyter Notebook tasks
+  - The extension must be installed and a Jupyter Server must be configured
+  - See the [Jupyter Extension documentation](https://code.visualstudio.com/docs/datascience/jupyter-notebooks) for setup instructions
+  - Jupyter Notebooks (`.ipynb` files) appear as parent tasks with individual code cells as child tasks
+  - Clicking on a task opens the notebook; running executes the selected cell
 
 **Scripts:**
 

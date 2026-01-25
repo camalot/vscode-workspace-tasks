@@ -43,6 +43,7 @@
   "config.workspaceTasks.enabledTaskTypes.gradle": "Gradle",
   "config.workspaceTasks.enabledTaskTypes.grunt": "Grunt",
   "config.workspaceTasks.enabledTaskTypes.gulp": "Gulp",
+  "config.workspaceTasks.enabledTaskTypes.jupyter": "Jupyter",
   "config.workspaceTasks.enabledTaskTypes.just": "Just",
   "config.workspaceTasks.enabledTaskTypes.makefile": "Makefile",
   "config.workspaceTasks.enabledTaskTypes.maven": "Maven",

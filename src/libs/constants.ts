@@ -25,6 +25,7 @@ const constants: Record<string, any> = {
   GLOB_PERL: "**/*.pl",
   GLOB_COMPOSER: "**/composer.json",
   GLOB_GITHUB_ACTIONS: "**/.github/workflows/*.{yml,yaml}",
+  GLOB_JUPYTER: "**/*.ipynb",
   GLOB_PYTHON: "**/*.py",
   GLOB_PIPENV: "**/[Pp]ip[Ff]ile",
   GLOB_POETRY: "**/pyproject.toml",

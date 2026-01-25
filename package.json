@@ -527,6 +527,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.gulp%"
             },
+            "jupyter": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.jupyter%"
+            },
             "just": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.just%"
@@ -591,6 +595,7 @@
             "msbuild": true,
             "npm": true,
             "pipenv": true,
+            "jupyter": true,
             "tsc": true,
             "yarn": true,
             "pnpm": true,

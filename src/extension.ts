@@ -26,6 +26,7 @@ import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
+import { JupyterTaskProvider } from './providers/jupyterTaskProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
   ExtensionConfigurationService.getInstance().initialize(context);
@@ -59,6 +60,7 @@ export async function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.registerProvider(new GithubActionsTaskProvider());
   taskTreeDataProvider.registerProvider(new GradleTaskProvider());
   taskTreeDataProvider.registerProvider(new PipenvTaskProvider());
+  taskTreeDataProvider.registerProvider(new JupyterTaskProvider());
 
   // Initial refresh
   taskTreeDataProvider.refresh();

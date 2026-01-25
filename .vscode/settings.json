@@ -16,6 +16,7 @@
     "mimetypes",
     "msbuild",
     "myshell",
+    "nbformat",
     "PIPENV",
     "Pipfile",
     "pycache",
