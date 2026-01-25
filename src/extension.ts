@@ -16,6 +16,7 @@ import { TaskCacheService } from './services/taskCacheService';
 import { ExtensionConfigurationService } from './services/extensionConfigurationService';
 import { TaskIconService } from './services/taskIconService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
+import { RecentTasksService } from './services/recentTasksService';
 import { WorkspaceTasksProvider } from './providers/workspaceTasksProvider';
 import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';import { GruntTaskProvider } from './providers/gruntTaskProvider';
@@ -24,13 +25,14 @@ import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   ExtensionConfigurationService.getInstance().initialize(context);
   TaskStateManager.getInstance().initialize(context);
-  TaskFilesService.getInstance().initialize(context);
+  await TaskFilesService.getInstance().initialize(context);
   TaskCacheService.getInstance().initialize(context);
   TaskIconService.getInstance().initialize(context);
   WorkspaceTasksService.getInstance().initialize(context);
+  RecentTasksService.getInstance().initialize(context);
   const taskTreeDataProvider = new TaskTreeDataProvider(context);
 
   // Register Providers
@@ -108,6 +110,11 @@ export function activate(context: vscode.ExtensionContext) {
     if (url) {
         vscode.env.openExternal(vscode.Uri.parse(url));
     }
+  }));
+
+  // Clear Recent Tasks
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.clearRecentTasks', () => {
+    (RecentTasksService.getInstance() as any).clear();
   }));
 
   // Open File command

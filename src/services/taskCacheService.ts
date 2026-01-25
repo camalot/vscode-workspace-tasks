@@ -10,6 +10,7 @@ export class TaskCacheService {
 
     private providers: TaskProvider[] = [];
     private providerTasks: Map<string, TaskItem[]> = new Map();
+    private taskMap: Map<string, TaskItem> = new Map();
 
     private constructor() {}
 
@@ -50,48 +51,78 @@ export class TaskCacheService {
     private rebuildCache() {
         this.allTasks = [];
         this.fileTaskMap.clear();
+        this.taskMap.clear();
         const seenIds = new Set<string>();
 
         // Ensure deterministic order of providers for stable IDs
         const sortedTypes = Array.from(this.providerTasks.keys()).sort();
 
+        const processItem = (task: TaskItem) => {
+             // Ensure task has the requested ID format
+             if (task.label) {
+                let wsPath = '';
+                let fileUriStr = '';
+                const uri = task.taskFileUri || task.resourceUri;
+                if (uri) {
+                    fileUriStr = uri.toString();
+                    const ws = vscode.workspace.getWorkspaceFolder(uri);
+                    if (ws) {
+                        wsPath = ws.uri.fsPath;
+                    }
+                }
+                // Construct ID if needed.
+                // We check if it already matches our pattern to avoid double-prefixing if called multiple times?
+                // Actually, rebuildCache clears everything so we are reprocessing raw items from providers.
+                // Providers might reuse item instances though.
+                // Let's assume we can overwrite.
+                const newId = `${wsPath}|${fileUriStr}|${task.label}`;
+                // Only overwrite if it looks like a default ID (short) or we want to enforce structure
+                task.id = newId;
+            }
+
+            if (task.id) {
+                let uniqueId = task.id;
+                let counter = 1;
+                while (seenIds.has(uniqueId)) {
+                    uniqueId = `${task.id}|${counter++}`;
+                }
+                task.id = uniqueId;
+                seenIds.add(uniqueId);
+                this.taskMap.set(uniqueId, task);
+            }
+
+            if (task.resourceUri) {
+                const key = task.resourceUri.toString();
+                if (!this.fileTaskMap.has(key)) {
+                    this.fileTaskMap.set(key, []);
+                }
+                this.fileTaskMap.get(key)?.push(task);
+            }
+
+            if (task.children) {
+                task.children.forEach(child => processItem(child));
+            }
+        };
+
         for (const type of sortedTypes) {
-            const tasks = this.providerTasks.get(type) || [];
+            let tasks = this.providerTasks.get(type) || [];
+
+            // Sort tasks deterministically before processing to ensure stable IDs and counters
+            // We sort by label and resourceUri
+            tasks = tasks.sort((a, b) => {
+                const labelA = a.label || '';
+                const labelB = b.label || '';
+                const comp = labelA.localeCompare(labelB);
+                if (comp !== 0) return comp;
+
+                const uriA = a.resourceUri ? a.resourceUri.toString() : '';
+                const uriB = b.resourceUri ? b.resourceUri.toString() : '';
+                return uriA.localeCompare(uriB);
+            });
+
             for (const task of tasks) {
-                 // Ensure task has the requested ID format
-                 if (task.label) {
-                    let wsPath = '';
-                    let fileUriStr = '';
-                    const uri = task.taskFileUri || task.resourceUri;
-                    if (uri) {
-                        fileUriStr = uri.toString();
-                        const ws = vscode.workspace.getWorkspaceFolder(uri);
-                        if (ws) {
-                            wsPath = ws.uri.fsPath;
-                        }
-                    }
-                    task.id = `${wsPath}|${fileUriStr}|${task.label}`;
-                }
-
-                if (task.id) {
-                    let uniqueId = task.id;
-                    let counter = 1;
-                    while (seenIds.has(uniqueId)) {
-                        uniqueId = `${task.id}|${counter++}`;
-                    }
-                    task.id = uniqueId;
-                    seenIds.add(uniqueId);
-                }
-
+                processItem(task);
                 this.allTasks.push(task);
-
-                if (task.resourceUri) {
-                    const key = task.resourceUri.toString();
-                    if (!this.fileTaskMap.has(key)) {
-                        this.fileTaskMap.set(key, []);
-                    }
-                    this.fileTaskMap.get(key)?.push(task);
-                }
             }
         }
     }
@@ -134,6 +165,10 @@ export class TaskCacheService {
         }
 
         return [];
+    }
+
+    public getTaskById(id: string): TaskItem | undefined {
+        return this.taskMap.get(id);
     }
 
     public getAllTasks(): TaskItem[] {

@@ -547,7 +547,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const task = new vscode.Task(
-        { type: 'github-actions', task: taskLabel },
+        { type: 'github-actions', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'github-actions',

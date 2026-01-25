@@ -8,6 +8,7 @@
   "command.addToQueue": "Add to Queue",
   "command.runQueue": "Run Queue",
   "command.clearQueue": "Clear Queue",
+  "command.clearRecentTasks": "Clear Recent Tasks",
   "command.removeFromQueue": "Remove from Queue",
   "command.renameQueue": "Rename Queue",
   "command.runTaskWithArgs": "Run Task with Arguments",
@@ -24,6 +25,7 @@
   "tree.favorites": "Favorites",
   "tree.queue": "Queue",
   "tree.tasks": "Tasks",
+  "tree.recentTasks": "Recent Tasks",
 
   "config.workspaceTasks.autoRefresh": "Automatically refresh tasks when changes are detected",
   "config.workspaceTasks.autoRefresh.description": "Automatically refresh tasks when changes are detected",
@@ -87,6 +89,12 @@
 
   "config.workspaceTasks.groups.enabled.description": "Group tasks by type, folder, and custom separator.",
   "config.workspaceTasks.groups.enabled.markdown": "When enabled, tasks will be grouped based on the specified separator and other grouping rules.",
+
+  "config.workspaceTasks.groups.recentTasks.enabled": "Group Recent Tasks",
+  "config.workspaceTasks.groups.recentTasks.enabled.markdown": "When enabled, recent tasks will be grouped based on the specified separator and other grouping rules.",
+
+  "config.workspaceTasks.groups.recentTasks.maxItems": "Max Recent Tasks",
+  "config.workspaceTasks.groups.recentTasks.maxItems.markdown": "Maximum number of recent tasks to display in the Recent Tasks group. Once the limit is reached, the oldest tasks will drop off the list. Set to 0 to disable the Recent Tasks group.",
 
   "config.workspaceTasks.applicationPath.act": "Path to Act executable",
   "config.workspaceTasks.applicationPath.act.markdown": "Specify the path to the [Act](https://github.com/nektos/act) executable. On Windows, if the path ends with `act`, `.exe` will be appended automatically. Act allows you to run GitHub Actions locally.",

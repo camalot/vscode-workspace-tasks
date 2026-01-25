@@ -6,6 +6,7 @@ import { TaskStateManager } from './taskStateManager';
 import { TaskTreeDragAndDropController } from './taskTreeDragAndDropController';
 import { TaskCacheService } from './services/taskCacheService';
 import { TaskIconService } from './services/taskIconService';
+import { RecentTasksService } from './services/recentTasksService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
@@ -152,6 +153,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private organizeTasks(tasks: TaskItem[]): TaskItem[] {
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const groupsEnabled = config.get<boolean>('groups.enabled', true);
+    const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
 
     // Determine group state based on collapseLevel
@@ -188,6 +190,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const workspaceInfoMap = new Map<string, string>(); // URI -> Name mapping
 
     const favoriteTasks: TaskItem[] = [];
+    const recentTasks = (RecentTasksService.getInstance() as any).getRecentTasks();
 
     const stateManager = TaskStateManager.getInstance();
 
@@ -284,6 +287,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
       // ... rest of loop processing for normal view
 
+      // Update context value for the original task item to reflect current state
+      task.updateContextValue();
+
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(task.resourceUri);
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';
       const workspaceId = workspaceFolder ? workspaceFolder.uri.toString() : 'external';
@@ -305,6 +311,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Build the tree items
     const rootItems: TaskItem[] = [];
+    const queueGroups: TaskItem[] = [];
+    let favGroup: TaskItem | undefined;
+    let recentGroup: TaskItem | undefined;
+    const workspaceRoots: TaskItem[] = [];
 
     // Add Queue Groups
     const allQueues = stateManager.getAllQueues();
@@ -353,13 +363,13 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
           queueGroup.children.push(queuedItem);
         }
-        rootItems.push(queueGroup);
+        queueGroups.push(queueGroup);
       }
     }
 
     // Add Favorites Group
     if (favoriteTasks.length > 0) {
-      const favGroup = new TaskItem(
+      favGroup = new TaskItem(
         'Favorites', // TODO: support localization from package.nls.json (%tree.favorites%)
         rootState,
         'favorites'
@@ -394,7 +404,96 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // Sort favorite groups by name
       favGroup.children.sort((a, b) => a.label.localeCompare(b.label));
 
-      rootItems.push(favGroup);
+    }
+
+    // Add Recent Tasks Group
+    if (recentTasks.length > 0) {
+      recentGroup = new TaskItem(
+        'Recent Tasks',
+        rootState,
+        'recent'
+      );
+      // Salt recent
+      recentGroup.id = mkId('recent', rootSalt);
+      recentGroup.iconPath = new vscode.ThemeIcon('history');
+      // Ensure this group has the proper context so inline action shows only the clear button
+      recentGroup.contextValue = 'recent';
+
+      if (recentGroupsEnabled) {
+        // Group by type
+        const recentTypeMap = new Map<string, TaskItem[]>(); // Maintain insertion order for recency?
+        // Wait, if we group by type, we lose the strict "most recent" global ordering in visual representation.
+        // But user asked for order from "most recently executed".
+        // Inside each group, they should be ordered by recency.
+
+        // Map will iterate in insertion order which matches RecentTasksService order (most recent first).
+
+        for (const task of recentTasks) {
+          let list = recentTypeMap.get(task.taskType);
+          if (!list) {
+            list = [];
+            recentTypeMap.set(task.taskType, list);
+          }
+          list.push(task);
+        }
+
+        for (const [type, tasks] of recentTypeMap) {
+           const typeItem = TaskTypeFactory.create(type, groupState);
+           typeItem.id = mkId(`recent:${type}`, groupSalt);
+           typeItem.children = tasks.map((t: TaskItem) => {
+                const copy = new TaskItem(
+                    t.label,
+                    vscode.TreeItemCollapsibleState.None,
+                    t.taskType,
+                    t.resourceUri,
+                    t.command,
+                    t.defaultIconPath
+                );
+                copy.originalLabel = t.originalLabel || t.label;
+                copy.startLine = t.startLine;
+                copy.metadata = t.metadata;
+                copy.description = t.description; // Preserve description (folder name etc)
+                copy.parent = typeItem;
+                copy.id = `recent:${t.id}`;
+                copy.contextValue = t.contextValue;
+                copy.updateContextValue();
+                return copy;
+           });
+
+           typeItem.parent = recentGroup;
+           recentGroup.children.push(typeItem);
+        }
+        // Do NOT sort groups by name? Recent is temporal.
+        // But user said "ordered from 'most recently executed'".
+        // If grouped by type, groups order implies ... ?
+        // Maybe sort groups by the timestamp of the *latest* task in them?
+        // Since we iterated in recency order build the map, the map keys order (insertion order)
+        // will be order of first appearance of that type. Which is correct for "most recent type first".
+        // So we leave it as is (insertion order).
+
+      } else {
+        // Flat list
+        recentGroup.children = recentTasks.map((t: TaskItem) => {
+            const copy = new TaskItem(
+                t.label,
+                vscode.TreeItemCollapsibleState.None,
+                t.taskType,
+                t.resourceUri,
+                t.command,
+                t.defaultIconPath
+            );
+            // We should ideally show descriptions if same name exists
+            copy.originalLabel = t.originalLabel || t.label;
+            copy.startLine = t.startLine;
+            copy.metadata = t.metadata;
+            copy.description = t.description;
+            copy.parent = recentGroup;
+            copy.id = `recent:${t.id}`;
+            copy.contextValue = t.contextValue;
+            copy.updateContextValue();
+            return copy;
+        });
+      }
     }
 
     if (!groupsEnabled) {
@@ -414,7 +513,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
       tasksRoot.children = flatTasks;
       for (const t of flatTasks) { t.parent = tasksRoot; }
-      rootItems.push(tasksRoot);
+      workspaceRoots.push(tasksRoot);
     } else {
       // Sort workspaceIds by name using the lookup map
       const sortedWorkspaceIds = Array.from(workspaceMap.keys()).sort((a, b) => {
@@ -459,9 +558,23 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // Sort types by name
         workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
 
-        rootItems.push(workspaceItem);
+        workspaceRoots.push(workspaceItem);
       }
     }
+
+    // Assemble final root order: Recent, Favorites, Queues, Projects
+    if (recentGroup) {
+      rootItems.push(recentGroup);
+    }
+    if (favGroup) {
+      rootItems.push(favGroup);
+    }
+    if (queueGroups.length > 0) {
+      rootItems.push(...queueGroups);
+    }
+
+    // Add remaining project roots
+    rootItems.push(...workspaceRoots);
 
     return rootItems;
   }

@@ -227,6 +227,11 @@
         "icon": "$(debug-restart)"
       },
       {
+        "command": "workspaceTasks.clearRecentTasks",
+        "title": "%command.clearRecentTasks%",
+        "icon": "$(clear-all)"
+      },
+      {
         "command": "workspaceTasks.addToFavorites",
         "title": "%command.addToFavorites%",
         "icon": "$(star)"
@@ -324,6 +329,21 @@
           "default": true,
           "description": "%config.workspaceTasks.groups.enabled.description%",
           "markdownDescription": "%config.workspaceTasks.groups.enabled.markdown%"
+        },
+        "workspaceTasks.groups.recentTasks.enabled": {
+          "title": "%config.workspaceTasks.groups.recentTasks.enabled%",
+          "type": "boolean",
+          "default": false,
+          "description": "%config.workspaceTasks.groups.recentTasks.enabled%",
+          "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%"
+        },
+        "workspaceTasks.recentTasks.maxItems": {
+          "title": "%config.workspaceTasks.groups.recentTasks.maxItems%",
+          "type": "number",
+          "default": 20,
+          "minimum": 0,
+          "description": "%config.workspaceTasks.groups.recentTasks.maxItems.description%",
+          "markdownDescription": "%config.workspaceTasks.groups.recentTasks.maxItems.markdown%"
         },
         "workspaceTasks.groups.taskSeparator": {
           "title": "%config.workspaceTasks.groups.taskSeparator%",
@@ -719,6 +739,11 @@
           "command": "workspaceTasks.removeFromQueue",
           "when": "viewItem == queuedTask",
           "group": "inline@2"
+        },
+        {
+          "command": "workspaceTasks.clearRecentTasks",
+          "when": "viewItem == recent",
+          "group": "inline@1"
         }
       ]
     }

@@ -17,10 +17,8 @@ export class TaskStateManager {
     private states: Map<string, TaskStatus> = new Map();
     private executions: Map<string, vscode.TaskExecution> = new Map();
     private favorites: Set<string> = new Set();
-    // private queue: TaskItem[] = []; // Removed: Single queue support
     private queues: Map<string, TaskItem[]> = new Map(); // Added: Multiple queues support
     private context: vscode.ExtensionContext | undefined;
-    // private queueName: string = 'Queue'; // Removed: No longer single queue name property
 
     private constructor() {}
 
@@ -259,16 +257,48 @@ export class TaskStateManager {
         }
     }
 
-    public getTaskId(item: { label: string, resourceUri?: vscode.Uri, taskType: string, originalLabel?: string }): string {
-        const label = item.originalLabel || item.label;
-        if (item.resourceUri) {
-            return `${item.resourceUri.toString()}|${item.taskType}|${label}`;
-        }
-        return `${item.taskType}|${label}`;
-    }
+    public getTaskId(item: TaskItem): string {
+        let id = item.id;
 
-    public setStatus(id: string, status: TaskStatus) {
-        this.states.set(id, status);
+        // If ID is missing, fall back to calculating one.
+        // NOTE: This fallback logic MUST match how TaskCacheService generates IDs to ensure consistency.
+        // TaskCacheService uses: `${wsPath}|${fileUriStr}|${task.label}` + optional suffix
+        if (!id) {
+             const label = item.originalLabel || item.label;
+             let wsPath = '';
+             let fileUriStr = '';
+             const uri = item.taskFileUri || item.resourceUri;
+             if (uri) {
+                 fileUriStr = uri.toString();
+                 const ws = vscode.workspace.getWorkspaceFolder(uri);
+                 if (ws) {
+                     wsPath = ws.uri.fsPath;
+                 }
+             }
+             id = `${wsPath}|${fileUriStr}|${label}`;
+        }
+
+        // Canonicalize ID: Strip prefixes added by view logic
+        // Prefixes to strip: "recent:", "fav:", "queue:<name>:"
+
+        while (id && id.startsWith('recent:')) {
+            id = id.substring(7);
+        }
+        while (id && id.startsWith('fav:')) {
+            id = id.substring(4);
+        }
+
+        // Handle queue prefix "queue:name:realId"
+        if (id && id.startsWith('queue:')) {
+            // Find the second colon
+            const firstColon = id.indexOf(':'); // char 5
+            const secondColon = id.indexOf(':', firstColon + 1);
+            if (secondColon !== -1) {
+                id = id.substring(secondColon + 1);
+            }
+        }
+
+        return id;
     }
 
     public getStatus(id: string): TaskStatus {
@@ -278,6 +308,7 @@ export class TaskStateManager {
     public setExecution(id: string, execution: vscode.TaskExecution) {
         this.executions.set(id, execution);
     }
+
 
     public getExecution(id: string): vscode.TaskExecution | undefined {
         return this.executions.get(id);
@@ -295,5 +326,9 @@ export class TaskStateManager {
 
     public clearExecution(id: string) {
         this.executions.delete(id);
+    }
+
+    public setStatus(id: string, status: TaskStatus) {
+        this.states.set(id, status);
     }
 }

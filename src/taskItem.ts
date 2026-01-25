@@ -43,7 +43,7 @@ export class TaskItem extends vscode.TreeItem {
   }
 
   public updateContextValue() {
-    if (this.taskType === 'workspace' || this.taskType === 'folder' || this.taskType === 'type' || this.taskType === 'favorites' || this.taskType === 'queue') {
+    if (this.taskType === 'workspace' || this.taskType === 'folder' || this.taskType === 'type' || this.taskType === 'favorites' || this.taskType === 'queue' || this.taskType === 'recent') {
       this.contextValue = this.taskType;
     } else {
       // It's a task leaf node
