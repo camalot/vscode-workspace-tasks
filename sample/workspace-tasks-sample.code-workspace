@@ -25,6 +25,15 @@
 		"workspaceTasks.applicationPath.just": "tools/just/just",
 		"workspaceTasks.act.envFile": "",
 		"workspaceTasks.applicationPath.maven": "tools/maven/bin/mvn",
-		"workspaceTasks.groups.recentTasks.enabled": false
+		"workspaceTasks.groups.recentTasks.enabled": false,
+    "terminal.integrated.profiles.windows": {
+      "PowerShell": {
+        "path": "C:\\Program Files\\PowerShell\\7\\pwsh.exe", // Path might vary
+        "args": [
+          "-noprofile"
+        ]
+      },
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell"
 	}
 }
