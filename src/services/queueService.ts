@@ -47,6 +47,10 @@ export class QueueService {
         }
     }
 
+    public getAllQueues(): Map<string, TaskItem[]> {
+        return this.queues;
+    }
+
     private deserializeTasks(serialized: SerializedTaskItem[]): TaskItem[] {
       return serialized.map(sq => {
           const uri = sq.resourceUri ? vscode.Uri.parse(sq.resourceUri) : undefined;
@@ -113,10 +117,6 @@ export class QueueService {
 
   public getQueueNames(): string[] {
       return Array.from(this.queues.keys());
-  }
-
-  public getAllQueues(): Map<string, TaskItem[]> {
-      return this.queues;
   }
 
   public createQueue(name: string) {

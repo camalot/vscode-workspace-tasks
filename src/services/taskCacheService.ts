@@ -12,6 +12,9 @@ export class TaskCacheService {
     private providerTasks: Map<string, TaskItem[]> = new Map();
     private taskMap: Map<string, TaskItem> = new Map();
 
+    private _onDidUpdate: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+    public readonly onDidUpdate: vscode.Event<void> = this._onDidUpdate.event;
+
     private constructor() {}
 
     public initialize(context: vscode.ExtensionContext): TaskCacheService {
@@ -39,13 +42,18 @@ export class TaskCacheService {
         if (!provider) { return; }
 
         try {
+            const start = Date.now();
             const tasks = await provider.getTasks();
+            const duration = Date.now() - start;
+            console.log(`[TaskCacheService] Provider ${type} took ${duration}ms`);
+
             this.providerTasks.set(type, tasks);
         } catch (e) {
             console.error(`Error refreshing provider ${type}`, e);
             this.providerTasks.set(type, []);
         }
         this.rebuildCache();
+        this._onDidUpdate.fire();
     }
 
     private rebuildCache() {
@@ -129,22 +137,30 @@ export class TaskCacheService {
 
     public async refresh(): Promise<TaskItem[]> {
         this.providerTasks.clear();
+        this.rebuildCache();
+        this._onDidUpdate.fire();
 
         const promises = this.providers.map(async (provider) => {
             const type = (provider as any).type;
             if (type) {
+                const start = Date.now();
                 try {
                     const tasks = await provider.getTasks();
+                    const duration = Date.now() - start;
+                    console.log(`[TaskCacheService] Provider ${type} took ${duration}ms`);
+
                     this.providerTasks.set(type, tasks);
+                    this.rebuildCache();
+                    this._onDidUpdate.fire();
                 } catch (e) {
-                    console.error(`Error refreshing provider ${type}`, e);
+                    const duration = Date.now() - start;
+                    console.error(`Error refreshing provider ${type} (took ${duration}ms)`, e);
                     this.providerTasks.set(type, []);
                 }
             }
         });
 
         await Promise.all(promises);
-        this.rebuildCache();
         return this.allTasks;
     }
 

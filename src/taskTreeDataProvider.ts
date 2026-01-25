@@ -26,6 +26,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   constructor(private context: vscode.ExtensionContext) {
     this.dragAndDropController = new TaskTreeDragAndDropController();
 
+    TaskCacheService.getInstance().onDidUpdate(() => {
+      this._onDidChangeTreeData.fire();
+    });
+
     // Restore collapseLevel from workspace state (default to 0)
     // Actually we only care about restoring if it was 0, as other modes are temporary toggles usuallly?
     // But if persistence is tricky for groups, maybe we just default to 0.
@@ -69,7 +73,6 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   async refresh(): Promise<void> {
     await TaskCacheService.getInstance().refresh();
-    this._onDidChangeTreeData.fire();
   }
 
   refreshLocal(): void {

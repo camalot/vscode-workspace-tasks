@@ -12,6 +12,7 @@
     "gulpfile",
     "justfile",
     "justfiles",
+    "mimetypes",
     "msbuild",
     "myshell",
     "PIPENV",
