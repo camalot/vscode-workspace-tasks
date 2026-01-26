@@ -223,6 +223,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           favTask.originalLabel = item.originalLabel || item.label;
           favTask.startLine = item.startLine;
           favTask.metadata = item.metadata;
+          // Preserve file association and source/provider so that cloned items remain runnable
+          favTask.taskFileUri = item.taskFileUri;
+          favTask.taskSource = item.taskSource;
 
           // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
           // For favorites, we might want to flatten or keep structure.
@@ -242,6 +245,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                  childCopy.startLine = child.startLine;
                  childCopy.metadata = child.metadata;
                  childCopy.parent = favTask;
+                 // Preserve child file association and source/provider as well
+                 childCopy.taskFileUri = child.taskFileUri;
+                 childCopy.taskSource = child.taskSource;
                  // We don't recurse deeper for now as typically tasks are 1-2 levels deep.
                  // But for GitHub Actions -> Events -> (maybe Jobs?), we might need more.
                  // Actually GH Actions is "File -> Event / Job". Depth is 1.
@@ -509,6 +515,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                 copy.originalLabel = t.originalLabel || t.label;
                 copy.startLine = t.startLine;
                 copy.metadata = t.metadata;
+                // Preserve file association and source/provider so recent items remain runnable
+                copy.taskFileUri = t.taskFileUri;
+                copy.taskSource = t.taskSource;
                 copy.description = t.description; // Preserve description (folder name etc)
                 copy.parent = typeItem;
                 copy.id = `recent:${t.id}`;
@@ -546,6 +555,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             copy.originalLabel = t.originalLabel || t.label;
             copy.startLine = t.startLine;
             copy.metadata = t.metadata;
+            // Preserve file association and source/provider so recent items remain runnable
+            copy.taskFileUri = t.taskFileUri;
+            copy.taskSource = t.taskSource;
             copy.description = t.description;
             copy.parent = recentGroup;
             copy.id = `recent:${t.id}`;
