@@ -73,6 +73,11 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
           );
 
           item.taskFileUri = file;
+          item.onSingleClickCommand = {
+            command: 'workspaceTasks.openFileAtLine',
+            title: 'Open File',
+            arguments: [file, 0]
+          };
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = `Run mvn ${goal}`;
 

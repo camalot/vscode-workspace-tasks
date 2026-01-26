@@ -77,4 +77,38 @@ suite('Task Grouping Test Suite', () => {
         assert.strictEqual(folderA?.children.length, 1);
         assert.strictEqual(folderA?.children[0].label, 'b');
     });
+
+    test('Avoids ID collisions for split tasks', () => {
+        const provider = new TaskTreeDataProvider({ extensionPath: '/mock/path' } as vscode.ExtensionContext);
+        // Create two tasks that would result in potential collision if ID is just based on visible label and type
+        // 1. Task "watch" (Leaf)
+        const t1 = new TaskItem('watch', vscode.TreeItemCollapsibleState.None, 'npm');
+        t1.id = 'npm:watch:uri1'; // Explicit ID
+
+        // 2. Task "npm:watch" (Grouped)
+        const t2 = new TaskItem('npm:watch', vscode.TreeItemCollapsibleState.None, 'npm');
+        t2.id = 'npm:npm:watch:uri1'; // Explicit ID
+
+        // Group by ":"
+        const grouped = provider.groupTasksByName([t1, t2], ':');
+
+        // Expected:
+        // npm (Group) -> watch (Leaf, representing t2)
+        // watch (Leaf, representing t1)
+
+        const groupNpm = grouped.find(t => t.label === 'npm' && t.contextValue === 'folder');
+        const leafWatch = grouped.find(t => t.label === 'watch' && t.contextValue !== 'folder');
+
+        assert.ok(groupNpm, 'Should have npm group');
+        assert.ok(leafWatch, 'Should have separate watch leaf');
+
+        // The leaf inside groupNpm should correspond to t2
+        const groupedWatch = groupNpm.children.find(t => t.label === 'watch');
+        assert.ok(groupedWatch, 'Group should have child watch');
+
+        // IDs must be distinct
+        assert.notStrictEqual(leafWatch.id, groupedWatch?.id, 'IDs should be distinct');
+        assert.strictEqual(groupedWatch?.id, t2.id, 'Grouped task should retain original task ID');
+        assert.strictEqual(leafWatch.id, t1.id, 'Ungrouped task should retain original task ID');
+    });
 });

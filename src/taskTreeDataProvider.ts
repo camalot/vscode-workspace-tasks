@@ -223,6 +223,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           favTask.originalLabel = item.originalLabel || item.label;
           favTask.startLine = item.startLine;
           favTask.metadata = item.metadata;
+          // Preserve file association and source/provider so that cloned items remain runnable
+          favTask.taskFileUri = item.taskFileUri;
+          favTask.taskSource = item.taskSource;
 
           // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
           // For favorites, we might want to flatten or keep structure.
@@ -242,6 +245,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                  childCopy.startLine = child.startLine;
                  childCopy.metadata = child.metadata;
                  childCopy.parent = favTask;
+                 // Preserve child file association and source/provider as well
+                 childCopy.taskFileUri = child.taskFileUri;
+                 childCopy.taskSource = child.taskSource;
                  // We don't recurse deeper for now as typically tasks are 1-2 levels deep.
                  // But for GitHub Actions -> Events -> (maybe Jobs?), we might need more.
                  // Actually GH Actions is "File -> Event / Job". Depth is 1.
@@ -509,6 +515,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                 copy.originalLabel = t.originalLabel || t.label;
                 copy.startLine = t.startLine;
                 copy.metadata = t.metadata;
+                // Preserve file association and source/provider so recent items remain runnable
+                copy.taskFileUri = t.taskFileUri;
+                copy.taskSource = t.taskSource;
                 copy.description = t.description; // Preserve description (folder name etc)
                 copy.parent = typeItem;
                 copy.id = `recent:${t.id}`;
@@ -546,6 +555,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             copy.originalLabel = t.originalLabel || t.label;
             copy.startLine = t.startLine;
             copy.metadata = t.metadata;
+            // Preserve file association and source/provider so recent items remain runnable
+            copy.taskFileUri = t.taskFileUri;
+            copy.taskSource = t.taskSource;
             copy.description = t.description;
             copy.parent = recentGroup;
             copy.id = `recent:${t.id}`;
@@ -676,6 +688,19 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         newTask.originalLabel = task.originalLabel || task.label;
         newTask.startLine = task.startLine;
         newTask.tooltip = task.tooltip;
+        // Inherit ID from the original task to prevent collisions and ensure correct tracking
+        // But only if this new task represents the "rest" of the split (which it is).
+        // If we split further recursively, the final leaf will carry this ID.
+        // Wait, if we push to groupList, and that groupList is recursively processed...
+        // The Leaf at the end of the chain will eventually be created and needs this ID.
+        // Is newTask the leaf? Or just the next segment?
+        // newTask is the next segment effectively.
+        // If newTask is "tests:unit" (from "npm:tests:unit"), it represents the task "npm:tests:unit".
+        // It should carry the ID of "npm:tests:unit".
+        // If it is split further, the next segment "unit" will inherit from "tests:unit" (which inherited from "npm:tests:unit").
+        // So yes, inheriting ID at each step works.
+        newTask.id = task.id;
+
         // Re-run context value update now that originalLabel is set
         newTask.updateContextValue();
 

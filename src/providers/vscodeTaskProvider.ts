@@ -70,7 +70,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
               }
             }
 
-            item.command = {
+            item.onSingleClickCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, item.startLine || 0]

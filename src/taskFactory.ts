@@ -731,7 +731,8 @@ class JupyterTerm implements vscode.Pseudoterminal {
   constructor(private resourceUri: vscode.Uri, private cellIndex: number | undefined, private label: string) {
   }
 
-  open(initialDimensions: vscode.TerminalDimensions | undefined): void {
+  /*initialDimensions: vscode.TerminalDimensions | undefined*/
+  open(): void {
     this.doRun();
   }
 
