@@ -324,7 +324,7 @@ Run GitHub Actions workflows locally using [act](https://github.com/nektos/act) 
 - **Input Prompts** - Interactive prompts for `workflow_dispatch` inputs with validation
 - **Status Indicators** - Real-time visual feedback during execution
 
-#### Configuration
+#### Act Configuration
 
 Configure act in your VS Code settings (`settings.json`):
 
