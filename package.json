@@ -208,6 +208,10 @@
         "icon": "$(github-inverted)"
       },
       {
+        "command": "workspaceTasks.onTreeItemClick",
+        "title": "On Tree Item Click"
+      },
+      {
         "command": "workspaceTasks.runTask",
         "title": "%command.runTask%",
         "icon": "$(play)"

@@ -145,6 +145,48 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   }));
 
+  // Click Handler
+  const clickTimers = new Map<string, NodeJS.Timeout>();
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.onTreeItemClick', async (itemArgument: any) => {
+    // Resolve the real TaskItem from cache if possible, as 'itemArgument' might be a serialized copy
+    let item: TaskItem | undefined;
+
+    if (itemArgument instanceof TaskItem) {
+        item = itemArgument;
+    } else if (itemArgument && typeof itemArgument.id === 'string') {
+        item = TaskCacheService.getInstance().getTask(itemArgument.id);
+    }
+
+    if (!item) {
+        // Fallback or item not found in cache (maybe dynamic item?)
+        // If it's partial object but has commands, maybe we can still use it?
+        // But the commands on partial object likely lack context.
+        return;
+    }
+
+    // We use the ID to track clicks. If no ID, use random string.
+    const id = item.id || Math.random().toString();
+
+    if (clickTimers.has(id)) {
+      // Double click
+      clearTimeout(clickTimers.get(id));
+      clickTimers.delete(id);
+
+      if (item.onDoubleClickCommand) {
+        vscode.commands.executeCommand(item.onDoubleClickCommand.command, ...(item.onDoubleClickCommand.arguments || []));
+      }
+    } else {
+      // Single click - wait for potential double click
+      const timeout = setTimeout(() => {
+        clickTimers.delete(id);
+        if (item.onSingleClickCommand) {
+          vscode.commands.executeCommand(item.onSingleClickCommand.command, ...(item.onSingleClickCommand.arguments || []));
+        }
+      }, 250);
+      clickTimers.set(id, timeout);
+    }
+  }));
+
   // Run Task Command
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.runTask', async (item: TaskItem) => {
     if (item.contextValue === 'queuedTask') {

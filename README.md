@@ -31,7 +31,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 - **⭐ Favorites** - Pin frequently used tasks for instant access
 - **🌱 Recent Tasks** - Tracks the most recently executed tasks
 - **📋 Multiple Task Queues** - Create and manage named sequences of tasks
-- **▶️ One-Click Execution** - Run tasks directly from the sidebar with visual status indicators
+- **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
 - **🔀 Drag & Drop** - Reorder tasks in queues with drag and drop
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
@@ -220,13 +220,14 @@ code --install-extension darthminos.workspace-tasks
 1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
 2. **Open the Workspace Tasks view** from the Activity Bar (sidebar)
 3. **Browse tasks** organized by workspace folder and task type
-4. **Run a task** by clicking the play icon (▶️)
+4. **Run a task** by double-clicking it or clicking the play icon (▶️)
 5. **Add to favorites** by clicking the star icon (☆)
 6. **Create a queue** by clicking the list icon to organize task sequences
 
 **Tips:**
 
-- Double-click a task to open its definition file
+- Double-click a task to execute it immediately
+- Single-click a task to open its definition file (when applicable)
 - Use the collapse button (⊟) to toggle view states
 - Create `.tasksignore` files to exclude unwanted tasks
 
