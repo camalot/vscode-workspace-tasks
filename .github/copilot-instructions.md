@@ -43,3 +43,4 @@ When writing tests for VSCode extensions, consider the following guidelines:
 * Organize imports logically, grouping related imports together and separating them with a blank line.
 * Avoid using `any` type in TypeScript; prefer specific types or generics for better type safety.
 * Regularly run a linter (e.g., ESLint) to enforce code style rules and catch potential issues early.
+* Use [Conventional Commits](https://www.conventionalcommits.org/) to maintain a clear and structured commit history.
