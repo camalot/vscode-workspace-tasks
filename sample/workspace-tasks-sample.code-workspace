@@ -34,6 +34,7 @@
         ]
       },
     },
-    "terminal.integrated.defaultProfile.windows": "PowerShell"
+		"terminal.integrated.defaultProfile.windows": "PowerShell",
+		"workspaceTasks.recentTasks.maxItems": 5
 	}
 }

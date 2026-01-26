@@ -104,7 +104,7 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
             uri,
             {
                command: 'workspaceTasks.openFileAtLine',
-               title: 'Run Workflow',
+               title: 'Open Workflow',
                arguments: [uri, 0]
             },
             typeIcon?.TaskIcon

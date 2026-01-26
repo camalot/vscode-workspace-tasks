@@ -73,7 +73,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
           item.taskSource = provider;
 
           // Default click action: Open file at line
-          item.command = {
+          item.onSingleClickCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
             arguments: [resourceUri, taskDef.line || 0]
@@ -111,7 +111,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
           // We'll set command to simple open file for double click,
           // but execution will be handled by TaskRunner via context/type
-          item.command = {
+          item.onSingleClickCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
             arguments: [file, 0]
