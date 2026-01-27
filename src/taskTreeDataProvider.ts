@@ -671,23 +671,25 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     for (const task of tasks) {
       const parts = task.label.split(separator);
       if (parts.length > 1) {
-        const groupName = parts[0];
+        const groupName = parts[0].trim();
         let groupList = groups.get(groupName);
         if (!groupList) {
           groupList = [];
           groups.set(groupName, groupList);
         }
-        const remainder = parts.slice(1).join(separator);
+        const remainder = parts.slice(1).join(separator).trim();
         const newTask = new TaskItem(
           remainder,
           task.collapsibleState,
           task.taskType,
           task.resourceUri,
-          task.command
+          task.command,
+          task.iconPath
         );
         newTask.originalLabel = task.originalLabel || task.label;
         newTask.startLine = task.startLine;
         newTask.tooltip = task.tooltip;
+        newTask.description = task.description;
         // Inherit ID from the original task to prevent collisions and ensure correct tracking
         // But only if this new task represents the "rest" of the split (which it is).
         // If we split further recursively, the final leaf will carry this ID.
@@ -712,14 +714,18 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     for (const [groupName, groupTasks] of groups) {
       let iconUri: vscode.Uri | undefined;
+      let iconPath: any | undefined;
       if (groupTasks.length > 0) {
         const typeItem = TaskTypeFactory.create(groupTasks[0].taskType);
         iconUri = typeItem.resourceUri;
+        iconPath = typeItem.iconPath;
       }
 
       const groupItem = new TaskItem(groupName, vscode.TreeItemCollapsibleState.Collapsed, 'folder', iconUri);
       groupItem.id = `group:${groupName}:${tasks[0]?.resourceUri?.toString() || 'unknown'}`;
-      if (iconUri) {
+      if (iconPath) {
+        groupItem.iconPath = iconPath;
+      } else if (iconUri) {
         groupItem.iconPath = vscode.ThemeIcon.File;
       }
       groupItem.contextValue = 'folder';

@@ -22,8 +22,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
 
     for (const file of files) {
       try {
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'vscode.code-workspace'));
-        const iconUri = iconService.getTaskTypeIcon(this.type, fallback);
+        const iconUri = iconService.getTaskTypeIcon(this.type, file);
 
         const document = await vscode.workspace.openTextDocument(file);
         const text = document.getText();
