@@ -89,8 +89,7 @@
     "check": "npm run check:types && npm run check:format",
     "check:types": "tsc --noEmit",
     "check:format": "prettier --check .",
-    "changelog:prepare": "chglog init && chglog generate --template repo > CHANGELOG.md",
-    "changelog:build": "chglog format --template repo > CHANGELOG.md"
+    "changelog:build": "npx git-cliff --bump --output CHANGELOG.md"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -102,6 +101,7 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "eslint": "^9.39.2",
+    "git-cliff": "^2.12.0",
     "glob": "^13.0.0",
     "mocha": "^11.7.5",
     "prettier": "^3.8.1",
@@ -378,6 +378,16 @@
           "default": "",
           "description": "%config.workspaceTasks.groups.taskSeparator.description%",
           "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%"
+        },
+        "workspaceTasks.taskDiscovery.fetchDepth": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "%config.workspaceTasks.taskDiscovery.fetchDepth%",
+          "markdownDescription": "%config.workspaceTasks.taskDiscovery.fetchDepth.markdown%",
+          "default": null,
+          "minimum": 1
         },
         "workspaceTasks.shellEnabledTaskTypes": {
           "type": "object",

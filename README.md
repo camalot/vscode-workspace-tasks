@@ -393,6 +393,54 @@ GitHub Actions
 - Test `workflow_dispatch` inputs locally before pushing
 - Run individual jobs to debug specific workflow steps
 
+### Task Discovery Depth Control
+
+Control how deep the extension searches for tasks in your workspace directory structure. This helps improve performance in large monorepos or complex folder hierarchies.
+
+#### Configuration
+
+Set the maximum folder depth for task discovery in `settings.json`:
+
+```json
+{
+  "workspaceTasks.taskDiscovery.fetchDepth": 3
+}
+```
+
+- **`null` (default)** - Full recursive search through all subdirectories
+- **Positive integer (e.g., `1`, `2`, `4`)** - Limits search to specified depth below workspace root
+
+#### Depth Calculation
+
+Depth is measured from the workspace folder root:
+
+```text
+workspace-folder/          (depth 0)
+├── package.json          ✅ Discovered at depth 0
+└── src/                  (depth 1)
+    ├── Makefile          ✅ Discovered at depth 1
+    └── components/       (depth 2)
+        └── package.json  ✅ Discovered at depth 2 (if fetchDepth >= 2)
+```
+
+**Example: `fetchDepth: 1`**
+
+```text
+workspace-folder/
+├── package.json          ✅ Discovered (depth 0)
+└── services/
+    ├── api/
+    │   └── package.json  ❌ Not discovered (depth 2)
+    └── package.json      ✅ Discovered (depth 1)
+```
+
+#### When to Use
+
+- **Large Monorepos** - Set to `2` or `3` to discover main project tasks while skipping deep vendor/dependency folders
+- **Performance Issues** - Reduce depth if task discovery is slow
+- **Focused Workflows** - Limit to top-level tasks when working on specific projects
+- **Deep Structures** - Use `null` for full discovery in complex nested project layouts
+
 ### Task Ignore Patterns
 
 Control task discovery using `.tasksignore` files (similar to `.gitignore`). This keeps your task list focused on relevant tasks.

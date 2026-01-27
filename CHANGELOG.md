@@ -1,74 +1,194 @@
+## [1.0.3] - 2026-01-27
 
-1.0.3
-=============
-2026-01-27
+### 🚀 Features
 
-* fix: A few configuration options don't seem to be considered #14 (7651f899)
-* chore(commands): moving commands out of extension.activate (1b2087c6)
-* chore(commands): moving commands out of extension.activate (a40288ea)
-* chore(repo): clean up some npm scripts (586312ba)
-* fix: grouped tasks by task separator may have wrong icon #13 (f398092e)
-* chore(repo): added readme for info on sample repository location (88673fae)
-* chore(repo): moved the samples to a separate repo to get better real world testing out of it (dd9e83e9)
-* fix(tree): propagate original task ID to split tasks to prevent ID collisions in grouped trees (70fc255a)
-* fix: preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable (9ee390b7)
-* chore(repo): setup some actions and scripts for helping with testing -> publish (074799f1)
-* tests: add Configuration tests for settings get/update and event handling (b671fe01)
-* feat: update tasks to support double click to execute #10 (5b084574)
-* chore: Fix readme markdown error. (7af2545c)
-* feat(tasks): add ability to double click task item to run it #10 (d0bf329d)
-* chore(repo): fix typo and lint issues (0bd693f4)
-* chore(task): ensure that the Tasks root has the proper icon (93158465)
-* feat(tasks): added support for jupyter notebooks via the ms-toolsai.jupyter extensionn (98dd195f)
-* chore(deps): update dependency version for @types/node (f9902e05)
+- *(tasks)* Added support for jupyter notebooks via the ms-toolsai.jupyter extensionn
 
-1.0.2
-=============
-2026-01-25
+- *(tasks)* Add abilitity to double click task item to run it #10
 
-* fix: Task types not removed from tree after disabled in the settings #8 (872c3b74)
-* fix: Additional performance improvements when loading the task tree. #3 (5f8e71ea)
-* chore(sample): updated the sample workspace to disable powershell profile (111c50e4)
-* fix: Adding / Removing favorites is very slow #3 (21992a15)
-* feat(tasks): some pre-work and samples for supporting jupyter notebooks (cec0ddeb)
-* feat(recent): recent task tree items #4 (348f13bc)
-* feat: work on the recent tasks feature (7094b8cf)
-* feat(maven): maven task provider implemented (52839cd6)
-* chore(docs): Updated readme on running tasks (1727dde2)
-* feat: add inline restart for running tasts. #6 (71508027)
-* fix: github actions not respecting the ignore definitions. #7 (e86cea75)
-* start implementation of maven support (bf69ea77)
-* fix readme lint errors (d532d54a)
-* some code cleanup that copilot identified (594314fc)
-* mise implementation (e8c87028)
-* mise implementation (bb059152)
-* v1.0.2 Release (#9) (3bd6ef7f)
+- Jupyter notebook support added in recent commit #11
 
-1.0.1
-=============
-2026-01-24
+- Update tasks to support double click to execute #10
 
-* version bump for first public publish - 1.0.1 (442ecebc)
-* fix readme error (6f4676c2)
-* fix readme error and dependabot config (dc655dd7)
-* prepare for 'public' repository (bb0cdf94)
-* prepare for 'public' repository (bbe3b041)
-* documentation cleanup. yarn/pnpm support. png images for docs (7233d074)
-* updated and added some npm built-in tasks (07a5af2f)
-* Improve provider file-watching, venv handling, and Ant/ansicon execution (10c1724b)
-* more cleanup of settings (7705d16d)
-* some refactoring of configuration (1e58b641)
-* refactor the shell task provider to be flexible for just about any type of 'shell executed script' (9946e8cf)
-* added github actions support (e568adca)
-* update the readme to fix some lint errors (9f25f8e3)
-* added settings for github-actions and path config for act. (29a88470)
-* reverted some changes and update the target (000cabad)
-* Revert dynamic TOML import and fallback parsing; remove helper and fallback tests (903154a4)
-* set up eslint and update packages (a3cc73ad)
-* refactoring and implementation (57826a3b)
-* update icons. add more task providers (d2474a4b)
-* more task providers (e4d4e543)
-* added some scafolding for settings (8f5ffa55)
-* removed the context menu for now (da1695e2)
-* initial commit (f29defd2)
-* Initial commit (1f95a35d)
+-   feat: update tasks to support double click to execute #10
+
+
+### 🐛 Bug Fixes
+
+- Preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable
+
+- *(tree)* Propagate original task ID to split tasks to prevent ID collisions in grouped trees
+
+-   fix(tree): propagate original task ID to split tasks to prevent ID collisions in grouped trees
+
+-   fix: preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable
+
+- Fixed an issue with unable to run multiple tasks at the same time.
+
+- Grouped tasks by task separator may have wrong icon #13
+
+- A few configuration options don't seem to be considered #14
+
+
+### 💼 Other
+
+- Merge branch 'v1.0.3' of github.com:camalot/vscode-workspace-tasks into v1.0.3
+
+- * 'v1.0.3' of github.com:camalot/vscode-workspace-tasks:
+
+
+### 🧪 Testing
+
+- Add Configuration tests for settings get/update and event handling
+
+-   tests: add Configuration tests for settings get/update and event handling
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(task)* Ensure that the Tasks root has the proper icon
+
+- *(repo)* Fix typo and lint issues
+
+- Fix readme markdown error.
+
+- *(repo)* Setup some actions and scripts for helping with testing -> publish
+
+-   chore(repo): setup some actions and scripts for helping with testing -> publish
+
+- *(repo)* Moved the samples to a separate repo to get better real world testing out of it
+
+- *(repo)* Added readme for info on sample repository location
+
+- *(repo)* Clean up some npm scripts
+
+- *(commands)* Moving commands out of extension.activate
+
+- *(commands)* Moving commands out of extension.activate
+
+- *(changelog)* Update changelog
+
+- *(config)* Remove unused function to check status of shell type
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.0.2...v1.0.3
+
+## [1.0.2] - 2026-01-25
+
+### 💼 Other
+
+- V1.0.2 Release (#9) by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * mise implementation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * mise implementation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * some code cleanup that copilot identified by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * fix readme lint errors by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * start implementation of maven support by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * fix: github actions not respecting the ignore definitions. #7 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * feat: add inline restart for running tasts. #6 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * chore(docs): Updated readme on running tasks by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * feat(maven): maven task provider implemented by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * feat: work on the recent tasks feature by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * feat(recent): recent task tree items #4 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * feat(tasks): some pre-work and samples for supporting jupyter notebooks by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * fix: Adding / Removing favorites is very slow #3 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * chore(sample): updated the sample workspace to disable powershell profile by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * fix: Additional performance improvements when loading the task tree. #3 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * fix: Task types not removed from tree after disabled in the settings #8 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * chore(repo): setup some changelog generation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * chore(settings): fixed missing settings translation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * chore(settings): fixed configuration settings reference by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+- * chore(repo): added .tasksignore to ignore list for vsix package by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.0.1...v1.0.2
+
+## [1.0.1] - 2026-01-24
+
+### 🐛 Bug Fixes
+
+- Fix readme error and dependabot config by @camalot
+
+- Fix readme error by @camalot
+
+
+### 💼 Other
+
+- Initial commit by @camalot
+
+- Initial commit by @camalot
+
+- Removed the context menu for now by @camalot
+
+- Added some scafolding for settings by @camalot
+
+- More task providers by @camalot
+
+- Update icons. add more task providers by @camalot
+
+- Set up eslint and update packages by @camalot
+
+- Revert dynamic TOML import and fallback parsing; remove helper and fallback tests by @camalot
+
+- Added settings for github-actions and path config for act. by @camalot
+
+- Update the readme to fix some lint errors by @camalot
+
+- Added github actions support by @camalot
+
+- Some refactoring of configuration by @camalot
+
+- More cleanup of settings by @camalot
+
+- Improve provider file-watching, venv handling, and Ant/ansicon execution by @camalot
+
+- Updated and added some npm built-in tasks by @camalot
+
+- Prepare for 'public' repository by @camalot
+
+- Prepare for 'public' repository by @camalot
+
+- Version bump for first public publish - 1.0.1 by @camalot
+
+
+### 🚜 Refactor
+
+- Refactoring and implementation by @camalot
+
+- Refactor the shell task provider to be flexible for just about any type of 'shell executed script' by @camalot
+
+
+### 📚 Documentation
+
+- Documentation cleanup. yarn/pnpm support. png images for docs by @camalot
+
+
+### ◀️ Revert
+
+- Reverted some changes and update the target by @camalot
+
+
+
+### New Contributors
+* @camalot made their first contribution

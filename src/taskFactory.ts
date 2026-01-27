@@ -15,7 +15,6 @@ import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
 import { MiseTaskProvider } from './providers/miseTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
-import { JupyterTaskProvider } from './providers/jupyterTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;

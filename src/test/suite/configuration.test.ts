@@ -3,21 +3,12 @@ import * as vscode from 'vscode';
 import { configuration } from '../../libs/configuration';
 
 suite('Configuration Test Suite', () => {
-  const rootKey = 'workspaceTasks.tests';
 
   async function waitFor(predicate: () => boolean, timeout = 2000) {
     const start = Date.now();
     while (!predicate() && Date.now() - start < timeout) {
       await new Promise((r) => setTimeout(r, 20));
     }
-  }
-
-  async function unsetGlobal(key: string) {
-    await vscode.workspace.getConfiguration().update(key, undefined, vscode.ConfigurationTarget.Global);
-  }
-
-  async function unsetWorkspace(key: string) {
-    await vscode.workspace.getConfiguration().update(key, undefined, vscode.ConfigurationTarget.Workspace);
   }
 
   test('get returns default when key does not exist', () => {
@@ -27,9 +18,6 @@ suite('Configuration Test Suite', () => {
 
   test('onConfigurationChanged updates internal config', async () => {
     // use an existing, registered configuration key
-    const key = 'groups.enabled';
-    const fullKey = `workspaceTasks.${key}`;
-
     const cfg = vscode.workspace.getConfiguration('workspaceTasks');
     const original = cfg.get<boolean>('groups.enabled');
 
@@ -46,7 +34,6 @@ suite('Configuration Test Suite', () => {
   test('update updates nested object property and persists (Global)', async () => {
     // use a registered object property: shellEnabledTaskTypes
     const parent = 'shellEnabledTaskTypes';
-    const fullParent = `workspaceTasks.${parent}`;
 
     const cfg = vscode.workspace.getConfiguration('workspaceTasks');
     const original = cfg.get<any>(parent);

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { TaskItem } from '../taskItem';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskIconService } from '../services/taskIconService';
-import { ExecutableService, ExecutableResult } from '../services/executableService';
+import { ExecutableService } from '../services/executableService';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskConfigService } from '../services/taskConfigService';
@@ -27,13 +27,13 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
   }
 
   public async getTasks(): Promise<TaskItem[]> {
-    if(!TaskConfigService.getInstance().isTaskTypeEnabled(this.type)) {
+    if (!TaskConfigService.getInstance().isTaskTypeEnabled(this.type)) {
       return [];
     }
 
     // Check if extension (ms-toolsai.jupyter) is installed
     const extensionId = 'ms-toolsai.jupyter';
-    const command = ExecutableService.getInstance().getVscodeCommand('jupyter.runcell', extensionId);
+    const command = await ExecutableService.getInstance().getVscodeCommand('jupyter.runcell', extensionId);
 
     if (!command) {
         return [];
@@ -94,9 +94,6 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
 
           const sourceText = sourceLines.join('').trim();
           // Even empty cells are cells. But maybe skip empty ones?
-
-          const firstLine = sourceLines.length > 0 ? sourceLines[0].trim() : "Empty Cell";
-          //const label = firstLine.length > 30 ? firstLine.substring(0, 27) + '...' : firstLine;
           const label = `Cell ${index + 1}`;
 
           const item = new TaskItem(

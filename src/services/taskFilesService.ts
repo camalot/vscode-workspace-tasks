@@ -31,8 +31,34 @@ export class TaskFilesService {
   public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
     // use vscode.workspace.findFiles with the provided pattern and exclude, then filter using the ignore rules
     const uris = await vscode.workspace.findFiles(pattern.join(','), exclude ? exclude.join(',') : undefined);
-    return uris.filter(uri => !this.shouldIgnore(uri));
+    const depthFiltered = this.filterByDepth(uris);
+    return depthFiltered.filter(uri => !this.shouldIgnore(uri));
   }
+
+  private filterByDepth(uris: vscode.Uri[]): vscode.Uri[] {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const fetchDepth = config.get<number | null>('taskDiscovery.fetchDepth', null);
+
+    if (fetchDepth === null) {
+      return uris;
+    }
+
+    return uris.filter(uri => {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+      if (!workspaceFolder) {
+        return true;
+      }
+
+      const relativePath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
+      // relativePath is the path from the workspace root to the file.
+      // e.g. "package.json" -> depth 0
+      // e.g. "sub/package.json" -> depth 1
+      // count the number of separators to determine the depth
+      const depth = relativePath.split(path.sep).length - 1;
+      return depth <= fetchDepth;
+    });
+  }
+
 
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.context = context;

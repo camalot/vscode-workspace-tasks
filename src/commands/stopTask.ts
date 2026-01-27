@@ -1,7 +1,6 @@
 import BaseCommand from "../common/baseCommand";
 import * as vscode from 'vscode';
 import { TaskItem } from "../taskItem";
-import { TaskRunner } from "../taskRunner";
 import { TaskStateManager } from "../taskStateManager";
 
 export class StopTaskCommand extends BaseCommand {
