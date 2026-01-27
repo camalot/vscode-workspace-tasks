@@ -15,6 +15,18 @@
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
+      "name": "Run Extension with All Extensions",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "preLaunchTask": "${defaultBuildTask}"
+    },
+    {
       "name": "Extension Tests",
       "type": "extensionHost",
       "request": "launch",

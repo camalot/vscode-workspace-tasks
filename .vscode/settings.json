@@ -11,23 +11,27 @@
     "Favorited",
     "gradlew",
     "gulpfile",
+    "ipynb",
     "justfile",
     "justfiles",
     "mimetypes",
     "msbuild",
     "myshell",
+    "nbformat",
     "PIPENV",
     "Pipfile",
     "pycache",
     "pyproject",
     "pyvenv",
+    "runcell",
     "runtfile",
     "smol",
     "tasksignore",
     "venv"
   ],
-  "files.associations": {
-    "workspace-tasks.json": "jsonc",
-    ".workspace-tasks.json": "jsonc"
-  }
+  // "files.associations": {
+  //   "workspace-tasks.json": "jsonc",
+  //   ".workspace-tasks.json": "jsonc"
+  // },
+  "workspaceTasks.applicationPath.act": "tools/act/act"
 }

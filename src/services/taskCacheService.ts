@@ -17,6 +17,10 @@ export class TaskCacheService {
 
     private constructor() {}
 
+    public getTask(id: string): TaskItem | undefined {
+        return this.taskMap.get(id);
+    }
+
     public initialize(context: vscode.ExtensionContext): TaskCacheService {
         this.context = context;
         return this;

@@ -58,19 +58,23 @@ export class WorkspaceTasksService {
 
   private async loadWorkspaceConfig() {
     let newConfig: FileTasksConfig = {};
+    let defaultsPath: string | undefined;
+
     if (this.context) {
-        const defaultsPath = path.join(this.context.extensionPath, 'res', 'config', 'workspace-tasks.json');
-      console.debug(`[WorkspaceTasksService]: Loading default workspace tasks from ${defaultsPath}`);
-        try {
-            if (fs.existsSync(defaultsPath)) {
-                const content = await fs.promises.readFile(defaultsPath, 'utf8');
-                newConfig = parseJsonWithComments(content);
-            }
-        } catch (e) {
-            console.error(`[WorkspaceTasksService]: Failed to load default workspace tasks from ${defaultsPath}`, e);
-        }
+      defaultsPath = path.join(this.context.extensionPath, 'res', 'config', 'workspace-tasks.json');
     } else {
-      console.warn('[WorkspaceTasksService]: No extension context available, skipping default workspace tasks load');
+      // Allow test environment (no extension context) to load defaults from repo relative path
+      defaultsPath = path.resolve(__dirname, '..', '..', 'res', 'config', 'workspace-tasks.json');
+    }
+
+    console.debug(`[WorkspaceTasksService]: Loading default workspace tasks from ${defaultsPath}`);
+    try {
+      if (defaultsPath && fs.existsSync(defaultsPath)) {
+        const content = await fs.promises.readFile(defaultsPath, 'utf8');
+        newConfig = parseJsonWithComments(content);
+      }
+    } catch (e) {
+      console.error(`[WorkspaceTasksService]: Failed to load default workspace tasks from ${defaultsPath}`, e);
     }
 
     const filesService = TaskFilesService.getInstance();

@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for VS Code",
   "readme": "README.md",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -65,16 +65,31 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "pretest": "npm run compile:tests && npm run compile:webpack && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test",
-    "changelog": "chglog format --template repo > CHANGELOG.md"
+    "compile": "npm run compile:webpack",
+    "compile:webpack": "webpack",
+    "compile:prod": "npm run check:types && npm run lint && npm run compile:webpack",
+    "compile:tests": "tsc -p . --outDir out",
+    "watch": "npm run watch:webpack",
+    "watch:tsc": "tsc --noEmit --watch",
+    "watch:tests": "tsc -p . -w --outDir out",
+    "watch:webpack": "webpack --watch",
+    "vscode:prepublish": "npm run compile:prod && npm run package:webpack",
+    "vscode:test": "vscode-test",
+    "vscode:test:coverage": "vscode-test --coverage && nyc report --reporter=text-lcov > coverage.lcov && codecov",
+    "package:webpack": "webpack --mode production --devtool hidden-source-map",
+    "package:vsix": "vsce package",
+    "package:vsix:prerelease": "vsce package --pre-release",
+    "test": "npm run pretest && npm run vscode:test",
+    "test:coverage": "npm run pretest && npm run vscode:test:coverage",
+    "test:ui": "npm run compile:tests && node .vscode-uitest.mjs",
+    "format": "prettier --write .",
+    "check": "npm run check:types && npm run check:format",
+    "check:types": "tsc --noEmit",
+    "check:format": "prettier --check .",
+    "changelog:build": "npx git-cliff --bump --output CHANGELOG.md"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -86,8 +101,10 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "eslint": "^9.39.2",
+    "git-cliff": "^2.12.0",
     "glob": "^13.0.0",
     "mocha": "^11.7.5",
+    "prettier": "^3.8.1",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1",
@@ -206,6 +223,10 @@
         "command": "workspaceTasks.githubIssues",
         "title": "%command.githubIssues%",
         "icon": "$(github-inverted)"
+      },
+      {
+        "command": "workspaceTasks.onTreeItemClick",
+        "title": "On Tree Item Click"
       },
       {
         "command": "workspaceTasks.runTask",
@@ -357,6 +378,16 @@
           "default": "",
           "description": "%config.workspaceTasks.groups.taskSeparator.description%",
           "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%"
+        },
+        "workspaceTasks.taskDiscovery.fetchDepth": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "%config.workspaceTasks.taskDiscovery.fetchDepth%",
+          "markdownDescription": "%config.workspaceTasks.taskDiscovery.fetchDepth.markdown%",
+          "default": null,
+          "minimum": 1
         },
         "workspaceTasks.shellEnabledTaskTypes": {
           "type": "object",
@@ -511,9 +542,9 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
             },
-            "github-action": {
+            "github-actions": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enabledTaskTypes.github-action%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.github-actions%"
             },
             "gradle": {
               "type": "boolean",
@@ -526,6 +557,10 @@
             "gulp": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.gulp%"
+            },
+            "jupyter": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.jupyter%"
             },
             "just": {
               "type": "boolean",
@@ -581,7 +616,7 @@
             "shell": true,
             "composer": true,
             "docker": true,
-            "github-action": true,
+            "github-actions": true,
             "gradle": true,
             "grunt": true,
             "gulp": true,
@@ -591,9 +626,10 @@
             "msbuild": true,
             "npm": true,
             "pipenv": true,
+            "jupyter": true,
             "tsc": true,
-            "yarn": true,
-            "pnpm": true,
+            "yarn": false,
+            "pnpm": false,
             "venv": true,
             "vscode": true,
             "workspace": true

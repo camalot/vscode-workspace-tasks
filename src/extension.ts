@@ -26,6 +26,8 @@ import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
+import { JupyterTaskProvider } from './providers/jupyterTaskProvider';
+import { loadCommands } from './commands/index';
 
 export async function activate(context: vscode.ExtensionContext) {
   ExtensionConfigurationService.getInstance().initialize(context);
@@ -37,7 +39,8 @@ export async function activate(context: vscode.ExtensionContext) {
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
   QueueService.getInstance().initialize(context);
-  const taskTreeDataProvider = new TaskTreeDataProvider(context);
+  const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
+  await taskTreeDataProvider.initialize(context);
 
   // Register Providers
   taskTreeDataProvider.registerProvider(new NpmTaskProvider());
@@ -59,6 +62,7 @@ export async function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.registerProvider(new GithubActionsTaskProvider());
   taskTreeDataProvider.registerProvider(new GradleTaskProvider());
   taskTreeDataProvider.registerProvider(new PipenvTaskProvider());
+  taskTreeDataProvider.registerProvider(new JupyterTaskProvider());
 
   // Initial refresh
   taskTreeDataProvider.refresh();
@@ -87,130 +91,53 @@ export async function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.bindView(treeView);
   context.subscriptions.push(treeView);
 
-  // Refresh command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.refresh', () => {
-    taskTreeDataProvider.refresh();
-  }));
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.refreshTree', () => {
-    taskTreeDataProvider.refreshLocal();
-  }));
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.collapseAll', () => {
-    taskTreeDataProvider.collapseAllTaskGroups();
-  }));
+  // Load commands (statically imported so webpack includes them)
+  try {
+    loadCommands(context);
+  }
+  catch (err) {
+    console.error('Command loading error:', err);
+  }
 
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.buyMeACoffee', () => {
-    const url = ExtensionConfigurationService.getInstance().get('sponsor.buymeacoffee');
-    if (url) {
-        vscode.env.openExternal(vscode.Uri.parse(url));
+  // Click Handler
+  const clickTimers = new Map<string, NodeJS.Timeout>();
+  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.onTreeItemClick', async (itemArgument: any) => {
+    // Resolve the real TaskItem from cache if possible, as 'itemArgument' might be a serialized copy
+    let item: TaskItem | undefined;
+
+    if (itemArgument instanceof TaskItem) {
+        item = itemArgument;
+    } else if (itemArgument && typeof itemArgument.id === 'string') {
+        item = TaskCacheService.getInstance().getTask(itemArgument.id);
     }
-  }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.githubSponsor', () => {
-    const url = ExtensionConfigurationService.getInstance().get('sponsor.github');
-    if (url) {
-        vscode.env.openExternal(vscode.Uri.parse(url));
+    if (!item) {
+        // Fallback or item not found in cache (maybe dynamic item?)
+        // If it's partial object but has commands, maybe we can still use it?
+        // But the commands on partial object likely lack context.
+        return;
     }
-  }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.githubIssues', () => {
-    const url = ExtensionConfigurationService.getInstance().get('bugs.new');
-    if (url) {
-        vscode.env.openExternal(vscode.Uri.parse(url));
-    }
-  }));
+    // We use the ID to track clicks. If no ID, use random string.
+    const id = item.id || Math.random().toString();
 
-  // Clear Recent Tasks
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.clearRecentTasks', () => {
-    (RecentTasksService.getInstance() as any).clear();
-    taskTreeDataProvider.refreshLocal();
-  }));
+    if (clickTimers.has(id)) {
+      // Double click
+      clearTimeout(clickTimers.get(id));
+      clickTimers.delete(id);
 
-  // Remove from Recent Tasks
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.removeFromRecentTasks', (item: TaskItem) => {
-    (RecentTasksService.getInstance() as any).remove(item);
-    taskTreeDataProvider.refreshLocal();
-  }));
-
-  // Open File command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.openFileAtLine', (uri: vscode.Uri, line: number) => {
-    vscode.workspace.openTextDocument(uri).then(doc => {
-      vscode.window.showTextDocument(doc).then(editor => {
-        const position = new vscode.Position(line, 0);
-        const range = new vscode.Range(position, position);
-        editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
-        editor.selection = new vscode.Selection(position, position);
-      });
-    });
-  }));
-
-  // Run Task Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.runTask', async (item: TaskItem) => {
-    if (item.contextValue === 'queuedTask') {
-      const queueName = item.parent?.label as string;
-      await TaskRunner.getInstance().runQueue(queueName, item);
+      if (item.onDoubleClickCommand) {
+        vscode.commands.executeCommand(item.onDoubleClickCommand.command, ...(item.onDoubleClickCommand.arguments || []));
+      }
     } else {
-      await TaskRunner.getInstance().runTask(item);
-    }
-  }));
-
-  // Run Task with Arguments Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.runTaskWithArgs', async (item?: TaskItem) => {
-    if (!item) { return; }
-    const args = await vscode.window.showInputBox({
-      prompt: `Enter arguments for task '${item.label}'`,
-      placeHolder: 'Arguments'
-    });
-    if (args !== undefined) {
-      await TaskRunner.getInstance().runTask(item, args);
-    }
-  }));
-
-  // Restart Task Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.restartTask', async (item: TaskItem) => {
-    const id = TaskStateManager.getInstance().getTaskId(item);
-    const execution = TaskStateManager.getInstance().getExecution(id);
-    if (execution) {
-      execution.terminate();
-      // Wait a moment to ensure termination
-      setTimeout(() => {
-        TaskRunner.getInstance().runTask(item);
-      }, 500);
-    } else {
-      // If not running, just run the task
-      TaskRunner.getInstance().runTask(item);
-    }
-  }));
-
-  // Stop Task Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.stopTask', (item: TaskItem) => {
-    const id = TaskStateManager.getInstance().getTaskId(item);
-    const execution = TaskStateManager.getInstance().getExecution(id);
-    if (execution) {
-      execution.terminate();
-    }
-  }));
-
-  // Queue Commands
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.addToQueue', async (item: TaskItem) => {
-    const queueService = QueueService.getInstance();
-    const queues = queueService.getQueueNames();
-    let targetQueue: string | undefined;
-
-    if (queues.length === 0) {
-        targetQueue = await vscode.window.showInputBox({ prompt: 'Enter name for new queue', placeHolder: 'Queue Name', value: 'Queue' });
-    } else {
-        const items = [...queues, 'New Queue...'];
-        const selected = await vscode.window.showQuickPick(items, { placeHolder: 'Select Queue to add task to' });
-        if (selected === 'New Queue...') {
-            targetQueue = await vscode.window.showInputBox({ prompt: 'Enter name for new queue', placeHolder: 'Queue Name', value: 'Queue' });
-        } else {
-            targetQueue = selected;
+      // Single click - wait for potential double click
+      const timeout = setTimeout(() => {
+        clickTimers.delete(id);
+        if (item.onSingleClickCommand) {
+          vscode.commands.executeCommand(item.onSingleClickCommand.command, ...(item.onSingleClickCommand.arguments || []));
         }
-    }
-
-    if (targetQueue) {
-        queueService.addToQueue(item, targetQueue);
-        taskTreeDataProvider.refreshLocal();
+      }, 250);
+      clickTimers.set(id, timeout);
     }
   }));
 

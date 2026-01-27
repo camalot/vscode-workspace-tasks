@@ -54,7 +54,7 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
               }
             }
 
-            item.command = {
+            item.onSingleClickCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, item.startLine || 0]

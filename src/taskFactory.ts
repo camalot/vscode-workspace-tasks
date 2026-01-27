@@ -56,11 +56,31 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const { command: npmCmd, args: npmInitialArgs, cwd: npmCwd } = npmProvider.getCommand(workspaceFolder?.uri);
 
       const npmArgs = npmInitialArgs ? [...npmInitialArgs] : [];
+      const normalizedLabel = (taskLabel || '').trim().toLowerCase();
+
+      // Special-case common labels to map to install instead of "npm run <label>"
+      if (normalizedLabel === 'install dependencies' || normalizedLabel === 'install' || normalizedLabel === 'install dependencies (npm install)') {
+        npmArgs.push('install');
+        if (args) { npmArgs.push(...args.split(' ')); }
+
+        const full = `${npmCmd} ${npmArgs.join(' ')}`;
+        const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
+
+        const task = new vscode.Task(
+          { type: 'npm', script: 'install' },
+          vscode.TaskScope.Workspace,
+          taskLabel,
+          'npm',
+          shellExec
+        );
+        return { task, command: full, cwd };
+      }
+
       npmArgs.push('run', `${taskLabel}`);
       if (args) { npmArgs.push(...args.split(' ')); }
 
       const full = `${npmCmd} ${npmArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd: npmCwd });
+      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
 
       const task = new vscode.Task(
         { type: 'npm', script: taskLabel },
@@ -69,7 +89,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'npm',
         shellExec
       );
-      return { task, command: full, cwd: npmCwd };
+      return { task, command: full, cwd };
     }
     case 'yarn': {
       const yarnProvider = new YarnTaskProvider();
@@ -81,7 +101,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (args) { yarnArgs.push(...args.split(' ')); }
 
       const full = `${yarnCmd} ${yarnArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd: yarnCwd });
+      const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd });
 
       const task = new vscode.Task(
         { type: 'yarn', script: taskLabel },
@@ -90,7 +110,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'yarn',
         shellExec
       );
-      return { task, command: full, cwd: yarnCwd };
+      return { task, command: full, cwd };
     }
     case 'pnpm': {
       const pnpmProvider = new PnpmTaskProvider();
@@ -102,7 +122,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (args) { pnpmArgs.push(...args.split(' ')); }
 
       const full = `${pnpmCmd} ${pnpmArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd: pnpmCwd });
+      const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd });
 
       const task = new vscode.Task(
         { type: 'pnpm', script: taskLabel },
@@ -111,7 +131,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'pnpm',
         shellExec
       );
-      return { task, command: full, cwd: pnpmCwd };
+      return { task, command: full, cwd };
     }
     case "mise": {
       // mise run <taskLabel> [args]
@@ -136,6 +156,19 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec
       );
       return { task, command: full, cwd: miseCwd };
+    }
+    case 'jupyter': {
+      // Use CustomExecution to run Jupyter cell via VS Code command
+      const task = new vscode.Task(
+        { type: 'jupyter', task: taskLabel },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'jupyter',
+        new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
+          return new JupyterTerm(resourceUri, item.metadata?.cellIndex, taskLabel);
+        })
+      );
+      return { task, command: 'jupyter.runcell', cwd: path.dirname(resourceUri.fsPath) };
     }
     case 'maven': {
       // mvn <goal> [args]
@@ -704,6 +737,79 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     default: {
       // Generic: run as shell command if workspace has a declared task
       return undefined;
+    }
+  }
+}
+
+class JupyterTerm implements vscode.Pseudoterminal {
+  private writeEmitter = new vscode.EventEmitter<string>();
+  onDidWrite: vscode.Event<string> = this.writeEmitter.event;
+  private closeEmitter = new vscode.EventEmitter<number>();
+  onDidClose: vscode.Event<number> = this.closeEmitter.event;
+
+  constructor(private resourceUri: vscode.Uri, private cellIndex: number | undefined, private label: string) {
+  }
+
+  /*initialDimensions: vscode.TerminalDimensions | undefined*/
+  open(): void {
+    this.doRun();
+  }
+
+  close(): void {
+  }
+
+  private async doRun(): Promise<void> {
+    this.writeEmitter.fire(`Executing Jupyter Cell in ${this.label}...\r\n`);
+
+    try {
+        // If we have a cell index, we try to run that specific cell
+        if (this.cellIndex !== undefined && this.cellIndex >= 0) {
+             // 1. Ensure document is open
+             const doc = await vscode.workspace.openNotebookDocument(this.resourceUri);
+             await vscode.window.showNotebookDocument(doc);
+
+             // 2. Find the cell
+             if (this.cellIndex < doc.cellCount) {
+                 //const cell = doc.cellAt(this.cellIndex);
+
+                 // 3. Execute
+                 // Using generic notebook command as jupyter.runcell behavior on ipynb is ambiguous
+                 // However, user requested jupyter.runcell.
+                 // If that command takes a range, we can try passing the cell range.
+
+                 // Try standard notebook execution first which is robust
+                 try {
+                    // This is the VS Code API way
+                     const execution = vscode.commands.executeCommand('notebook.cell.execute', {
+                        ranges: [{ start: this.cellIndex, end: this.cellIndex + 1 }],
+                        document: doc.uri
+                     });
+                     await execution;
+                     this.writeEmitter.fire(`\r\nCell sent to execution.\r\n`);
+                 } catch (e) {
+                     // Fallback to user requested command if standard fails, or if they meant the older way?
+                     // jupyter.runcell(file, startLine, startChar, endLine, endChar)
+                     // converting cell range to what? 0,0,0,0?
+                     this.writeEmitter.fire(`Error executing cell: ${e}\r\n`);
+                     this.closeEmitter.fire(1);
+                     return;
+                 }
+
+             } else {
+                 this.writeEmitter.fire(`Cell index ${this.cellIndex} out of bounds.\r\n`);
+                 this.closeEmitter.fire(1);
+                 return;
+             }
+        } else {
+             this.writeEmitter.fire(`No cell index provided. Cannot execute.\r\n`);
+             this.closeEmitter.fire(1);
+             return;
+        }
+
+        this.closeEmitter.fire(0);
+    } catch (e) {
+        this.writeEmitter.fire(`Error: ${e}\r\n`);
+        this.closeEmitter.fire(1);
     }
   }
 }

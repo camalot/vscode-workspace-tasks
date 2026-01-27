@@ -1,0 +1,87 @@
+name: Run tests
+
+on: {}
+  # push:
+  #   branches:
+  #     - develop
+  #     - pre-release
+  #   paths-ignore:
+  #     - 'syntaxes/**'
+  #     - 'tests/**'
+  #     - '**.md'
+  # pull_request:
+  #   branches:
+  #     - develop
+  #     - pre-release
+  #   paths-ignore:
+  #     - 'syntaxes/**'
+  #     - 'tests/**'
+  #     - '**.md'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - name: npm install
+        run: npm ci
+      - name: check types
+        run: npm run check:types
+      - name: format
+        run: npm run check:format
+      - name: lint
+        run: npm run lint
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        vscode:
+          - '1.108.1'
+          - 'insiders'
+          - 'stable'
+        os:
+          # - windows-latest
+          # - macos-latest
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      VSCODE_VERSION: ${{ matrix.vscode }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - name: Clean Install Dependencies
+        run: npm ci
+      - name: Allow unprivileged user namespace (ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Run Tests
+        run: xvfb-run -a npm test
+        if: runner.os == 'Linux'
+      - name: Run Tests
+        run: npm test
+        if: runner.os != 'Linux'
+      - name: Run UI Tests
+        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npm run test:ui
+        if: runner.os == 'Linux'
+      - name: Run UI Tests
+        run: npm run test:ui
+        if: runner.os != 'Linux'
+      # - name: Archive test artifacts
+      #   uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      #   if: failure()
+      #   with:
+      #     name: test-screenshots-${{ matrix.os }}-${{ matrix.vscode }}
+      #     path: .test-storage/screenshots
+      #     retention-days: 1

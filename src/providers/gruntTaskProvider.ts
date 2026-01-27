@@ -63,7 +63,7 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
-            item.command = {
+            item.onSingleClickCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, i]

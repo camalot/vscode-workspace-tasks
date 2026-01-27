@@ -39,10 +39,11 @@
   "config.workspaceTasks.enabledTaskTypes.ant": "Ant",
   "config.workspaceTasks.enabledTaskTypes.composer": "Composer",
   "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
-  "config.workspaceTasks.enabledTaskTypes.github-action": "GitHub Actions",
+  "config.workspaceTasks.enabledTaskTypes.github-actions": "GitHub Actions",
   "config.workspaceTasks.enabledTaskTypes.gradle": "Gradle",
   "config.workspaceTasks.enabledTaskTypes.grunt": "Grunt",
   "config.workspaceTasks.enabledTaskTypes.gulp": "Gulp",
+  "config.workspaceTasks.enabledTaskTypes.jupyter": "Jupyter",
   "config.workspaceTasks.enabledTaskTypes.just": "Just",
   "config.workspaceTasks.enabledTaskTypes.makefile": "Makefile",
   "config.workspaceTasks.enabledTaskTypes.maven": "Maven",
@@ -96,6 +97,9 @@
   "config.workspaceTasks.recentTasks.maxItems": "Max Recent Tasks",
   "config.workspaceTasks.recentTasks.maxItems.description": "Maximum number of recent tasks to display.",
   "config.workspaceTasks.recentTasks.maxItems.markdown": "Maximum number of recent tasks to display in the Recent Tasks group. Once the limit is reached, the oldest tasks will drop off the list. Set to 0 to disable the Recent Tasks group.",
+
+  "config.workspaceTasks.taskDiscovery.fetchDepth": "Fetch Depth for Task Discovery",
+  "config.workspaceTasks.taskDiscovery.fetchDepth.markdown": "Specify the fetch depth when discovering tasks from within the workspace. A value of `null` means full fetch, while a positive integer limits the depth of the fetch operation. This can help improve performance when working with large repositories.",
 
   "config.workspaceTasks.applicationPath.act": "Path to Act executable",
   "config.workspaceTasks.applicationPath.act.markdown": "Specify the path to the [Act](https://github.com/nektos/act) executable. On Windows, if the path ends with `act`, `.exe` will be appended automatically. Act allows you to run GitHub Actions locally.",

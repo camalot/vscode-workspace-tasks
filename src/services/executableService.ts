@@ -109,6 +109,19 @@ export class ExecutableService {
     return { command: finalCommand, args, cwd };
   }
 
+  public async getVscodeCommand(command: string, extensionId: string): Promise<string | undefined> {
+    const extension = vscode.extensions.getExtension(extensionId);
+    if (!extension) {
+      return undefined;
+    }
+    // check if the command exists
+    const commands = await vscode.commands.getCommands(true);
+    if (commands.includes(command)) {
+      return command;
+    }
+    return undefined;
+  }
+
   private parseCommandString(initial: string): { command: string, args: string[] } {
       const args: string[] = [];
       let current = '';

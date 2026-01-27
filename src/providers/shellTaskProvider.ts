@@ -38,6 +38,9 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
   }
 
   async getTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const enabledTypes = config.get<Record<string, boolean>>('shellEnabledTaskTypes') || {};
     const shellPaths = config.get<Record<string, string>>('shellPaths') || {};

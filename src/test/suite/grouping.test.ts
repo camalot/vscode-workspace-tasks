@@ -53,6 +53,26 @@ suite('Task Grouping Test Suite', () => {
         assert.strictEqual(publish?.originalLabel, 'dev-build-publish', 'Original label should be preserved');
 	});
 
+    test('Trims whitespace in grouped tasks', () => {
+        const provider = new TaskTreeDataProvider({ extensionPath: '/mock/path' } as vscode.ExtensionContext);
+        const tasks = [
+            new TaskItem('Group : Task', vscode.TreeItemCollapsibleState.None, 'npm'),
+        ];
+        tasks[0].description = 'test description';
+
+        const grouped = provider.groupTasksByName(tasks, ':');
+
+        // Should have "Group" (folder) -> "Task" (task)
+        assert.strictEqual(grouped.length, 1);
+        const group = grouped[0];
+        assert.strictEqual(group.label, 'Group', 'Group name should be trimmed');
+
+        assert.strictEqual(group.children.length, 1);
+        const task = group.children[0];
+        assert.strictEqual(task.label, 'Task', 'Task name should be trimmed');
+        assert.strictEqual(task.description, 'test description', 'Description should be preserved in child');
+    });
+
     test('Handles mixed depth', () => {
         const provider = new TaskTreeDataProvider({ extensionPath: '/mock/path' } as vscode.ExtensionContext);
         const tasks = [
@@ -76,5 +96,63 @@ suite('Task Grouping Test Suite', () => {
 
         assert.strictEqual(folderA?.children.length, 1);
         assert.strictEqual(folderA?.children[0].label, 'b');
+    });
+
+    test('Avoids ID collisions for split tasks', () => {
+        const provider = new TaskTreeDataProvider({ extensionPath: '/mock/path' } as vscode.ExtensionContext);
+        // Create two tasks that would result in potential collision if ID is just based on visible label and type
+        // 1. Task "watch" (Leaf)
+        const t1 = new TaskItem('watch', vscode.TreeItemCollapsibleState.None, 'npm');
+        t1.id = 'npm:watch:uri1'; // Explicit ID
+
+        // 2. Task "npm:watch" (Grouped)
+        const t2 = new TaskItem('npm:watch', vscode.TreeItemCollapsibleState.None, 'npm');
+        t2.id = 'npm:npm:watch:uri1'; // Explicit ID
+
+        // Group by ":"
+        const grouped = provider.groupTasksByName([t1, t2], ':');
+
+        // Expected:
+        // npm (Group) -> watch (Leaf, representing t2)
+        // watch (Leaf, representing t1)
+
+        const groupNpm = grouped.find(t => t.label === 'npm' && t.contextValue === 'folder');
+        const leafWatch = grouped.find(t => t.label === 'watch' && t.contextValue !== 'folder');
+
+        assert.ok(groupNpm, 'Should have npm group');
+        assert.ok(leafWatch, 'Should have separate watch leaf');
+
+        // The leaf inside groupNpm should correspond to t2
+        const groupedWatch = groupNpm.children.find(t => t.label === 'watch');
+        assert.ok(groupedWatch, 'Group should have child watch');
+
+        // IDs must be distinct
+        assert.notStrictEqual(leafWatch.id, groupedWatch?.id, 'IDs should be distinct');
+        assert.strictEqual(groupedWatch?.id, t2.id, 'Grouped task should retain original task ID');
+        assert.strictEqual(leafWatch.id, t1.id, 'Ungrouped task should retain original task ID');
+    });
+
+    test('Inherits iconPath in grouped tasks', () => {
+        const provider = new TaskTreeDataProvider({ extensionPath: '/mock/path' } as vscode.ExtensionContext);
+        const tasks = [
+            new TaskItem('Group:Task', vscode.TreeItemCollapsibleState.None, 'npm'),
+        ];
+
+        // Mock a specific icon path
+        const expectedIcon = { light: vscode.Uri.file('/light/icon.svg'), dark: vscode.Uri.file('/dark/icon.svg') };
+        tasks[0].iconPath = expectedIcon;
+
+        const grouped = provider.groupTasksByName(tasks, ':');
+
+        assert.strictEqual(grouped.length, 1);
+        const group = grouped[0];
+
+        assert.strictEqual(group.children.length, 1);
+        const task = group.children[0];
+
+        // Use loose equality or check properties since object references might differ if strictly cloned?
+        // Actually code passes reference: newTask.iconPath = task.iconPath (in direct copy via constructor args I added)
+        // Wait, I passed it to constructor.
+        assert.strictEqual(task.iconPath, expectedIcon, 'Child task should inherit iconPath from parent assignment');
     });
 });

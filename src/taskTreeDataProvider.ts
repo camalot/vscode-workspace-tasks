@@ -11,6 +11,8 @@ import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
+  private static instance: TaskTreeDataProvider | undefined;
+
   private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<TaskItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
@@ -23,7 +25,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private onRootsUpdated: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   private refreshTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
-  constructor(private context: vscode.ExtensionContext) {
+  private context: vscode.ExtensionContext;
+
+  constructor(context: vscode.ExtensionContext) {
+    this.context = context;
     this.dragAndDropController = new TaskTreeDragAndDropController();
 
     TaskCacheService.getInstance().onDidUpdate(() => {
@@ -31,11 +36,23 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     });
 
     // Restore collapseLevel from workspace state (default to 0)
-    // Actually we only care about restoring if it was 0, as other modes are temporary toggles usuallly?
+    // Actually we only care about restoring if it was 0, as other modes are temporary toggles usually?
     // But if persistence is tricky for groups, maybe we just default to 0.
     // The issue with persistence is likely that the TreeView doesn't know about these IDs until we feed them to it.
 
     // NOTE: VS Code persists expansion state based on ID.
+  }
+
+  public static getInstance(context?: vscode.ExtensionContext): TaskTreeDataProvider {
+    if (!TaskTreeDataProvider.instance && context) {
+      TaskTreeDataProvider.instance = new TaskTreeDataProvider(context);
+    }
+    return TaskTreeDataProvider.instance!;
+  }
+
+  public async initialize(context: vscode.ExtensionContext): Promise<TaskTreeDataProvider> {
+    this.context = context;
+    return this;
   }
 
   public bindView(view: vscode.TreeView<TaskItem>) {
@@ -140,7 +157,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           const level = this.pendingRevealLevel;
           this.pendingRevealLevel = undefined;
           setTimeout(async () => {
-              if (!this.view) return;
+              if (!this.view) {
+                return;
+              }
               for (const root of this.currentRoots) {
                 try {
                     if (level === 1) {
@@ -221,6 +240,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           favTask.originalLabel = item.originalLabel || item.label;
           favTask.startLine = item.startLine;
           favTask.metadata = item.metadata;
+          // Preserve file association and source/provider so that cloned items remain runnable
+          favTask.taskFileUri = item.taskFileUri;
+          favTask.taskSource = item.taskSource;
 
           // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
           // For favorites, we might want to flatten or keep structure.
@@ -240,6 +262,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                  childCopy.startLine = child.startLine;
                  childCopy.metadata = child.metadata;
                  childCopy.parent = favTask;
+                 // Preserve child file association and source/provider as well
+                 childCopy.taskFileUri = child.taskFileUri;
+                 childCopy.taskSource = child.taskSource;
                  // We don't recurse deeper for now as typically tasks are 1-2 levels deep.
                  // But for GitHub Actions -> Events -> (maybe Jobs?), we might need more.
                  // Actually GH Actions is "File -> Event / Job". Depth is 1.
@@ -507,6 +532,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                 copy.originalLabel = t.originalLabel || t.label;
                 copy.startLine = t.startLine;
                 copy.metadata = t.metadata;
+                // Preserve file association and source/provider so recent items remain runnable
+                copy.taskFileUri = t.taskFileUri;
+                copy.taskSource = t.taskSource;
                 copy.description = t.description; // Preserve description (folder name etc)
                 copy.parent = typeItem;
                 copy.id = `recent:${t.id}`;
@@ -544,6 +572,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             copy.originalLabel = t.originalLabel || t.label;
             copy.startLine = t.startLine;
             copy.metadata = t.metadata;
+            // Preserve file association and source/provider so recent items remain runnable
+            copy.taskFileUri = t.taskFileUri;
+            copy.taskSource = t.taskSource;
             copy.description = t.description;
             copy.parent = recentGroup;
             copy.id = `recent:${t.id}`;
@@ -563,6 +594,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         vscode.TreeItemCollapsibleState.Expanded,
         'folder'
       );
+
+      const taskIcon = TaskIconService.getInstance().getTaskTypeIcon('task');
+      if (taskIcon?.TaskIcon) {
+        tasksRoot.iconPath = taskIcon.TaskIcon;
+      }
 
       const flatTasks: TaskItem[] = [];
       for (const projectMap of workspaceMap.values()) {
@@ -652,23 +688,39 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     for (const task of tasks) {
       const parts = task.label.split(separator);
       if (parts.length > 1) {
-        const groupName = parts[0];
+        const groupName = parts[0].trim();
         let groupList = groups.get(groupName);
         if (!groupList) {
           groupList = [];
           groups.set(groupName, groupList);
         }
-        const remainder = parts.slice(1).join(separator);
+        const remainder = parts.slice(1).join(separator).trim();
         const newTask = new TaskItem(
           remainder,
           task.collapsibleState,
           task.taskType,
           task.resourceUri,
-          task.command
+          task.onSingleClickCommand,
+          task.iconPath,
+          task.onDoubleClickCommand
         );
         newTask.originalLabel = task.originalLabel || task.label;
         newTask.startLine = task.startLine;
         newTask.tooltip = task.tooltip;
+        newTask.description = task.description;
+        // Inherit ID from the original task to prevent collisions and ensure correct tracking
+        // But only if this new task represents the "rest" of the split (which it is).
+        // If we split further recursively, the final leaf will carry this ID.
+        // Wait, if we push to groupList, and that groupList is recursively processed...
+        // The Leaf at the end of the chain will eventually be created and needs this ID.
+        // Is newTask the leaf? Or just the next segment?
+        // newTask is the next segment effectively.
+        // If newTask is "tests:unit" (from "npm:tests:unit"), it represents the task "npm:tests:unit".
+        // It should carry the ID of "npm:tests:unit".
+        // If it is split further, the next segment "unit" will inherit from "tests:unit" (which inherited from "npm:tests:unit").
+        // So yes, inheriting ID at each step works.
+        newTask.id = task.id;
+
         // Re-run context value update now that originalLabel is set
         newTask.updateContextValue();
 
@@ -680,14 +732,18 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     for (const [groupName, groupTasks] of groups) {
       let iconUri: vscode.Uri | undefined;
+      let iconPath: any | undefined;
       if (groupTasks.length > 0) {
         const typeItem = TaskTypeFactory.create(groupTasks[0].taskType);
         iconUri = typeItem.resourceUri;
+        iconPath = typeItem.iconPath;
       }
 
       const groupItem = new TaskItem(groupName, vscode.TreeItemCollapsibleState.Collapsed, 'folder', iconUri);
       groupItem.id = `group:${groupName}:${tasks[0]?.resourceUri?.toString() || 'unknown'}`;
-      if (iconUri) {
+      if (iconPath) {
+        groupItem.iconPath = iconPath;
+      } else if (iconUri) {
         groupItem.iconPath = vscode.ThemeIcon.File;
       }
       groupItem.contextValue = 'folder';
@@ -699,8 +755,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Sort groups/leafs? Usually folders first
     rootItems.sort((a, b) => {
-      if (a.contextValue === 'folder' && b.contextValue !== 'folder') return -1;
-      if (a.contextValue !== 'folder' && b.contextValue === 'folder') return 1;
+      if (a.contextValue === 'folder' && b.contextValue !== 'folder') {
+        return -1;
+      }
+      if (a.contextValue !== 'folder' && b.contextValue === 'folder') {
+        return 1;
+      }
       return a.label.localeCompare(b.label);
     });
 
