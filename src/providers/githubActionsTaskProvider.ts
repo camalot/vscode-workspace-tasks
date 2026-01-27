@@ -43,6 +43,9 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
   }
 
   public async getTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const files = await filesService.findFiles([constants.GLOB_GITHUB_ACTIONS]);

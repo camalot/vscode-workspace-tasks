@@ -1,66 +1,96 @@
 import * as vscode from 'vscode';
 
 export class TaskConfigService {
-    private static instance: TaskConfigService;
+  private static instance: TaskConfigService;
 
-    private constructor() {}
+  private constructor() { }
 
-    public static getInstance(): TaskConfigService {
-        if (!TaskConfigService.instance) {
-            TaskConfigService.instance = new TaskConfigService();
-        }
-        return TaskConfigService.instance;
+  public static getInstance(): TaskConfigService {
+    if (!TaskConfigService.instance) {
+      TaskConfigService.instance = new TaskConfigService();
+    }
+    return TaskConfigService.instance;
+  }
+
+  public isShellTypeEnabled(shellType: string): boolean {
+    if (!this.isTaskTypeEnabled('shell')) {
+      return false;
     }
 
-    /**
-     * Check if a task type is enabled in the configuration
-     * @param taskType The task type to check (e.g., 'npm', 'vscode', 'workspace', 'dockerfile')
-     * @returns true if the task type is enabled, false otherwise
-     */
-    public isTaskTypeEnabled(taskType: string): boolean {
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
-        const enabledTaskTypes = config.get<Record<string, boolean>>('enabledTaskTypes', {});
-
-        // Map task type names to config keys
-        const taskTypeMap: Record<string, string> = {
-            'npm': 'npm',
-            'vscode': 'vscode',
-            'composer': 'composer',
-            'script': 'shell',
-            'makefile': 'make',
-            'dockerfile': 'docker',
-            'justfile': 'just',
-            'venv': 'venv',
-            'workspace-task': 'workspace',
-            'workspace': 'workspace',
-            'shell': 'shell',
-            'pwsh': 'pwsh',
-            'python': 'python',
-            'ant': 'ant',
-            'msbuild': 'msbuild',
-        };
-
-        const configKey = taskTypeMap[taskType] || taskType;
-
-        // If not explicitly set, default to true
-        return enabledTaskTypes[configKey] !== false;
+    // shellEnabledTaskTypes.<type>
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const shellEnabledTaskTypes = config.get<Record<string, boolean>>('shellEnabledTaskTypes', {});
+    const shellTypeEnabled = shellEnabledTaskTypes[shellType];
+    if (shellTypeEnabled !== true) {
+      return true;
     }
 
-    /**
-     * Check if multiple task types are enabled
-     * @param taskTypes Array of task types to check
-     * @returns true if at least one task type is enabled, false if all are disabled
-     */
-    public isAnyTaskTypeEnabled(taskTypes: string[]): boolean {
-        return taskTypes.some(type => this.isTaskTypeEnabled(type));
+    // shellAdditionalExtensions IF 'other' is enabled
+    const otherEnabled = shellEnabledTaskTypes['other'];
+    if (otherEnabled === true) {
+      // looking at 'shellType' now as an extension. need to ensure it does not have `.` and only the extension part.
+      const extension = shellType.startsWith('.') ? shellType.slice(1) : shellType;
+      const shellAdditionalExtensions = config.get<Record<string, string>>('shellAdditionalExtensions', {});
+      return shellAdditionalExtensions.hasOwnProperty(extension);
     }
 
-    /**
-     * Check if all task types are enabled
-     * @param taskTypes Array of task types to check
-     * @returns true if all task types are enabled, false otherwise
-     */
-    public areAllTaskTypesEnabled(taskTypes: string[]): boolean {
-        return taskTypes.every(type => this.isTaskTypeEnabled(type));
-    }
+    return false;
+  }
+  /**
+   * Check if a task type is enabled in the configuration
+   * @param taskType The task type to check (e.g., 'npm', 'vscode', 'workspace', 'dockerfile')
+   * @returns true if the task type is enabled, false otherwise
+   */
+  public isTaskTypeEnabled(taskType: string): boolean {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const enabledTaskTypes = config.get<Record<string, boolean>>('enabledTaskTypes', {});
+
+    // Map task type names to config keys
+    const taskTypeMap: Record<string, string> = {
+      'ant': 'ant',
+      'dockerfile': 'docker',
+      'composer': 'composer',
+      'github-actions': 'github-actions',
+      'gulp': 'gulp',
+      'grunt': 'grunt',
+      'jupyter': 'jupyter',
+      'justfile': 'just',
+      'makefile': 'make',
+      'maven': 'maven',
+      'mise': 'mise',
+      'msbuild': 'msbuild',
+      'npm': 'npm',
+      'vscode': 'vscode',
+      'pipenv': 'pipenv',
+      'pwsh': 'pwsh',
+      'python': 'python',
+      'shell': 'shell',
+      'venv': 'venv',
+      'workspace': 'workspace',
+      'workspace-task': 'workspace',
+    };
+
+    const configKey = taskTypeMap[taskType] || taskType;
+
+    // If not explicitly set, default to true
+    return enabledTaskTypes[configKey] !== false;
+  }
+
+  /**
+   * Check if multiple task types are enabled
+   * @param taskTypes Array of task types to check
+   * @returns true if at least one task type is enabled, false if all are disabled
+   */
+  public isAnyTaskTypeEnabled(taskTypes: string[]): boolean {
+    return taskTypes.some(type => this.isTaskTypeEnabled(type));
+  }
+
+  /**
+   * Check if all task types are enabled
+   * @param taskTypes Array of task types to check
+   * @returns true if all task types are enabled, false otherwise
+   */
+  public areAllTaskTypesEnabled(taskTypes: string[]): boolean {
+    return taskTypes.every(type => this.isTaskTypeEnabled(type));
+  }
 }

@@ -532,9 +532,9 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
             },
-            "github-action": {
+            "github-actions": {
               "type": "boolean",
-              "description": "%config.workspaceTasks.enabledTaskTypes.github-action%"
+              "description": "%config.workspaceTasks.enabledTaskTypes.github-actions%"
             },
             "gradle": {
               "type": "boolean",
@@ -606,7 +606,7 @@
             "shell": true,
             "composer": true,
             "docker": true,
-            "github-action": true,
+            "github-actions": true,
             "gradle": true,
             "grunt": true,
             "gulp": true,
@@ -618,8 +618,8 @@
             "pipenv": true,
             "jupyter": true,
             "tsc": true,
-            "yarn": true,
-            "pnpm": true,
+            "yarn": false,
+            "pnpm": false,
             "venv": true,
             "vscode": true,
             "workspace": true
