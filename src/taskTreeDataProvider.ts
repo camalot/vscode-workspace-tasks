@@ -700,8 +700,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           task.collapsibleState,
           task.taskType,
           task.resourceUri,
-          task.command,
-          task.iconPath
+          task.onSingleClickCommand,
+          task.iconPath,
+          task.onDoubleClickCommand
         );
         newTask.originalLabel = task.originalLabel || task.label;
         newTask.startLine = task.startLine;

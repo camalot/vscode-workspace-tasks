@@ -12,30 +12,6 @@ export class TaskConfigService {
     return TaskConfigService.instance;
   }
 
-  public isShellTypeEnabled(shellType: string): boolean {
-    if (!this.isTaskTypeEnabled('shell')) {
-      return false;
-    }
-
-    // shellEnabledTaskTypes.<type>
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    const shellEnabledTaskTypes = config.get<Record<string, boolean>>('shellEnabledTaskTypes', {});
-    const shellTypeEnabled = shellEnabledTaskTypes[shellType];
-    if (shellTypeEnabled !== true) {
-      return true;
-    }
-
-    // shellAdditionalExtensions IF 'other' is enabled
-    const otherEnabled = shellEnabledTaskTypes['other'];
-    if (otherEnabled === true) {
-      // looking at 'shellType' now as an extension. need to ensure it does not have `.` and only the extension part.
-      const extension = shellType.startsWith('.') ? shellType.slice(1) : shellType;
-      const shellAdditionalExtensions = config.get<Record<string, string>>('shellAdditionalExtensions', {});
-      return shellAdditionalExtensions.hasOwnProperty(extension);
-    }
-
-    return false;
-  }
   /**
    * Check if a task type is enabled in the configuration
    * @param taskType The task type to check (e.g., 'npm', 'vscode', 'workspace', 'dockerfile')
@@ -51,6 +27,7 @@ export class TaskConfigService {
       'dockerfile': 'docker',
       'composer': 'composer',
       'github-actions': 'github-actions',
+      'github-action': 'github-actions',
       'gulp': 'gulp',
       'grunt': 'grunt',
       'jupyter': 'jupyter',
