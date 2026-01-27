@@ -1,6 +1,9 @@
 .yarnrc
 vsc-extension-quickstart.md
 webpack.config.js
+tools/
+.secrets
+cliff.toml
 
 .mocharc.js
 .changes

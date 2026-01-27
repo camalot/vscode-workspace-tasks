@@ -65,7 +65,6 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "scripts": {
-    "package": "webpack --mode production --devtool hidden-source-map",
     "pretest": "npm run compile:tests && npm run compile:webpack && npm run lint",
     "lint": "eslint src",
     "compile": "npm run compile:webpack",
@@ -79,6 +78,8 @@
     "vscode:prepublish": "npm run compile:prod && npm run package:webpack",
     "vscode:test": "vscode-test",
     "vscode:test:coverage": "vscode-test --coverage && nyc report --reporter=text-lcov > coverage.lcov && codecov",
+    "package": "npm run package:vsix",
+    "package:prerelease": "npm run package:webpack && npm run package:vsix:prerelease",
     "package:webpack": "webpack --mode production --devtool hidden-source-map",
     "package:vsix": "vsce package",
     "package:vsix:prerelease": "vsce package --pre-release",
