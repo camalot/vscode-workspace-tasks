@@ -27,6 +27,7 @@ import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
 import { JupyterTaskProvider } from './providers/jupyterTaskProvider';
+import { loadCommands } from './commands/index';
 
 export async function activate(context: vscode.ExtensionContext) {
   ExtensionConfigurationService.getInstance().initialize(context);
@@ -38,7 +39,8 @@ export async function activate(context: vscode.ExtensionContext) {
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
   QueueService.getInstance().initialize(context);
-  const taskTreeDataProvider = new TaskTreeDataProvider(context);
+  const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
+  await taskTreeDataProvider.initialize(context);
 
   // Register Providers
   taskTreeDataProvider.registerProvider(new NpmTaskProvider());
@@ -89,61 +91,13 @@ export async function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.bindView(treeView);
   context.subscriptions.push(treeView);
 
-  // Refresh command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.refresh', () => {
-    taskTreeDataProvider.refresh();
-  }));
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.refreshTree', () => {
-    taskTreeDataProvider.refreshLocal();
-  }));
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.collapseAll', () => {
-    taskTreeDataProvider.collapseAllTaskGroups();
-  }));
-
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.buyMeACoffee', () => {
-    const url = ExtensionConfigurationService.getInstance().get('sponsor.buymeacoffee');
-    if (url) {
-        vscode.env.openExternal(vscode.Uri.parse(url));
-    }
-  }));
-
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.githubSponsor', () => {
-    const url = ExtensionConfigurationService.getInstance().get('sponsor.github');
-    if (url) {
-        vscode.env.openExternal(vscode.Uri.parse(url));
-    }
-  }));
-
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.githubIssues', () => {
-    const url = ExtensionConfigurationService.getInstance().get('bugs.new');
-    if (url) {
-        vscode.env.openExternal(vscode.Uri.parse(url));
-    }
-  }));
-
-  // Clear Recent Tasks
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.clearRecentTasks', () => {
-    (RecentTasksService.getInstance() as any).clear();
-    taskTreeDataProvider.refreshLocal();
-  }));
-
-  // Remove from Recent Tasks
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.removeFromRecentTasks', (item: TaskItem) => {
-    (RecentTasksService.getInstance() as any).remove(item);
-    taskTreeDataProvider.refreshLocal();
-  }));
-
-  // Open File command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.openFileAtLine', (uri: vscode.Uri, line: number) => {
-    vscode.workspace.openTextDocument(uri).then(doc => {
-      vscode.window.showTextDocument(doc).then(editor => {
-        const position = new vscode.Position(line, 0);
-        const range = new vscode.Range(position, position);
-        editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
-        editor.selection = new vscode.Selection(position, position);
-      });
-    });
-  }));
+  // Load commands (statically imported so webpack includes them)
+  try {
+    loadCommands(context);
+  }
+  catch (err) {
+    console.error('Command loading error:', err);
+  }
 
   // Click Handler
   const clickTimers = new Map<string, NodeJS.Timeout>();
@@ -187,27 +141,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   }));
 
-  // Run Task Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.runTask', async (item: TaskItem) => {
-    if (item.contextValue === 'queuedTask') {
-      const queueName = item.parent?.label as string;
-      await TaskRunner.getInstance().runQueue(queueName, item);
-    } else {
-      await TaskRunner.getInstance().runTask(item);
-    }
-  }));
-
-  // Run Task with Arguments Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.runTaskWithArgs', async (item?: TaskItem) => {
-    if (!item) { return; }
-    const args = await vscode.window.showInputBox({
-      prompt: `Enter arguments for task '${item.label}'`,
-      placeHolder: 'Arguments'
-    });
-    if (args !== undefined) {
-      await TaskRunner.getInstance().runTask(item, args);
-    }
-  }));
 
   // Restart Task Command
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.restartTask', async (item: TaskItem) => {

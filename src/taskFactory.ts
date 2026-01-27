@@ -57,6 +57,26 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const { command: npmCmd, args: npmInitialArgs, cwd: npmCwd } = npmProvider.getCommand(workspaceFolder?.uri);
 
       const npmArgs = npmInitialArgs ? [...npmInitialArgs] : [];
+      const normalizedLabel = (taskLabel || '').trim().toLowerCase();
+
+      // Special-case common labels to map to install instead of "npm run <label>"
+      if (normalizedLabel === 'install dependencies' || normalizedLabel === 'install' || normalizedLabel === 'install dependencies (npm install)') {
+        npmArgs.push('install');
+        if (args) { npmArgs.push(...args.split(' ')); }
+
+        const full = `${npmCmd} ${npmArgs.join(' ')}`;
+        const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
+
+        const task = new vscode.Task(
+          { type: 'npm', script: 'install' },
+          vscode.TaskScope.Workspace,
+          taskLabel,
+          'npm',
+          shellExec
+        );
+        return { task, command: full, cwd };
+      }
+
       npmArgs.push('run', `${taskLabel}`);
       if (args) { npmArgs.push(...args.split(' ')); }
 

@@ -11,6 +11,8 @@ import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
+  private static instance: TaskTreeDataProvider | undefined;
+
   private _onDidChangeTreeData: vscode.EventEmitter<TaskItem | undefined | null | void> = new vscode.EventEmitter<TaskItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<TaskItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
@@ -23,7 +25,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private onRootsUpdated: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   private refreshTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
-  constructor(private context: vscode.ExtensionContext) {
+  private context: vscode.ExtensionContext;
+
+  constructor(context: vscode.ExtensionContext) {
+    this.context = context;
     this.dragAndDropController = new TaskTreeDragAndDropController();
 
     TaskCacheService.getInstance().onDidUpdate(() => {
@@ -36,6 +41,18 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     // The issue with persistence is likely that the TreeView doesn't know about these IDs until we feed them to it.
 
     // NOTE: VS Code persists expansion state based on ID.
+  }
+
+  public static getInstance(context?: vscode.ExtensionContext): TaskTreeDataProvider {
+    if (!TaskTreeDataProvider.instance && context) {
+      TaskTreeDataProvider.instance = new TaskTreeDataProvider(context);
+    }
+    return TaskTreeDataProvider.instance!;
+  }
+
+  public async initialize(context: vscode.ExtensionContext): Promise<TaskTreeDataProvider> {
+    this.context = context;
+    return this;
   }
 
   public bindView(view: vscode.TreeView<TaskItem>) {
