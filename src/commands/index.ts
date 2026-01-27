@@ -10,9 +10,13 @@ import * as githubIssues from './githubIssues';
 import * as clearRecentTasks from './clearRecentTasks';
 import * as removeFromRecentTasks from './removeFromRecentTasks';
 import * as openFileAtLine from './openFileAtLine';
+import * as restartTask from './restartTask';
+import * as stopTask from './stopTask';
+import * as addToQueue from './addToQueue';
 
 export function loadCommands(context: vscode.ExtensionContext) {
   const modules = [
+    addToQueue,
     buyMeACoffee,
     clearRecentTasks,
     collapseAll,
@@ -22,8 +26,10 @@ export function loadCommands(context: vscode.ExtensionContext) {
     runTask,
     refresh,
     refreshTree,
+    restartTask,
     removeFromRecentTasks,
-    runTaskWithArgs
+    runTaskWithArgs,
+    stopTask
   ];
 
   for (const mod of modules) {

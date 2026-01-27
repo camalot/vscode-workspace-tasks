@@ -141,56 +141,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   }));
 
-
-  // Restart Task Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.restartTask', async (item: TaskItem) => {
-    const id = TaskStateManager.getInstance().getTaskId(item);
-    const execution = TaskStateManager.getInstance().getExecution(id);
-    if (execution) {
-      execution.terminate();
-      // Wait a moment to ensure termination
-      setTimeout(() => {
-        TaskRunner.getInstance().runTask(item);
-      }, 500);
-    } else {
-      // If not running, just run the task
-      TaskRunner.getInstance().runTask(item);
-    }
-  }));
-
-  // Stop Task Command
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.stopTask', (item: TaskItem) => {
-    const id = TaskStateManager.getInstance().getTaskId(item);
-    const execution = TaskStateManager.getInstance().getExecution(id);
-    if (execution) {
-      execution.terminate();
-    }
-  }));
-
-  // Queue Commands
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.addToQueue', async (item: TaskItem) => {
-    const queueService = QueueService.getInstance();
-    const queues = queueService.getQueueNames();
-    let targetQueue: string | undefined;
-
-    if (queues.length === 0) {
-        targetQueue = await vscode.window.showInputBox({ prompt: 'Enter name for new queue', placeHolder: 'Queue Name', value: 'Queue' });
-    } else {
-        const items = [...queues, 'New Queue...'];
-        const selected = await vscode.window.showQuickPick(items, { placeHolder: 'Select Queue to add task to' });
-        if (selected === 'New Queue...') {
-            targetQueue = await vscode.window.showInputBox({ prompt: 'Enter name for new queue', placeHolder: 'Queue Name', value: 'Queue' });
-        } else {
-            targetQueue = selected;
-        }
-    }
-
-    if (targetQueue) {
-        queueService.addToQueue(item, targetQueue);
-        taskTreeDataProvider.refreshLocal();
-    }
-  }));
-
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.removeFromQueue', (item: TaskItem) => {
     let queueName: string | undefined;
     if (item.parent && item.parent.contextValue === 'queue') {
