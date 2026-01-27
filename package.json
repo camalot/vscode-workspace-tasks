@@ -66,8 +66,6 @@
   "main": "./dist/extension.js",
   "scripts": {
     "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile:tests && npm run compile:webpack && npm run lint",
     "lint": "eslint src",
     "compile": "npm run compile:webpack",
