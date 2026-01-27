@@ -42,6 +42,11 @@ export class TaskRunner {
       return;
     }
     task = created.task;
+    task.presentationOptions = {
+      ...task.presentationOptions,
+      panel: vscode.TaskPanelKind.Dedicated
+    };
+
     // Extra debug info for gulp tasks
     if (item.taskType === 'gulp') {
       console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);

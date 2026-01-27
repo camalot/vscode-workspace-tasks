@@ -29,8 +29,18 @@
     "tasksignore",
     "venv"
   ],
-  "files.associations": {
-    "workspace-tasks.json": "jsonc",
-    ".workspace-tasks.json": "jsonc"
+  // "files.associations": {
+  //   "workspace-tasks.json": "jsonc",
+  //   ".workspace-tasks.json": "jsonc"
+  // },
+  "workspaceTasks.applicationPath.act": "tools/act/act",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      // "path": "C:\\Program Files\\PowerShell\\7\\pwsh.exe", // Path might vary
+      "args": [
+        "-noprofile"
+      ]
+    },
   }
 }

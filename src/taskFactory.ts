@@ -61,7 +61,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (args) { npmArgs.push(...args.split(' ')); }
 
       const full = `${npmCmd} ${npmArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd: npmCwd });
+      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
 
       const task = new vscode.Task(
         { type: 'npm', script: taskLabel },
@@ -70,7 +70,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'npm',
         shellExec
       );
-      return { task, command: full, cwd: npmCwd };
+      return { task, command: full, cwd };
     }
     case 'yarn': {
       const yarnProvider = new YarnTaskProvider();
@@ -82,7 +82,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (args) { yarnArgs.push(...args.split(' ')); }
 
       const full = `${yarnCmd} ${yarnArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd: yarnCwd });
+      const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd });
 
       const task = new vscode.Task(
         { type: 'yarn', script: taskLabel },
@@ -91,7 +91,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'yarn',
         shellExec
       );
-      return { task, command: full, cwd: yarnCwd };
+      return { task, command: full, cwd };
     }
     case 'pnpm': {
       const pnpmProvider = new PnpmTaskProvider();
@@ -103,7 +103,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (args) { pnpmArgs.push(...args.split(' ')); }
 
       const full = `${pnpmCmd} ${pnpmArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd: pnpmCwd });
+      const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd });
 
       const task = new vscode.Task(
         { type: 'pnpm', script: taskLabel },
@@ -112,7 +112,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'pnpm',
         shellExec
       );
-      return { task, command: full, cwd: pnpmCwd };
+      return { task, command: full, cwd };
     }
     case "mise": {
       // mise run <taskLabel> [args]
