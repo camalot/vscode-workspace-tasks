@@ -12,13 +12,18 @@ import * as removeFromRecentTasks from './removeFromRecentTasks';
 import * as openFileAtLine from './openFileAtLine';
 import * as restartTask from './restartTask';
 import * as stopTask from './stopTask';
+import * as addToFavorites from './addToFavorites';
 import * as addToQueue from './addToQueue';
 import * as removeFromQueue from './removeFromQueue';
 import * as clearQueue from './clearQueue';
 import * as runQueue from './runQueue';
+import * as renameQueue from './renameQueue';
+import * as removeFromFavorites from './removeFromFavorites';
+import * as onTreeItemClick from './onTreeItemClick';
 
 export function loadCommands(context: vscode.ExtensionContext) {
   const modules = [
+    addToFavorites,
     addToQueue,
     buyMeACoffee,
     clearQueue,
@@ -26,12 +31,15 @@ export function loadCommands(context: vscode.ExtensionContext) {
     collapseAll,
     githubIssues,
     githubSponsor,
+    onTreeItemClick,
     openFileAtLine,
     runTask,
     refresh,
     refreshTree,
     restartTask,
+    removeFromFavorites,
     removeFromRecentTasks,
+    renameQueue,
     removeFromQueue,
     runQueue,
     runTaskWithArgs,

@@ -35,6 +35,7 @@
   "keywords": [
     "tasks",
     "task",
+    "deno",
     "npm",
     "grunt",
     "gulp",
@@ -546,6 +547,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
             },
+            "deno": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.deno%"
+            },
             "docker": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
@@ -621,6 +626,7 @@
           },
           "default": {
             "ant": true,
+            "deno": true,
             "shell": true,
             "composer": true,
             "docker": true,
@@ -655,6 +661,12 @@
           "description": "%config.workspaceTasks.applicationPath.composer%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.composer.markdown%",
           "default": "composer"
+        },
+        "workspaceTasks.applicationPath.deno": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.deno%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.deno.markdown%",
+          "default": "~/.deno/bin/deno"
         },
         "workspaceTasks.applicationPath.msbuild": {
           "type": "string",

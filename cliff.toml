@@ -62,7 +62,7 @@ postprocessors = [
 # output = "test.md"
 
 [bump]
-bump_type = "patch"
+# bump_type = "patch"
 features_always_bump_minor = false
 breaking_always_bump_major = true
 
