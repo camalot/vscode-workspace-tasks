@@ -232,7 +232,7 @@
       {
         "command": "workspaceTasks.runTask",
         "title": "%command.runTask%",
-        "icon": "$(play)"
+        "icon": "$(debug-start)"
       },
       {
         "command": "workspaceTasks.runTaskWithArgs",
@@ -242,7 +242,7 @@
       {
         "command": "workspaceTasks.stopTask",
         "title": "%command.stopTask%",
-        "icon": "$(stop)"
+        "icon": "$(debug-stop)"
       },
       {
         "command": "workspaceTasks.restartTask",
