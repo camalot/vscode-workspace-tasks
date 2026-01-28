@@ -270,12 +270,18 @@
       {
         "command": "workspaceTasks.addToFavorites",
         "title": "%command.addToFavorites%",
-        "icon": "$(star)"
+        "icon": {
+          "light": "res/icons/light/star.svg",
+          "dark": "res/icons/dark/star.svg"
+        }
       },
       {
         "command": "workspaceTasks.removeFromFavorites",
         "title": "%command.removeFromFavorites%",
-        "icon": "$(star-full)"
+        "icon": {
+          "light": "res/icons/light/star-full.svg",
+          "dark": "res/icons/dark/star-full.svg"
+        }
       },
       {
         "command": "workspaceTasks.addToQueue",

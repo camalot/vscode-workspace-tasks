@@ -1,74 +1,105 @@
-## [1.0.3] - 2026-01-27
+## [1.1.0] - 2026-01-28
 
 ### 🚀 Features
 
-- *(tasks)* Added support for jupyter notebooks via the ms-toolsai.jupyter extensionn
+- *(ux)* Add an Explorer view for tasks #15
 
-- *(tasks)* Add abilitity to double click task item to run it #10
+- *(ux)* Configurable click behavior of tasks #25
 
-- Jupyter notebook support added in recent commit #11
-
-- Update tasks to support double click to execute #10
-
--   feat: update tasks to support double click to execute #10
+- *(ux)* Allow to disable checkmark after first execution of task #24
 
 
 ### 🐛 Bug Fixes
 
-- Preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable
+- Add colors to the action buttons for tasks (#21) (#26) by @jonatino in [#26](https://github.com/camalot/vscode-workspace-tasks/pull/26)
 
-- *(tree)* Propagate original task ID to split tasks to prevent ID collisions in grouped trees
-
--   fix(tree): propagate original task ID to split tasks to prevent ID collisions in grouped trees
-
--   fix: preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable
-
-- Fixed an issue with unable to run multiple tasks at the same time.
-
-- Grouped tasks by task separator may have wrong icon #13
-
-- A few configuration options don't seem to be considered #14
+-   fix: Add colors to the action buttons for tasks (#21) (#26)
 
 
 ### 💼 Other
 
-- Merge branch 'v1.0.3' of github.com:camalot/vscode-workspace-tasks into v1.0.3
+- Merge remote-tracking branch 'origin/develop' into explorer-view
 
-- * 'v1.0.3' of github.com:camalot/vscode-workspace-tasks:
-
-
-### 🧪 Testing
-
-- Add Configuration tests for settings get/update and event handling
-
--   tests: add Configuration tests for settings get/update and event handling
+- * origin/develop:
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(task)* Ensure that the Tasks root has the proper icon
+- *(tests)* Work on the test coverage
 
-- *(repo)* Fix typo and lint issues
+- *(commands)* Code cleanup of some commands
 
-- Fix readme markdown error.
+- *(repo)* Remove runQueue command from extension.activate
 
-- *(repo)* Setup some actions and scripts for helping with testing -> publish
+- *(repo)* Completed commands refactor
 
--   chore(repo): setup some actions and scripts for helping with testing -> publish
+- *(sample)* Update a sample file
 
-- *(repo)* Moved the samples to a separate repo to get better real world testing out of it
 
-- *(repo)* Added readme for info on sample repository location
 
-- *(repo)* Clean up some npm scripts
+### New Contributors
+* @jonatino made their first contribution in [#26](https://github.com/camalot/vscode-workspace-tasks/pull/26)
 
-- *(commands)* Moving commands out of extension.activate
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.0.3...v1.1.0
 
-- *(commands)* Moving commands out of extension.activate
+## [1.0.3] - 2026-01-27
 
-- *(changelog)* Update changelog
+### 💼 Other
 
-- *(config)* Remove unused function to check status of shell type
+- V1.0.3 (#17) by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(deps): update dependency version for @types/node by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * feat(tasks): added support for jupyter notebooks via the ms-toolsai.jupyter extensionn by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(task): ensure that the Tasks root has the proper icon by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(repo): fix typo and lint issues by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * feat(tasks): add abilitity to double click task item to run it #10 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore: Fix readme markdown error. by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * feat: jupyter notebook support added in recent commit #11 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * feat: update tasks to support double click to execute #10 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * tests: add Configuration tests for settings get/update and event handling by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(repo): setup some actions and scripts for helping with testing -> publish by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * fix: preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * fix(tree): propagate original task ID to split tasks to prevent ID collisions in grouped trees by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(repo): moved the samples to a separate repo to get better real world testing out of it by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * fix: fixed an issue with unable to run multiple tasks at the same time. by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(repo): added readme for info on sample repository location by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * fix: grouped tasks by task separator may have wrong icon #13 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(repo): clean up some npm scripts by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(commands): moving commands out of extension.activate by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(commands): moving commands out of extension.activate by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * fix: A few configuration options don't seem to be considered #14 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(changelog): update changelog by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore(config): remove unused function to check status of shell type by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * feat(tasks): Restrict task search depth. #16 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+- * chore: cleanup unused changelog tool configuration by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(repo)* Tooling config cleanup by @camalot
 
 
 
@@ -192,3 +223,4 @@
 
 ### New Contributors
 * @camalot made their first contribution
+
