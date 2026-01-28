@@ -73,7 +73,7 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
           );
 
           item.taskFileUri = file;
-          item.onSingleClickCommand = {
+          item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
             arguments: [file, 0]

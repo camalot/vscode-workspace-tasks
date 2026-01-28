@@ -59,7 +59,7 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
 
-            item.onSingleClickCommand = {
+            item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, i]

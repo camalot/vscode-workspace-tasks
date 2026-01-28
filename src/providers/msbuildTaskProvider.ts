@@ -64,7 +64,7 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
           // need to find the startline
           item.startLine = this.findTargetStartLine(xmlString, target.name);
 
-          item.onSingleClickCommand = {
+          item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
             arguments: [file, item.startLine || 0]

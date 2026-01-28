@@ -74,6 +74,11 @@
   "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
+  "config.workspaceTasks.task.singleClickAction": "Single Click Action",
+  "config.workspaceTasks.task.singleClickAction.markdown": "Action to perform when a task is single-clicked.  `run` - Run the task  `open` - Open the task  `none` - Do nothing",
+  "config.workspaceTasks.task.doubleClickAction": "Double Click Action",
+  "config.workspaceTasks.task.doubleClickAction.markdown": "Action to perform when a task is double-clicked.  `run` - Run the task  `open` - Open the task  `none` - Do nothing",
+
   "config.workspaceTasks.shellAdditionalExtensions": "Additional File Extensions for Shell Tasks",
   "config.workspaceTasks.shellAdditionalExtensions.markdown": "Add extra file extensions (beyond the default ones) that should be treated as shell tasks. Use a key-value format where the key is a file extension without the leading dot (e.g., `myscript`) and the value is the path to the shell interpreter (e.g., `/usr/local/bin/myshell`). This allows you to run custom script files as tasks within the extension.",
 

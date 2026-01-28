@@ -2,6 +2,7 @@ import BaseCommand from "../common/baseCommand";
 import * as vscode from 'vscode';
 import { TaskItem } from "../taskItem";
 import { TaskCacheService } from "../services/taskCacheService";
+import { configuration } from '../libs/configuration';
 
 export class OnTreeItemClickCommand extends BaseCommand {
   private clickTimers: Map<string, NodeJS.Timeout> = new Map();
@@ -35,18 +36,35 @@ export class OnTreeItemClickCommand extends BaseCommand {
       clearTimeout(this.clickTimers.get(id));
       this.clickTimers.delete(id);
 
-      if (item.onDoubleClickCommand) {
-        vscode.commands.executeCommand(item.onDoubleClickCommand.command, ...(item.onDoubleClickCommand.arguments || []));
+      const action = this.getClickAction(item, 'double');
+      if (action) {
+        vscode.commands.executeCommand(action.command, ...(action.arguments || []));
       }
     } else {
       // Single click - wait for potential double click
       const timeout = setTimeout(() => {
         this.clickTimers.delete(id);
-        if (item!.onSingleClickCommand) {
-          vscode.commands.executeCommand(item!.onSingleClickCommand.command, ...(item!.onSingleClickCommand.arguments || []));
+        const action = this.getClickAction(item, 'single');
+        if (action) {
+          vscode.commands.executeCommand(action.command, ...(action.arguments || []));
         }
       }, 250);
       this.clickTimers.set(id, timeout);
     }
+  }
+
+  private getClickAction(item: TaskItem, clickType: 'single' | 'double'): vscode.Command | undefined {
+    const action = clickType === 'single' ? configuration.get<string>('task.singleClickAction', 'open') : configuration.get<string>('task.doubleClickAction', 'run');
+
+    if (action === 'none') {
+      return undefined;
+    }
+
+    if (action === 'open') {
+      return item.onOpenActionCommand;
+    } else if (action === 'run') {
+      return item.onRunActionCommand;
+    }
+    return undefined;
   }
 }

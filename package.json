@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for VS Code",
   "readme": "README.md",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -397,6 +397,28 @@
           "markdownDescription": "%config.workspaceTasks.taskDiscovery.fetchDepth.markdown%",
           "default": null,
           "minimum": 1
+        },
+        "workspaceTasks.task.singleClickAction": {
+          "type": "string",
+          "enum": [
+            "run",
+            "open",
+            "none"
+          ],
+          "default": "open",
+          "description": "%config.workspaceTasks.task.singleClickAction%",
+          "markdownDescription": "%config.workspaceTasks.task.singleClickAction.markdown%"
+        },
+        "workspaceTasks.task.doubleClickAction": {
+          "type": "string",
+          "enum": [
+            "run",
+            "open",
+            "none"
+          ],
+          "default": "run",
+          "description": "%config.workspaceTasks.task.doubleClickAction%",
+          "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%"
         },
         "workspaceTasks.shellEnabledTaskTypes": {
           "type": "object",
