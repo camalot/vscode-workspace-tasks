@@ -398,6 +398,12 @@
           "default": null,
           "minimum": 1
         },
+        "workspaceTasks.task.statusResetDelay": {
+          "type": "number",
+          "default": 500,
+          "description": "%config.workspaceTasks.task.statusResetDelay%",
+          "markdownDescription": "%config.workspaceTasks.task.statusResetDelay.markdown%"
+        },
         "workspaceTasks.task.singleClickAction": {
           "type": "string",
           "enum": [

@@ -27,6 +27,7 @@ import { MavenTaskProvider } from './providers/mavenTaskProvider';
 import { JupyterTaskProvider } from './providers/jupyterTaskProvider';
 import { loadCommands } from './commands/index';
 import { registerTaskProviders } from './providers/index';
+import { configuration } from './libs/configuration';
 
 export async function activate(context: vscode.ExtensionContext) {
   ExtensionConfigurationService.getInstance().initialize(context);
@@ -95,6 +96,17 @@ export async function activate(context: vscode.ExtensionContext) {
       stateManager.setStatus(id, status);
       stateManager.clearExecution(id);
       taskTreeDataProvider.refreshLocal();
+
+      const delay = configuration.get<number>('task.statusResetDelay', 500);
+      if (delay > 0) {
+        setTimeout(() => {
+          stateManager.setStatus(id, 'idle');
+          taskTreeDataProvider.refreshLocal();
+        }, delay);
+      } else {
+        stateManager.setStatus(id, 'idle');
+        taskTreeDataProvider.refreshLocal();
+      }
     }
   }));
 

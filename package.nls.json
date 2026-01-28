@@ -79,6 +79,9 @@
   "config.workspaceTasks.task.doubleClickAction": "Double Click Action",
   "config.workspaceTasks.task.doubleClickAction.markdown": "Action to perform when a task is double-clicked.  `run` - Run the task  `open` - Open the task  `none` - Do nothing",
 
+  "config.workspaceTasks.task.statusResetDelay": "Task Status Reset Delay",
+  "config.workspaceTasks.task.statusResetDelay.markdown": "The delay in **milliseconds** before resetting the task icon back to its original state after execution. Set to `0` to reset immediately.",
+
   "config.workspaceTasks.shellAdditionalExtensions": "Additional File Extensions for Shell Tasks",
   "config.workspaceTasks.shellAdditionalExtensions.markdown": "Add extra file extensions (beyond the default ones) that should be treated as shell tasks. Use a key-value format where the key is a file extension without the leading dot (e.g., `myscript`) and the value is the path to the shell interpreter (e.g., `/usr/local/bin/myshell`). This allows you to run custom script files as tasks within the extension.",
 

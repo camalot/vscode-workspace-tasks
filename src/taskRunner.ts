@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskItem } from './taskItem';
-import { TaskStateManager } from './taskStateManager';
+import { TaskStateManager, TaskStatus } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';
 import { QueueService } from './services/queueService';
 
@@ -89,11 +89,9 @@ export class TaskRunner {
         await this.runTask(item);
         // runTask starts execution but returns effectively immediately after launch.
         // We need to WAIT for the task to finish.
-        await this.waitForTask(item);
+        const status = await this.waitForTask(item);
 
         // Check status
-        const id = TaskStateManager.getInstance().getTaskId(item);
-        const status = TaskStateManager.getInstance().getStatus(id);
         if (status === 'failure') {
           vscode.window.showErrorMessage(`Queue '${queueName}' stopped: Task '${item.label}' failed.`);
           break;
@@ -106,32 +104,31 @@ export class TaskRunner {
     }
   }
 
-  // TODO: The polling approach with setInterval to wait for task completion is inefficient
-  // and can lead to resource waste. Consider using VSCode's task events (onDidEndTask,
-  // onDidEndTaskProcess) instead of polling. This would be more efficient and provide
-  // immediate notification when tasks complete.
-  private waitForTask(item: TaskItem): Promise<void> {
+  private waitForTask(item: TaskItem): Promise<TaskStatus> {
     return new Promise((resolve) => {
       const id = TaskStateManager.getInstance().getTaskId(item);
       const maxWaitMs = 5 * 60 * 1000; // 5 minutes
-      const pollInterval = 500;
-      let elapsed = 0;
 
-      const interval = setInterval(() => {
-        const status = TaskStateManager.getInstance().getStatus(id);
-        if (status === 'success' || status === 'failure' || status === 'idle') {
-          // 'idle' might mean it was stopped or reset
-          clearInterval(interval);
-          resolve();
-        } else {
-          elapsed += pollInterval;
-          if (elapsed >= maxWaitMs) {
-            clearInterval(interval);
-            resolve(); // Timeout reached, resolve anyway
-            console.warn(`[TaskRunner] waitForTask timed out after ${maxWaitMs / 1000}s for task id: ${id}`);
+      // Check immediate status
+      const currentStatus = TaskStateManager.getInstance().getStatus(id);
+      if (currentStatus === 'success' || currentStatus === 'failure' || currentStatus === 'idle') {
+        return resolve(currentStatus);
+      }
+
+      const disposable = TaskStateManager.getInstance().onDidStateChange(e => {
+        if (e.id === id) {
+          if (e.status === 'success' || e.status === 'failure' || e.status === 'idle') {
+            disposable.dispose();
+            resolve(e.status);
           }
         }
-      }, pollInterval);
+      });
+
+      // Safety timeout
+      setTimeout(() => {
+        disposable.dispose();
+        resolve(TaskStateManager.getInstance().getStatus(id));
+      }, maxWaitMs);
     });
   }
 }
