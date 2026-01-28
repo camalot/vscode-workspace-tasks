@@ -15,6 +15,7 @@ import * as stopTask from './stopTask';
 import * as addToQueue from './addToQueue';
 import * as removeFromQueue from './removeFromQueue';
 import * as clearQueue from './clearQueue';
+import * as runQueue from './runQueue';
 
 export function loadCommands(context: vscode.ExtensionContext) {
   const modules = [
@@ -32,6 +33,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
     restartTask,
     removeFromRecentTasks,
     removeFromQueue,
+    runQueue,
     runTaskWithArgs,
     stopTask
   ];
