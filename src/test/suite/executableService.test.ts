@@ -10,7 +10,7 @@ suite('ExecutableService Tests', () => {
     // For empty string check, we skip writing to config to avoid test runner issues.
     // We rely on visual verification of logic: (!command || command.trim().length === 0)
 
-    const res = exec.getCommand({ configKey: 'nonExistentKey', defaultValue: 'npx grunt', configName: 'grunt', resolveToAbsolutePath: false }, vscode.Uri.file(path.resolve(__dirname, '../../sample/npm-project')));
+    const res = exec.getCommand({ configKey: 'nonExistentKey', defaultValue: 'npx grunt', configName: 'grunt', resolveToAbsolutePath: false }, vscode.Uri.file(path.resolve(__dirname, '../task-files')));
 
     // Command should now be split
     assert.strictEqual(res.command, 'npx');

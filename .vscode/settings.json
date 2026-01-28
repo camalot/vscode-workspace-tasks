@@ -33,5 +33,19 @@
   //   "workspace-tasks.json": "jsonc",
   //   ".workspace-tasks.json": "jsonc"
   // },
-  "workspaceTasks.applicationPath.act": "tools/act/act"
+  "workspaceTasks.applicationPath.act": "tools/act/act",
+  "workspaceTasks.shellEnabledTaskTypes": {
+    "bash": true,
+    "batch": true,
+    "sh": true,
+    "zsh": true,
+    "fish": true,
+    "nushell": true,
+    "perl": true,
+    "pwsh": true,
+    "python": true,
+    "ruby": true,
+    "other": true
+  },
+  "workspaceTasks.groups.taskSeparator": ""
 }
