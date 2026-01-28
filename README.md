@@ -28,6 +28,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 ## ✨ Key Features
 
 - **🔍 Automatic Task Discovery** - Scans your workspace for tasks from 20+ file types and build systems
+- **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
 - **⭐ Favorites** - Pin frequently used tasks for instant access
 - **🌱 Recent Tasks** - Tracks the most recently executed tasks
 - **📋 Multiple Task Queues** - Create and manage named sequences of tasks
@@ -218,7 +219,9 @@ code --install-extension darthminos.workspace-tasks
 ## 🚀 Quick Start
 
 1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
-2. **Open the Workspace Tasks view** from the Activity Bar (sidebar)
+2. **Open the Workspace Tasks view** from the Activity Bar (sidebar) or Explorer panel
+   - **Sidebar:** Click the Workspace Tasks icon in the Activity Bar
+   - **Explorer:** Find "Workspace Tasks" in the Explorer panel, or drag it to your preferred location
 3. **Browse tasks** organized by workspace folder and task type
 4. **Run a task** by double-clicking it or clicking the play icon (▶️)
 5. **Add to favorites** by clicking the star icon (☆)
@@ -230,6 +233,7 @@ code --install-extension darthminos.workspace-tasks
 - Single-click a task to open its definition file (when applicable)
 - Use the collapse button (⊟) to toggle view states
 - Create `.tasksignore` files to exclude unwanted tasks
+- Drag the Explorer view to any panel location (sidebar, panel, or as a floating window)
 
 ## ⚙️ Configuration
 
@@ -488,6 +492,24 @@ Add workspace-wide exclusions in `settings.json`:
 ```
 
 ## 🔧 Advanced Features
+
+### View Placement and Layout
+
+**Multiple View Options:**
+
+- **Dedicated Sidebar** - Access Workspace Tasks from the Activity Bar for a dedicated panel
+- **Explorer Integration** - View tasks alongside your files in the Explorer panel
+
+  ![Explorer View](res/assets/images/explorer-view.png)
+
+- **Dockable Window** - Drag the Explorer view to any location (left, right, bottom panel, or floating)
+- **Synchronized State** - Both views share the same state—actions in one view reflect in the other
+
+**View Management:**
+
+- Right-click on the Explorer view header to move it to different panels
+- Drag the view to create a split layout with other views
+- Use both views simultaneously for different workflows (e.g., sidebar for quick access, panel for detailed task management)
 
 ### Execution and Navigation
 

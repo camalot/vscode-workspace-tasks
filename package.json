@@ -191,6 +191,13 @@
           "name": "Tasks",
           "icon": "res/icon.svg"
         }
+      ],
+      "explorer": [
+        {
+          "id": "workspaceTasksExplorer",
+          "name": "Workspace Tasks",
+          "icon": "res/icon.svg"
+        }
       ]
     },
     "commands": [
@@ -704,27 +711,27 @@
         {
           "command": "workspaceTasks.githubIssues",
           "group": "navigation@1",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.githubSponsor",
           "group": "navigation@2",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.buyMeACoffee",
           "group": "navigation@3",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.collapseAll",
           "group": "navigation@4",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.refresh",
           "group": "navigation@5",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         }
       ],
       "view/item/context": [

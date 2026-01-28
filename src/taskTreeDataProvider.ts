@@ -17,7 +17,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   readonly onDidChangeTreeData: vscode.Event<TaskItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
   public dragAndDropController: vscode.TreeDragAndDropController<TaskItem>;
-  private view?: vscode.TreeView<TaskItem>;
+  private views: vscode.TreeView<TaskItem>[] = [];
   private currentRoots: TaskItem[] = [];
   private collapseLevel: number = 0;
   private pendingRevealLevel: number | undefined = undefined;
@@ -56,7 +56,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   public bindView(view: vscode.TreeView<TaskItem>) {
-    this.view = view;
+    this.views.push(view);
   }
 
   registerProvider(provider: TaskProvider) {
@@ -97,7 +97,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   async collapseAllTaskGroups(): Promise<void> {
-    if (!this.view) { return; }
+    if (this.views.length === 0) { return; }
 
     // Toggle logic:
     // 0 -> 1 (Expand All)
@@ -157,19 +157,21 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           const level = this.pendingRevealLevel;
           this.pendingRevealLevel = undefined;
           setTimeout(async () => {
-              if (!this.view) {
+              if (this.views.length === 0) {
                 return;
               }
-              for (const root of this.currentRoots) {
-                try {
-                    if (level === 1) {
-                         // Ensure root is expanded 1 level deep (showing collapsed groups)
-                         await this.view.reveal(root, { expand: 1, select: false, focus: false });
-                    } else if (level === 0) {
-                         // Ensure root is expanded 3 levels deep (showing tasks)
-                         await this.view.reveal(root, { expand: 3, select: false, focus: false });
-                    }
-                } catch (e) { }
+              for (const view of this.views) {
+                for (const root of this.currentRoots) {
+                  try {
+                      if (level === 1) {
+                          // Ensure root is expanded 1 level deep (showing collapsed groups)
+                          await view.reveal(root, { expand: 1, select: false, focus: false });
+                      } else if (level === 0) {
+                          // Ensure root is expanded 3 levels deep (showing tasks)
+                          await view.reveal(root, { expand: 3, select: false, focus: false });
+                      }
+                  } catch (e) { }
+                }
               }
           }, 100);
       }

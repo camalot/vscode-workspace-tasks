@@ -91,6 +91,13 @@ export async function activate(context: vscode.ExtensionContext) {
   taskTreeDataProvider.bindView(treeView);
   context.subscriptions.push(treeView);
 
+  const explorerView = vscode.window.createTreeView('workspaceTasksExplorer', {
+    treeDataProvider: taskTreeDataProvider,
+    dragAndDropController: taskTreeDataProvider.dragAndDropController
+  });
+  taskTreeDataProvider.bindView(explorerView);
+  context.subscriptions.push(explorerView);
+
   // Load commands (statically imported so webpack includes them)
   try {
     loadCommands(context);
