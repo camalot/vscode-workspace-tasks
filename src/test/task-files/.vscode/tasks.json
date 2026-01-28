@@ -1,0 +1,129 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "VSCode: Hello",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Hello from VSCode tasks!"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "group": "MyGroup",
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+    },
+    {
+      "label": "VSCode: Hello Again",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Hello again from VSCode tasks!"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "group": "MyGroup",
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+    },
+    {
+      "label": "VSCode: Long Running",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "echo 'Starting long running VSCode task...'; for i in {1..10}; do echo 'Progress: $i/10'; sleep 1; done; echo 'Long running task completed!'"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "VSCode: Failing Task",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "echo 'This VSCode task will fail...'; exit 1"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "VSCode: Build",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Building project..."
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "VSCode: Test",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Running tests..."
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Node.js Hello",
+      "type": "npm",
+      "script": "hello",
+      "path": "nodejs/",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Shell Script",
+      "type": "shell",
+      "command": "./shell/hello.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Python Script",
+      "type": "shell",
+      "command": "./python/tasks.py",
+      "args": [
+        "hello"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Make Hello",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "hello"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/makefile"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
