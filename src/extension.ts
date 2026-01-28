@@ -148,34 +148,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.removeFromQueue', (item: TaskItem) => {
-    let queueName: string | undefined;
-    if (item.parent && item.parent.contextValue === 'queue') {
-         queueName = item.parent.label as string;
-    }
-    QueueService.getInstance().removeFromQueue(item, queueName);
-    taskTreeDataProvider.refreshLocal();
-  }));
-
-  context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.clearQueue', async (item?: TaskItem) => {
-    if (item && item.contextValue === 'queue') {
-        QueueService.getInstance().clearQueue(item.label as string);
-        taskTreeDataProvider.refreshLocal();
-        return;
-    }
-
-    const queues = QueueService.getInstance().getQueueNames();
-    if (queues.length === 0) {
-      return;
-    }
-
-    const selected = await vscode.window.showQuickPick(queues, { placeHolder: 'Select queue to clear'});
-    if (selected) {
-         QueueService.getInstance().clearQueue(selected);
-         taskTreeDataProvider.refreshLocal();
-    }
-  }));
-
   context.subscriptions.push(vscode.commands.registerCommand('workspaceTasks.runQueue', async (item?: TaskItem) => {
     if (item && item.contextValue === 'queue') {
          TaskRunner.getInstance().runQueue(item.label as string);

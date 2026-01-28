@@ -13,11 +13,14 @@ import * as openFileAtLine from './openFileAtLine';
 import * as restartTask from './restartTask';
 import * as stopTask from './stopTask';
 import * as addToQueue from './addToQueue';
+import * as removeFromQueue from './removeFromQueue';
+import * as clearQueue from './clearQueue';
 
 export function loadCommands(context: vscode.ExtensionContext) {
   const modules = [
     addToQueue,
     buyMeACoffee,
+    clearQueue,
     clearRecentTasks,
     collapseAll,
     githubIssues,
@@ -28,6 +31,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
     refreshTree,
     restartTask,
     removeFromRecentTasks,
+    removeFromQueue,
     runTaskWithArgs,
     stopTask
   ];
