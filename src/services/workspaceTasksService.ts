@@ -67,7 +67,7 @@ export class WorkspaceTasksService {
       defaultsPath = path.resolve(__dirname, '..', '..', 'res', 'config', 'workspace-tasks.json');
     }
 
-    console.debug(`[WorkspaceTasksService]: Loading default workspace tasks from ${defaultsPath}`);
+    // console.debug(`[WorkspaceTasksService]: Loading default workspace tasks from ${defaultsPath}`);
     try {
       if (defaultsPath && fs.existsSync(defaultsPath)) {
         const content = await fs.promises.readFile(defaultsPath, 'utf8');
@@ -111,7 +111,7 @@ export class WorkspaceTasksService {
       }
     }
     this.config = newConfig;
-    console.debug('Workspace tasks configuration loaded');
+    // console.debug('Workspace tasks configuration loaded');
   }
 
   private mergeConfig(target: FileTasksConfig, local: FileTasksConfig) {

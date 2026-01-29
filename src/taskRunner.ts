@@ -102,9 +102,9 @@ export class TaskRunner {
     };
 
     // Extra debug info for gulp tasks
-    if (item.taskType === 'gulp') {
-      console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);
-    }
+    // if (item.taskType === 'gulp') {
+    //   console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);
+    // }
 
     const id = TaskStateManager.getInstance().getTaskId(item);
     TaskStateManager.getInstance().setStatus(id, 'running');

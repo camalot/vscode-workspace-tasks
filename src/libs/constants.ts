@@ -12,7 +12,7 @@ const constants: Record<string, any> = {
 
   GLOB_GLOBAL_EXCLUDE: "**/node_modules/**,**/.git/**",
   GLOB_ANT: "**/*.xml",
-  // GLOB_DENO: "**/{deno,package}.json",
+  GLOB_DENO: "**/deno.{json,jsonc}",
   GLOB_JUST: "{**/justfile,**/.justfile,**/*.just}",
   GLOB_MAVEN: "**/pom.xml",
   GLOB_MISE: "**/{mise.toml,mise.*.toml,mise.*.local.toml}",

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './npmTaskProvider';
 import { ComposerTaskProvider } from './composerTaskProvider';
+import { DenoTaskProvider } from './denoTaskProvider';
 import { ShellTaskProvider } from './shellTaskProvider';
 import { VscodeTaskProvider } from './vscodeTaskProvider';
 import { VenvTaskProvider } from './venvTaskProvider';
@@ -25,6 +26,7 @@ type TaskProviderConstructor =
   | (new () => PnpmTaskProvider)
   | (new () => YarnTaskProvider)
   | (new () => ComposerTaskProvider)
+  | (new () => DenoTaskProvider)
   | (new () => ShellTaskProvider)
   | (new () => VscodeTaskProvider)
   | (new () => VenvTaskProvider)
@@ -48,6 +50,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     PnpmTaskProvider,
     YarnTaskProvider,
     ComposerTaskProvider,
+    DenoTaskProvider,
     ShellTaskProvider,
     VscodeTaskProvider,
     VenvTaskProvider,

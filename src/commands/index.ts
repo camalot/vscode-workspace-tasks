@@ -54,7 +54,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
           try {
             // instantiate; constructor will register the command via BaseCommand
             new CommandClass(context);
-            console.log(`Loading command: ${key}`);
+            // console.log(`Loading command: ${key}`);
           } catch (err) {
             console.error(`Failed to load command ${key}:`, err);
           }

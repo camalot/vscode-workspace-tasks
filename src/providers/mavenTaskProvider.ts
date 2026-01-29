@@ -85,7 +85,7 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
         }
 
       } catch (error) {
-        console.debug(`Failed to parse ${file.fsPath}: ${error}`);
+        console.error(`Failed to parse ${file.fsPath}: ${error}`);
         continue;
       }
     }

@@ -633,7 +633,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
             },
-
+            "deno": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.deno%"
+            },
             "docker": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
