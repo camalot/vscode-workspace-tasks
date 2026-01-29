@@ -432,6 +432,58 @@
           "description": "%config.workspaceTasks.task.doubleClickAction%",
           "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%"
         },
+        "workspaceTasks.task.presentationOptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reveal": {
+              "type": "string",
+              "title": "%config.workspaceTasks.task.presentationOptions.reveal%",
+              "description": "%config.workspaceTasks.task.presentationOptions.reveal.description%",
+              "enum": [
+                "always",
+                "silent",
+                "never"
+              ],
+              "default": "always"
+            },
+            "clear": {
+              "title": "%config.workspaceTasks.task.presentationOptions.clear%",
+              "description": "%config.workspaceTasks.task.presentationOptions.clear.description%",
+              "type": "boolean",
+              "default": false
+            },
+            "close": {
+              "title": "%config.workspaceTasks.task.presentationOptions.close%",
+              "description": "%config.workspaceTasks.task.presentationOptions.close.description%",
+              "type": "boolean",
+              "default": false
+            },
+            "echo": {
+              "title": "%config.workspaceTasks.task.presentationOptions.echo%",
+              "description": "%config.workspaceTasks.task.presentationOptions.echo.description%",
+              "type": "boolean",
+              "default": true
+            },
+            "focus": {
+              "title": "%config.workspaceTasks.task.presentationOptions.focus%",
+              "description": "%config.workspaceTasks.task.presentationOptions.focus.description%",
+              "type": "boolean",
+              "default": false
+            },
+            "panel": {
+              "type": "string",
+              "title": "%config.workspaceTasks.task.presentationOptions.panelKind%",
+              "description": "%config.workspaceTasks.task.presentationOptions.panelKind.description%",
+              "enum": [
+                "dedicated",
+                "shared",
+                "new"
+              ],
+              "default": "shared"
+            }
+          }
+        },
         "workspaceTasks.shellEnabledTaskTypes": {
           "type": "object",
           "additionalProperties": false,

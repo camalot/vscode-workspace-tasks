@@ -74,6 +74,24 @@
   "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
+  "config.workspaceTasks.task.presentationOptions.panelKind": "Panel Kind",
+  "config.workspaceTasks.task.presentationOptions.panelKind.description": "Controls if the task panel is used for this task only (dedicated), shared between tasks (shared) or if a new panel is created on every task execution (new).",
+
+  "config.workspaceTasks.task.presentationOptions.reveal": "Reveal",
+  "config.workspaceTasks.task.presentationOptions.reveal.description": "Controls whether the task output is reveal in the user interface.",
+
+  "config.workspaceTasks.task.presentationOptions.focus": "Focus",
+  "config.workspaceTasks.task.presentationOptions.focus.description": "Controls whether the panel showing the task output is taking focus.",
+
+  "config.workspaceTasks.task.presentationOptions.echo": "Echo",
+  "config.workspaceTasks.task.presentationOptions.echo.description": "Controls whether the command associated with the task is echoed in the user interface.",
+
+  "config.workspaceTasks.task.presentationOptions.close": "Close",
+  "config.workspaceTasks.task.presentationOptions.close.description": "Controls whether the terminal is closed after executing the task.",
+
+  "config.workspaceTasks.task.presentationOptions.clear": "Clear",
+  "config.workspaceTasks.task.presentationOptions.clear.description": "Controls whether the terminal is cleared before executing the task.",
+
   "config.workspaceTasks.task.singleClickAction": "Single Click Action",
   "config.workspaceTasks.task.singleClickAction.markdown": "Action to perform when a task is single-clicked.  `run` - Run the task  `open` - Open the task  `none` - Do nothing",
   "config.workspaceTasks.task.doubleClickAction": "Double Click Action",

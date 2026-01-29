@@ -4,6 +4,7 @@ import { TaskItem } from './taskItem';
 import { TaskStateManager, TaskStatus } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';
 import { QueueService } from './services/queueService';
+import { configuration } from './libs/configuration';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -42,9 +43,62 @@ export class TaskRunner {
       return;
     }
     task = created.task;
+
+    interface presentationOptions {
+      reveal?: "always" | "silent" | "never";
+      clear?: boolean;
+      close?: boolean;
+      echo?: boolean;
+      focus?: boolean;
+      panel?: "dedicated" | "shared" | "new"
+    }
+
+    const presentationOptionsSetting = configuration.get<presentationOptions>('task.presentationOptions', {});
+
+    let reveal: vscode.TaskRevealKind;
+    switch (presentationOptionsSetting.reveal) {
+      case "always":
+        reveal = vscode.TaskRevealKind.Always;
+        break;
+      case "silent":
+        reveal = vscode.TaskRevealKind.Silent;
+        break;
+      case "never":
+        reveal = vscode.TaskRevealKind.Never;
+        break;
+      default:
+        reveal = vscode.TaskRevealKind.Always;
+        break;
+    }
+    let panel: vscode.TaskPanelKind;
+    switch (presentationOptionsSetting.panel) {
+      case "dedicated":
+        panel = vscode.TaskPanelKind.Dedicated;
+        break;
+      case "shared":
+        panel = vscode.TaskPanelKind.Shared;
+        break;
+      case "new":
+        panel = vscode.TaskPanelKind.New;
+        break;
+      default:
+        panel = vscode.TaskPanelKind.Shared;
+        break;
+    }
+
+    const presentation: vscode.TaskPresentationOptions = {
+      reveal: reveal,
+      clear: presentationOptionsSetting.clear,
+      close: presentationOptionsSetting.close,
+      echo: presentationOptionsSetting.echo,
+      focus: presentationOptionsSetting.focus,
+      panel: panel
+    };
+
+    // merge the existing task presentation options with the new ones. the task's existing options take precedence
     task.presentationOptions = {
-      ...task.presentationOptions,
-      panel: vscode.TaskPanelKind.Dedicated
+      ...presentation,
+      ...task.presentationOptions
     };
 
     // Extra debug info for gulp tasks
