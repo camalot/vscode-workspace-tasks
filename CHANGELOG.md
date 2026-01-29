@@ -1,4 +1,4 @@
-## [1.1.0] - 2026-01-28
+## [1.1.0] - 2026-01-29
 
 ### 🚀 Features
 
@@ -8,12 +8,17 @@
 
 - *(ux)* Allow to disable checkmark after first execution of task #24
 
+- *(tasks)* Add setting to control task terminal panel behavior #20
+  - does not resolve the vscode tasks presentation configuration is ignored #23
+
 
 ### 🐛 Bug Fixes
 
 - Add colors to the action buttons for tasks (#21) (#26) by @jonatino in [#26](https://github.com/camalot/vscode-workspace-tasks/pull/26)
 
 -   fix: Add colors to the action buttons for tasks (#21) (#26)
+
+- Add colors to the action buttons for tasks - favorites #21
 
 
 ### 💼 Other
@@ -223,4 +228,3 @@
 
 ### New Contributors
 * @camalot made their first contribution
-
