@@ -47,6 +47,12 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
 
         if (json && json.tasks && Array.isArray(json.tasks)) {
           for (const task of json.tasks) {
+
+            // is the task hidden?
+            if (task.runOptions && task.runOptions.hide) {
+              continue;
+            }
+
             const label = task.label || 'Unnamed Task';
             const item = new TaskItem(
               label,

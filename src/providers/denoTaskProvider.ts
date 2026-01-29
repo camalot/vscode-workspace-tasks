@@ -46,7 +46,7 @@ export class DenoTaskProvider extends BaseTaskProvider {
         // Simple parsing for now
         const json = JSON.parse(content);
         if (json.tasks) {
-          console.log(`Found ${Object.keys(json.tasks).length} tasks in ${file.fsPath}`);
+          // console.log(`Found ${Object.keys(json.tasks).length} tasks in ${file.fsPath}`);
           for (const script of Object.keys(json.tasks)) {
             const item = new TaskItem(
               script,

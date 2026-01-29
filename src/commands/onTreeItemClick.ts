@@ -55,6 +55,12 @@ export class OnTreeItemClickCommand extends BaseCommand {
     }
   }
 
+  /**
+   *
+   * @param item The task item that triggered the action
+   * @param clickType The type of action that occurred
+   * @returns The command action to execute
+   */
   private getClickAction(item: TaskItem, clickType: 'single' | 'double'): vscode.Command | undefined {
     const action = clickType === 'single' ? configuration.get<string>('task.singleClickAction', 'open') : configuration.get<string>('task.doubleClickAction', 'run');
 
@@ -66,6 +72,8 @@ export class OnTreeItemClickCommand extends BaseCommand {
       return item.onOpenActionCommand;
     } else if (action === 'run') {
       return item.onRunActionCommand;
+    } else if (action === 'runWithArgs') {
+      return item.onRunWithArgsActionCommand;
     }
     return undefined;
   }

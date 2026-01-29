@@ -18,6 +18,7 @@ export class TaskItem extends vscode.TreeItem {
 
   public onOpenActionCommand?: vscode.Command;
   public onRunActionCommand?: vscode.Command;
+  public onRunWithArgsActionCommand?: vscode.Command;
 
   constructor(
     public readonly label: string,
@@ -26,12 +27,23 @@ export class TaskItem extends vscode.TreeItem {
     public readonly resourceUri?: vscode.Uri,
     command?: vscode.Command,
     defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
-    onRunActionCommand?: vscode.Command
+    onRunActionCommand?: vscode.Command,
+    onRunWithArgsActionCommand?: vscode.Command
   ) {
     super(label, collapsibleState);
 
     this.onOpenActionCommand = command;
     this.onRunActionCommand = onRunActionCommand;
+    this.onRunWithArgsActionCommand = onRunWithArgsActionCommand;
+
+    // Default open action
+    if (!this.onOpenActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
+      this.onOpenActionCommand = {
+        command: 'workspaceTasks.openFileAtLine',
+        title: 'Open File',
+        arguments: [this.taskFileUri || this.resourceUri, this.startLine || 0]
+      };
+    }
 
     // Default double click to run task if it's a leaf node
     if (!this.onRunActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
@@ -45,7 +57,7 @@ export class TaskItem extends vscode.TreeItem {
     }
 
     // Only set the trigger command if we actually have actions to perform
-    if (this.onOpenActionCommand || this.onRunActionCommand) {
+    if (this.onOpenActionCommand || this.onRunActionCommand || this.onRunWithArgsActionCommand) {
       this.command = {
         command: 'workspaceTasks.onTreeItemClick',
         title: 'On Tree Item Click',
