@@ -36,7 +36,7 @@ export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
 
       item.taskFileUri = file;
       item.description = vscode.workspace.asRelativePath(file);
-      item.onSingleClickCommand = {
+      item.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
         arguments: [file, 0]

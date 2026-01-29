@@ -7,7 +7,7 @@ import { createTaskForItem } from '../../taskFactory';
 suite('Workspace Tasks Test Suite', () => {
   test('Resolves workspace-declared npm Install Dependencies to "npm install"', async function () {
     // Build path to sample package.json in workspace
-    const pkgPath = path.resolve(__dirname, '../../../sample/npm-project/package.json');
+    const pkgPath = path.resolve(__dirname, '.../task-files/package.json');
     const uri = vscode.Uri.file(pkgPath);
 
     const item = new TaskItem('Install Dependencies', vscode.TreeItemCollapsibleState.None, 'npm', uri);

@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for VS Code",
   "readme": "README.md",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -35,6 +35,7 @@
   "keywords": [
     "tasks",
     "task",
+    "deno",
     "npm",
     "grunt",
     "gulp",
@@ -191,6 +192,13 @@
           "name": "Tasks",
           "icon": "res/icon.svg"
         }
+      ],
+      "explorer": [
+        {
+          "id": "workspaceTasksExplorer",
+          "name": "Workspace Tasks",
+          "icon": "res/icon.svg"
+        }
       ]
     },
     "commands": [
@@ -262,12 +270,18 @@
       {
         "command": "workspaceTasks.addToFavorites",
         "title": "%command.addToFavorites%",
-        "icon": "$(star)"
+        "icon": {
+          "light": "res/icons/light/star.svg",
+          "dark": "res/icons/dark/star.svg"
+        }
       },
       {
         "command": "workspaceTasks.removeFromFavorites",
         "title": "%command.removeFromFavorites%",
-        "icon": "$(star-full)"
+        "icon": {
+          "light": "res/icons/light/star-full.svg",
+          "dark": "res/icons/dark/star-full.svg"
+        }
       },
       {
         "command": "workspaceTasks.addToQueue",
@@ -389,6 +403,86 @@
           "markdownDescription": "%config.workspaceTasks.taskDiscovery.fetchDepth.markdown%",
           "default": null,
           "minimum": 1
+        },
+        "workspaceTasks.task.statusResetDelay": {
+          "type": "number",
+          "default": 500,
+          "description": "%config.workspaceTasks.task.statusResetDelay%",
+          "markdownDescription": "%config.workspaceTasks.task.statusResetDelay.markdown%"
+        },
+        "workspaceTasks.task.singleClickAction": {
+          "type": "string",
+          "enum": [
+            "run",
+            "open",
+            "none"
+          ],
+          "default": "open",
+          "description": "%config.workspaceTasks.task.singleClickAction%",
+          "markdownDescription": "%config.workspaceTasks.task.singleClickAction.markdown%"
+        },
+        "workspaceTasks.task.doubleClickAction": {
+          "type": "string",
+          "enum": [
+            "run",
+            "open",
+            "none"
+          ],
+          "default": "run",
+          "description": "%config.workspaceTasks.task.doubleClickAction%",
+          "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%"
+        },
+        "workspaceTasks.task.presentationOptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reveal": {
+              "type": "string",
+              "title": "%config.workspaceTasks.task.presentationOptions.reveal%",
+              "description": "%config.workspaceTasks.task.presentationOptions.reveal.description%",
+              "enum": [
+                "always",
+                "silent",
+                "never"
+              ],
+              "default": "always"
+            },
+            "clear": {
+              "title": "%config.workspaceTasks.task.presentationOptions.clear%",
+              "description": "%config.workspaceTasks.task.presentationOptions.clear.description%",
+              "type": "boolean",
+              "default": false
+            },
+            "close": {
+              "title": "%config.workspaceTasks.task.presentationOptions.close%",
+              "description": "%config.workspaceTasks.task.presentationOptions.close.description%",
+              "type": "boolean",
+              "default": false
+            },
+            "echo": {
+              "title": "%config.workspaceTasks.task.presentationOptions.echo%",
+              "description": "%config.workspaceTasks.task.presentationOptions.echo.description%",
+              "type": "boolean",
+              "default": true
+            },
+            "focus": {
+              "title": "%config.workspaceTasks.task.presentationOptions.focus%",
+              "description": "%config.workspaceTasks.task.presentationOptions.focus.description%",
+              "type": "boolean",
+              "default": false
+            },
+            "panel": {
+              "type": "string",
+              "title": "%config.workspaceTasks.task.presentationOptions.panelKind%",
+              "description": "%config.workspaceTasks.task.presentationOptions.panelKind.description%",
+              "enum": [
+                "dedicated",
+                "shared",
+                "new"
+              ],
+              "default": "shared"
+            }
+          }
         },
         "workspaceTasks.shellEnabledTaskTypes": {
           "type": "object",
@@ -539,6 +633,7 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
             },
+
             "docker": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
@@ -614,6 +709,7 @@
           },
           "default": {
             "ant": true,
+            "deno": true,
             "shell": true,
             "composer": true,
             "docker": true,
@@ -648,6 +744,12 @@
           "description": "%config.workspaceTasks.applicationPath.composer%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.composer.markdown%",
           "default": "composer"
+        },
+        "workspaceTasks.applicationPath.deno": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.deno%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.deno.markdown%",
+          "default": "~/.deno/bin/deno"
         },
         "workspaceTasks.applicationPath.msbuild": {
           "type": "string",
@@ -704,27 +806,27 @@
         {
           "command": "workspaceTasks.githubIssues",
           "group": "navigation@1",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.githubSponsor",
           "group": "navigation@2",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.buyMeACoffee",
           "group": "navigation@3",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.collapseAll",
           "group": "navigation@4",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
           "command": "workspaceTasks.refresh",
           "group": "navigation@5",
-          "when": "view == workspaceTasksView"
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         }
       ],
       "view/item/context": [

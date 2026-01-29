@@ -18,6 +18,9 @@ export class TaskStateManager {
     private executions: Map<string, vscode.TaskExecution> = new Map();
     private context: vscode.ExtensionContext | undefined;
 
+    private _onDidStateChange = new vscode.EventEmitter<{ id: string; status: TaskStatus }>();
+    public readonly onDidStateChange = this._onDidStateChange.event;
+
     private constructor() {}
 
     public static getInstance(): TaskStateManager {
@@ -108,5 +111,6 @@ export class TaskStateManager {
 
     public setStatus(id: string, status: TaskStatus) {
         this.states.set(id, status);
+        this._onDidStateChange.fire({ id, status });
     }
 }

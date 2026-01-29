@@ -55,7 +55,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
               }
             }
 
-            item.onSingleClickCommand = {
+            item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, item.startLine || 0]

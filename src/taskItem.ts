@@ -16,8 +16,8 @@ export class TaskItem extends vscode.TreeItem {
   // though deterministic IDs are better for state preservation.
   private static idCounter = 0;
 
-  public onSingleClickCommand?: vscode.Command;
-  public onDoubleClickCommand?: vscode.Command;
+  public onOpenActionCommand?: vscode.Command;
+  public onRunActionCommand?: vscode.Command;
 
   constructor(
     public readonly label: string,
@@ -26,16 +26,16 @@ export class TaskItem extends vscode.TreeItem {
     public readonly resourceUri?: vscode.Uri,
     command?: vscode.Command,
     defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
-    onDoubleClickCommand?: vscode.Command
+    onRunActionCommand?: vscode.Command
   ) {
     super(label, collapsibleState);
 
-    this.onSingleClickCommand = command;
-    this.onDoubleClickCommand = onDoubleClickCommand;
+    this.onOpenActionCommand = command;
+    this.onRunActionCommand = onRunActionCommand;
 
     // Default double click to run task if it's a leaf node
-    if (!this.onDoubleClickCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
-      this.onDoubleClickCommand = {
+    if (!this.onRunActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
+      this.onRunActionCommand = {
         command: 'workspaceTasks.runTask',
         title: 'Run Task',
         arguments: [this] // We pass 'this' here because runTask expects a TaskItem.
@@ -45,7 +45,7 @@ export class TaskItem extends vscode.TreeItem {
     }
 
     // Only set the trigger command if we actually have actions to perform
-    if (this.onSingleClickCommand || this.onDoubleClickCommand) {
+    if (this.onOpenActionCommand || this.onRunActionCommand) {
       this.command = {
         command: 'workspaceTasks.onTreeItemClick',
         title: 'On Tree Item Click',

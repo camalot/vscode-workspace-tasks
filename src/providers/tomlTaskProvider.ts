@@ -69,7 +69,7 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
 
           item.startLine = this.findScriptLine(textContent, name);
 
-          item.onSingleClickCommand = {
+          item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
             arguments: [file, item.startLine || 0]

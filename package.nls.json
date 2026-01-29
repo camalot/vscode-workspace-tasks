@@ -38,6 +38,7 @@
 
   "config.workspaceTasks.enabledTaskTypes.ant": "Ant",
   "config.workspaceTasks.enabledTaskTypes.composer": "Composer",
+  "config.workspaceTasks.enabledTaskTypes.deno": "Deno",
   "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
   "config.workspaceTasks.enabledTaskTypes.github-actions": "GitHub Actions",
   "config.workspaceTasks.enabledTaskTypes.gradle": "Gradle",
@@ -72,6 +73,32 @@
   "config.workspaceTasks.shellEnabledTaskTypes.sh": "Shell",
   "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
+
+  "config.workspaceTasks.task.presentationOptions.panelKind": "Panel Kind",
+  "config.workspaceTasks.task.presentationOptions.panelKind.description": "Controls if the task panel is used for this task only (dedicated), shared between tasks (shared) or if a new panel is created on every task execution (new).",
+
+  "config.workspaceTasks.task.presentationOptions.reveal": "Reveal",
+  "config.workspaceTasks.task.presentationOptions.reveal.description": "Controls whether the task output is revealed in the user interface.",
+
+  "config.workspaceTasks.task.presentationOptions.focus": "Focus",
+  "config.workspaceTasks.task.presentationOptions.focus.description": "Controls whether the panel showing the task output is taking focus.",
+
+  "config.workspaceTasks.task.presentationOptions.echo": "Echo",
+  "config.workspaceTasks.task.presentationOptions.echo.description": "Controls whether the command associated with the task is echoed in the user interface.",
+
+  "config.workspaceTasks.task.presentationOptions.close": "Close",
+  "config.workspaceTasks.task.presentationOptions.close.description": "Controls whether the terminal is closed after executing the task.",
+
+  "config.workspaceTasks.task.presentationOptions.clear": "Clear",
+  "config.workspaceTasks.task.presentationOptions.clear.description": "Controls whether the terminal is cleared before executing the task.",
+
+  "config.workspaceTasks.task.singleClickAction": "Single Click Action",
+  "config.workspaceTasks.task.singleClickAction.markdown": "Action to perform when a task is single-clicked.  `run` - Run the task  `open` - Open the task  `none` - Do nothing",
+  "config.workspaceTasks.task.doubleClickAction": "Double Click Action",
+  "config.workspaceTasks.task.doubleClickAction.markdown": "Action to perform when a task is double-clicked.  `run` - Run the task  `open` - Open the task  `none` - Do nothing",
+
+  "config.workspaceTasks.task.statusResetDelay": "Task Status Reset Delay",
+  "config.workspaceTasks.task.statusResetDelay.markdown": "The delay in **milliseconds** before resetting the task icon back to its original state after execution. Set to `0` to reset immediately.",
 
   "config.workspaceTasks.shellAdditionalExtensions": "Additional File Extensions for Shell Tasks",
   "config.workspaceTasks.shellAdditionalExtensions.markdown": "Add extra file extensions (beyond the default ones) that should be treated as shell tasks. Use a key-value format where the key is a file extension without the leading dot (e.g., `myscript`) and the value is the path to the shell interpreter (e.g., `/usr/local/bin/myshell`). This allows you to run custom script files as tasks within the extension.",
@@ -140,5 +167,8 @@
   "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically.",
 
   "config.workspaceTasks.applicationPath.maven": "Path to Maven executable",
-  "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically."
+  "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically.",
+
+  "config.workspaceTasks.applicationPath.deno": "Path to Deno executable",
+  "config.workspaceTasks.applicationPath.deno.markdown": "Specify the path to the [Deno](https://deno.land/) executable. On Windows, if the path ends with `deno`, `.exe` will be appended automatically."
 }

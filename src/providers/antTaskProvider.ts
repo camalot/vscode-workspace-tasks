@@ -65,7 +65,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = target.description || target.name;
 
-          item.onSingleClickCommand = {
+          item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
             arguments: [file, 0]

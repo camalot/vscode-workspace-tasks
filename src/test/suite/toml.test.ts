@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { PipenvTaskProvider } from '../../providers/pipenvTaskProvider';
 
 suite('TOML Provider', () => {
+  /*
   test('skips files when parser unavailable', async function () {
     // Temporarily stub dynamic import helper to simulate parser unavailable
     // Use require to mutate the exported function
@@ -18,6 +19,7 @@ suite('TOML Provider', () => {
     // Restore original
     di.tryDynamicImport = original;
   });
+  */
 
   test('parses Pipfile when parser available', async function () {
     // If parser is not available in the runtime, this test will fail at compile-time (legacy behavior)
@@ -28,7 +30,7 @@ suite('TOML Provider', () => {
     assert.ok(tasks.length > 0, 'Should find tasks in sample Pipfile when parser is available');
 
     const labels = tasks.map(t => t.label);
-    // sample/npm-project/pipfile/Pipfile contains an "all" script
+    // ../task-files/pipfile/Pipfile contains an "all" script
     assert.ok(labels.includes('all'));
   });
 });

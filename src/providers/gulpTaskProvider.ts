@@ -65,7 +65,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
-            item.onSingleClickCommand = {
+            item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, i]
@@ -90,7 +90,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
-            item.command = {
+            item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, i]
@@ -115,7 +115,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
-            item.command = {
+            item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, i]
@@ -123,6 +123,31 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
             console.log(`[GulpTaskProvider] Discovered export function '${name}' in ${file.fsPath}`);
             tasks.push(item);
             continue;
+          }
+
+          // Match ES module export alias: export { name as 'alias' }
+          const esExportAliasMatch = line.match(/export\s+\{\s*[\w\d_$]+\s+as\s+['"`]([\w\-:\.]+)['"`]\s*\}/);
+          if (esExportAliasMatch) {
+             const name = esExportAliasMatch[1];
+             const item = new TaskItem(
+                name,
+                vscode.TreeItemCollapsibleState.None,
+                'gulp',
+                iconUri?.DisplayUri || file,
+                undefined,
+                iconUri?.TaskIcon || undefined
+             );
+             item.taskFileUri = file;
+             item.description = vscode.workspace.asRelativePath(file);
+             item.startLine = i;
+             item.onOpenActionCommand = {
+                command: 'workspaceTasks.openFileAtLine',
+                title: 'Open File',
+                arguments: [file, i]
+             };
+             console.log(`[GulpTaskProvider] Discovered export alias '${name}' in ${file.fsPath}`);
+             tasks.push(item);
+             continue;
           }
         }
 
@@ -148,7 +173,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               );
               item.taskFileUri = file;
               item.description = vscode.workspace.asRelativePath(file);
-              item.command = {
+              item.onOpenActionCommand = {
                 command: 'workspaceTasks.openFileAtLine',
                 title: 'Open File',
                 arguments: [file, 0]
@@ -179,7 +204,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
                 );
                 item.taskFileUri = file;
                 item.description = vscode.workspace.asRelativePath(file);
-                item.command = {
+                item.onOpenActionCommand = {
                   command: 'workspaceTasks.openFileAtLine',
                   title: 'Open File',
                   arguments: [file, 0]

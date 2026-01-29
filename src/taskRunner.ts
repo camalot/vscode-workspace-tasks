@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskItem } from './taskItem';
-import { TaskStateManager } from './taskStateManager';
+import { TaskStateManager, TaskStatus } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';
 import { QueueService } from './services/queueService';
+import { configuration } from './libs/configuration';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -42,9 +43,62 @@ export class TaskRunner {
       return;
     }
     task = created.task;
+
+    interface PresentationOptions {
+      reveal?: "always" | "silent" | "never";
+      clear?: boolean;
+      close?: boolean;
+      echo?: boolean;
+      focus?: boolean;
+      panel?: "dedicated" | "shared" | "new"
+    }
+
+    const presentationOptionsSetting = configuration.get<PresentationOptions>('task.presentationOptions', {});
+
+    let reveal: vscode.TaskRevealKind;
+    switch (presentationOptionsSetting.reveal) {
+      case "always":
+        reveal = vscode.TaskRevealKind.Always;
+        break;
+      case "silent":
+        reveal = vscode.TaskRevealKind.Silent;
+        break;
+      case "never":
+        reveal = vscode.TaskRevealKind.Never;
+        break;
+      default:
+        reveal = vscode.TaskRevealKind.Always;
+        break;
+    }
+    let panel: vscode.TaskPanelKind;
+    switch (presentationOptionsSetting.panel) {
+      case "dedicated":
+        panel = vscode.TaskPanelKind.Dedicated;
+        break;
+      case "shared":
+        panel = vscode.TaskPanelKind.Shared;
+        break;
+      case "new":
+        panel = vscode.TaskPanelKind.New;
+        break;
+      default:
+        panel = vscode.TaskPanelKind.Shared;
+        break;
+    }
+
+    const presentation: vscode.TaskPresentationOptions = {
+      reveal: reveal,
+      clear: presentationOptionsSetting.clear,
+      close: presentationOptionsSetting.close,
+      echo: presentationOptionsSetting.echo,
+      focus: presentationOptionsSetting.focus,
+      panel: panel
+    };
+
+    // merge the existing task presentation options with the new ones. the task's existing options take precedence
     task.presentationOptions = {
-      ...task.presentationOptions,
-      panel: vscode.TaskPanelKind.Dedicated
+      ...presentation,
+      ...task.presentationOptions
     };
 
     // Extra debug info for gulp tasks
@@ -89,11 +143,9 @@ export class TaskRunner {
         await this.runTask(item);
         // runTask starts execution but returns effectively immediately after launch.
         // We need to WAIT for the task to finish.
-        await this.waitForTask(item);
+        const status = await this.waitForTask(item);
 
         // Check status
-        const id = TaskStateManager.getInstance().getTaskId(item);
-        const status = TaskStateManager.getInstance().getStatus(id);
         if (status === 'failure') {
           vscode.window.showErrorMessage(`Queue '${queueName}' stopped: Task '${item.label}' failed.`);
           break;
@@ -106,32 +158,36 @@ export class TaskRunner {
     }
   }
 
-  // TODO: The polling approach with setInterval to wait for task completion is inefficient
-  // and can lead to resource waste. Consider using VSCode's task events (onDidEndTask,
-  // onDidEndTaskProcess) instead of polling. This would be more efficient and provide
-  // immediate notification when tasks complete.
-  private waitForTask(item: TaskItem): Promise<void> {
+  private waitForTask(item: TaskItem): Promise<TaskStatus> {
     return new Promise((resolve) => {
       const id = TaskStateManager.getInstance().getTaskId(item);
       const maxWaitMs = 5 * 60 * 1000; // 5 minutes
-      const pollInterval = 500;
-      let elapsed = 0;
 
-      const interval = setInterval(() => {
-        const status = TaskStateManager.getInstance().getStatus(id);
-        if (status === 'success' || status === 'failure' || status === 'idle') {
-          // 'idle' might mean it was stopped or reset
-          clearInterval(interval);
-          resolve();
-        } else {
-          elapsed += pollInterval;
-          if (elapsed >= maxWaitMs) {
-            clearInterval(interval);
-            resolve(); // Timeout reached, resolve anyway
-            console.warn(`[TaskRunner] waitForTask timed out after ${maxWaitMs / 1000}s for task id: ${id}`);
+      // Check immediate status
+      const currentStatus = TaskStateManager.getInstance().getStatus(id);
+      if (currentStatus === 'success' || currentStatus === 'failure' || currentStatus === 'idle') {
+        return resolve(currentStatus);
+      }
+
+      let timer: NodeJS.Timeout;
+
+      const disposable = TaskStateManager.getInstance().onDidStateChange(e => {
+        if (e.id === id) {
+          if (e.status === 'success' || e.status === 'failure' || e.status === 'idle') {
+            if (timer) {
+              clearTimeout(timer);
+            }
+            disposable.dispose();
+            resolve(e.status);
           }
         }
-      }, pollInterval);
+      });
+
+      // Safety timeout
+      timer = setTimeout(() => {
+        disposable.dispose();
+        resolve(TaskStateManager.getInstance().getStatus(id));
+      }, maxWaitMs);
     });
   }
 }
