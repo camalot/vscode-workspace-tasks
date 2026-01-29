@@ -42,6 +42,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   await taskTreeDataProvider.initialize(context);
 
+  const resetTimers = new Map<string, NodeJS.Timeout>();
+
   // Register Providers
   registerTaskProviders(context);
   // Initial refresh
@@ -86,6 +88,15 @@ export async function activate(context: vscode.ExtensionContext) {
     console.error('Command loading error:', err);
   }
 
+  // Monitor state changes to cancel pending resets if task restarts
+  context.subscriptions.push(TaskStateManager.getInstance().onDidStateChange(e => {
+    if (e.status === 'running') {
+      if (resetTimers.has(e.id)) {
+        clearTimeout(resetTimers.get(e.id)!);
+        resetTimers.delete(e.id);
+      }
+    }
+  }));
 
   // Task Events
   context.subscriptions.push(vscode.tasks.onDidEndTaskProcess((e) => {
@@ -97,12 +108,23 @@ export async function activate(context: vscode.ExtensionContext) {
       stateManager.clearExecution(id);
       taskTreeDataProvider.refreshLocal();
 
+      // Clear any existing reset timer for this task
+      if (resetTimers.has(id)) {
+        clearTimeout(resetTimers.get(id)!);
+        resetTimers.delete(id);
+      }
+
       const delay = configuration.get<number>('task.statusResetDelay', 500);
       if (delay > 0) {
-        setTimeout(() => {
-          stateManager.setStatus(id, 'idle');
-          taskTreeDataProvider.refreshLocal();
+        const timer = setTimeout(() => {
+          // Double check status hasn't changed to running in the meantime
+          if (stateManager.getStatus(id) !== 'running') {
+            stateManager.setStatus(id, 'idle');
+            taskTreeDataProvider.refreshLocal();
+          }
+          resetTimers.delete(id);
         }, delay);
+        resetTimers.set(id, timer);
       } else {
         stateManager.setStatus(id, 'idle');
         taskTreeDataProvider.refreshLocal();

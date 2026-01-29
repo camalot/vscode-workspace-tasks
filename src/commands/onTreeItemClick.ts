@@ -11,7 +11,7 @@ export class OnTreeItemClickCommand extends BaseCommand {
     super('onTreeItemClick', context);
   }
 
-  async run(itemOrId: TaskItem | string | undefined): Promise<void> {
+  async run(itemOrId: TaskItem | string | { id: string } | undefined): Promise<void> {
     // Resolve the real TaskItem from cache if possible, as 'itemOrId' might be a serialized copy
     let item: TaskItem | undefined;
 
@@ -19,6 +19,8 @@ export class OnTreeItemClickCommand extends BaseCommand {
       item = itemOrId;
     } else if (itemOrId && typeof itemOrId === 'string') {
       item = TaskCacheService.getInstance().getTask(itemOrId);
+    } else if (itemOrId && typeof itemOrId === 'object' && 'id' in itemOrId) {
+      item = TaskCacheService.getInstance().getTask(itemOrId.id);
     }
 
     if (!item) {

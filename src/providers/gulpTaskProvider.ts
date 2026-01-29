@@ -90,7 +90,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
-            item.command = {
+            item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, i]
@@ -115,7 +115,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
             item.startLine = i;
-            item.command = {
+            item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
               arguments: [file, i]
@@ -140,7 +140,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
              item.taskFileUri = file;
              item.description = vscode.workspace.asRelativePath(file);
              item.startLine = i;
-             item.command = {
+             item.onOpenActionCommand = {
                 command: 'workspaceTasks.openFileAtLine',
                 title: 'Open File',
                 arguments: [file, i]
@@ -173,7 +173,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               );
               item.taskFileUri = file;
               item.description = vscode.workspace.asRelativePath(file);
-              item.command = {
+              item.onOpenActionCommand = {
                 command: 'workspaceTasks.openFileAtLine',
                 title: 'Open File',
                 arguments: [file, 0]
@@ -204,7 +204,7 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
                 );
                 item.taskFileUri = file;
                 item.description = vscode.workspace.asRelativePath(file);
-                item.command = {
+                item.onOpenActionCommand = {
                   command: 'workspaceTasks.openFileAtLine',
                   title: 'Open File',
                   arguments: [file, 0]

@@ -6,6 +6,14 @@ import { createTaskForItem } from '../../taskFactory';
 
 suite('TaskFactory Gulp Tests', () => {
   test('createTaskForItem sets cwd to workspace root when gulpfile is in subfolder', async () => {
+    /*
+      TODO:
+      This fixture path is resolved relative to the compiled test output folder
+      (out/test/suite). Unless the task-files fixtures are copied into out/test,
+      this will not exist and the test will fail. Consider resolving against the
+      source fixtures (e.g. ../../../src/test/task-files/...) or add a pretest
+      step to copy src/test/task-files into out/test/task-files.
+    */
     const filePath = path.resolve(__dirname, '../task-files/gulp/gulpfile.mjs');
     const uri = vscode.Uri.file(filePath);
     const item = new TaskItem('group-test2-build-ui-one', vscode.TreeItemCollapsibleState.None, 'gulp', uri);

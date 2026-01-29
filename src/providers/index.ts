@@ -20,8 +20,30 @@ import { JupyterTaskProvider } from './jupyterTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 
 
+type TaskProviderConstructor =
+  | (new () => NpmTaskProvider)
+  | (new () => PnpmTaskProvider)
+  | (new () => YarnTaskProvider)
+  | (new () => ComposerTaskProvider)
+  | (new () => ShellTaskProvider)
+  | (new () => VscodeTaskProvider)
+  | (new () => VenvTaskProvider)
+  | (new () => MakefileTaskProvider)
+  | (new () => MiseTaskProvider)
+  | (new () => WorkspaceTasksProvider)
+  | (new () => JustfileTaskProvider)
+  | (new () => AntTaskProvider)
+  | (new () => GulpTaskProvider)
+  | (new () => GruntTaskProvider)
+  | (new () => MsBuildTaskProvider)
+  | (new () => MavenTaskProvider)
+  | (new () => GithubActionsTaskProvider)
+  | (new () => GradleTaskProvider)
+  | (new () => PipenvTaskProvider)
+  | (new () => JupyterTaskProvider);
+
 export function registerTaskProviders(context: vscode.ExtensionContext) {
-  const providers: any[] = [
+  const providers: TaskProviderConstructor[] = [
     NpmTaskProvider,
     PnpmTaskProvider,
     YarnTaskProvider,
@@ -43,7 +65,6 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     PipenvTaskProvider,
     JupyterTaskProvider
   ];
-
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   for (const ProviderClass of providers) {
     try {
@@ -51,7 +72,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
       // Assuming there's a global taskTreeDataProvider instance
       if (taskTreeDataProvider) {
         taskTreeDataProvider.registerProvider(providerInstance);
-        console.log(`Registered task provider: ${ProviderClass.name}`);
+        // console.log(`Registered task provider: ${ProviderClass.name}`);
       } else {
         console.error('taskTreeDataProvider instance not found.');
       }

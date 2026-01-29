@@ -44,7 +44,7 @@ export class TaskRunner {
     }
     task = created.task;
 
-    interface presentationOptions {
+    interface PresentationOptions {
       reveal?: "always" | "silent" | "never";
       clear?: boolean;
       close?: boolean;
@@ -53,7 +53,7 @@ export class TaskRunner {
       panel?: "dedicated" | "shared" | "new"
     }
 
-    const presentationOptionsSetting = configuration.get<presentationOptions>('task.presentationOptions', {});
+    const presentationOptionsSetting = configuration.get<PresentationOptions>('task.presentationOptions', {});
 
     let reveal: vscode.TaskRevealKind;
     switch (presentationOptionsSetting.reveal) {
@@ -169,9 +169,14 @@ export class TaskRunner {
         return resolve(currentStatus);
       }
 
+      let timer: NodeJS.Timeout;
+
       const disposable = TaskStateManager.getInstance().onDidStateChange(e => {
         if (e.id === id) {
           if (e.status === 'success' || e.status === 'failure' || e.status === 'idle') {
+            if (timer) {
+              clearTimeout(timer);
+            }
             disposable.dispose();
             resolve(e.status);
           }
@@ -179,7 +184,7 @@ export class TaskRunner {
       });
 
       // Safety timeout
-      setTimeout(() => {
+      timer = setTimeout(() => {
         disposable.dispose();
         resolve(TaskStateManager.getInstance().getStatus(id));
       }, maxWaitMs);

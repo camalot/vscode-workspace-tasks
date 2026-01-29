@@ -78,7 +78,7 @@
   "config.workspaceTasks.task.presentationOptions.panelKind.description": "Controls if the task panel is used for this task only (dedicated), shared between tasks (shared) or if a new panel is created on every task execution (new).",
 
   "config.workspaceTasks.task.presentationOptions.reveal": "Reveal",
-  "config.workspaceTasks.task.presentationOptions.reveal.description": "Controls whether the task output is reveal in the user interface.",
+  "config.workspaceTasks.task.presentationOptions.reveal.description": "Controls whether the task output is revealed in the user interface.",
 
   "config.workspaceTasks.task.presentationOptions.focus": "Focus",
   "config.workspaceTasks.task.presentationOptions.focus.description": "Controls whether the panel showing the task output is taking focus.",

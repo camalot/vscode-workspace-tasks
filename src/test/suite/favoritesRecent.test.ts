@@ -13,7 +13,7 @@ suite('Favorites/Recent Runnable Tests', () => {
     (ws as any).resolveTaskCommand = async () => 'echo favorite-run';
 
     try {
-      const file = vscode.Uri.file(path.resolve(__dirname, '../task-files'));
+      const file = vscode.Uri.file(path.resolve(__dirname, '../task-files/package.json'));
       const src = new TaskItem('Example Workspace Task', vscode.TreeItemCollapsibleState.None, 'workspace-task', file);
       src.taskFileUri = file;
       src.taskSource = 'npm';
