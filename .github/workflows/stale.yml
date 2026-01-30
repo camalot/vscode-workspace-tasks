@@ -4,7 +4,8 @@ permissions:
   issues: write
   pull-requests: write
 
-on: {}
+on:
+  workflow_dispatch:
   # schedule:
   #   - cron: '10 3 * * *'
 
