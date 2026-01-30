@@ -189,7 +189,7 @@ java_binary(
 #### Initial Setup
 
 1. **Fork the Repository**
-   
+
    Click the "Fork" button on the [GitHub repository](https://github.com/camalot/vscode-workspace-tasks)
 
 2. **Clone Your Fork**
@@ -307,13 +307,13 @@ This project follows specific coding conventions. Please adhere to these guideli
 async function discoverPackageJsonTasks(workspaceFolder: vscode.WorkspaceFolder): Promise<TaskItem[]> {
   const tasks: TaskItem[] = [];
   const files = await vscode.workspace.findFiles('**/package.json', '**/node_modules/**');
-  
+
   for (const file of files) {
     // Process each package.json file
     const content = await vscode.workspace.fs.readFile(file);
     // ...
   }
-  
+
   return tasks;
 }
 ```
@@ -364,7 +364,7 @@ chore(deps): update typescript to 5.3.0
 Before submitting a pull request, test your changes thoroughly:
 
 1. **Manual Testing**
-   
+
    - Run the extension in the Extension Development Host (`F5`)
    - Test the specific functionality you changed
    - Try edge cases and error scenarios
