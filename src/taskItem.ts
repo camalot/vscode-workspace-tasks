@@ -18,6 +18,7 @@ export class TaskItem extends vscode.TreeItem {
 
   public onOpenActionCommand?: vscode.Command;
   public onRunActionCommand?: vscode.Command;
+  public onRunWithArgsActionCommand?: vscode.Command;
 
   constructor(
     public readonly label: string,
@@ -26,12 +27,14 @@ export class TaskItem extends vscode.TreeItem {
     public readonly resourceUri?: vscode.Uri,
     command?: vscode.Command,
     defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
-    onRunActionCommand?: vscode.Command
+    onRunActionCommand?: vscode.Command,
+    onRunWithArgsActionCommand?: vscode.Command
   ) {
     super(label, collapsibleState);
 
     this.onOpenActionCommand = command;
     this.onRunActionCommand = onRunActionCommand;
+    this.onRunWithArgsActionCommand = onRunWithArgsActionCommand;
 
     // Default double click to run task if it's a leaf node
     if (!this.onRunActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
@@ -45,7 +48,7 @@ export class TaskItem extends vscode.TreeItem {
     }
 
     // Only set the trigger command if we actually have actions to perform
-    if (this.onOpenActionCommand || this.onRunActionCommand) {
+    if (this.onOpenActionCommand || this.onRunActionCommand || this.onRunWithArgsActionCommand) {
       this.command = {
         command: 'workspaceTasks.onTreeItemClick',
         title: 'On Tree Item Click',
@@ -67,6 +70,19 @@ export class TaskItem extends vscode.TreeItem {
     this.description = this.taskType;
     this.resourceUri = resourceUri;
     this.defaultIconPath = defaultIconPath;
+
+
+    // Default open action
+    // this will open the file, by default, to the start of the document.
+    // it is up to the task creation to update/set this with settings
+    // that will open the file to a specific location and to use `taskFileUri` if desired.
+    if (!this.onOpenActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
+      this.onOpenActionCommand = {
+        command: 'workspaceTasks.openFileAtLine',
+        title: 'Open File',
+        arguments: [this.resourceUri, 0]
+      };
+    }
 
     this.updateContextValue();
   }

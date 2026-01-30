@@ -1,44 +1,69 @@
-## [1.1.0] - 2026-01-29
+## [1.1.1] - 2026-01-30
 
 ### 🚀 Features
 
-- *(ux)* Add an Explorer view for tasks #15
+- Deno task support
 
-- *(ux)* Configurable click behavior of tasks #25
+- *(ux)* Add task hover button for showing the task location #33
 
-- *(ux)* Allow to disable checkmark after first execution of task #24
+- *(ux)* Add settings to show or hide different task hover icons #32
 
-- *(tasks)* Add setting to control task terminal panel behavior #20
-  - does not resolve the vscode tasks presentation configuration is ignored #23
+- Improved Task Grouping for visibility in mono repo or workspace with a lot of the same task type. #30
 
+
+### ⚙️ Miscellaneous Tasks
+
+- *(changelog)* Update cliff config
+
+- *(changelog)* Generate changelog
+
+- Added CONTRIBUTING and CODE_OF_CONDUCT
+
+- *(repo)* Modified the CONTRIBUTING document
+
+- *(repo)* Fix linter errors in markdown
+
+- *(repo)* Fix linter errors in markdown
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.0...v1.1.1
+
+## [1.1.0] - 2026-01-29
 
 ### 🐛 Bug Fixes
 
 - Add colors to the action buttons for tasks (#21) (#26) by @jonatino in [#26](https://github.com/camalot/vscode-workspace-tasks/pull/26)
 
--   fix: Add colors to the action buttons for tasks (#21) (#26)
-
-- Add colors to the action buttons for tasks - favorites #21
-
 
 ### 💼 Other
 
-- Merge remote-tracking branch 'origin/develop' into explorer-view
+- V1.1.0 (#27) by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * origin/develop:
+- * feat(ux): Add an Explorer view for tasks #15 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * chore(tests): work on the test coverage by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * chore(commands): code cleanup of some commands by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * chore(repo): remove runQueue command from extension.activate by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * chore(repo): completed commands refactor by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * feat(ux): Configurable click behavior of tasks #25 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * feat(ux): Allow to disable checkmark after first execution of task #24 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * chore(sample): update a sample file by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * fix: Add colors to the action buttons for tasks - favorites #21 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
+
+- * feat(tasks): Add setting to control task terminal panel behavior #20 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(tests)* Work on the test coverage
-
-- *(commands)* Code cleanup of some commands
-
-- *(repo)* Remove runQueue command from extension.activate
-
-- *(repo)* Completed commands refactor
-
-- *(sample)* Update a sample file
+- *(repo)* SUPPORT document and assets for it by @camalot
 
 
 
@@ -228,3 +253,4 @@
 
 ### New Contributors
 * @camalot made their first contribution
+

@@ -75,7 +75,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
         }
       } catch (error) {
         // Skip files that aren't valid XML or can't be parsed
-        console.debug(`Failed to parse ${file.fsPath}: ${error}`);
+        // console.debug(`Failed to parse ${file.fsPath}: ${error}`);
         continue;
       }
     }
@@ -147,7 +147,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
 
     if (!configuration.get<boolean>("ant.ansicon.enabled")) {
-      console.debug("[AntTaskProvider] Ant ansicon usage is disabled in configuration.");
+      // console.debug("[AntTaskProvider] Ant ansicon usage is disabled in configuration.");
       return false;
     }
 

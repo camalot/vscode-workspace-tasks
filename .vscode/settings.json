@@ -9,6 +9,7 @@
     "chglog",
     "darthminos",
     "Dockerfiles",
+    "Extensionless",
     "Favorited",
     "gradlew",
     "gulpfile",
@@ -28,6 +29,7 @@
     "runtfile",
     "smol",
     "tasksignore",
+    "uitest",
     "venv"
   ],
   // "files.associations": {

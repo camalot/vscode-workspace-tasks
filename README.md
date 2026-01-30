@@ -672,6 +672,14 @@ npm run watch
 - `res/` - Resources (icons, schemas, syntaxes)
 - `sample/` - Sample workspaces for testing
 
+## 📦 Contributors
+
+<a href="https://github.com/camalot/vscode-workspace-tasks/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=camalot/vscode-workspace-tasks" alt="Contributors: Made with contrib.rocks" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
 ## 📄 License
 
 This project is licensed under the [Apache 2.0 License](LICENSE).

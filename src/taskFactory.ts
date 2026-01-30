@@ -15,6 +15,7 @@ import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
 import { MiseTaskProvider } from './providers/miseTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
+import { DenoTaskProvider } from './providers/denoTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -132,8 +133,41 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec
       );
       return { task, command: full, cwd };
-    }
-    case "mise": {
+    } case 'deno': {
+      // deno task <taskLabel> [args]
+      const denoProvider = new DenoTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: denoCmd, args: denoInitialArgs, cwd: denoCwd } = denoProvider.getCommand(workspaceFolder?.uri);
+
+      const denoArgs = denoInitialArgs ? [...denoInitialArgs] : [];
+
+      denoArgs.push('task');
+      if (args) {
+        denoArgs.push(...args.split(' '));
+      }
+
+      // Add --config argument to specify the config file (deno.json(c) or package.json)
+      if (item.taskFileUri) {
+        denoArgs.push('--config', item.taskFileUri.fsPath);
+      }
+
+      denoArgs.push(taskLabel);
+
+      const full = `${denoCmd} ${denoArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(denoCmd, denoArgs, { cwd: denoCwd });
+
+      const task = new vscode.Task(
+        {
+          type: 'deno',
+          script: taskLabel,
+        },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'deno',
+        shellExec
+      );
+      return { task, command: full, cwd: denoCwd };
+    } case "mise": {
       // mise run <taskLabel> [args]
       const miseProvider = new MiseTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
@@ -254,18 +288,18 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       let command: string;
 
       if (interpreter) {
-          // Check if we need to append .exe on Windows for the interpreter binary?
-          // The user said: "The paths to the interpreters should not be changed... On windows, it might need to change the executable to end in .exe"
-          // We'll trust the ShellExecution to handle path resolution for the binary.
+        // Check if we need to append .exe on Windows for the interpreter binary?
+        // The user said: "The paths to the interpreters should not be changed... On windows, it might need to change the executable to end in .exe"
+        // We'll trust the ShellExecution to handle path resolution for the binary.
 
-          command = `${interpreter} "${item.resourceUri.fsPath}"`;
+        command = `${interpreter} "${item.resourceUri.fsPath}"`;
       } else {
         // Legacy fallback or just execute file directly
-         command = `"${item.resourceUri.fsPath}"`;
+        command = `"${item.resourceUri.fsPath}"`;
       }
 
       if (args) {
-          command += ` ${args}`;
+        command += ` ${args}`;
       }
 
       const task = new vscode.Task(
@@ -341,7 +375,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       );
 
       // Debug info to help diagnose incorrect gulpfile selection
-      console.log(`[TaskFactory] Gulp task created. cwd=${gulpCwd}, args=${JSON.stringify(gulpArgs)}`);
+      // console.log(`[TaskFactory] Gulp task created. cwd=${gulpCwd}, args=${JSON.stringify(gulpArgs)}`);
 
       return { task, command: `${gulpCmd} ${gulpArgs.join(' ')}`.trim(), cwd: gulpCwd };
     }
@@ -417,10 +451,10 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       // This is crucial for act to find .secrets, .env in the project root instead of workspace root
       const githubDirMatch = resourceUri.fsPath.match(/[\\/]\.github[\\/]/);
       if (githubDirMatch) {
-         const projectRoot = resourceUri.fsPath.substring(0, githubDirMatch.index);
-         if (projectRoot) {
-            actCwd = projectRoot;
-         }
+        const projectRoot = resourceUri.fsPath.substring(0, githubDirMatch.index);
+        if (projectRoot) {
+          actCwd = projectRoot;
+        }
       }
 
       const meta = item.metadata;
@@ -531,43 +565,43 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         }
 
         // If selected event is workflow_dispatch, handle inputs
-         if (useEvent === 'workflow_dispatch' && meta?.inputs) {
-              const inputsObj = meta.inputs as Record<string, any>;
-              if (Array.isArray(inputsObj)) {
-                for (const input of inputsObj) {
-                  const val = await vscode.window.showInputBox({
-                    prompt: `Enter input for '${input}'`,
-                    placeHolder: 'Value',
-                    ignoreFocusOut: true
-                  });
-                  if (val) {
-                    actArgs.push('--input', `${input}=${val}`);
-                  }
-                }
-              } else {
-                for (const [key, details] of Object.entries(inputsObj)) {
-                  const desc = details.description || `Enter value for ${key}`;
-                  const defaultVal = details.default !== undefined ? String(details.default) : '';
-                  const required = details.required || false;
-
-                  const val = await vscode.window.showInputBox({
-                    prompt: desc,
-                    placeHolder: `${key} (${details.type || 'string'})`,
-                    value: defaultVal,
-                    ignoreFocusOut: true,
-                    validateInput: (text) => {
-                      if (required && !text) {
-                        return "This input is required";
-                      }
-                      return null;
-                    }
-                  });
-
-                  if (val) {
-                    actArgs.push('--input', `${key}=${val}`);
-                  }
-                }
+        if (useEvent === 'workflow_dispatch' && meta?.inputs) {
+          const inputsObj = meta.inputs as Record<string, any>;
+          if (Array.isArray(inputsObj)) {
+            for (const input of inputsObj) {
+              const val = await vscode.window.showInputBox({
+                prompt: `Enter input for '${input}'`,
+                placeHolder: 'Value',
+                ignoreFocusOut: true
+              });
+              if (val) {
+                actArgs.push('--input', `${input}=${val}`);
               }
+            }
+          } else {
+            for (const [key, details] of Object.entries(inputsObj)) {
+              const desc = details.description || `Enter value for ${key}`;
+              const defaultVal = details.default !== undefined ? String(details.default) : '';
+              const required = details.required || false;
+
+              const val = await vscode.window.showInputBox({
+                prompt: desc,
+                placeHolder: `${key} (${details.type || 'string'})`,
+                value: defaultVal,
+                ignoreFocusOut: true,
+                validateInput: (text) => {
+                  if (required && !text) {
+                    return "This input is required";
+                  }
+                  return null;
+                }
+              });
+
+              if (val) {
+                actArgs.push('--input', `${key}=${val}`);
+              }
+            }
+          }
         }
 
         actArgs.push(useEvent);
@@ -603,7 +637,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
 
         // If we know the target workspace folder, ensure the task belongs to it
         if (targetWorkspaceFolder && typeof t.scope === 'object' && 'uri' in t.scope) {
-           return t.scope.uri.toString() === targetWorkspaceFolder.uri.toString();
+          return t.scope.uri.toString() === targetWorkspaceFolder.uri.toString();
         }
 
         // If we don't know the folder, or the task has global/workspace scope, accepts it as fallback
@@ -762,54 +796,54 @@ class JupyterTerm implements vscode.Pseudoterminal {
     this.writeEmitter.fire(`Executing Jupyter Cell in ${this.label}...\r\n`);
 
     try {
-        // If we have a cell index, we try to run that specific cell
-        if (this.cellIndex !== undefined && this.cellIndex >= 0) {
-             // 1. Ensure document is open
-             const doc = await vscode.workspace.openNotebookDocument(this.resourceUri);
-             await vscode.window.showNotebookDocument(doc);
+      // If we have a cell index, we try to run that specific cell
+      if (this.cellIndex !== undefined && this.cellIndex >= 0) {
+        // 1. Ensure document is open
+        const doc = await vscode.workspace.openNotebookDocument(this.resourceUri);
+        await vscode.window.showNotebookDocument(doc);
 
-             // 2. Find the cell
-             if (this.cellIndex < doc.cellCount) {
-                 //const cell = doc.cellAt(this.cellIndex);
+        // 2. Find the cell
+        if (this.cellIndex < doc.cellCount) {
+          //const cell = doc.cellAt(this.cellIndex);
 
-                 // 3. Execute
-                 // Using generic notebook command as jupyter.runcell behavior on ipynb is ambiguous
-                 // However, user requested jupyter.runcell.
-                 // If that command takes a range, we can try passing the cell range.
+          // 3. Execute
+          // Using generic notebook command as jupyter.runcell behavior on ipynb is ambiguous
+          // However, user requested jupyter.runcell.
+          // If that command takes a range, we can try passing the cell range.
 
-                 // Try standard notebook execution first which is robust
-                 try {
-                    // This is the VS Code API way
-                     const execution = vscode.commands.executeCommand('notebook.cell.execute', {
-                        ranges: [{ start: this.cellIndex, end: this.cellIndex + 1 }],
-                        document: doc.uri
-                     });
-                     await execution;
-                     this.writeEmitter.fire(`\r\nCell sent to execution.\r\n`);
-                 } catch (e) {
-                     // Fallback to user requested command if standard fails, or if they meant the older way?
-                     // jupyter.runcell(file, startLine, startChar, endLine, endChar)
-                     // converting cell range to what? 0,0,0,0?
-                     this.writeEmitter.fire(`Error executing cell: ${e}\r\n`);
-                     this.closeEmitter.fire(1);
-                     return;
-                 }
+          // Try standard notebook execution first which is robust
+          try {
+            // This is the VS Code API way
+            const execution = vscode.commands.executeCommand('notebook.cell.execute', {
+              ranges: [{ start: this.cellIndex, end: this.cellIndex + 1 }],
+              document: doc.uri
+            });
+            await execution;
+            this.writeEmitter.fire(`\r\nCell sent to execution.\r\n`);
+          } catch (e) {
+            // Fallback to user requested command if standard fails, or if they meant the older way?
+            // jupyter.runcell(file, startLine, startChar, endLine, endChar)
+            // converting cell range to what? 0,0,0,0?
+            this.writeEmitter.fire(`Error executing cell: ${e}\r\n`);
+            this.closeEmitter.fire(1);
+            return;
+          }
 
-             } else {
-                 this.writeEmitter.fire(`Cell index ${this.cellIndex} out of bounds.\r\n`);
-                 this.closeEmitter.fire(1);
-                 return;
-             }
         } else {
-             this.writeEmitter.fire(`No cell index provided. Cannot execute.\r\n`);
-             this.closeEmitter.fire(1);
-             return;
+          this.writeEmitter.fire(`Cell index ${this.cellIndex} out of bounds.\r\n`);
+          this.closeEmitter.fire(1);
+          return;
         }
-
-        this.closeEmitter.fire(0);
-    } catch (e) {
-        this.writeEmitter.fire(`Error: ${e}\r\n`);
+      } else {
+        this.writeEmitter.fire(`No cell index provided. Cannot execute.\r\n`);
         this.closeEmitter.fire(1);
+        return;
+      }
+
+      this.closeEmitter.fire(0);
+    } catch (e) {
+      this.writeEmitter.fire(`Error: ${e}\r\n`);
+      this.closeEmitter.fire(1);
     }
   }
 }

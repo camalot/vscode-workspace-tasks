@@ -30,6 +30,18 @@ export class NpmTaskTypeItem extends TaskTypeGroupItem {
   }
 }
 
+export class DenoTaskTypeItem extends TaskTypeGroupItem {
+  constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
+    // Use a root path to ensure it's treated as a file resource
+    super('deno', vscode.Uri.file('/deno.json'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+    const iconService = TaskIconService.getInstance();
+    const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/deno.json'));
+    if (iconUri?.TaskIcon) {
+      this.iconPath = iconUri.TaskIcon;
+    }
+  }
+}
+
 export class VscodeTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
     super('vscode', vscode.Uri.file('/tasks.code-workspace'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
@@ -236,6 +248,8 @@ export class GenericTaskTypeItem extends TaskTypeGroupItem {
 export class TaskTypeFactory {
   public static create(type: string, collapsibleState?: vscode.TreeItemCollapsibleState): TaskTypeGroupItem {
     switch (type) {
+      case 'deno':
+        return new DenoTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'npm':
         return new NpmTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'vscode':

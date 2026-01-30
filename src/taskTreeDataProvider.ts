@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { TaskProvider } from './taskProvider';
 import { TaskItem } from './taskItem';
 import { TaskTypeFactory } from './taskTypeItems';
@@ -62,30 +63,30 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   registerProvider(provider: TaskProvider) {
     TaskCacheService.getInstance().registerProvider(provider);
     if (provider.filePattern) {
-        const watcher = vscode.workspace.createFileSystemWatcher(provider.filePattern);
-        const onChange = () => this.handleFileChange(provider);
+      const watcher = vscode.workspace.createFileSystemWatcher(provider.filePattern);
+      const onChange = () => this.handleFileChange(provider);
 
-        watcher.onDidChange(onChange);
-        watcher.onDidCreate(onChange);
-        watcher.onDidDelete(onChange);
+      watcher.onDidChange(onChange);
+      watcher.onDidCreate(onChange);
+      watcher.onDidDelete(onChange);
 
-        this.context.subscriptions.push(watcher);
+      this.context.subscriptions.push(watcher);
     }
   }
 
   private handleFileChange(provider: TaskProvider) {
-      if (!provider.type) { return; }
-      const type = provider.type;
+    if (!provider.type) { return; }
+    const type = provider.type;
 
-      if (this.refreshTimeouts.has(type)) {
-          clearTimeout(this.refreshTimeouts.get(type));
-      }
+    if (this.refreshTimeouts.has(type)) {
+      clearTimeout(this.refreshTimeouts.get(type));
+    }
 
-      this.refreshTimeouts.set(type, setTimeout(async () => {
-          this.refreshTimeouts.delete(type);
-          await TaskCacheService.getInstance().refreshProvider(type);
-          this._onDidChangeTreeData.fire();
-      }, 1000));
+    this.refreshTimeouts.set(type, setTimeout(async () => {
+      this.refreshTimeouts.delete(type);
+      await TaskCacheService.getInstance().refreshProvider(type);
+      this._onDidChangeTreeData.fire();
+    }, 1000));
   }
 
   async refresh(): Promise<void> {
@@ -106,28 +107,28 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     this.collapseLevel = (this.collapseLevel + 1) % 3;
 
     if (this.collapseLevel === 1) {
-       // Expand All (Level 1)
-       // Refresh with 'expanded' IDs and defaults.
-       this.pendingRevealLevel = 0;
-       this._onDidChangeTreeData.fire();
-       return;
+      // Expand All (Level 1)
+      // Refresh with 'expanded' IDs and defaults.
+      this.pendingRevealLevel = 0;
+      this._onDidChangeTreeData.fire();
+      return;
     }
     else if (this.collapseLevel === 2) {
-       // Collapse All Roots
-       // Refresh tree with salt='roots_collapsed' and defaults to Collapsed.
-       this.pendingRevealLevel = undefined;
-       this._onDidChangeTreeData.fire();
-       return;
+      // Collapse All Roots
+      // Refresh tree with salt='roots_collapsed' and defaults to Collapsed.
+      this.pendingRevealLevel = undefined;
+      this._onDidChangeTreeData.fire();
+      return;
     }
     else {
-        // Default / Collapse Groups (Level 0)
-        // Groups Collapsed:
-        // We refresh the tree with new IDs (salt='default') and defaults to Collapsed.
-        // after refresh, we ensure roots are expanded.
-        this.pendingRevealLevel = 1;
-        // FAST REFRESH (Cached Only)
-        this._onDidChangeTreeData.fire();
-        return;
+      // Default / Collapse Groups (Level 0)
+      // Groups Collapsed:
+      // We refresh the tree with new IDs (salt='default') and defaults to Collapsed.
+      // after refresh, we ensure roots are expanded.
+      this.pendingRevealLevel = 1;
+      // FAST REFRESH (Cached Only)
+      this._onDidChangeTreeData.fire();
+      return;
     }
   }
 
@@ -154,35 +155,40 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // So determining when render is complete is hard.
       // But typically firing a follow-up action a bit later works.
       if (this.pendingRevealLevel !== undefined) {
-          const level = this.pendingRevealLevel;
-          this.pendingRevealLevel = undefined;
-          setTimeout(async () => {
-              if (this.views.length === 0) {
-                return;
-              }
-              for (const view of this.views) {
-                for (const root of this.currentRoots) {
-                  try {
-                      if (level === 1) {
-                          // Ensure root is expanded 1 level deep (showing collapsed groups)
-                          await view.reveal(root, { expand: 1, select: false, focus: false });
-                      } else if (level === 0) {
-                          // Ensure root is expanded 3 levels deep (showing tasks)
-                          await view.reveal(root, { expand: 3, select: false, focus: false });
-                      }
-                  } catch (e) { }
+        const level = this.pendingRevealLevel;
+        this.pendingRevealLevel = undefined;
+        setTimeout(async () => {
+          if (this.views.length === 0) {
+            return;
+          }
+          for (const view of this.views) {
+            for (const root of this.currentRoots) {
+              try {
+                if (level === 1) {
+                  // Ensure root is expanded 1 level deep (showing collapsed groups)
+                  await view.reveal(root, { expand: 1, select: false, focus: false });
+                } else if (level === 0) {
+                  // Ensure root is expanded 3 levels deep (showing tasks)
+                  await view.reveal(root, { expand: 3, select: false, focus: false });
                 }
-              }
-          }, 100);
+              } catch (e) { }
+            }
+          }
+        }, 100);
       }
 
       return this.currentRoots;
     }
   }
 
+  private makeId(base: string, salt: string): string {
+    return salt ? `${base}:${salt}` : base;
+  }
+
   private organizeTasks(tasks: TaskItem[]): TaskItem[] {
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const groupsEnabled = config.get<boolean>('groups.enabled', true);
+    const useParentFolder = config.get<boolean>('groups.useParentFolder', false);
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
 
@@ -201,18 +207,16 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     let groupSalt = '';
 
     if (this.collapseLevel === 1) {
-        groupState = vscode.TreeItemCollapsibleState.Expanded;
-        groupSalt = 'expanded';
+      groupState = vscode.TreeItemCollapsibleState.Expanded;
+      groupSalt = 'expanded';
     } else if (this.collapseLevel === 2) {
-         groupSalt = 'roots_collapsed';
+      groupSalt = 'roots_collapsed';
     }
 
     // Determine Workspace Root Items Collapsible State and ID Salt
     // If Level 2, Root is Collapsed.
     const rootState = (this.collapseLevel === 2) ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.Expanded;
     const rootSalt = (this.collapseLevel === 2) ? 'collapsed' : '';
-
-    const mkId = (base: string, salt: string) => salt ? `${base}:${salt}` : base;
 
     // Map<WorkspaceId, Map<TaskType, TaskItem[]>>
     // We use Workspace URI as key to ensure uniqueness even if names are identical
@@ -230,97 +234,97 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const checkFavorite = (item: TaskItem) => {
       const id = stateManager.getTaskId(item);
       if (favoritesService.isFavorite(id)) {
-          // Clone task for favorites view
-          const favTask = new TaskItem(
-              item.label,
-              item.collapsibleState === vscode.TreeItemCollapsibleState.None ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed,
-              item.taskType,
-              item.resourceUri,
-              item.command,
-              item.defaultIconPath
-          );
-          favTask.originalLabel = item.originalLabel || item.label;
-          favTask.startLine = item.startLine;
-          favTask.metadata = item.metadata;
-          // Preserve file association and source/provider so that cloned items remain runnable
-          favTask.taskFileUri = item.taskFileUri;
-          favTask.taskSource = item.taskSource;
+        // Clone task for favorites view
+        const favTask = new TaskItem(
+          item.label,
+          item.collapsibleState === vscode.TreeItemCollapsibleState.None ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed,
+          item.taskType,
+          item.resourceUri,
+          item.command,
+          item.defaultIconPath
+        );
+        favTask.originalLabel = item.originalLabel || item.label;
+        favTask.startLine = item.startLine;
+        favTask.metadata = item.metadata;
+        // Preserve file association and source/provider so that cloned items remain runnable
+        favTask.taskFileUri = item.taskFileUri;
+        favTask.taskSource = item.taskSource;
 
-          // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
-          // For favorites, we might want to flatten or keep structure.
-          // If the item itself is favorited, we likely want access to its children.
-          if (item.children.length > 0) {
-             // Create copies of children for the favorite item
-             favTask.children = item.children.map(child => {
-                 const childCopy = new TaskItem(
-                     child.label,
-                     child.collapsibleState,
-                     child.taskType,
-                     child.resourceUri,
-                     child.command,
-                     child.defaultIconPath
-                 );
-                 childCopy.originalLabel = child.originalLabel;
-                 childCopy.startLine = child.startLine;
-                 childCopy.metadata = child.metadata;
-                 childCopy.parent = favTask;
-                 // Preserve child file association and source/provider as well
-                 childCopy.taskFileUri = child.taskFileUri;
-                 childCopy.taskSource = child.taskSource;
-                 // We don't recurse deeper for now as typically tasks are 1-2 levels deep.
-                 // But for GitHub Actions -> Events -> (maybe Jobs?), we might need more.
-                 // Actually GH Actions is "File -> Event / Job". Depth is 1.
-                 return childCopy;
-             });
+        // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
+        // For favorites, we might want to flatten or keep structure.
+        // If the item itself is favorited, we likely want access to its children.
+        if (item.children.length > 0) {
+          // Create copies of children for the favorite item
+          favTask.children = item.children.map(child => {
+            const childCopy = new TaskItem(
+              child.label,
+              child.collapsibleState,
+              child.taskType,
+              child.resourceUri,
+              child.command,
+              child.defaultIconPath
+            );
+            childCopy.originalLabel = child.originalLabel;
+            childCopy.startLine = child.startLine;
+            childCopy.metadata = child.metadata;
+            childCopy.parent = favTask;
+            // Preserve child file association and source/provider as well
+            childCopy.taskFileUri = child.taskFileUri;
+            childCopy.taskSource = child.taskSource;
+            // We don't recurse deeper for now as typically tasks are 1-2 levels deep.
+            // But for GitHub Actions -> Events -> (maybe Jobs?), we might need more.
+            // Actually GH Actions is "File -> Event / Job". Depth is 1.
+            return childCopy;
+          });
+        }
+
+        // Set description to workspace folder
+        const workspaceFolder = item.resourceUri ? vscode.workspace.getWorkspaceFolder(item.resourceUri) : undefined;
+        let description = workspaceFolder ? workspaceFolder.name : '';
+
+        if (item.resourceUri && workspaceFolder) {
+          const relativePath = vscode.workspace.asRelativePath(item.resourceUri, false);
+          if (relativePath && relativePath !== description) {
+            description = `${description} • ${relativePath}`;
           }
+        }
+        favTask.description = description;
 
-          // Set description to workspace folder
-          const workspaceFolder = item.resourceUri ? vscode.workspace.getWorkspaceFolder(item.resourceUri) : undefined;
-          let description = workspaceFolder ? workspaceFolder.name : '';
+        // Must set ID before updating context value so that getTaskId works correctly on the clone
+        // But wait, the clone has a fresh ID from constructor.
+        // We want the clone to behave like the original for status lookup, but be unique in tree.
+        // TaskStateManager.getTaskId strips 'fav:', so that logic works.
+        // BUT, we need to ensure the ID is set to `fav:...` AFTER updateContextValue calls getTaskId(this)
+        // NO, updateContextValue calls getTaskId(this).
+        // If we set favTask.id = `fav:${favTask.id}` afterwards, then during updateContextValue, it has the ORIGINAL id (or similar).
 
-          if (item.resourceUri && workspaceFolder) {
-              const relativePath = vscode.workspace.asRelativePath(item.resourceUri, false);
-              if (relativePath && relativePath !== description) {
-                  description = `${description} • ${relativePath}`;
-              }
-          }
-          favTask.description = description;
+        // Let's set the ID first to what it WOULD be on the original to ensure getTaskId retrieves the canonical ID correctly?
+        // No, the new TaskItem constructor logic sets ID based on params.
+        // We should explicitly set the ID to match the item's ID first (preserving base ID for lookup)
+        // Then applying the prefix.
 
-          // Must set ID before updating context value so that getTaskId works correctly on the clone
-          // But wait, the clone has a fresh ID from constructor.
-          // We want the clone to behave like the original for status lookup, but be unique in tree.
-          // TaskStateManager.getTaskId strips 'fav:', so that logic works.
-          // BUT, we need to ensure the ID is set to `fav:...` AFTER updateContextValue calls getTaskId(this)
-          // NO, updateContextValue calls getTaskId(this).
-          // If we set favTask.id = `fav:${favTask.id}` afterwards, then during updateContextValue, it has the ORIGINAL id (or similar).
+        // Fix: Ensure the favTask has the ID of the original item initially so lookups work?
+        // The constructor generates a new ID.
+        // Let's force the ID to match the original item's ID first.
+        favTask.id = item.id;
 
-          // Let's set the ID first to what it WOULD be on the original to ensure getTaskId retrieves the canonical ID correctly?
-          // No, the new TaskItem constructor logic sets ID based on params.
-          // We should explicitly set the ID to match the item's ID first (preserving base ID for lookup)
-          // Then applying the prefix.
+        favTask.updateContextValue();
+        // Override context value to ensure it is 'favoriteTask' even if logic inside updateContextValue missed it?
+        // updateContextValue uses isFavorite(id). Since we set favTask.id = item.id, getTaskId should return the canonical ID.
+        // And isFavorite(canonicalId) should be true.
+        // So contextValue should be 'favoriteTask' or 'runningTask'.
 
-          // Fix: Ensure the favTask has the ID of the original item initially so lookups work?
-          // The constructor generates a new ID.
-          // Let's force the ID to match the original item's ID first.
-          favTask.id = item.id;
+        // Finally, prefix the ID for tree uniqueness
+        favTask.id = `fav:${item.id}`;
 
-          favTask.updateContextValue();
-          // Override context value to ensure it is 'favoriteTask' even if logic inside updateContextValue missed it?
-          // updateContextValue uses isFavorite(id). Since we set favTask.id = item.id, getTaskId should return the canonical ID.
-          // And isFavorite(canonicalId) should be true.
-          // So contextValue should be 'favoriteTask' or 'runningTask'.
-
-          // Finally, prefix the ID for tree uniqueness
-          favTask.id = `fav:${item.id}`;
-
-          favoriteTasks.push(favTask);
+        favoriteTasks.push(favTask);
       }
 
       // Check children only if the parent wasn't added?
       // Or should we support having a parent AND a child favorited separately?
       // Yes, user might favorite a specific job.
       if (item.children) {
-          item.children.forEach(child => checkFavorite(child));
+        item.children.forEach(child => checkFavorite(child));
       }
     };
 
@@ -328,7 +332,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const updateContextRecursively = (item: TaskItem) => {
       item.updateContextValue();
       if (item.children) {
-          item.children.forEach(child => updateContextRecursively(child));
+        item.children.forEach(child => updateContextRecursively(child));
       }
     };
 
@@ -421,10 +425,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           let description = workspaceFolder ? workspaceFolder.name : '';
 
           if (task.resourceUri && workspaceFolder) {
-              const relativePath = vscode.workspace.asRelativePath(task.resourceUri, false);
-              if (relativePath && relativePath !== description) {
-                  description = `${description} • ${relativePath}`;
-              }
+            const relativePath = vscode.workspace.asRelativePath(task.resourceUri, false);
+            if (relativePath && relativePath !== description) {
+              description = `${description} • ${relativePath}`;
+            }
           }
           queuedItem.description = description;
 
@@ -438,7 +442,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
           // Force context value to queued task if not running
           if (queuedItem.contextValue !== 'runningTask') {
-              queuedItem.contextValue = 'queuedTask';
+            queuedItem.contextValue = 'queuedTask';
           }
 
           queuedItem.id = `queue:${queueName}:${queuedItem.id}`;
@@ -457,7 +461,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         'favorites'
       );
       // Salt favorites
-      favGroup.id = mkId('favorites', rootSalt);
+      favGroup.id = this.makeId('favorites', rootSalt);
       favGroup.iconPath = new vscode.ThemeIcon('star-full');
 
       // Group favorites by type
@@ -473,11 +477,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
       for (const [type, tasks] of favTypeMap) {
         const typeItem = TaskTypeFactory.create(type, groupState);
-        typeItem.id = mkId(`fav:${type}`, groupSalt);
+        typeItem.id = this.makeId(`fav:${type}`, groupSalt);
         typeItem.children = tasks;
         typeItem.parent = favGroup;
         for (const child of tasks) {
-            child.parent = typeItem;
+          child.parent = typeItem;
         }
         // Sort favorites
         typeItem.children.sort((a, b) => a.label.localeCompare(b.label));
@@ -496,7 +500,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         'recent'
       );
       // Salt recent
-      recentGroup.id = mkId('recent', rootSalt);
+      recentGroup.id = this.makeId('recent', rootSalt);
       recentGroup.iconPath = new vscode.ThemeIcon('history');
       // Ensure this group has the proper context so inline action shows only the clear button
       recentGroup.contextValue = 'recent';
@@ -520,36 +524,36 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         }
 
         for (const [type, tasks] of recentTypeMap) {
-           const typeItem = TaskTypeFactory.create(type, groupState);
-           typeItem.id = mkId(`recent:${type}`, groupSalt);
-           typeItem.children = tasks.map((t: TaskItem) => {
-                const copy = new TaskItem(
-                    t.label,
-                    vscode.TreeItemCollapsibleState.None,
-                    t.taskType,
-                    t.resourceUri,
-                    t.command,
-                    t.defaultIconPath
-                );
-                copy.originalLabel = t.originalLabel || t.label;
-                copy.startLine = t.startLine;
-                copy.metadata = t.metadata;
-                // Preserve file association and source/provider so recent items remain runnable
-                copy.taskFileUri = t.taskFileUri;
-                copy.taskSource = t.taskSource;
-                copy.description = t.description; // Preserve description (folder name etc)
-                copy.parent = typeItem;
-                copy.id = `recent:${t.id}`;
-                copy.contextValue = t.contextValue;
-                copy.updateContextValue();
-                if (copy.contextValue !== 'runningTask') {
-                    copy.contextValue = 'recentTask';
-                }
-                return copy;
-           });
+          const typeItem = TaskTypeFactory.create(type, groupState);
+          typeItem.id = this.makeId(`recent:${type}`, groupSalt);
+          typeItem.children = tasks.map((t: TaskItem) => {
+            const copy = new TaskItem(
+              t.label,
+              vscode.TreeItemCollapsibleState.None,
+              t.taskType,
+              t.resourceUri,
+              t.command,
+              t.defaultIconPath
+            );
+            copy.originalLabel = t.originalLabel || t.label;
+            copy.startLine = t.startLine;
+            copy.metadata = t.metadata;
+            // Preserve file association and source/provider so recent items remain runnable
+            copy.taskFileUri = t.taskFileUri;
+            copy.taskSource = t.taskSource;
+            copy.description = t.description; // Preserve description (folder name etc)
+            copy.parent = typeItem;
+            copy.id = `recent:${t.id}`;
+            copy.contextValue = t.contextValue;
+            copy.updateContextValue();
+            if (copy.contextValue !== 'runningTask') {
+              copy.contextValue = 'recentTask';
+            }
+            return copy;
+          });
 
-           typeItem.parent = recentGroup;
-           recentGroup.children.push(typeItem);
+          typeItem.parent = recentGroup;
+          recentGroup.children.push(typeItem);
         }
         // Do NOT sort groups by name? Recent is temporal.
         // But user said "ordered from 'most recently executed'".
@@ -562,30 +566,30 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       } else {
         // Flat list
         recentGroup.children = recentTasks.map((t: TaskItem) => {
-            const copy = new TaskItem(
-                t.label,
-                vscode.TreeItemCollapsibleState.None,
-                t.taskType,
-                t.resourceUri,
-                t.command,
-                t.defaultIconPath
-            );
-            // We should ideally show descriptions if same name exists
-            copy.originalLabel = t.originalLabel || t.label;
-            copy.startLine = t.startLine;
-            copy.metadata = t.metadata;
-            // Preserve file association and source/provider so recent items remain runnable
-            copy.taskFileUri = t.taskFileUri;
-            copy.taskSource = t.taskSource;
-            copy.description = t.description;
-            copy.parent = recentGroup;
-            copy.id = `recent:${t.id}`;
-            copy.contextValue = t.contextValue;
-            copy.updateContextValue();
-            if (copy.contextValue !== 'runningTask') {
-                copy.contextValue = 'recentTask';
-            }
-            return copy;
+          const copy = new TaskItem(
+            t.label,
+            vscode.TreeItemCollapsibleState.None,
+            t.taskType,
+            t.resourceUri,
+            t.command,
+            t.defaultIconPath
+          );
+          // We should ideally show descriptions if same name exists
+          copy.originalLabel = t.originalLabel || t.label;
+          copy.startLine = t.startLine;
+          copy.metadata = t.metadata;
+          // Preserve file association and source/provider so recent items remain runnable
+          copy.taskFileUri = t.taskFileUri;
+          copy.taskSource = t.taskSource;
+          copy.description = t.description;
+          copy.parent = recentGroup;
+          copy.id = `recent:${t.id}`;
+          copy.contextValue = t.contextValue;
+          copy.updateContextValue();
+          if (copy.contextValue !== 'runningTask') {
+            copy.contextValue = 'recentTask';
+          }
+          return copy;
         });
       }
     }
@@ -616,9 +620,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     } else {
       // Sort workspaceIds by name using the lookup map
       const sortedWorkspaceIds = Array.from(workspaceMap.keys()).sort((a, b) => {
-         const nameA = workspaceInfoMap.get(a) || '';
-         const nameB = workspaceInfoMap.get(b) || '';
-         return nameA.localeCompare(nameB);
+        const nameA = workspaceInfoMap.get(a) || '';
+        const nameB = workspaceInfoMap.get(b) || '';
+        return nameA.localeCompare(nameB);
       });
 
       for (const workspaceId of sortedWorkspaceIds) {
@@ -632,7 +636,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         );
         // Salt the ID of workspace item too!
         // Make ID robust using workspace ID (URI or special string)
-        workspaceItem.id = mkId(`workspace:${workspaceId}`, rootSalt);
+        workspaceItem.id = this.makeId(`workspace:${workspaceId}`, rootSalt);
 
         // Try to enable folder icon for workspace item explicitly found via URI
         // Not essential but might look better
@@ -644,8 +648,14 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           // Use Factory to create typed item
           const typeItem = TaskTypeFactory.create(taskType, groupState);
           // Use workspaceId in ID key for robustness
-          typeItem.id = mkId(`type:${taskType}:${workspaceId}`, groupSalt);
-          typeItem.children = this.groupTasksByName(typeTasks, taskSeparator);
+          typeItem.id = this.makeId(`type:${taskType}:${workspaceId}`, groupSalt);
+
+          if (useParentFolder) {
+            typeItem.children = this.groupTasksByParentFolder(typeTasks, taskSeparator, taskType, workspaceId, groupSalt);
+          } else {
+            typeItem.children = this.groupTasksByName(typeTasks, taskSeparator);
+          }
+
           typeItem.parent = workspaceItem;
           // groupTasksByName already sets parent for its direct children? No, I need to check
           for (const child of typeItem.children) { child.parent = typeItem; }
@@ -676,6 +686,69 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     rootItems.push(...workspaceRoots);
 
     return rootItems;
+  }
+
+  /**
+   * Helper to get workspace folder for a URI.
+   * Can be overridden for testing.
+   */
+  protected getWorkspaceFolder(uri: vscode.Uri): vscode.WorkspaceFolder | undefined {
+    return vscode.workspace.getWorkspaceFolder(uri);
+  }
+
+  /**
+   * Group tasks by the parent folder name
+   * @param tasks
+   * @param separator
+   * @param taskType
+   * @param workspaceId
+   * @param groupSalt
+   * @returns
+   */
+  public groupTasksByParentFolder(tasks: TaskItem[], separator: string, taskType: string, workspaceId: string, groupSalt: string): TaskItem[] {
+    const folderGroups = new Map<string, TaskItem[]>();
+    const rootTasks: TaskItem[] = [];
+
+    for (const task of tasks) {
+      const uri = task.taskFileUri || task.resourceUri;
+      let folderPath: string | undefined;
+
+      if (uri) {
+        const dir = path.dirname(uri.fsPath);
+        const wsFolder = this.getWorkspaceFolder(uri);
+        if (wsFolder && dir !== wsFolder.uri.fsPath) {
+          folderPath = dir;
+        }
+      }
+
+      if (folderPath) {
+        let list = folderGroups.get(folderPath);
+        if (!list) {
+          list = [];
+          folderGroups.set(folderPath, list);
+        }
+        list.push(task);
+      } else {
+        rootTasks.push(task);
+      }
+    }
+
+    const folderChildren: TaskItem[] = [];
+    for (const [folderPath, tasks] of folderGroups) {
+      const folderName = path.basename(folderPath);
+      const folderItem = new TaskItem(folderName, vscode.TreeItemCollapsibleState.Collapsed, 'folder');
+      folderItem.id = this.makeId(`folder:${folderPath}:${taskType}:${workspaceId}`, groupSalt);
+      folderItem.contextValue = 'folder';
+      folderItem.iconPath = vscode.ThemeIcon.Folder;
+      folderItem.children = this.groupTasksByName(tasks, separator);
+      for (const child of folderItem.children) { child.parent = folderItem; }
+      folderChildren.push(folderItem);
+    }
+    folderChildren.sort((a, b) => a.label.localeCompare(b.label));
+
+    const rootChildren = this.groupTasksByName(rootTasks, separator);
+
+    return [...folderChildren, ...rootChildren];
   }
 
   public groupTasksByName(tasks: TaskItem[], separator: string): TaskItem[] {

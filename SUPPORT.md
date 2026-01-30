@@ -70,6 +70,7 @@ Interested in contributing code, documentation, or other improvements? Check out
 ---
 
 **Quick Links:**
+
 - 🐛 [Report a Bug](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=bug_report.yml)
 - ✨ [Request a Feature](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=feature_request.yml)
 - 🔧 [Request Task Support](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=task_support.yml)

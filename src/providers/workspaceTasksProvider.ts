@@ -51,9 +51,9 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
       // the tasks will appear in the tree view but won't be linked to any specific file.
       // the "type" of the task will be the language ID. If the language ID is not recognized, it will default to 'shell'.
       if ((!glob_include || glob_include.length === 0) && taskDefs.length > 0) {
-        console.debug(`Creating task items for provider ${provider} without specific file association`);
+        // console.debug(`Creating task items for provider ${provider} without specific file association`);
         for (const taskDef of taskDefs) {
-          console.debug(`Creating task item for provider ${provider} with task ${taskDef.label} without specific file association`);
+          // console.debug(`Creating task item for provider ${provider} with task ${taskDef.label} without specific file association`);
 
           // Use sourceUri if available (the .workspace-tasks.json file)
           const resourceUri = taskDef.sourceUri;
@@ -84,7 +84,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
         continue;
       }
 
-      console.debug(`Searching files for provider ${provider} with include globs: ${glob_include.join(',')} and exclude globs: ${glob_exclude.join(',')}`);
+      // console.debug(`Searching files for provider ${provider} with include globs: ${glob_include.join(',')} and exclude globs: ${glob_exclude.join(',')}`);
 
       const files = await filesService.findFiles(glob_include, exclude_joined);
       for (const file of files) {
@@ -93,7 +93,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
         const iconUri = iconService.getTaskTypeIcon(langId, fallback);
 
         for (const taskDef of taskDefs) {
-          console.debug(`Creating task item for file ${file.fsPath} with task ${taskDef.label}`);
+          // console.debug(`Creating task item for file ${file.fsPath} with task ${taskDef.label}`);
           const item = new TaskItem(
             taskDef.label,
             vscode.TreeItemCollapsibleState.None,

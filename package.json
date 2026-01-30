@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for VS Code",
   "readme": "README.md",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -208,6 +208,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "workspaceTasks.openSettings",
+        "title": "%command.openSettings%",
+        "icon": "$(gear)"
+      },
+      {
         "command": "workspaceTasks.collapseAll",
         "title": "%command.collapseAll%",
         "icon": "$(collapse-all)"
@@ -236,6 +241,11 @@
       {
         "command": "workspaceTasks.onTreeItemClick",
         "title": "On Tree Item Click"
+      },
+      {
+        "command": "workspaceTasks.openFileAtLine",
+        "title": "%command.openFileAtLine%",
+        "icon": "$(file-code)"
       },
       {
         "command": "workspaceTasks.runTask",
@@ -372,6 +382,13 @@
           "description": "%config.workspaceTasks.groups.enabled.description%",
           "markdownDescription": "%config.workspaceTasks.groups.enabled.markdown%"
         },
+        "workspaceTasks.groups.useParentFolder": {
+          "title": "%config.workspaceTasks.groups.useParentFolder%",
+          "type": "boolean",
+          "default": false,
+          "description": "%config.workspaceTasks.groups.useParentFolder.description%",
+          "markdownDescription": "%config.workspaceTasks.groups.useParentFolder.markdown%"
+        },
         "workspaceTasks.groups.recentTasks.enabled": {
           "title": "%config.workspaceTasks.groups.recentTasks.enabled%",
           "type": "boolean",
@@ -404,6 +421,40 @@
           "default": null,
           "minimum": 1
         },
+        "workspaceTasks.task.actionBar": {
+          "type": "object",
+          "markdownDescription": "%config.workspaceTasks.task.actionBar%",
+          "additionalProperties": false,
+          "properties": {
+            "run": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.task.actionBar.run%"
+            },
+            "runWithArgs": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.task.actionBar.runWithArgs%"
+            },
+            "openFile": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.task.actionBar.openFile%"
+            },
+            "favorite": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.task.actionBar.favorite%"
+            },
+            "queue": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.task.actionBar.queue%"
+            }
+          },
+          "default": {
+            "run": true,
+            "runWithArgs": true,
+            "openFile": true,
+            "favorite": true,
+            "queue": true
+          }
+        },
         "workspaceTasks.task.statusResetDelay": {
           "type": "number",
           "default": 500,
@@ -414,8 +465,15 @@
           "type": "string",
           "enum": [
             "run",
+            "runWithArgs",
             "open",
             "none"
+          ],
+          "enumDescriptions": [
+            "Run the task",
+            "Run the task with arguments",
+            "Open the task",
+            "Do nothing"
           ],
           "default": "open",
           "description": "%config.workspaceTasks.task.singleClickAction%",
@@ -425,10 +483,17 @@
           "type": "string",
           "enum": [
             "run",
+            "runWithArgs",
             "open",
             "none"
           ],
           "default": "run",
+          "enumDescriptions": [
+            "Run the task",
+            "Run the task with arguments",
+            "Open the task",
+            "Do nothing"
+          ],
           "description": "%config.workspaceTasks.task.doubleClickAction%",
           "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%"
         },
@@ -633,7 +698,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
             },
-
+            "deno": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.deno%"
+            },
             "docker": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
@@ -827,6 +895,11 @@
           "command": "workspaceTasks.refresh",
           "group": "navigation@5",
           "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
+        },
+        {
+          "command": "workspaceTasks.openSettings",
+          "group": "navigation@99",
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         }
       ],
       "view/item/context": [
@@ -847,12 +920,17 @@
         },
         {
           "command": "workspaceTasks.runTask",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask",
+          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask) && config.workspaceTasks.task.actionBar.run",
           "group": "inline@3"
         },
         {
           "command": "workspaceTasks.runTaskWithArgs",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask",
+          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask) && config.workspaceTasks.task.actionBar.runWithArgs",
+          "group": "inline@3"
+        },
+        {
+          "command": "workspaceTasks.openFileAtLine",
+          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask) && config.workspaceTasks.task.actionBar.openFile",
           "group": "inline@3"
         },
         {
@@ -867,22 +945,22 @@
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "viewItem == task || viewItem == queuedTask || viewItem == recentTask",
+          "when": "(viewItem == task || viewItem == queuedTask || viewItem == recentTask) && config.workspaceTasks.task.actionBar.favorite",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.removeFromFavorites",
-          "when": "viewItem == favoriteTask",
+          "when": "viewItem == favoriteTask && config.workspaceTasks.task.actionBar.favorite",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.addToQueue",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == recentTask",
+          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == recentTask) && config.workspaceTasks.task.actionBar.queue",
           "group": "inline@2"
         },
         {
           "command": "workspaceTasks.removeFromQueue",
-          "when": "viewItem == queuedTask",
+          "when": "viewItem == queuedTask && config.workspaceTasks.task.actionBar.queue",
           "group": "inline@2"
         },
         {

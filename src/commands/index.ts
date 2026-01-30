@@ -10,6 +10,7 @@ import * as githubIssues from './githubIssues';
 import * as clearRecentTasks from './clearRecentTasks';
 import * as removeFromRecentTasks from './removeFromRecentTasks';
 import * as openFileAtLine from './openFileAtLine';
+import * as openSettings from './openSettings';
 import * as restartTask from './restartTask';
 import * as stopTask from './stopTask';
 import * as addToFavorites from './addToFavorites';
@@ -33,6 +34,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
     githubSponsor,
     onTreeItemClick,
     openFileAtLine,
+    openSettings,
     runTask,
     refresh,
     refreshTree,
@@ -54,7 +56,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
           try {
             // instantiate; constructor will register the command via BaseCommand
             new CommandClass(context);
-            console.log(`Loading command: ${key}`);
+            // console.log(`Loading command: ${key}`);
           } catch (err) {
             console.error(`Failed to load command ${key}:`, err);
           }

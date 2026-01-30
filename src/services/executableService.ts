@@ -60,6 +60,14 @@ export class ExecutableService {
       commandConfig = (configured ?? options.defaultValue).toString();
     }
 
+    // if the command path starts with ~/, expand to home directory
+    if (commandConfig.startsWith('~/')) {
+      const homeDir = process.env.HOME || process.env.USERPROFILE; // cross-platform home directory
+      if (homeDir) {
+        commandConfig = path.join(homeDir, commandConfig.slice(2));
+      }
+    }
+
     // If the resolved command is empty or whitespace, fall back to the default value
     if (!commandConfig || commandConfig.trim().length === 0) {
       commandConfig = options.defaultValue;
