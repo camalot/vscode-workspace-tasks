@@ -1,0 +1,10 @@
+---
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        '*': any
+  excessive-permissions:
+    config:
+      policies:
+        '*': deny

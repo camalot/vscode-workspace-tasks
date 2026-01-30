@@ -5,9 +5,7 @@
       "label": "VSCode: Hello",
       "type": "shell",
       "command": "echo",
-      "args": [
-        "Hello from VSCode tasks!"
-      ],
+      "args": ["Hello from VSCode tasks!"],
       "problemMatcher": [],
       "presentation": {
         "echo": false,
@@ -17,15 +15,13 @@
         "panel": "shared",
         "showReuseMessage": false,
         "clear": true
-      },
+      }
     },
     {
       "label": "VSCode: Hello Again",
       "type": "shell",
       "command": "echo",
-      "args": [
-        "Hello again from VSCode tasks!"
-      ],
+      "args": ["Hello again from VSCode tasks!"],
       "problemMatcher": [],
       "presentation": {
         "echo": false,
@@ -35,7 +31,7 @@
         "panel": "shared",
         "showReuseMessage": false,
         "clear": true
-      },
+      }
     },
     {
       "label": "VSCode: Long Running",
@@ -55,10 +51,7 @@
       "label": "VSCode: Failing Task",
       "type": "shell",
       "command": "bash",
-      "args": [
-        "-c",
-        "echo 'This VSCode task will fail...'; exit 1"
-      ],
+      "args": ["-c", "echo 'This VSCode task will fail...'; exit 1"],
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
@@ -69,9 +62,7 @@
       "label": "VSCode: Build",
       "type": "shell",
       "command": "echo",
-      "args": [
-        "Building project..."
-      ],
+      "args": ["Building project..."],
       "problemMatcher": [],
       "group": {
         "kind": "build",
@@ -82,9 +73,7 @@
       "label": "VSCode: Test",
       "type": "shell",
       "command": "echo",
-      "args": [
-        "Running tests..."
-      ],
+      "args": ["Running tests..."],
       "problemMatcher": [],
       "group": {
         "kind": "test",
@@ -108,18 +97,14 @@
       "label": "Run Python Script",
       "type": "shell",
       "command": "./python/tasks.py",
-      "args": [
-        "hello"
-      ],
+      "args": ["hello"],
       "problemMatcher": []
     },
     {
       "label": "Run Make Hello",
       "type": "shell",
       "command": "make",
-      "args": [
-        "hello"
-      ],
+      "args": ["hello"],
       "options": {
         "cwd": "${workspaceFolder}/makefile"
       },

@@ -5,6 +5,7 @@ import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import * as path from 'path';
+import { TaskIconService } from '../services/taskIconService';
 
 interface ShellConfig {
   extensions: string[];
@@ -14,24 +15,24 @@ interface ShellConfig {
 }
 
 const BUILT_IN_SHELLS: Record<string, ShellConfig> = {
-  'bash': { extensions: ['sh', 'bash'], configKey: 'bash', defaultInterpreter: 'bash', checkShebang: true },
-  'zsh': { extensions: ['zsh'], configKey: 'zsh', defaultInterpreter: 'zsh', checkShebang: true },
-  'fish': { extensions: ['fish'], configKey: 'fish', defaultInterpreter: 'fish', checkShebang: false },
-  'pwsh': { extensions: ['ps1'], configKey: 'pwsh', defaultInterpreter: 'pwsh', checkShebang: false },
-  'batch': { extensions: ['bat', 'cmd'], configKey: 'batch', defaultInterpreter: 'cmd.exe', checkShebang: false },
-  'python': { extensions: ['py'], configKey: 'python', defaultInterpreter: 'python', checkShebang: true },
-  'perl': { extensions: ['pl'], configKey: 'perl', defaultInterpreter: 'perl', checkShebang: true },
-  'ruby': { extensions: ['rb'], configKey: 'ruby', defaultInterpreter: 'ruby', checkShebang: true },
-  'sh': { extensions: ['sh'], configKey: 'sh', defaultInterpreter: 'sh', checkShebang: true },
-  'nushell': { extensions: ['nu'], configKey: 'nushell', defaultInterpreter: 'nu', checkShebang: false },
+  bash: { extensions: ['sh', 'bash'], configKey: 'bash', defaultInterpreter: 'bash', checkShebang: true },
+  zsh: { extensions: ['zsh'], configKey: 'zsh', defaultInterpreter: 'zsh', checkShebang: true },
+  fish: { extensions: ['fish'], configKey: 'fish', defaultInterpreter: 'fish', checkShebang: false },
+  pwsh: { extensions: ['ps1'], configKey: 'pwsh', defaultInterpreter: 'pwsh', checkShebang: false },
+  batch: { extensions: ['bat', 'cmd'], configKey: 'batch', defaultInterpreter: 'cmd.exe', checkShebang: false },
+  python: { extensions: ['py'], configKey: 'python', defaultInterpreter: 'python', checkShebang: true },
+  perl: { extensions: ['pl'], configKey: 'perl', defaultInterpreter: 'perl', checkShebang: true },
+  ruby: { extensions: ['rb'], configKey: 'ruby', defaultInterpreter: 'ruby', checkShebang: true },
+  sh: { extensions: ['sh'], configKey: 'sh', defaultInterpreter: 'sh', checkShebang: true },
+  nushell: { extensions: ['nu'], configKey: 'nushell', defaultInterpreter: 'nu', checkShebang: false },
 };
 
 export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
     // Collect all extensions
     const extensions = new Set<string>();
-    for(const key in BUILT_IN_SHELLS) {
-        BUILT_IN_SHELLS[key].extensions.forEach(ext => extensions.add(ext));
+    for (const key in BUILT_IN_SHELLS) {
+      BUILT_IN_SHELLS[key].extensions.forEach((ext) => extensions.add(ext));
     }
     const glob = `**/*.{${Array.from(extensions).join(',')}}`;
     super('shell', glob);
@@ -56,13 +57,15 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
         const interpreter = shellPaths[type] || def.defaultInterpreter;
 
         // Construct glob pattern for this type
-        const patterns = def.extensions.map(ext => `**/*.${ext}`);
+        const patterns = def.extensions.map((ext) => `**/*.${ext}`);
 
         // Find files
         const files = await filesService.findFiles(patterns, [constants.GLOB_SHELL_EXCLUDE]);
 
         for (const file of files) {
-          if (processedFiles.has(file.fsPath)) { continue; } // Avoid duplicates if extensions overlap
+          if (processedFiles.has(file.fsPath)) {
+            continue;
+          } // Avoid duplicates if extensions overlap
 
           // Check Shebang if required
           if (def.checkShebang) {
@@ -88,7 +91,9 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
         const files = await filesService.findFiles([`**/*.${extClean}`], [constants.GLOB_SHELL_EXCLUDE]);
 
         for (const file of files) {
-          if (processedFiles.has(file.fsPath)) { continue; }
+          if (processedFiles.has(file.fsPath)) {
+            continue;
+          }
 
           processedFiles.add(file.fsPath);
           // For custom types, we assume 'shell' as sub-type or derived from extension
@@ -103,6 +108,8 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
 
   private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string): TaskItem {
     const filename = path.basename(resourceUri.fsPath);
+    const iconPath = TaskIconService.getInstance().getTaskIcon(subType) || vscode.ThemeIcon.File;
+
     const item = new TaskItem(
       filename,
       vscode.TreeItemCollapsibleState.None,
@@ -111,16 +118,16 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
       {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [resourceUri, 0]
+        arguments: [resourceUri, 0],
       },
-      vscode.ThemeIcon.File
+      iconPath,
     );
 
     item.description = vscode.workspace.asRelativePath(resourceUri);
     // Store interpreter info for TaskFactory
     item.metadata = {
       interpreter: interpreter,
-      subType: subType
+      subType: subType,
     };
 
     return item;
@@ -133,12 +140,16 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
         const buffer = new Uint8Array(2);
         const { bytesRead } = await handle.read(buffer, 0, 2, 0);
         await handle.close();
-        if (bytesRead < 2) { return false; }
+        if (bytesRead < 2) {
+          return false;
+        }
         return buffer[0] === 0x23 && buffer[1] === 0x21; // #!
       } else {
         // Fallback for virtual filesystems
         const data = await vscode.workspace.fs.readFile(uri);
-        if (data.byteLength < 2) { return false; }
+        if (data.byteLength < 2) {
+          return false;
+        }
         return data[0] === 0x23 && data[1] === 0x21; // #!
       }
     } catch (e) {

@@ -24,12 +24,14 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
     const files = await filesService.findFiles([constants.GLOB_NODEJS]);
 
     for (const file of files) {
-      if (filesService.shouldIgnore(file)) { continue; }
+      if (filesService.shouldIgnore(file)) {
+        continue;
+      }
 
       try {
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
-        const iconUri = iconService.getTaskTypeIcon(this.type, file);
+        const iconPath = iconService.getTaskIcon(this.type);
 
         // Simple parsing for now
         const json = JSON.parse(content);
@@ -39,9 +41,9 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
               script,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconUri?.DisplayUri || file,
+              file,
               undefined,
-              iconUri?.TaskIcon || undefined
+              iconPath,
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
@@ -58,7 +60,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, item.startLine || 0]
+              arguments: [file, item.startLine || 0],
             };
 
             tasks.push(item);

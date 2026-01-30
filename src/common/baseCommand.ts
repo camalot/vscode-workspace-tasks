@@ -4,10 +4,9 @@ import * as vscode from 'vscode';
 import constants from '../libs/constants';
 
 export default abstract class BaseCommand {
-
   constructor(
     public readonly commandName: string,
-    public readonly context: vscode.ExtensionContext
+    public readonly context: vscode.ExtensionContext,
   ) {
     // remove 'Command' suffix from class name to get command name
     // let commandName = this.constructor.name.replace(/Command$/, '');

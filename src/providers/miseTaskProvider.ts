@@ -19,11 +19,14 @@ export class MiseTaskProvider extends TomlTaskProvider {
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      defaultValue: 'mise',
-      configName: 'mise',
-      resolveToAbsolutePath: false,
-      windowsEnforceExtension: false
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        defaultValue: 'mise',
+        configName: 'mise',
+        resolveToAbsolutePath: false,
+        windowsEnforceExtension: false,
+      },
+      workspaceUri,
+    );
   }
 }

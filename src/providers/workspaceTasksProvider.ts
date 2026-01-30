@@ -58,16 +58,15 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
           // Use sourceUri if available (the .workspace-tasks.json file)
           const resourceUri = taskDef.sourceUri;
 
-          const iconUri = iconService.getTaskTypeIcon("task", resourceUri);
-
+          const iconPath = iconService.getTaskIcon('task');
 
           const item = new TaskItem(
             taskDef.label,
             vscode.TreeItemCollapsibleState.None,
             this.type, // Unique task type
-            iconUri?.DisplayUri || resourceUri,
+            resourceUri,
             undefined,
-            iconUri?.TaskIcon || undefined
+            iconPath,
           );
           item.taskFileUri = resourceUri;
           item.taskSource = provider;
@@ -76,7 +75,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [resourceUri, taskDef.line || 0]
+            arguments: [resourceUri, taskDef.line || 0],
           };
 
           tasks.push(item);
@@ -88,9 +87,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
       const files = await filesService.findFiles(glob_include, exclude_joined);
       for (const file of files) {
-        const configIconUri = config.iconUri;
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), configIconUri || path.basename(file.fsPath || "")));
-        const iconUri = iconService.getTaskTypeIcon(langId, fallback);
+        const iconPath = iconService.getTaskIcon(langId);
 
         for (const taskDef of taskDefs) {
           // console.debug(`Creating task item for file ${file.fsPath} with task ${taskDef.label}`);
@@ -98,9 +95,9 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             taskDef.label,
             vscode.TreeItemCollapsibleState.None,
             langId, // Use the language ID as the type
-            iconUri?.DisplayUri || fallback,
+            file,
             undefined,
-            iconUri?.TaskIcon || undefined
+            iconPath,
           );
           item.taskFileUri = file;
 
@@ -114,7 +111,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [file, 0]
+            arguments: [file, 0],
           };
 
           tasks.push(item);

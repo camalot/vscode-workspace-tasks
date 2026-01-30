@@ -14,14 +14,17 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
   public getCommand(resourceUri?: vscode.Uri) {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      configKey: 'applicationPath.just',
-      defaultValue: 'just',
-      configName: 'just',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: '.exe',
-      windowsEnforceExtension: true
-    }, resourceUri);
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.just',
+        defaultValue: 'just',
+        configName: 'just',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: '.exe',
+        windowsEnforceExtension: true,
+      },
+      resourceUri,
+    );
   }
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
@@ -39,13 +42,15 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
       try {
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'justfile'));
-        const iconPath = iconService.getTaskTypeIcon(this.type, fallback);
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'justfile'));
+        const iconPath = iconService.getTaskIcon(this.type);
         const lines = content.split('\n');
 
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
-          if (!line || line.startsWith('#')) { continue; } // Skip empty and comments
+          if (!line || line.startsWith('#')) {
+            continue;
+          } // Skip empty and comments
 
           // Regex for recipe:
           // Start of line (ignoring whitespace handled by trim, but recipe usually starts at col 0)
@@ -66,19 +71,29 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
           if (match) {
             // Check it is not an assignment or alias
-            if (line.includes(':=')) { continue; }
+            if (line.includes(':=')) {
+              continue;
+            }
 
             const target = match[1];
             // Ignore reserved words if any match the regex?
-            if (target === 'mod' || target === 'import' || target === 'export' || target === 'alias' || target === 'set') { continue; }
+            if (
+              target === 'mod' ||
+              target === 'import' ||
+              target === 'export' ||
+              target === 'alias' ||
+              target === 'set'
+            ) {
+              continue;
+            }
 
             const item = new TaskItem(
               target,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconPath?.DisplayUri || file,
+              file,
               undefined,
-              iconPath?.TaskIcon || undefined
+              iconPath,
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
@@ -87,12 +102,11 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, i]
+              arguments: [file, i],
             };
             tasks.push(item);
           }
         }
-
       } catch (e) {
         console.error(`Error parsing Justfile: ${file.fsPath}`, e);
       }

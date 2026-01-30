@@ -1,9 +1,8 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { ExtensionConfigurationService } from "../services/extensionConfigurationService";
+import { ExtensionConfigurationService } from '../services/extensionConfigurationService';
 
 export class GithubSponsorCommand extends BaseCommand {
-
   constructor(context: vscode.ExtensionContext) {
     super('githubSponsor', context);
   }

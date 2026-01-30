@@ -1,42 +1,42 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": {
-				"owner": "typescript",
-				"fileLocation": ["relative", "${workspaceFolder}"],
-				"pattern": {
-					"regexp": "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
-					"file": 1,
-					"line": 2,
-					"severity": 3,
-					"code": 4,
-					"message": 5
-				},
-				"background": {
-					"activeOnStart": true,
-					"beginsPattern": "webpack .*? watch",
-					"endsPattern": "webpack .*? compiled successfully"
-				}
-			},
-			"isBackground": true,
-			"presentation": {
-				"reveal": "never"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"label": "npm: watch"
-		},
-		{
-			"type": "npm",
-			"script": "compile",
-			"problemMatcher": "$ts-webpack",
-			"group": "build",
-			"label": "npm: compile"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "watch",
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "severity": 3,
+          "code": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "webpack .*? watch",
+          "endsPattern": "webpack .*? compiled successfully"
+        }
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "npm: watch"
+    },
+    {
+      "type": "npm",
+      "script": "compile",
+      "problemMatcher": "$ts-webpack",
+      "group": "build",
+      "label": "npm: compile"
+    }
+  ]
 }

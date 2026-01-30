@@ -549,6 +549,32 @@
             }
           }
         },
+        "workspaceTasks.task.iconType": {
+          "type": "string",
+          "enum": [
+            "type",
+            "file",
+            "gear",
+            "run",
+            "custom"
+          ],
+          "default": "type",
+          "description": "%config.workspaceTasks.task.iconType%",
+          "enumDescriptions": [
+            "The task type icon used to represent the type of the task",
+            "The vscode defined file icon for the task source file",
+            "A gear icon that usually represents settings or configuration",
+            "A play icon that usually represents running or starting something",
+            "A custom icon defined by the user"
+          ],
+          "markdownDescription": "%config.workspaceTasks.task.iconType.markdown%"
+        },
+        "workspaceTasks.task.iconTypeCustom": {
+          "type": "string",
+          "default": "",
+          "description": "%config.workspaceTasks.task.iconTypeCustom%",
+          "markdownDescription": "%config.workspaceTasks.task.iconTypeCustom.markdown%"
+        },
         "workspaceTasks.shellEnabledTaskTypes": {
           "type": "object",
           "additionalProperties": false,

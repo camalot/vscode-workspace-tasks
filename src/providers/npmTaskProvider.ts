@@ -10,12 +10,15 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      defaultValue: 'npm',
-      configName: 'npm',
-      resolveToAbsolutePath: false,
-      windowsEnforceExtension: false
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        defaultValue: 'npm',
+        configName: 'npm',
+        resolveToAbsolutePath: false,
+        windowsEnforceExtension: false,
+      },
+      workspaceUri,
+    );
   }
 }
 
@@ -26,12 +29,15 @@ export class PnpmTaskProvider extends PackageJsonTaskProvider {
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      defaultValue: 'pnpm',
-      configName: 'pnpm',
-      resolveToAbsolutePath: false,
-      windowsEnforceExtension: false
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        defaultValue: 'pnpm',
+        configName: 'pnpm',
+        resolveToAbsolutePath: false,
+        windowsEnforceExtension: false,
+      },
+      workspaceUri,
+    );
   }
 }
 
@@ -42,11 +48,14 @@ export class YarnTaskProvider extends PackageJsonTaskProvider {
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      defaultValue: 'yarn',
-      configName: 'yarn',
-      resolveToAbsolutePath: false,
-      windowsEnforceExtension: false
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        defaultValue: 'yarn',
+        configName: 'yarn',
+        resolveToAbsolutePath: false,
+        windowsEnforceExtension: false,
+      },
+      workspaceUri,
+    );
   }
 }

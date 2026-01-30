@@ -9,13 +9,12 @@ on:
   #   branches:
   #     - develop
 
-permissions:
-  contents: read
-  actions: read
-  checks: write
+permissions: {}
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
         with:
@@ -30,6 +29,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint && npm run check
+
+      - name: Load Super-Linter env
+        run: cat .github/env/super-linter.env >> "$GITHUB_ENV"
+
+      - name: Super-Linter
+        uses: super-linter/super-linter@v8
+        env:
+          GITHUB_TOKEN: '${{ github.token }}'
+
       - name: Build
         run: npm run compile
 
@@ -38,3 +48,6 @@ jobs:
 
       - name: Package VSIX (dry run)
         run: npm run package:vsix
+
+      - name: VSIX Information
+        run: npx vsce ls --tree

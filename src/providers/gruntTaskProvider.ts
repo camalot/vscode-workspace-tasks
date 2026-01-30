@@ -13,14 +13,17 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      configKey: 'applicationPath.grunt',
-      defaultValue: 'npx grunt',
-      configName: 'grunt',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: undefined,
-      windowsEnforceExtension: false
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.grunt',
+        defaultValue: 'npx grunt',
+        configName: 'grunt',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: undefined,
+        windowsEnforceExtension: false,
+      },
+      workspaceUri,
+    );
   }
 
   async getTasks(): Promise<TaskItem[]> {
@@ -40,11 +43,10 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
         const content = document.getText();
         const lines = content.split('\n');
 
-        const iconUri = iconService.getTaskTypeIcon('grunt', file);
+        const iconPath = iconService.getTaskIcon('grunt');
 
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
-
 
           // Look for grunt.registerTask('name'...) or grunt.registerMultiTask('name'...)
           const match = line.match(/grunt\.register(?:Task|MultiTask)\(\s*['"`]([\w\-:\.]+)['"`]/);
@@ -55,9 +57,9 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
               taskName,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconUri?.DisplayUri || file,
+              file,
               undefined,
-              iconUri?.TaskIcon || undefined
+              iconPath,
             );
 
             item.taskFileUri = file;
@@ -66,13 +68,12 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, i]
+              arguments: [file, i],
             };
 
             tasks.push(item);
           }
         }
-
       } catch (e) {
         console.error(`Error parsing Gruntfile: ${file.fsPath}`, e);
       }

@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
 import { XMLParser } from 'fast-xml-parser';
-import { TaskItem } from "../taskItem";
-import { BaseTaskProvider, TaskProvider } from "../taskProvider";
+import { TaskItem } from '../taskItem';
+import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import constants from '../libs/constants';
-import { TaskIconService } from "../services/taskIconService";
-import { TaskFilesService } from "../services/taskFilesService";
-import { ExecutableService, ExecutableResult } from "../services/executableService";
+import { TaskIconService } from '../services/taskIconService';
+import { TaskFilesService } from '../services/taskFilesService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
 
 export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
-        super('msbuild', constants.GLOB_MSBUILD);
+    super('msbuild', constants.GLOB_MSBUILD);
   }
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
@@ -26,17 +26,18 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
       attributeNamePrefix: '@_',
       isArray: (name) => {
         return name === 'Target';
-      }
+      },
     });
 
     for (const file of buildFiles) {
       try {
         const fileStat = await vscode.workspace.fs.stat(file);
-        if (fileStat.size > 1024 * 1024) { // Ignore files larger than 1MB
+        if (fileStat.size > 1024 * 1024) {
+          // Ignore files larger than 1MB
           continue;
         }
 
-        const iconUri = iconService.getTaskTypeIcon(this.type, file);
+        const iconPath = iconService.getTaskIcon(this.type);
         const content = await vscode.workspace.fs.readFile(file);
         const xmlString = new TextDecoder().decode(content);
         const xmlData = parser.parse(xmlString);
@@ -52,9 +53,9 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
             target.name,
             vscode.TreeItemCollapsibleState.None,
             this.type,
-            iconUri?.DisplayUri || file,
+            file,
             undefined,
-            iconUri?.TaskIcon || undefined
+            iconPath,
           );
 
           item.taskFileUri = file;
@@ -67,7 +68,7 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [file, item.startLine || 0]
+            arguments: [file, item.startLine || 0],
           };
 
           tasks.push(item);
@@ -80,13 +81,11 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
     return tasks;
   }
 
-  private extractTargets(xmlData: any): { name: string, description?: string }[] {
-    const targets: { name: string, description?: string }[] = [];
+  private extractTargets(xmlData: any): { name: string; description?: string }[] {
+    const targets: { name: string; description?: string }[] = [];
 
     if (xmlData.Project && xmlData.Project.Target) {
-      const targetNodes = Array.isArray(xmlData.Project.Target)
-        ? xmlData.Project.Target
-        : [xmlData.Project.Target];
+      const targetNodes = Array.isArray(xmlData.Project.Target) ? xmlData.Project.Target : [xmlData.Project.Target];
 
       for (const target of targetNodes) {
         const name = target['@_Name'];
@@ -97,7 +96,7 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
 
         targets.push({
           name: name,
-          description: target['@_Description'] || target['@_DependsOnTargets']
+          description: target['@_Description'] || target['@_DependsOnTargets'],
         });
       }
     }
@@ -120,14 +119,17 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      configKey: 'applicationPath.msbuild',
-      defaultValue: 'MSBuild.exe',
-      configName: 'msbuild',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: '.exe',
-      windowsEnforceExtension: true
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.msbuild',
+        defaultValue: 'MSBuild.exe',
+        configName: 'msbuild',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: '.exe',
+        windowsEnforceExtension: true,
+      },
+      workspaceUri,
+    );
   }
 
   public getCommandArgs(targetName: string, buildFile: string): string[] {

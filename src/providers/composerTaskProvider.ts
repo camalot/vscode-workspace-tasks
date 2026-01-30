@@ -18,9 +18,7 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
     }
     const filesService = TaskFilesService.getInstance();
     const tasks: TaskItem[] = [];
-    const files = await filesService.findFiles(
-      [constants.GLOB_COMPOSER]
-    );
+    const files = await filesService.findFiles([constants.GLOB_COMPOSER]);
     const iconService = TaskIconService.getInstance();
 
     for (const file of files) {
@@ -28,8 +26,8 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
 
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'composer.json'));
-        const iconPath = iconService.getTaskTypeIcon(this.type, fallback);
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'composer.json'));
+        const iconPath = iconService.getTaskIcon(this.type);
 
         const json = JSON.parse(content);
         if (json.scripts) {
@@ -38,9 +36,9 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
               script,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconPath?.DisplayUri || file,
+              file,
               undefined,
-              iconPath?.TaskIcon || undefined
+              iconPath,
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
@@ -57,7 +55,7 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, item.startLine || 0]
+              arguments: [file, item.startLine || 0],
             };
 
             tasks.push(item);
@@ -72,13 +70,16 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      configKey: 'applicationPath.composer',
-      defaultValue: 'composer',
-      configName: 'composer',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: '.bat',
-      windowsEnforceExtension: true
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.composer',
+        defaultValue: 'composer',
+        configName: 'composer',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: '.bat',
+        windowsEnforceExtension: true,
+      },
+      workspaceUri,
+    );
   }
 }

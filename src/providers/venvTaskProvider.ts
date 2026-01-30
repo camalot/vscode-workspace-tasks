@@ -23,23 +23,16 @@ export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
       const label = path.basename(file.fsPath);
 
       // Fake URI to force .py icon
-      const iconUri = iconService.getTaskTypeIcon('python', file.with({ path: file.path + '.py' }));
+      const iconPath = iconService.getTaskIcon('python');
 
-      const item = new TaskItem(
-        label,
-        vscode.TreeItemCollapsibleState.None,
-        this.type,
-        iconUri?.DisplayUri || file,
-        undefined,
-        iconUri?.TaskIcon || undefined
-      );
+      const item = new TaskItem(label, vscode.TreeItemCollapsibleState.None, this.type, file, undefined, iconPath);
 
       item.taskFileUri = file;
       item.description = vscode.workspace.asRelativePath(file);
       item.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [file, 0]
+        arguments: [file, 0],
       };
 
       tasks.push(item);

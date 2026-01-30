@@ -15,7 +15,7 @@ export class TaskCacheService {
   private _onDidUpdate: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   public readonly onDidUpdate: vscode.Event<void> = this._onDidUpdate.event;
 
-  private constructor() { }
+  private constructor() {}
 
   public getTask(id: string): TaskItem | undefined {
     return this.taskMap.get(id);
@@ -42,8 +42,10 @@ export class TaskCacheService {
   }
 
   public async refreshProvider(type: string): Promise<void> {
-    const provider = this.providers.find(p => (p as any).type === type);
-    if (!provider) { return; }
+    const provider = this.providers.find((p) => (p as any).type === type);
+    if (!provider) {
+      return;
+    }
 
     try {
       const tasks = await provider.getTasks();
@@ -109,7 +111,7 @@ export class TaskCacheService {
       }
 
       if (task.children) {
-        task.children.forEach(child => processItem(child));
+        task.children.forEach((child) => processItem(child));
       }
     };
 
@@ -122,7 +124,9 @@ export class TaskCacheService {
         const labelA = a.label || '';
         const labelB = b.label || '';
         const comp = labelA.localeCompare(labelB);
-        if (comp !== 0) { return comp; }
+        if (comp !== 0) {
+          return comp;
+        }
 
         const uriA = a.resourceUri ? a.resourceUri.toString() : '';
         const uriB = b.resourceUri ? b.resourceUri.toString() : '';
@@ -165,7 +169,9 @@ export class TaskCacheService {
   public getTasksForFile(uri: vscode.Uri): TaskItem[] {
     // Try exact match
     let tasks = this.fileTaskMap.get(uri.toString());
-    if (tasks) { return tasks; }
+    if (tasks) {
+      return tasks;
+    }
 
     // Try finding by fsPath (ignoring scheme/encoding differences) if needed,
     // or iterate keys if we suspect casing issues on Windows.

@@ -12,14 +12,17 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
   }
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      configKey: 'applicationPath.make',
-      defaultValue: 'make',
-      configName: 'make',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: '.exe',
-      windowsEnforceExtension: true
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.make',
+        defaultValue: 'make',
+        configName: 'make',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: '.exe',
+        windowsEnforceExtension: true,
+      },
+      workspaceUri,
+    );
   }
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
@@ -37,7 +40,7 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
         const content = document.getText();
         const lines = content.split('\n');
 
-        const iconUri = iconService.getTaskTypeIcon('makefile', file);
+        const iconPath = iconService.getTaskIcon('makefile');
 
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
@@ -45,15 +48,17 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
           const match = line.match(/^([a-zA-Z0-9_\-\.]+):/);
           if (match) {
             const target = match[1];
-            if (target === '.PHONY') { continue; }
+            if (target === '.PHONY') {
+              continue;
+            }
 
             const item = new TaskItem(
               target,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconUri?.DisplayUri || file,
+              file,
               undefined,
-              iconUri?.TaskIcon || undefined
+              iconPath,
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
@@ -62,12 +67,11 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, i]
+              arguments: [file, i],
             };
             tasks.push(item);
           }
         }
-
       } catch (e) {
         console.error(`Error parsing Makefile: ${file.fsPath}`, e);
       }

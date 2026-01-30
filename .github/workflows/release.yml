@@ -10,21 +10,21 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to build and publish (ex: v1.1.1)"
+        description: 'Tag to build and publish (ex: v1.1.1)'
         required: true
-        default: "v1.1.1"
+        default: 'v1.1.1'
 
 permissions: {}
 env:
-  PACKAGE_OWNER: "darthminos"
-  PACKAGE_NAME: "workspace-tasks"
+  PACKAGE_OWNER: 'darthminos'
+  PACKAGE_NAME: 'workspace-tasks'
 jobs:
   publish-vscode-marketplace:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -33,8 +33,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "25.x"
-          cache: "npm"
+          node-version: '25.x'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
@@ -52,7 +52,6 @@ jobs:
           TAG="v${VERSION}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-
 
       - name: Run Tests
         run: npm run test
@@ -93,9 +92,9 @@ jobs:
           TAG="${{ steps.tag.outputs.tag }}"
           if ! gh release view "$TAG" --repo "${{ github.repository }}" 2>/dev/null; then
             gh release create "$TAG" --title "$TAG" --generate-notes --repo "${{ github.repository }}"
-            echo "Release $TAG created."
+            echo -e "\e[32mRelease $TAG created.\e[0m"
           else
-            echo "Release $TAG already exists."
+            echo -e "\e[33mRelease $TAG already exists.\e[0m"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -105,12 +104,12 @@ jobs:
           VERSION="${{ steps.tag.outputs.version }}"
           VSIX="dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${VERSION}.vsix"
           if [ ! -f "$VSIX" ]; then
-            echo "VSIX not found: $VSIX" >&2
+            echo -e "\e[31mVSIX not found: $VSIX\e[0m" >&2
             echo "Contents of dist/:"
             ls -la dist/
             exit 1
           fi
-          echo "VSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))"
+          echo -e "\e[32mVSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))\e[0m"
           npx vsce ls --tree
 
       - name: Publish to Open VSX Registry
@@ -132,11 +131,11 @@ jobs:
         run: |
           VSIX="dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix"
           if [ ! -f "$VSIX" ]; then
-            echo "::error::VSIX not found before upload: $VSIX" >&2
+            echo -e "\e[31mVSIX not found before upload: $VSIX\e[0m" >&2
             exit 1
           fi
           gh release upload "$TAG" "$VSIX" --repo "${{ github.repository }}" --clobber
-          echo "VSIX uploaded to release $TAG"
+          echo -e "\e[32mVSIX uploaded to release $TAG\e[0m"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.tag.outputs.version }}

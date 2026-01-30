@@ -1,9 +1,8 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskItem } from "../taskItem";
+import { TaskItem } from '../taskItem';
 
 export class OpenFileAtLineCommand extends BaseCommand {
-
   constructor(context: vscode.ExtensionContext) {
     super('openFileAtLine', context);
   }
@@ -21,8 +20,8 @@ export class OpenFileAtLineCommand extends BaseCommand {
     }
 
     if (uri) {
-      vscode.workspace.openTextDocument(uri).then(doc => {
-        vscode.window.showTextDocument(doc).then(editor => {
+      vscode.workspace.openTextDocument(uri).then((doc) => {
+        vscode.window.showTextDocument(doc).then((editor) => {
           const position = new vscode.Position(lineToOpen, 0);
           const range = new vscode.Range(position, position);
           editor.revealRange(range, vscode.TextEditorRevealType.InCenter);

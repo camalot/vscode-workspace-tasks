@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import { configuration } from '../../libs/configuration';
 
 suite('Configuration Test Suite', () => {
-
   async function waitFor(predicate: () => boolean, timeout = 10000) {
     const start = Date.now();
     while (!predicate() && Date.now() - start < timeout) {
@@ -31,7 +30,7 @@ suite('Configuration Test Suite', () => {
     }
   });
 
-  test.skip('update updates nested object property and persists (Global)', async function() {
+  test.skip('update updates nested object property and persists (Global)', async function () {
     this.timeout(10000);
     // use a registered object property: shellEnabledTaskTypes
     const parent = 'shellEnabledTaskTypes';

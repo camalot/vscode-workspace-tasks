@@ -1,16 +1,15 @@
-import * as path from "path";
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { XMLParser } from 'fast-xml-parser';
-import { configuration } from "../libs/configuration";
-import { TaskItem } from "../taskItem";
-import { BaseTaskProvider, TaskProvider } from "../taskProvider";
+import { configuration } from '../libs/configuration';
+import { TaskItem } from '../taskItem';
+import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import constants from '../libs/constants';
-import { TaskFilesService } from "../services/taskFilesService";
-import { TaskIconService } from "../services/taskIconService";
-import { ExecutableService, ExecutableResult } from "../services/executableService";
+import { TaskFilesService } from '../services/taskFilesService';
+import { TaskIconService } from '../services/taskIconService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
 
 export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
-
   constructor() {
     super('ant', constants.GLOB_ANT);
   }
@@ -27,14 +26,15 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
     const xmlFiles = await filesService.findFiles([constants.GLOB_ANT]);
     const parser = new XMLParser({
       ignoreAttributes: false,
-      attributeNamePrefix: '@_'
+      attributeNamePrefix: '@_',
     });
 
     for (const file of xmlFiles) {
       try {
         const fileStat = await vscode.workspace.fs.stat(file);
-        if (fileStat.size > 1024 * 1024) { // Ignore files larger than 1MB
-            continue;
+        if (fileStat.size > 1024 * 1024) {
+          // Ignore files larger than 1MB
+          continue;
         }
         const content = await vscode.workspace.fs.readFile(file);
         const xmlString = new TextDecoder().decode(content);
@@ -48,17 +48,17 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
         // Extract targets from the Ant file
         const targets = this.extractTargets(xmlData);
 
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'build.xml'));
-        const iconPath = iconService.getTaskTypeIcon(this.type, fallback);
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'build.xml'));
+        const iconPath = iconService.getTaskIcon(this.type);
 
         for (const target of targets) {
           const item = new TaskItem(
             target.name,
             vscode.TreeItemCollapsibleState.None,
             this.type,
-            iconPath?.DisplayUri || file,
+            file,
             undefined,
-            iconPath?.TaskIcon || undefined
+            iconPath,
           );
 
           item.taskFileUri = file;
@@ -68,7 +68,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [file, 0]
+            arguments: [file, 0],
           };
 
           tasks.push(item);
@@ -99,8 +99,8 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
     return hasAntAttributes || hasTargets;
   }
 
-  private extractTargets(xmlData: any): Array<{ name: string, description?: string }> {
-    const targets: Array<{ name: string, description?: string }> = [];
+  private extractTargets(xmlData: any): Array<{ name: string; description?: string }> {
+    const targets: Array<{ name: string; description?: string }> = [];
     const project = xmlData.project;
 
     if (!project || !project.target) {
@@ -114,7 +114,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
       if (target['@_name']) {
         targets.push({
           name: target['@_name'],
-          description: target['@_description'] || target['@_depends']
+          description: target['@_description'] || target['@_depends'],
         });
       }
     }
@@ -127,12 +127,12 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
 
     // Add logger argument when using ansicon
     if (useAnsicon) {
-      args.push("-logger", "org.apache.tools.ant.listener.AnsiColorLogger");
+      args.push('-logger', 'org.apache.tools.ant.listener.AnsiColorLogger');
     }
 
     // Add buildfile argument if provided
     if (buildFilePath) {
-      args.push("-buildfile", buildFilePath);
+      args.push('-buildfile', buildFilePath);
     }
 
     // Add the target name
@@ -142,42 +142,47 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
   }
 
   public shouldUseAnsicon(): boolean {
-    if (process.platform !== "win32") {
+    if (process.platform !== 'win32') {
       return false;
     }
 
-    if (!configuration.get<boolean>("ant.ansicon.enabled")) {
+    if (!configuration.get<boolean>('ant.ansicon.enabled')) {
       // console.debug("[AntTaskProvider] Ant ansicon usage is disabled in configuration.");
       return false;
     }
 
-      return true;
+    return true;
   }
 
   public getAnsicon(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
 
-    return execService.getCommand({
-      configKey: 'applicationPath.ansicon',
-      defaultValue: 'ansicon.exe',
-      configName: 'ansicon',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: '.exe',
-      windowsEnforceExtension: true
-    }, workspaceUri);
-
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.ansicon',
+        defaultValue: 'ansicon.exe',
+        configName: 'ansicon',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: '.exe',
+        windowsEnforceExtension: true,
+      },
+      workspaceUri,
+    );
   }
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
 
-    return execService.getCommand({
-      configKey: 'applicationPath.ant',
-      defaultValue: 'ant',
-      configName: 'ant',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: '.bat',
-      windowsEnforceExtension: true
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.ant',
+        defaultValue: 'ant',
+        configName: 'ant',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: '.bat',
+        windowsEnforceExtension: true,
+      },
+      workspaceUri,
+    );
   }
 }

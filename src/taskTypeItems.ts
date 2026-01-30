@@ -6,7 +6,7 @@ export abstract class TaskTypeGroupItem extends TaskItem {
   constructor(
     label: string,
     resourceUri?: vscode.Uri,
-    collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed
+    collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed,
   ) {
     // We pass label as type for now
     super(label, collapsibleState, 'type', resourceUri);
@@ -26,7 +26,6 @@ export class NpmTaskTypeItem extends TaskTypeGroupItem {
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
-
   }
 }
 
@@ -44,7 +43,11 @@ export class DenoTaskTypeItem extends TaskTypeGroupItem {
 
 export class VscodeTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
-    super('vscode', vscode.Uri.file('/tasks.code-workspace'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+    super(
+      'vscode',
+      vscode.Uri.file('/tasks.code-workspace'),
+      collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed,
+    );
     const iconService = TaskIconService.getInstance();
     const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/tasks.code-workspace'));
     if (iconUri?.TaskIcon) {
@@ -61,7 +64,6 @@ export class ScriptTaskTypeItem extends TaskTypeGroupItem {
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
-
   }
 }
 
@@ -84,20 +86,21 @@ export class DockerfileTaskTypeItem extends TaskTypeGroupItem {
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
-
   }
 }
 
-
 export class DockerComposeTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
-    super('docker-compose', vscode.Uri.file('/docker-compose.yml'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+    super(
+      'docker-compose',
+      vscode.Uri.file('/docker-compose.yml'),
+      collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed,
+    );
     const iconService = TaskIconService.getInstance();
     const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/docker-compose.yml'));
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
-
   }
 }
 
@@ -122,7 +125,6 @@ export class VenvTaskTypeItem extends TaskTypeGroupItem {
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
-
   }
 }
 
@@ -171,7 +173,6 @@ export class GulpTaskTypeItem extends TaskTypeGroupItem {
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
-
   }
 }
 
@@ -200,7 +201,11 @@ export class ComposerTaskTypeItem extends TaskTypeGroupItem {
 
 export class GithubActionsTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
-    super('github-actions', vscode.Uri.file('/.github/workflows/main.yml'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+    super(
+      'github-actions',
+      vscode.Uri.file('/.github/workflows/main.yml'),
+      collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed,
+    );
     const iconService = TaskIconService.getInstance();
     const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/.github/workflows/main.yml'));
     if (iconUri?.TaskIcon) {
@@ -214,7 +219,7 @@ export class WorkspaceTaskTypeItem extends TaskTypeGroupItem {
     // Use a generic name or the specific file name for the icon
     super('workspace-task', undefined, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
     const iconService = TaskIconService.getInstance();
-    const iconUri = iconService.getTaskTypeIcon("task");
+    const iconUri = iconService.getTaskTypeIcon('task');
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
@@ -241,7 +246,6 @@ export class GenericTaskTypeItem extends TaskTypeGroupItem {
     if (iconUri?.TaskIcon) {
       this.iconPath = iconUri.TaskIcon;
     }
-
   }
 }
 

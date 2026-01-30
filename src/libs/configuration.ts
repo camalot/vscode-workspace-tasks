@@ -1,9 +1,6 @@
-import {
-  ConfigurationChangeEvent, EventEmitter, workspace,
-  WorkspaceConfiguration, ConfigurationTarget
-} from "vscode";
+import { ConfigurationChangeEvent, EventEmitter, workspace, WorkspaceConfiguration, ConfigurationTarget } from 'vscode';
 
-const extensionName = "workspaceTasks";
+const extensionName = 'workspaceTasks';
 
 class Configuration {
   private configuration: WorkspaceConfiguration;
@@ -40,8 +37,8 @@ class Configuration {
   }
 
   public update(key: string, value: any): Thenable<void> {
-    if (key.includes(".")) {
-      const keys = key.split(".");
+    if (key.includes('.')) {
+      const keys = key.split('.');
       const parentKey = keys[0];
       const v = this.get<any>(parentKey);
       if (v && typeof v === 'object') {
@@ -53,8 +50,8 @@ class Configuration {
   }
 
   public updateWs(key: string, value: any): Thenable<void> {
-    if (key.includes(".")) {
-      const keys = key.split(".");
+    if (key.includes('.')) {
+      const keys = key.split('.');
       const parentKey = keys[0];
       const v = this.get<any>(parentKey);
       if (v && typeof v === 'object') {

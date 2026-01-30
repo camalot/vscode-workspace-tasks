@@ -1,9 +1,12 @@
 # Workspace Tasks
+
 <!-- markdownlint-disable-file MD033 -->
 
 [![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+
 <!-- [![Installs](https://img.shields.io/visual-studio-marketplace/i/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) -->
+
 [![Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
 A powerful VS Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
@@ -27,6 +30,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 - [📋 Requirements](#-requirements)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
+- [📖 Documentation](#-documentation)
 
 ## ✨ Key Features
 
@@ -348,8 +352,8 @@ Configure act in your VS Code settings (`settings.json`):
   // Inline variables
   "workspaceTasks.act.variables": {
     "ENVIRONMENT": "development",
-    "VERSION": "1.0.0"
-  }
+    "VERSION": "1.0.0",
+  },
 }
 ```
 
@@ -486,11 +490,7 @@ Add workspace-wide exclusions in `settings.json`:
 
 ```json
 {
-  "workspaceTasks.exclude": [
-    "**/.git/**",
-    "**/vendor/**",
-    "**/__pycache__/**"
-  ]
+  "workspaceTasks.exclude": ["**/.git/**", "**/vendor/**", "**/__pycache__/**"]
 }
 ```
 
@@ -548,27 +548,27 @@ Add workspace-wide exclusions in `settings.json`:
 
 Each task type watches specific file patterns:
 
-| Task Type | Patterns | Notes |
-| ----------- | ---------- | ------- |
-| npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
-| Ant | `**/*.xml` | Parses build file targets |
-| Composer | `**/composer.json` | PHP dependency scripts |
-| Gradle | `**/*.gradle` | Java/Android build tasks |
-| Grunt | `**/Gruntfile.js` | Registered tasks |
-| Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
-| Just | `**/{justfile,.justfile,*.just}` | Command recipes |
-| Jupyter | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
-| Make | `**/Makefile` | Build targets |
-| Maven | `**/pom.xml` | Lifecycle goals |
-| mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
-| MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
-| Pipenv | `**/Pipfile` | Python scripts |
-| Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
-| Docker | `**/Dockerfile*` | Container builds |
-| Docker Compose | `**/docker-compose.yml` | Service orchestration |
-| GitHub Actions | `**/.github/workflows/*.yml` | CI/CD workflows |
-| VS Code | `**/.vscode/tasks.json` | Native VS Code tasks |
-| Workspace | `.workspace-tasks.json` | Custom tasks |
+| Task Type      | Patterns                                                 | Notes                                                                                                                 |
+| -------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| npm/yarn/pnpm  | `**/package.json`                                        | Reads `scripts` section                                                                                               |
+| Ant            | `**/*.xml`                                               | Parses build file targets                                                                                             |
+| Composer       | `**/composer.json`                                       | PHP dependency scripts                                                                                                |
+| Gradle         | `**/*.gradle`                                            | Java/Android build tasks                                                                                              |
+| Grunt          | `**/Gruntfile.js`                                        | Registered tasks                                                                                                      |
+| Gulp           | `**/gulpfile.{js,mjs}`                                   | Exported tasks                                                                                                        |
+| Just           | `**/{justfile,.justfile,*.just}`                         | Command recipes                                                                                                       |
+| Jupyter        | `**/*.ipynb`                                             | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
+| Make           | `**/Makefile`                                            | Build targets                                                                                                         |
+| Maven          | `**/pom.xml`                                             | Lifecycle goals                                                                                                       |
+| mise           | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks                                                                                             |
+| MSBuild        | `**/*.{csproj,vbproj,sln}`                               | .NET project targets                                                                                                  |
+| Pipenv         | `**/Pipfile`                                             | Python scripts                                                                                                        |
+| Shell          | `**/*.{sh,bash,ps1,bat,cmd}`                             | Executable scripts                                                                                                    |
+| Docker         | `**/Dockerfile*`                                         | Container builds                                                                                                      |
+| Docker Compose | `**/docker-compose.yml`                                  | Service orchestration                                                                                                 |
+| GitHub Actions | `**/.github/workflows/*.yml`                             | CI/CD workflows                                                                                                       |
+| VS Code        | `**/.vscode/tasks.json`                                  | Native VS Code tasks                                                                                                  |
+| Workspace      | `.workspace-tasks.json`                                  | Custom tasks                                                                                                          |
 
 All patterns respect `.gitignore` and `.tasksignore` exclusions.
 
@@ -684,8 +684,14 @@ Made with [contrib.rocks](https://contrib.rocks).
 
 This project is licensed under the [Apache 2.0 License](LICENSE).
 
+## 📖 Documentation
+
+For detailed information about all configuration settings, see the [Configuration Guide](CONFIGURATION.md).
+
 ---
 
 <!-- markdownlint-disable MD036 -->
+
 **Made with ❤️ for the VS Code community**
+
 <!-- markdownlint-enable MD036 -->

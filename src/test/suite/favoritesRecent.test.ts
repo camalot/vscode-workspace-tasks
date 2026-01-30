@@ -19,7 +19,14 @@ suite('Favorites/Recent Runnable Tests', () => {
       src.taskSource = 'npm';
 
       // Simulate favorite clone behavior: ensure taskFileUri and taskSource are preserved
-      const fav = new TaskItem(src.label, src.collapsibleState, src.taskType, src.resourceUri, src.command, src.defaultIconPath);
+      const fav = new TaskItem(
+        src.label,
+        src.collapsibleState,
+        src.taskType,
+        src.resourceUri,
+        src.command,
+        src.defaultIconPath,
+      );
       fav.taskFileUri = src.taskFileUri;
       fav.taskSource = src.taskSource;
 
@@ -42,7 +49,14 @@ suite('Favorites/Recent Runnable Tests', () => {
       src.taskFileUri = file;
       src.taskSource = 'npm';
 
-      const recent = new TaskItem(src.label, src.collapsibleState, src.taskType, src.resourceUri, src.command, src.defaultIconPath);
+      const recent = new TaskItem(
+        src.label,
+        src.collapsibleState,
+        src.taskType,
+        src.resourceUri,
+        src.command,
+        src.defaultIconPath,
+      );
       recent.taskFileUri = src.taskFileUri;
       recent.taskSource = src.taskSource;
 

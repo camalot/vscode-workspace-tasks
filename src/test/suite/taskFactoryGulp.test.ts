@@ -27,7 +27,10 @@ suite('TaskFactory Gulp Tests', () => {
     assert.strictEqual(created?.cwd.toLowerCase(), workspaceRoot.toLowerCase());
 
     // Since the gulpfile lives in a subfolder, the command should include --gulpfile with its path
-    assert.ok(created?.command && created.command.includes('--gulpfile'), 'Gulp task command should include --gulpfile when gulpfile is in a subfolder');
+    assert.ok(
+      created?.command && created.command.includes('--gulpfile'),
+      'Gulp task command should include --gulpfile when gulpfile is in a subfolder',
+    );
     // Normalize string to check path regardless of separator
     const normalizedCommand = created?.command ? created.command.replace(/\\/g, '/') : '';
     assert.ok(normalizedCommand.includes('/gulp/gulpfile.mjs'), 'Gulp task command should include the gulpfile path');

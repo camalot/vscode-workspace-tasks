@@ -14,7 +14,7 @@ export class TaskRunner {
   // We can use an event emitter or just access the state manager and let the caller refresh.
   // Ideally, StateManager fires events. For now, we'll return promises.
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): TaskRunner {
     if (!TaskRunner.instance) {
@@ -27,7 +27,11 @@ export class TaskRunner {
     // Allow tasks that don't have a resourceUri (global workspace tasks).
     // Use file's folder as cwd when available, otherwise fall back to the first workspace folder or process.cwd().
     let task: vscode.Task | undefined;
-    const cwd = item.resourceUri ? path.dirname(item.resourceUri.fsPath) : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length ? vscode.workspace.workspaceFolders[0].uri.fsPath : process.cwd());
+    const cwd = item.resourceUri
+      ? path.dirname(item.resourceUri.fsPath)
+      : vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
+        ? vscode.workspace.workspaceFolders[0].uri.fsPath
+        : process.cwd();
 
     // Fallback Uri for commands that need one
     // const fallbackWorkspaceUri = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri : vscode.Uri.file(cwd);
@@ -45,25 +49,25 @@ export class TaskRunner {
     task = created.task;
 
     interface PresentationOptions {
-      reveal?: "always" | "silent" | "never";
+      reveal?: 'always' | 'silent' | 'never';
       clear?: boolean;
       close?: boolean;
       echo?: boolean;
       focus?: boolean;
-      panel?: "dedicated" | "shared" | "new"
+      panel?: 'dedicated' | 'shared' | 'new';
     }
 
     const presentationOptionsSetting = configuration.get<PresentationOptions>('task.presentationOptions', {});
 
     let reveal: vscode.TaskRevealKind;
     switch (presentationOptionsSetting.reveal) {
-      case "always":
+      case 'always':
         reveal = vscode.TaskRevealKind.Always;
         break;
-      case "silent":
+      case 'silent':
         reveal = vscode.TaskRevealKind.Silent;
         break;
-      case "never":
+      case 'never':
         reveal = vscode.TaskRevealKind.Never;
         break;
       default:
@@ -72,13 +76,13 @@ export class TaskRunner {
     }
     let panel: vscode.TaskPanelKind;
     switch (presentationOptionsSetting.panel) {
-      case "dedicated":
+      case 'dedicated':
         panel = vscode.TaskPanelKind.Dedicated;
         break;
-      case "shared":
+      case 'shared':
         panel = vscode.TaskPanelKind.Shared;
         break;
-      case "new":
+      case 'new':
         panel = vscode.TaskPanelKind.New;
         break;
       default:
@@ -92,13 +96,13 @@ export class TaskRunner {
       close: presentationOptionsSetting.close,
       echo: presentationOptionsSetting.echo,
       focus: presentationOptionsSetting.focus,
-      panel: panel
+      panel: panel,
     };
 
     // merge the existing task presentation options with the new ones. the task's existing options take precedence
     task.presentationOptions = {
       ...presentation,
-      ...task.presentationOptions
+      ...task.presentationOptions,
     };
 
     // Extra debug info for gulp tasks
@@ -132,8 +136,10 @@ export class TaskRunner {
     let startIndex = 0;
     if (startItem) {
       const startId = TaskStateManager.getInstance().getTaskId(startItem);
-      startIndex = queue.findIndex(t => TaskStateManager.getInstance().getTaskId(t) === startId);
-      if (startIndex === -1) { startIndex = 0; }
+      startIndex = queue.findIndex((t) => TaskStateManager.getInstance().getTaskId(t) === startId);
+      if (startIndex === -1) {
+        startIndex = 0;
+      }
     }
 
     const tasksToRun = queue.slice(startIndex);
@@ -171,7 +177,7 @@ export class TaskRunner {
 
       let timer: NodeJS.Timeout;
 
-      const disposable = TaskStateManager.getInstance().onDidStateChange(e => {
+      const disposable = TaskStateManager.getInstance().onDidStateChange((e) => {
         if (e.id === id) {
           if (e.status === 'success' || e.status === 'failure' || e.status === 'idle') {
             if (timer) {

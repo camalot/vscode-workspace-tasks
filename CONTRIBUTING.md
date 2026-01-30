@@ -110,11 +110,13 @@ When reporting a bug, please include:
 
 ```markdown
 **Environment:**
+
 - VS Code: 1.95.0
 - Extension: 2.0.0
 - OS: Windows 11
 
 **Steps to Reproduce:**
+
 1. Open workspace with package.json containing script "build": "tsc"
 2. Click on "build" task in Workspace Tasks view
 3. Task fails with error "tsc: command not found"
@@ -177,8 +179,8 @@ When requesting support for a new task type (build tool, task runner, package ma
 **Example File:**
 \`\`\`python
 java_binary(
-    name = "my-app",
-    srcs = glob(["*.java"]),
+name = "my-app",
+srcs = glob(["*.java"]),
 )
 \`\`\`
 
@@ -375,7 +377,6 @@ chore(deps): update typescript to 5.3.0
 Before submitting a pull request, test your changes thoroughly:
 
 1. **Manual Testing**
-
    - Run the extension in the Extension Development Host (`F5`)
    - Test the specific functionality you changed
    - Try edge cases and error scenarios
@@ -389,18 +390,15 @@ Before submitting a pull request, test your changes thoroughly:
    - Ensure tasks execute as expected
 
 3. **Check for Regressions**
-
    - Test existing functionality to ensure nothing broke
    - Run common workflows (favorites, queues, task execution)
 
 4. **Review Output and Logs**
-
    - Check Output panel (View > Output > Workspace Tasks)
    - Check Developer Tools Console (Help > Toggle Developer Tools)
    - Ensure no unexpected errors or warnings
 
 5. **Test on Different Platforms (if possible)**
-
    - Windows, macOS, and Linux may behave differently
    - Consider file path differences and shell execution
 
@@ -441,7 +439,6 @@ Once your changes are ready:
    ```
 
 5. **Open a Pull Request**
-
    - Go to your fork on GitHub
    - Click "Compare & pull request"
    - Select `camalot/vscode-workspace-tasks` `develop` branch as the base
@@ -461,24 +458,29 @@ Once your changes are ready:
 
 ```markdown
 ## Description
+
 Adds support for Bazel build tasks by implementing a new BazelTaskProvider.
 
 ## Related Issues
+
 Closes #456
 
 ## Changes Made
+
 - Created `bazelTaskProvider.ts` to discover Bazel BUILD files
 - Added Bazel icon to `res/icons/`
 - Updated configuration to include `bazel` in enabled task types
 - Added Bazel documentation to README.md
 
 ## Testing
+
 - Tested with sample Bazel workspace containing multiple BUILD files
 - Verified tasks appear in tree view with correct hierarchy
 - Confirmed task execution works with `bazel build` and `bazel test`
 - Tested on Windows and Ubuntu
 
 ## Screenshots
+
 [Screenshot showing Bazel tasks in tree view]
 ```
 

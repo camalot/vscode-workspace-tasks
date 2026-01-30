@@ -8,7 +8,7 @@ suite('Gulp Execution Test Suite', () => {
   test('Running a gulp task uses vscode.tasks.executeTask and sets running state', async () => {
     const provider = new GulpTaskProvider();
     const tasks = await provider.getTasks();
-    const names = tasks.map(t => t.label);
+    const names = tasks.map((t) => t.label);
     assert.ok(names.length > 0, 'Expected to find at least one gulp task');
 
     const taskItem = tasks[0];

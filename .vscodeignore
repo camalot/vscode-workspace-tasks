@@ -40,6 +40,8 @@ tsconfig.json
 esbuild.mjs
 eslint.config.mjs
 
+res/assets/images/docs/**
+
 .tasksignore
 
 sample/**

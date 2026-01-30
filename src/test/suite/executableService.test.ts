@@ -10,7 +10,10 @@ suite('ExecutableService Tests', () => {
     // For empty string check, we skip writing to config to avoid test runner issues.
     // We rely on visual verification of logic: (!command || command.trim().length === 0)
 
-    const res = exec.getCommand({ configKey: 'nonExistentKey', defaultValue: 'npx grunt', configName: 'grunt', resolveToAbsolutePath: false }, vscode.Uri.file(path.resolve(__dirname, '../task-files')));
+    const res = exec.getCommand(
+      { configKey: 'nonExistentKey', defaultValue: 'npx grunt', configName: 'grunt', resolveToAbsolutePath: false },
+      vscode.Uri.file(path.resolve(__dirname, '../task-files')),
+    );
 
     // Command should now be split
     assert.strictEqual(res.command, 'npx');
@@ -21,18 +24,21 @@ suite('ExecutableService Tests', () => {
     const exec = ExecutableService.getInstance();
 
     // Use defaultValue to test splitting logic without writing to config
-    const res = exec.getCommand({ defaultValue: 'npx grunt', configName: 'grunt', resolveToAbsolutePath: false }, vscode.Uri.file(process.cwd()));
+    const res = exec.getCommand(
+      { defaultValue: 'npx grunt', configName: 'grunt', resolveToAbsolutePath: false },
+      vscode.Uri.file(process.cwd()),
+    );
 
     assert.strictEqual(res.command, 'npx');
     assert.deepStrictEqual(res.args, ['grunt']);
   });
 
   test('getCommand handles quoted paths with spaces', async () => {
-      const exec = ExecutableService.getInstance();
-      const cmd = '"C:\\Program Files\\app.exe" arg1';
-      const res = exec.getCommand({ defaultValue: cmd, configName: 'app', resolveToAbsolutePath: false });
+    const exec = ExecutableService.getInstance();
+    const cmd = '"C:\\Program Files\\app.exe" arg1';
+    const res = exec.getCommand({ defaultValue: cmd, configName: 'app', resolveToAbsolutePath: false });
 
-      assert.strictEqual(res.command, 'C:\\Program Files\\app.exe');
-      assert.deepStrictEqual(res.args, ['arg1']);
+    assert.strictEqual(res.command, 'C:\\Program Files\\app.exe');
+    assert.deepStrictEqual(res.args, ['arg1']);
   });
 });

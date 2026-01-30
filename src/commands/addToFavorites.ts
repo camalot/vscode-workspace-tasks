@@ -1,8 +1,8 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskItem } from "../taskItem";
-import { TaskTreeDataProvider } from "../taskTreeDataProvider";
-import { FavoritesService } from "../services/favoritesService";
+import { TaskItem } from '../taskItem';
+import { TaskTreeDataProvider } from '../taskTreeDataProvider';
+import { FavoritesService } from '../services/favoritesService';
 
 export class AddToFavoritesCommand extends BaseCommand {
   private taskTreeDataProvider: TaskTreeDataProvider;
@@ -10,7 +10,6 @@ export class AddToFavoritesCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
     super('addToFavorites', context);
     this.taskTreeDataProvider = TaskTreeDataProvider.getInstance(this.context);
-
   }
 
   async run(item: TaskItem): Promise<void> {

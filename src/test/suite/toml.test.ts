@@ -29,7 +29,7 @@ suite('TOML Provider', () => {
     assert.ok(Array.isArray(tasks));
     assert.ok(tasks.length > 0, 'Should find tasks in sample Pipfile when parser is available');
 
-    const labels = tasks.map(t => t.label);
+    const labels = tasks.map((t) => t.label);
     // ../task-files/pipfile/Pipfile contains an "all" script
     assert.ok(labels.includes('all'));
   });
