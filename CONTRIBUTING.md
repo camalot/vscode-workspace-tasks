@@ -26,24 +26,31 @@ This guide will help you get started with contributing to the project.
 There are many ways you can contribute to Workspace Tasks:
 
 ### 🐛 Report Bugs
+
 Found a bug? Help us fix it by creating a detailed bug report. See [Writing Good Bug Reports](#writing-good-bug-reports).
 
 ### ✨ Request Features
+
 Have an idea for a new feature or enhancement? We'd love to hear it! See [Writing Good Feature Requests](#writing-good-feature-requests).
 
 ### 🔧 Request Task Type Support
+
 Want support for a new build tool, task runner, or package manager? See [Requesting New Task Type Support](#requesting-new-task-type-support).
 
 ### 📝 Improve Documentation
+
 Help make the documentation clearer, fix typos, or add examples. Documentation improvements are always welcome!
 
 ### 💻 Submit Code Changes
+
 Fix bugs, implement features, or improve performance by submitting pull requests. See [Contributing Code](#contributing-code).
 
 ### 💬 Help Others
+
 Answer questions in [GitHub Discussions](https://github.com/camalot/vscode-workspace-tasks/discussions) or help troubleshoot issues.
 
 ### ⭐ Spread the Word
+
 - Star the repository on GitHub
 - Leave a review on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 - Share the extension with colleagues and friends
@@ -58,6 +65,7 @@ Before creating a new issue, please search [existing issues](https://github.com/
 - Check the [most popular feature requests](https://github.com/camalot/vscode-workspace-tasks/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement+sort%3Areactions-%2B1-desc)
 
 If you find an existing issue that matches yours:
+
 - Add a 👍 reaction to show your support
 - Add relevant comments with additional context or information
 - Avoid "+1" comments—use reactions instead
@@ -78,6 +86,7 @@ This will open your browser to the appropriate issue template on GitHub.
 When reporting a bug, please include:
 
 **Required Information:**
+
 - **VS Code Version** - Help > About (or `code --version`)
 - **Extension Version** - Found in Extensions view
 - **Operating System** - Windows, macOS, or Linux (including version)
@@ -89,6 +98,7 @@ When reporting a bug, please include:
 - **Actual Behavior** - What actually happened
 
 **Helpful Additions:**
+
 - **Screenshots or Recordings** - Visual evidence of the issue
 - **Error Messages** - From Output panel (View > Output > Workspace Tasks)
 - **Log Output** - Developer Tools Console (Help > Toggle Developer Tools)
@@ -98,7 +108,7 @@ When reporting a bug, please include:
 
 **Example:**
 
-```
+```markdown
 **Environment:**
 - VS Code: 1.95.0
 - Extension: 2.0.0
@@ -130,7 +140,7 @@ When requesting a feature, please describe:
 
 **Example:**
 
-```
+```markdown
 **Feature:** Add keyboard shortcuts for running favorite tasks
 
 **Problem:** I frequently run the same 5 tasks and have to click through the tree each time.
@@ -155,7 +165,7 @@ When requesting support for a new task type (build tool, task runner, package ma
 
 **Example:**
 
-```
+```markdown
 **Tool:** Bazel (https://bazel.build/)
 
 **Task Files:** BUILD, BUILD.bazel, WORKSPACE
@@ -247,7 +257,7 @@ java_binary(
 
 ### Project Structure
 
-```
+```text
 vscode-workspace-tasks/
 ├── src/
 │   ├── commands/          # Command implementations
@@ -329,7 +339,7 @@ async function discoverPackageJsonTasks(workspaceFolder: vscode.WorkspaceFolder)
 
 Use [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -338,6 +348,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) format:
 ```
 
 **Types:**
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation changes
@@ -349,7 +360,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) format:
 
 **Examples:**
 
-```
+```text
 feat(npm): add support for pnpm workspaces
 
 fix(queue): prevent duplicate tasks when adding to queue
@@ -483,6 +494,7 @@ Documentation improvements are valuable contributions! You can help by:
 - **Creating Guides** - Write tutorials or how-to guides
 
 Documentation files to consider:
+
 - `README.md` - Main user documentation
 - `SUPPORT.md` - Support and help resources
 - `CHANGELOG.md` - Release notes and version history
@@ -527,13 +539,14 @@ If you have questions about contributing:
 - 🐛 Check [existing issues](https://github.com/camalot/vscode-workspace-tasks/issues)
 - 📚 Review the [README](README.md) and [SUPPORT](SUPPORT.md) documents
 
-## Thank You!
+## Thank You
 
 Your contributions make Workspace Tasks better for everyone. Whether you're fixing a typo, reporting a bug, or implementing a major feature, we appreciate your time and effort! 🎉
 
 ---
 
 **Quick Links:**
+
 - 🏠 [Project Homepage](https://github.com/camalot/vscode-workspace-tasks)
 - 🐛 [Report a Bug](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=bug_report.yml)
 - ✨ [Request a Feature](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=feature_request.yml)
