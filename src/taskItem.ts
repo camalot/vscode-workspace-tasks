@@ -36,15 +36,6 @@ export class TaskItem extends vscode.TreeItem {
     this.onRunActionCommand = onRunActionCommand;
     this.onRunWithArgsActionCommand = onRunWithArgsActionCommand;
 
-    // Default open action
-    if (!this.onOpenActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
-      this.onOpenActionCommand = {
-        command: 'workspaceTasks.openFileAtLine',
-        title: 'Open File',
-        arguments: [this.taskFileUri || this.resourceUri, this.startLine || 0]
-      };
-    }
-
     // Default double click to run task if it's a leaf node
     if (!this.onRunActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
       this.onRunActionCommand = {
@@ -79,6 +70,19 @@ export class TaskItem extends vscode.TreeItem {
     this.description = this.taskType;
     this.resourceUri = resourceUri;
     this.defaultIconPath = defaultIconPath;
+
+
+    // Default open action
+    // this will open the file, by default, to the start of the document.
+    // it is up to the task creation to update/set this with settings
+    // that will open the file to a specific location and to use `taskFileUri` if desired.
+    if (!this.onOpenActionCommand && this.collapsibleState === vscode.TreeItemCollapsibleState.None) {
+      this.onOpenActionCommand = {
+        command: 'workspaceTasks.openFileAtLine',
+        title: 'Open File',
+        arguments: [this.resourceUri, 0]
+      };
+    }
 
     this.updateContextValue();
   }

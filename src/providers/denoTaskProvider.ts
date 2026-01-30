@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import constants from "../libs/constants";
 import { ExecutableResult, ExecutableService } from "../services/executableService";
-import { PackageJsonTaskProvider } from "./packageJsonTaskProvider";
 import { TaskItem } from "../taskItem";
 import { TaskFilesService } from "../services/taskFilesService";
 import { TaskIconService } from "../services/taskIconService";
@@ -78,7 +77,7 @@ export class DenoTaskProvider extends BaseTaskProvider {
           }
         }
       } catch (e) {
-        console.warn(`Error parsing package.json: ${file.fsPath}`, e);
+        console.warn(`Error parsing Deno configuration file (deno.json/deno.jsonc): ${file.fsPath}`, e);
       }
     }
 

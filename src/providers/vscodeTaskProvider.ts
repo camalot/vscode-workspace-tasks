@@ -49,7 +49,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
           for (const task of json.tasks) {
 
             // is the task hidden?
-            if (task.runOptions && task.runOptions.hide) {
+            if (this.isHiddenTask(task)) {
               continue;
             }
 
@@ -89,5 +89,9 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       }
     }
     return tasks;
+  }
+
+  private isHiddenTask(task: any): boolean {
+    return (task.runOptions && task.runOptions.hide) || task.hide || (task.presentation && task.presentation.hide);
   }
 }

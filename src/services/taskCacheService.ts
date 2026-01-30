@@ -46,10 +46,7 @@ export class TaskCacheService {
     if (!provider) { return; }
 
     try {
-      const start = Date.now();
       const tasks = await provider.getTasks();
-      const duration = Date.now() - start;
-      // console.log(`[TaskCacheService] Provider ${type} took ${duration}ms`);
 
       this.providerTasks.set(type, tasks);
     } catch (e) {
@@ -150,9 +147,6 @@ export class TaskCacheService {
         const start = Date.now();
         try {
           const tasks = await provider.getTasks();
-          const duration = Date.now() - start;
-          // console.log(`[TaskCacheService] Provider ${type} took ${duration}ms`);
-
           this.providerTasks.set(type, tasks);
           this.rebuildCache();
           this._onDidUpdate.fire();

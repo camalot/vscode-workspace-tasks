@@ -164,8 +164,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         vscode.TaskScope.Workspace,
         taskLabel,
         'deno',
-        shellExec,
-
+        shellExec
       );
       return { task, command: full, cwd: denoCwd };
     } case "mise": {

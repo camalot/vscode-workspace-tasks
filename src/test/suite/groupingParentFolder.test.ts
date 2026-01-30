@@ -23,11 +23,11 @@ class TestableTaskTreeDataProvider extends TaskTreeDataProvider {
     }
     // Simulate windows drive if needed?
     if (pathStr.toLowerCase().startsWith('c:/root')) {
-        return {
-            uri: vscode.Uri.file('c:/root'),
-            name: 'root',
-            index: 0
-        };
+      return {
+        uri: vscode.Uri.file('c:/root'),
+        name: 'root',
+        index: 0
+      };
     }
     return undefined;
   }
