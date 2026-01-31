@@ -24,9 +24,9 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [📋 Task Queues](#-task-queues)
 - [🚀 Quick Start](#-quick-start)
 - [⚙️ Configuration](#️-configuration)
-  - [Custom Workspace Tasks](#custom-workspace-tasks)
+  - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
   - [GitHub Actions Integration](#github-actions-integration)
-  - [Task Ignore Patterns](#task-ignore-patterns)
+  - [Task Ignore Patterns](docs/TaskFiltering.md)
 - [🔧 Advanced Features](#-advanced-features)
 - [📋 Requirements](#-requirements)
 - [🤝 Contributing](#-contributing)
@@ -49,7 +49,9 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ## 📖 Documentation
 
-For detailed information about all configuration settings, see the [Configuration Guide](CONFIGURATION.md).
+- [Configuration Guide](docs/Configuration.md)
+- [Task Filtering](docs/TaskFiltering.md)
+- [Workspace Tasks](docs/WorkspaceTasks.md)
 
 ## 📥 Installation
 
@@ -248,85 +250,6 @@ Click on the navigation items for the queue to run all tasks in sequence, rename
 
 ## ⚙️ Configuration
 
-### Custom Workspace Tasks
-
-Create a `.workspace-tasks.json` file in your workspace to define custom reusable tasks with dynamic inputs. This is perfect for tasks that don't fit existing file types or need variable substitution.
-
-#### Basic Example
-
-```json
-{
-  "shell": {
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "Clean Build Artifacts",
-        "type": "workspace",
-        "command": "rm -rf dist build out",
-        "group": "build"
-      }
-    ]
-  }
-}
-```
-
-#### File-Associated Tasks with Inputs
-
-Tasks can be associated with file patterns and accept user inputs:
-
-```json
-{
-  "dockerfile": {
-    "version": "2.0.0",
-    "globs": {
-      "include": ["{**/Dockerfile,**/dockerfile,**/*.dockerfile}"],
-      "exclude": ["**/node_modules/**", "**/.git/**"]
-    },
-    "inputs": [
-      {
-        "id": "Name",
-        "type": "promptString",
-        "description": "Enter the name for the Docker image",
-        "default": "${workspaceFolderBasename}"
-      },
-      {
-        "id": "Tag",
-        "type": "promptString",
-        "description": "Enter the tag for the Docker image",
-        "default": "latest"
-      }
-    ],
-    "tasks": [
-      {
-        "label": "Build Docker Image",
-        "type": "workspace",
-        "command": "docker build -t {{ .Name }}:{{ .Tag }} .",
-        "group": "build"
-      }
-    ]
-  }
-}
-```
-
-#### Schema Reference
-
-- **Top-level keys** - Task type identifiers (e.g., `dockerfile`, `shell`)
-- **version** - Schema version (`"2.0.0"`)
-- **globs** (optional) - File pattern matching
-  - **include** - Array of glob patterns to match
-  - **exclude** - Array of glob patterns to ignore
-- **inputs** - Array of input definitions
-  - **id** - Unique input identifier
-  - **type** - `promptString` or `pickString`
-  - **description** - Prompt text for user
-  - **default** - Default value (supports `${workspaceFolderBasename}`)
-  - **options** - Array of choices (for `pickString`)
-- **tasks** - Array of task definitions
-  - **label** - Display name
-  - **type** - Must be `"workspace"`
-  - **command** - Shell command (use `{{ .InputId }}` for variables)
-  - **group** - Task group (`"build"`, `"test"`, etc.)
-
 ### GitHub Actions Integration
 
 Run GitHub Actions workflows locally using [act](https://github.com/nektos/act) to test workflows without pushing to GitHub. Workspace Tasks provides a rich interface for executing workflows with full input support.
@@ -455,48 +378,6 @@ workspace-folder/
 - **Performance Issues** - Reduce depth if task discovery is slow
 - **Focused Workflows** - Limit to top-level tasks when working on specific projects
 - **Deep Structures** - Use `null` for full discovery in complex nested project layouts
-
-### Task Ignore Patterns
-
-Control task discovery using `.tasksignore` files (similar to `.gitignore`). This keeps your task list focused on relevant tasks.
-
-#### How It Works
-
-- **Per-Directory Control** - Place `.tasksignore` in any directory to exclude files from that location and subdirectories
-- **Gitignore Syntax** - Uses standard gitignore pattern syntax
-- **Global Exclusions** - Configure workspace-wide exclusions in Visual Studio Code settings
-- **Smart Defaults**: Ignored by default
-  - `**/node_modules/**`
-  - `**/.git/**`
-  - `**/.vscode-test/**`
-  - `**/__pycache__/**`
-
-#### Example `.tasksignore`
-
-```ignore
-# Ignore all test scripts
-**/test/**
-**/*.test.sh
-
-# Ignore build output
-build/
-dist/
-out/
-
-# Ignore temporary files
-*.tmp
-*.bak
-```
-
-#### Global Configuration
-
-Add workspace-wide exclusions in `settings.json`:
-
-```json
-{
-  "workspaceTasks.exclude": ["**/.git/**", "**/vendor/**", "**/__pycache__/**"]
-}
-```
 
 ## 🔧 Advanced Features
 

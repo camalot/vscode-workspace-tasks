@@ -10,6 +10,7 @@ import { TaskIconService } from './services/taskIconService';
 import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
+import { FilteredTaskService } from './services/filteredTaskService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private static instance: TaskTreeDataProvider | undefined;
@@ -199,6 +200,69 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
 
+    // Get filtered task service instance
+    const filteredService = FilteredTaskService.getInstance();
+    const showHiddenMode = filteredService.isShowHiddenMode();
+    const stateManager = TaskStateManager.getInstance();
+
+    /**
+     * Filter tasks based on filtered state.
+     *
+     * Logic:
+     * - If showHiddenMode is false (default): Filter out hidden tasks and groups completely
+     * - If showHiddenMode is true: Show all tasks including hidden ones
+     *
+     * This handles both individual tasks and groups:
+     * - Individual tasks are filtered if they or any parent group is filtered
+     * - Groups are filtered if they are explicitly filtered OR if all their children are filtered
+     *
+     * This needs to be applied recursively to handle nested task structures
+     * (e.g., GitHub Actions with workflow -> job hierarchy)
+     */
+    const filterTask = (task: TaskItem): TaskItem | null => {
+      // Check if this specific item is directly filtered
+      const isDirectlyFiltered = task.id ? filteredService.isFiltered(task.id) : false;
+
+      // Check if this item or any parent is filtered
+      const isFilteredViaParent = filteredService.isFilteredOrHasFilteredParent(task);
+
+      // If not in show hidden mode and item/parent is filtered, exclude it
+      if (!showHiddenMode && isFilteredViaParent) {
+        return null;
+      }
+
+      // If task has children, recursively filter them
+      if (task.children && task.children.length > 0) {
+        const filteredChildren = task.children
+          .map(child => filterTask(child))
+          .filter((child): child is TaskItem => child !== null);
+
+        // Update the task's children with filtered results
+        task.children = filteredChildren;
+
+        // If this is a group and all children were filtered out, hide the group too
+        // (unless we're in show hidden mode or the group itself is explicitly filtered)
+        const isGroup = task.taskType === 'workspace' ||
+                       task.taskType === 'type' ||
+                       task.taskType === 'folder';
+
+        if (!showHiddenMode && isGroup && filteredChildren.length === 0 && !isDirectlyFiltered) {
+          // All children filtered out and group not explicitly filtered
+          // Hide the empty group
+          return null;
+        }
+      }
+
+      return task;
+    };
+
+    // Apply filtering to all tasks
+    const filteredTasks = showHiddenMode
+      ? tasks // Show all tasks in show hidden mode
+      : tasks
+          .map(task => filterTask(task))
+          .filter((task): task is TaskItem => task !== null);
+
     // Determine group state based on collapseLevel
     // Level 1 = Groups Expanded (Expand All).
     // Level 2 = Roots Collapsed.
@@ -234,7 +298,6 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const favoriteTasks: TaskItem[] = [];
     const recentTasks = (RecentTasksService.getInstance() as any).getRecentTasks();
 
-    const stateManager = TaskStateManager.getInstance();
     const favoritesService = FavoritesService.getInstance();
     const queueService = QueueService.getInstance();
 
@@ -348,7 +411,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // console.log(`[TaskTreeDataProvider] organizeTasks - Collapse Level: ${this.collapseLevel}`);
 
-    for (const task of tasks) {
+    for (const task of filteredTasks) {
       checkFavorite(task);
       updateContextRecursively(task);
 

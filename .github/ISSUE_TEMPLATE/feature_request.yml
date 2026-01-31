@@ -78,7 +78,7 @@ body:
         In my workflow, I need to...
         This feature would help by...
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: examples

@@ -21,6 +21,14 @@ import * as runQueue from './runQueue';
 import * as renameQueue from './renameQueue';
 import * as removeFromFavorites from './removeFromFavorites';
 import * as onTreeItemClick from './onTreeItemClick';
+import * as hideTask from './hideTask';
+import * as unhideTask from './unhideTask';
+import * as hideGroup from './hideGroup';
+import * as unhideGroup from './unhideGroup';
+import * as showHiddenTasks from './showHiddenTasks';
+import * as hideHiddenTasks from './hideHiddenTasks';
+import * as toggleShowHidden from './toggleShowHidden';
+import * as clearFilteredTasks from './clearFilteredTasks';
 
 export function loadCommands(context: vscode.ExtensionContext) {
   const modules = [
@@ -29,9 +37,13 @@ export function loadCommands(context: vscode.ExtensionContext) {
     buyMeACoffee,
     clearQueue,
     clearRecentTasks,
+    clearFilteredTasks,
     collapseAll,
     githubIssues,
     githubSponsor,
+    hideTask,
+    hideGroup,
+    hideHiddenTasks,
     onTreeItemClick,
     openFileAtLine,
     openSettings,
@@ -45,7 +57,11 @@ export function loadCommands(context: vscode.ExtensionContext) {
     removeFromQueue,
     runQueue,
     runTaskWithArgs,
+    showHiddenTasks,
     stopTask,
+    toggleShowHidden,
+    unhideTask,
+    unhideGroup,
   ];
 
   for (const mod of modules) {

@@ -9,6 +9,7 @@ import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
+import { FilteredTaskService } from './services/filteredTaskService';
 import { loadCommands } from './commands/index';
 import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
@@ -23,10 +24,29 @@ export async function activate(context: vscode.ExtensionContext) {
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
   QueueService.getInstance().initialize(context);
+  FilteredTaskService.getInstance().initialize(context);
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   await taskTreeDataProvider.initialize(context);
 
   const resetTimers = new Map<string, NodeJS.Timeout>();
+
+  // Set up context keys for filtered tasks feature
+  const updateFilteredTasksContext = () => {
+    const filteredService = FilteredTaskService.getInstance();
+    vscode.commands.executeCommand('setContext', 'workspaceTasks.hasFilteredTasks', filteredService.hasFilteredTasks());
+    vscode.commands.executeCommand('setContext', 'workspaceTasks.showHiddenMode', filteredService.isShowHiddenMode());
+  };
+
+  // Initial context setup
+  updateFilteredTasksContext();
+
+  // Listen for filtered task changes and update context + refresh tree
+  context.subscriptions.push(
+    FilteredTaskService.getInstance().onDidChange(() => {
+      updateFilteredTasksContext();
+      taskTreeDataProvider.refreshLocal();
+    })
+  );
 
   // Register Providers
   registerTaskProviders(context);

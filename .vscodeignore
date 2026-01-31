@@ -29,7 +29,6 @@ cliff.toml
 **/__mocks__
 build/
 DEVELOPMENT.md
-CONFIGURATION.md
 CONTRIBUTING.md
 docs/
 node_modules/

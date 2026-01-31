@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TaskStateManager } from './taskStateManager';
 import { FavoritesService } from './services/favoritesService';
+import { FilteredTaskService } from './services/filteredTaskService';
 
 export class TaskItem extends vscode.TreeItem {
   public children: TaskItem[] = [];
@@ -106,12 +107,21 @@ export class TaskItem extends vscode.TreeItem {
       this.taskType === 'queue' ||
       this.taskType === 'recent'
     ) {
-      this.contextValue = this.taskType;
+      // Check if this group is filtered
+      const isFiltered = this.id ? FilteredTaskService.getInstance().isFiltered(this.id) : false;
+
+      if (isFiltered) {
+        // Add filtered prefix to group context value
+        this.contextValue = 'filtered' + this.taskType.charAt(0).toUpperCase() + this.taskType.slice(1);
+      } else {
+        this.contextValue = this.taskType;
+      }
     } else {
       // It's a task leaf node
       const id = TaskStateManager.getInstance().getTaskId(this);
       const status = TaskStateManager.getInstance().getStatus(id);
       const isFavorite = FavoritesService.getInstance().isFavorite(id);
+      const isFiltered = FilteredTaskService.getInstance().isFiltered(id);
 
       if (this.taskType === 'jupyter') {
         this.contextValue = 'jupyterTask';
@@ -121,22 +131,25 @@ export class TaskItem extends vscode.TreeItem {
         this.contextValue = 'runningTask';
         this.iconPath = new vscode.ThemeIcon('loading~spin');
       } else {
+        // Determine base context value considering filtered state
+        let baseContext = 'task';
+
         // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
-        if (this.contextValue !== 'queuedTask') {
-          // For favorites view, we want to ensure it has 'favoriteTask' context value
-          // But if it is running, it takes precedence above.
-
-          // Should we have a specific 'favoriteTask' context?
-          // If the item is in the favorites LIST, it should definitely be 'favoriteTask'.
-          // If it is in the normal list, but is favorited, it should ALSO be 'favoriteTask' (to show "Remove") or maybe we want a distinct value?
-          // The existing logic was: isFavorite ? 'favoriteTask' : 'task'.
-          // This works for both locations if we want "Remove" available on both.
-          // But maybe the user wants 'favoriteTask' to imply "In Favorites Group".
-          // The issue report says: "interaction buttons include Add to Favorites, not Remove".
-          // This implies isFavorite is FALSE during the check.
-
-          this.contextValue = isFavorite ? 'favoriteTask' : 'task';
+        if (this.contextValue === 'queuedTask') {
+          baseContext = 'queuedTask';
+        } else if (this.contextValue === 'recentTask') {
+          baseContext = 'recentTask';
+        } else if (isFavorite) {
+          baseContext = 'favoriteTask';
         }
+
+        // Add filtered prefix if the task is in the filtered set
+        // This allows separate menu items for filtered tasks (e.g., "Unhide Task" vs "Hide Task")
+        if (isFiltered) {
+          baseContext = 'filtered' + baseContext.charAt(0).toUpperCase() + baseContext.slice(1);
+        }
+
+        this.contextValue = baseContext;
 
         if (status === 'success') {
           this.iconPath = new vscode.ThemeIcon('check', new vscode.ThemeColor('testing.iconPassed'));
