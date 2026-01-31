@@ -16,11 +16,12 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 ## 📑 Table of Contents
 
 - [✨ Key Features](#-key-features)
+- [📖 Documentation](#-documentation)
+- [📥 Installation](#-installation)
 - [🛠️ Supported Task Types](#️-supported-task-types)
 - [🌱 Recent Tasks](#-recent-tasks)
 - [⭐ Favorites](#-favorites)
 - [📋 Task Queues](#-task-queues)
-- [📥 Installation](#-installation)
 - [🚀 Quick Start](#-quick-start)
 - [⚙️ Configuration](#️-configuration)
   - [Custom Workspace Tasks](#custom-workspace-tasks)
@@ -30,7 +31,6 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [📋 Requirements](#-requirements)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
-- [📖 Documentation](#-documentation)
 
 ## ✨ Key Features
 
@@ -46,6 +46,30 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
+
+## 📖 Documentation
+
+For detailed information about all configuration settings, see the [Configuration Guide](CONFIGURATION.md).
+
+## 📥 Installation
+
+### From Visual Studio Code Marketplace
+
+1. Open Visual Studio Code
+2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "Workspace Tasks"
+4. Click **Install**
+
+### From Command Line
+
+```bash
+code --install-extension darthminos.workspace-tasks
+```
+
+### Requirements
+
+- **Visual Studio Code** 1.108.1 or later
+- **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
 
 ## 🛠️ Supported Task Types
 
@@ -202,26 +226,6 @@ CI Pipeline Queue:
 ```
 
 Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
-
-## 📥 Installation
-
-### From Visual Studio Code Marketplace
-
-1. Open Visual Studio Code
-2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-3. Search for "Workspace Tasks"
-4. Click **Install**
-
-### From Command Line
-
-```bash
-code --install-extension darthminos.workspace-tasks
-```
-
-### Requirements
-
-- **Visual Studio Code** 1.108.1 or later
-- **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
 
 ## 🚀 Quick Start
 
@@ -683,10 +687,6 @@ Made with [contrib.rocks](https://contrib.rocks).
 ## 📄 License
 
 This project is licensed under the [Apache 2.0 License](LICENSE).
-
-## 📖 Documentation
-
-For detailed information about all configuration settings, see the [Configuration Guide](CONFIGURATION.md).
 
 ---
 
