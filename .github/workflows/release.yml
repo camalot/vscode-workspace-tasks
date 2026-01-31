@@ -1,6 +1,7 @@
+---
 name: Release
 
-on:
+on:  # yamllint disable-line rule:truthy
   # push:
   #   tags:
   #     - "v*"
@@ -42,16 +43,17 @@ jobs:
       - name: Get Next Version
         id: next_version
         run: |
-          NEXT_VERSION=$(npx git-cliff --bumped-version)
-          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          NEXT_VERSION="$(npx git-cliff --bumped-version)"
+          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Clean Version and Tag
         id: tag
         run: |
-          VERSION="${{ steps.next_version.outputs.next_version }}"
           TAG="v${VERSION}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        env:
+          VERSION: ${{ steps.next_version.outputs.next_version }}
 
       - name: Run Tests
         run: npm run test
@@ -62,13 +64,15 @@ jobs:
       - name: Package VSIX
         run: |
           mkdir -p dist
-          npm run package:vsix --out dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ steps.tag.outputs.version }}.vsix
+          npm run package:vsix --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
 
       - name: Generate Changelog
         run: |
-          npm version ${{ env.VERSION }} --no-git-tag-version
-          npx git-cliff --tag ${{ env.TAG }} --output CHANGELOG.md
-          cat CHANGELOG.md >> $GITHUB_STEP_SUMMARY
+          npm version "${VERSION}" --no-git-tag-version
+          npx git-cliff --tag "${TAG}" --output "CHANGELOG.md"
+          cat "CHANGELOG.md" >> "$GITHUB_STEP_SUMMARY"
         env:
           VERSION: ${{ steps.tag.outputs.version }}
           TAG: ${{ steps.tag.outputs.tag }}
@@ -78,9 +82,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md package.json package-lock.json
+          git add "CHANGELOG.md" "package.json" "package-lock.json"
           git commit -m "chore(release): ${VERSION} 🚀" || echo "No changes to commit"
-          git tag ${{ steps.tag.outputs.tag }} || echo "Tag already exists"
+          git tag "${TAG}" || echo "Tag already exists"
           git push origin HEAD --tags
         env:
           VERSION: ${{ steps.tag.outputs.version }}
@@ -89,7 +93,6 @@ jobs:
       - name: Create GitHub Release
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
           if ! gh release view "$TAG" --repo "${{ github.repository }}" 2>/dev/null; then
             gh release create "$TAG" --title "$TAG" --generate-notes --repo "${{ github.repository }}"
             echo -e "\e[32mRelease $TAG created.\e[0m"
@@ -98,11 +101,11 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
 
       - name: Verify VSIX file exists
         run: |
-          VERSION="${{ steps.tag.outputs.version }}"
-          VSIX="dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${VERSION}.vsix"
+          VSIX="dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
           if [ ! -f "$VSIX" ]; then
             echo -e "\e[31mVSIX not found: $VSIX\e[0m" >&2
             echo "Contents of dist/:"
@@ -111,6 +114,8 @@ jobs:
           fi
           echo -e "\e[32mVSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))\e[0m"
           npx vsce ls --tree
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
 
       - name: Publish to Open VSX Registry
         uses: HaaLeo/publish-vscode-extension@v2
@@ -118,23 +123,28 @@ jobs:
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
           registryUrl: https://open-vsx.org
           skipDuplicate: true
-          extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ steps.tag.outputs.version }}.vsix
+          extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+
       - name: Publish to Visual Studio Marketplace
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
           skipDuplicate: true
-          extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ steps.tag.outputs.version }}.vsix
+          extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
 
       - name: Upload VSIX to release
         run: |
-          VSIX="dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix"
+          VSIX="dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
           if [ ! -f "$VSIX" ]; then
             echo -e "\e[31mVSIX not found before upload: $VSIX\e[0m" >&2
             exit 1
           fi
-          gh release upload "$TAG" "$VSIX" --repo "${{ github.repository }}" --clobber
+          gh release upload "${TAG}" "$VSIX" --repo "${{ github.repository }}" --clobber
           echo -e "\e[32mVSIX uploaded to release $TAG\e[0m"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

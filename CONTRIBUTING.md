@@ -52,7 +52,7 @@ Answer questions in [GitHub Discussions](https://github.com/camalot/vscode-works
 ### ⭐ Spread the Word
 
 - Star the repository on GitHub
-- Leave a review on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+- Leave a review on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 - Share the extension with colleagues and friends
 
 ## Creating Good Issues
@@ -72,7 +72,7 @@ If you find an existing issue that matches yours:
 
 ### Quick Issue Creation
 
-You can create issues directly from VS Code:
+You can create issues directly from Visual Studio Code:
 
 1. Click the **GitHub icon** in the Workspace Tasks navigation bar
 2. Select the appropriate issue type from the menu
@@ -87,7 +87,7 @@ When reporting a bug, please include:
 
 **Required Information:**
 
-- **VS Code Version** - Help > About (or `code --version`)
+- **Visual Studio Code Version** - Help > About (or `code --version`)
 - **Extension Version** - Found in Extensions view
 - **Operating System** - Windows, macOS, or Linux (including version)
 - **Reproducible Steps** - Clear numbered steps to reproduce the issue
@@ -111,7 +111,7 @@ When reporting a bug, please include:
 ```markdown
 **Environment:**
 
-- VS Code: 1.95.0
+- Visual Studio Code: 1.95.0
 - Extension: 2.0.0
 - OS: Windows 11
 
@@ -151,7 +151,7 @@ When requesting a feature, please describe:
 
 **Use Case:** As a developer working on microservices, I need to quickly restart different services. Being able to press Ctrl+Shift+1 for "Start API" and Ctrl+Shift+2 for "Start UI" would save significant time.
 
-**Alternatives:** Currently using VS Code tasks.json, but I prefer the Workspace Tasks favorites system for organization.
+**Alternatives:** Currently using Visual Studio Code tasks.json, but I prefer the Workspace Tasks favorites system for organization.
 ```
 
 ### Requesting New Task Type Support
@@ -196,7 +196,7 @@ srcs = glob(["*.java"]),
 - **Node.js** - Version 18.x or later
 - **npm** - Comes with Node.js
 - **Git** - For cloning the repository
-- **VS Code** - Latest version recommended
+- **Visual Studio Code** - Latest version recommended
 
 #### Initial Setup
 
@@ -223,7 +223,7 @@ srcs = glob(["*.java"]),
    npm install
    ```
 
-5. **Open in VS Code**
+5. **Open in Visual Studio Code**
 
    ```bash
    code .
@@ -243,7 +243,7 @@ srcs = glob(["*.java"]),
 
 2. **Launch Extension Development Host**
 
-   Press `F5` to open a new VS Code window with your extension loaded.
+   Press `F5` to open a new Visual Studio Code window with your extension loaded.
 
    Alternatively, go to Run and Debug view (`Ctrl+Shift+D`) and select "Run Extension".
 
@@ -553,4 +553,4 @@ Your contributions make Workspace Tasks better for everyone. Whether you're fixi
 - 🐛 [Report a Bug](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=bug_report.yml)
 - ✨ [Request a Feature](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=feature_request.yml)
 - 💬 [GitHub Discussions](https://github.com/camalot/vscode-workspace-tasks/discussions)
-- 📦 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+- 📦 [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)

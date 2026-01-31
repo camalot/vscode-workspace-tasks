@@ -444,7 +444,7 @@ Select the types of tasks that the extension should support and display in the t
 - **tsc** - TypeScript Compiler
 - **yarn** - Yarn
 - **venv** - Virtual Environment
-- **vscode** - VS Code
+- **vscode** - Visual Studio Code
 - **workspace** - Workspace Tasks
 
 **Example:**

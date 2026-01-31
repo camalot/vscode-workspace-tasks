@@ -4,7 +4,10 @@
   "IgnoreDefaults": false,
   "SpacesAfterTabs": false,
   "NoColor": false,
-  "exclude": ["testfiles"],
+  "exclude": [
+    "test",
+    "node_modules"
+  ],
   "AllowedContentTypes": [],
   "PassedFiles": [],
   "Disable": {

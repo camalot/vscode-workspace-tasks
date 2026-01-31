@@ -35,7 +35,7 @@ suite('Task Factory NPM Test Suite', () => {
     assert.ok(execution, 'Task should have ShellExecution');
     const execCwd = execution.options?.cwd?.toLowerCase();
 
-    // Note: VS Code might normalize paths, so we handle that by just checking they match
+    // Note: Visual Studio Code might normalize paths, so we handle that by just checking they match
     assert.strictEqual(execCwd, expectedCwd, `Execution CWD should be ${expectedCwd} but was ${execCwd}`);
   });
 });

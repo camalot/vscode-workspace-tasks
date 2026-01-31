@@ -1,10 +1,11 @@
+---
 name: 'Stale issues and pull requests'
 
 permissions:
   issues: write
   pull-requests: write
 
-on:
+on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
   # schedule:
   #   - cron: '10 3 * * *'
@@ -20,12 +21,18 @@ jobs:
           days-before-stale: 30
           stale-issue-label: 'stale'
           stale-issue-message: |
-            Marking this issue as stale due to inactivity over the last 30 days. This helps our maintainers find and focus on the active issues. If this issue receives no comments in the next **30 days** it will automatically be closed. Maintainers can also remove the stale label.
+            Marking this issue as stale due to inactivity over the last 30 days. This
+            helps our maintainers find and focus on the active issues. If this issue
+            receives no comments in the next **30 days** it will automatically be closed.
+            Maintainers can also remove the stale label.
 
             Thank you for understanding.
           stale-pr-label: 'stale'
           stale-pr-message: |
-            Marking this pull request as stale due to inactivity over the last 30 days. This helps our maintainers find and focus on the active pull requests. If this pull request receives no comments in the next **30 days** it will automatically be closed. Maintainers can also remove the stale label.
+            Marking this pull request as stale due to inactivity over the last 30 days.
+            This helps our maintainers find and focus on the active pull requests. If
+            this pull request receives no comments in the next **30 days** it will
+            automatically be closed. Maintainers can also remove the stale label.
 
             Thank you for understanding.
 
@@ -33,12 +40,14 @@ jobs:
           close-issue-message: |
             Closing this issue due to its staleness.
 
-            If the issue was automatically closed and you feel it should be reopened, we encourage creating a new one linking back to this one for added context.
+            If the issue was automatically closed and you feel it should be reopened
+            we encourage creating a new one linking back to this one for added context.
 
             Thank you!
           close-pr-message: |
             Closing this pull request due to its staleness.
 
-            If the pull request was automatically closed and you feel it should be reopened, we encourage creating a new one linking back to this one for added context.
+            If the pull request was automatically closed and you feel it should be reopened,
+            we encourage creating a new one linking back to this one for added context.
 
             Thank you!

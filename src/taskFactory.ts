@@ -219,7 +219,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command: full, cwd: miseCwd };
     }
     case 'jupyter': {
-      // Use CustomExecution to run Jupyter cell via VS Code command
+      // Use CustomExecution to run Jupyter cell via Visual Studio Code command
       const task = new vscode.Task(
         { type: 'jupyter', task: taskLabel },
         vscode.TaskScope.Workspace,
@@ -686,7 +686,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command: full, cwd: actCwd };
     }
     case 'vscode': {
-      // Use existing VS Code task defined in .vscode/tasks.json
+      // Use existing Visual Studio Code task defined in .vscode/tasks.json
       const tasks = await vscode.tasks.fetchTasks();
       const targetWorkspaceFolder = item.resourceUri
         ? vscode.workspace.getWorkspaceFolder(item.resourceUri)
@@ -917,7 +917,7 @@ class JupyterTerm implements vscode.Pseudoterminal {
 
           // Try standard notebook execution first which is robust
           try {
-            // This is the VS Code API way
+            // This is the Visual Studio Code API way
             const execution = vscode.commands.executeCommand('notebook.cell.execute', {
               ranges: [{ start: this.cellIndex, end: this.cellIndex + 1 }],
               document: doc.uri,

@@ -162,7 +162,9 @@ export class ExecutableService {
       args.push(current);
     }
 
-    if (args.length === 0) return { command: '', args: [] };
+    if (args.length === 0) {
+      return { command: '', args: [] };
+    }
     return { command: args[0], args: args.slice(1) };
   }
 }

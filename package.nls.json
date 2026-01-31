@@ -65,7 +65,7 @@
   "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
   "config.workspaceTasks.enabledTaskTypes.venv": "Virtual Environment",
-  "config.workspaceTasks.enabledTaskTypes.vscode": "VS Code",
+  "config.workspaceTasks.enabledTaskTypes.vscode": "Visual Studio Code",
   "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
 
   "config.workspaceTasks.shellEnabledTaskTypes": "Supported Shell Task Types",

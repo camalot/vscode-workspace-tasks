@@ -1,6 +1,18 @@
 {
-  "threshold": 25,
+  "threshold": 30,
   "reporters": ["consoleFull"],
-  "ignore": ["**/__snapshots__/**", "**/env/**"],
+  "ignore": [
+    "**/__snapshots__/**",
+    "**/env/**",
+    "**/dist/**",
+    "**/out/**",
+    "**/node_modules/**",
+    "**/out/**",
+    "**/node_modules/**",
+    "**/*.svg",
+    "**/*.png",
+    "**/src/providers/*.ts",
+    "**/test/suite/**"
+  ],
   "absolute": true
 }

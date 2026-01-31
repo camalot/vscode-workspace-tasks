@@ -152,7 +152,7 @@ export class AntTaskTypeItem extends TaskTypeGroupItem {
 
 export class GruntTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
-    // Use the Gruntfile name so VS Code shows the default Gruntfile/JS file icon
+    // Use the Gruntfile name so Visual Studio Code shows the default Gruntfile/JS file icon
     super('grunt', vscode.Uri.file('/Gruntfile.js'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
 
     const iconService = TaskIconService.getInstance();
@@ -165,7 +165,7 @@ export class GruntTaskTypeItem extends TaskTypeGroupItem {
 
 export class GulpTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
-    // Use a gulpfile path so VS Code shows the default JS/module file icon for the group
+    // Use a gulpfile path so Visual Studio Code shows the default JS/module file icon for the group
     super('gulp', vscode.Uri.file('/gulpfile.js'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
 
     const iconService = TaskIconService.getInstance();
@@ -178,7 +178,7 @@ export class GulpTaskTypeItem extends TaskTypeGroupItem {
 
 export class GradleTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
-    // Use a build.gradle path so VS Code shows the default Gradle file icon for the group
+    // Use a build.gradle path so Visual Studio Code shows the default Gradle file icon for the group
     super('gradle', vscode.Uri.file('/build.gradle'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
     const iconService = TaskIconService.getInstance();
     const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/build.gradle'));

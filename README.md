@@ -9,7 +9,7 @@
 
 [![Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
-A powerful VS Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
+A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 
 ![Workspace-Tasks Sidebar Collapsed](res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](res/assets/images/sidebar-queues-favorites.png)
 
@@ -45,7 +45,7 @@ A powerful VS Code extension that automatically discovers, organizes, and runs t
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
-- **💾 Persistent State** - Favorites and queues are saved across VS Code sessions
+- **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
 
 ## 🛠️ Supported Task Types
 
@@ -105,7 +105,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="res/icons/dark/shell.png" width="32" alt="Shell Scripts" title="Shell Scripts"/>
   <img src="res/icons/dark/python.png" width="32" alt="Python" title="Python"/>
   <img src="res/icons/dark/jupyter.png" width="32" alt="Jupyter Notebook" title="Jupyter Notebook"/>
-  <img src="res/icons/dark/vscode.png" width="32" alt="VS Code" title="VS Code"/>
+  <img src="res/icons/dark/vscode.png" width="32" alt="Visual Studio Code" title="Visual Studio Code"/>
 </p>
 
 - **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`
@@ -115,10 +115,10 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   - **Setup:** Configure a Jupyter Server through the Jupyter extension
   - **Features:**
     - Notebooks appear as parent tasks with code cells as children
-    - Click to open notebook in VS Code's notebook editor
+    - Click to open notebook in Visual Studio Code's notebook editor
     - Execute individual cells or entire notebooks
     - Real-time cell execution status via the Jupyter Extension UI
-- **VS Code Tasks** - Tasks from `.vscode/tasks.json`
+- **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json`
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
 > [!Note]
@@ -128,7 +128,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 
 As you run tasks they are tracked in a dedicated section at the top of the task tree to easily be able to access again. State of recent tasks will persist between VSCode sessions.
 
-### Configuration
+### Recent Tasks Configuration
 
 #### Recent Tasks Item Grouping
 
@@ -158,7 +158,7 @@ Pin your most frequently used tasks for instant access. Favorites appear in a de
 **Features:**
 
 - **Quick Access** - All favorites in one place, organized by task type
-- **Persistent** - Saved automatically across VS Code sessions
+- **Persistent** - Saved automatically across Visual Studio Code sessions
 - **Workspace-Specific** - Each workspace maintains its own favorites list
 - **Visual Indicators** - Star icons show in both favorites section and original location
 - **Context Display** - Tasks show their workspace folder name in multi-root workspaces
@@ -205,9 +205,9 @@ Click on the navigation items for the queue to run all tasks in sequence, rename
 
 ## 📥 Installation
 
-### From VS Code Marketplace
+### From Visual Studio Code Marketplace
 
-1. Open VS Code
+1. Open Visual Studio Code
 2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
 3. Search for "Workspace Tasks"
 4. Click **Install**
@@ -220,7 +220,7 @@ code --install-extension darthminos.workspace-tasks
 
 ### Requirements
 
-- **VS Code** 1.108.1 or later
+- **Visual Studio Code** 1.108.1 or later
 - **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
 
 ## 🚀 Quick Start
@@ -337,7 +337,7 @@ Run GitHub Actions workflows locally using [act](https://github.com/nektos/act) 
 
 #### Act Configuration
 
-Configure act in your VS Code settings (`settings.json`):
+Configure act in your Visual Studio Code settings (`settings.json`):
 
 ```jsonc
 {
@@ -460,7 +460,7 @@ Control task discovery using `.tasksignore` files (similar to `.gitignore`). Thi
 
 - **Per-Directory Control** - Place `.tasksignore` in any directory to exclude files from that location and subdirectories
 - **Gitignore Syntax** - Uses standard gitignore pattern syntax
-- **Global Exclusions** - Configure workspace-wide exclusions in VS Code settings
+- **Global Exclusions** - Configure workspace-wide exclusions in Visual Studio Code settings
 - **Smart Defaults**: Ignored by default
   - `**/node_modules/**`
   - `**/.git/**`
@@ -538,7 +538,7 @@ Add workspace-wide exclusions in `settings.json`:
 
 **Additional Actions:**
 
-- **Refresh Tasks** - Manually refresh to pick up changes without reloading VS Code
+- **Refresh Tasks** - Manually refresh to pick up changes without reloading Visual Studio Code
 - **Collapse/Expand** - Use the collapse all button (⊟) to toggle view states:
   - First click: Collapse task type groups
   - Second click: Collapse workspace folders
@@ -548,35 +548,35 @@ Add workspace-wide exclusions in `settings.json`:
 
 Each task type watches specific file patterns:
 
-| Task Type      | Patterns                                                 | Notes                                                                                                                 |
-| -------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| npm/yarn/pnpm  | `**/package.json`                                        | Reads `scripts` section                                                                                               |
-| Ant            | `**/*.xml`                                               | Parses build file targets                                                                                             |
-| Composer       | `**/composer.json`                                       | PHP dependency scripts                                                                                                |
-| Gradle         | `**/*.gradle`                                            | Java/Android build tasks                                                                                              |
-| Grunt          | `**/Gruntfile.js`                                        | Registered tasks                                                                                                      |
-| Gulp           | `**/gulpfile.{js,mjs}`                                   | Exported tasks                                                                                                        |
-| Just           | `**/{justfile,.justfile,*.just}`                         | Command recipes                                                                                                       |
-| Jupyter        | `**/*.ipynb`                                             | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
-| Make           | `**/Makefile`                                            | Build targets                                                                                                         |
-| Maven          | `**/pom.xml`                                             | Lifecycle goals                                                                                                       |
-| mise           | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks                                                                                             |
-| MSBuild        | `**/*.{csproj,vbproj,sln}`                               | .NET project targets                                                                                                  |
-| Pipenv         | `**/Pipfile`                                             | Python scripts                                                                                                        |
-| Shell          | `**/*.{sh,bash,ps1,bat,cmd}`                             | Executable scripts                                                                                                    |
-| Docker         | `**/Dockerfile*`                                         | Container builds                                                                                                      |
-| Docker Compose | `**/docker-compose.yml`                                  | Service orchestration                                                                                                 |
-| GitHub Actions | `**/.github/workflows/*.yml`                             | CI/CD workflows                                                                                                       |
-| VS Code        | `**/.vscode/tasks.json`                                  | Native VS Code tasks                                                                                                  |
-| Workspace      | `.workspace-tasks.json`                                  | Custom tasks                                                                                                          |
+| Task Type | Patterns | Notes |
+| --- | --- | --- |
+| npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
+| Ant | `**/*.xml` | Parses build file targets |
+| Composer | `**/composer.json` | PHP dependency scripts |
+| Gradle | `**/*.gradle` | Java/Android build tasks |
+| Grunt | `**/Gruntfile.js` | Registered tasks |
+| Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
+| Just | `**/{justfile,.justfile,*.just}` | Command recipes |
+| Jupyter | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
+| Make | `**/Makefile` | Build targets |
+| Maven | `**/pom.xml` | Lifecycle goals |
+| mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
+| MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
+| Pipenv | `**/Pipfile` | Python scripts |
+| Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
+| Docker | `**/Dockerfile*` | Container builds |
+| Docker Compose | `**/docker-compose.yml` | Service orchestration |
+| GitHub Actions | `**/.github/workflows/*.yml` | CI/CD workflows |
+| Visual Studio Code | `**/.vscode/tasks.json` | Native Visual Studio Code tasks |
+| Workspace | `.workspace-tasks.json` | Custom tasks |
 
 All patterns respect `.gitignore` and `.tasksignore` exclusions.
 
 ## 📋 Requirements
 
-### VS Code Version
+### Visual Studio Code Version
 
-- **Minimum:** VS Code 1.108.1 or later
+- **Minimum:** Visual Studio Code 1.108.1 or later
 
 ### External Tools
 
@@ -646,7 +646,7 @@ cd vscode-workspace-tasks
 # Install dependencies
 npm install
 
-# Open in VS Code
+# Open in Visual Studio Code
 code .
 
 # Start the watch task to compile TypeScript
@@ -692,6 +692,6 @@ For detailed information about all configuration settings, see the [Configuratio
 
 <!-- markdownlint-disable MD036 -->
 
-**Made with ❤️ for the VS Code community**
+**Made with ❤️ for the Visual Studio Code community**
 
 <!-- markdownlint-enable MD036 -->

@@ -43,7 +43,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     // But if persistence is tricky for groups, maybe we just default to 0.
     // The issue with persistence is likely that the TreeView doesn't know about these IDs until we feed them to it.
 
-    // NOTE: VS Code persists expansion state based on ID.
+    // NOTE: Visual Studio Code persists expansion state based on ID.
   }
 
   public static getInstance(context?: vscode.ExtensionContext): TaskTreeDataProvider {
@@ -157,8 +157,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // Fire update signal for collapse logic
       // Use setTimeout to ensure we are out of the immediate stack if needed,
       // but synchronous dispatch is usually fine for event emitters.
-      // However, we must wait for VS Code to finish 'getting' children before we 'reveal'.
-      // Actually VS Code calls getChildren, then renders.
+      // However, we must wait for Visual Studio Code to finish 'getting' children before we 'reveal'.
+      // Actually Visual Studio Code calls getChildren, then renders.
       // So determining when render is complete is hard.
       // But typically firing a follow-up action a bit later works.
       if (this.pendingRevealLevel !== undefined) {
@@ -205,8 +205,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     // Level 0 = Groups Collapsed (Default).
 
     // Determine Group Items Collapsible State and ID Salt
-    // If we're in Default (Level 0), we use Collapsed as default, but VS Code persistence should handle expansions.
-    // If VS Code is forcing collapsed, we might need to be less aggressive with default.
+    // If we're in Default (Level 0), we use Collapsed as default, but Visual Studio Code persistence should handle expansions.
+    // If Visual Studio Code is forcing collapsed, we might need to be less aggressive with default.
     // However, user Requirement: "start off collapsed".
     // This implies that on *first* load (or if no state exists), it should be collapsed.
 

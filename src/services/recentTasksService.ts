@@ -93,7 +93,9 @@ export class RecentTasksService {
           // Normalize paths for comparison (handle windows/unix separators and casing)
           const p1 = vscode.Uri.file(defPath).fsPath.toLowerCase();
           const p2 = item.resourceUri.fsPath.toLowerCase();
-          if (p1 !== p2) pathMatch = false;
+          if (p1 !== p2) {
+            pathMatch = false;
+          }
         }
 
         if ((labelMatch || defMatch) && pathMatch) {
@@ -135,7 +137,7 @@ export class RecentTasksService {
       }
     }
 
-    // 3) VS Code declared tasks (source 'Workspace') -> prefer task type 'vscode'
+    // 3) Visual Studio Code declared tasks (source 'Workspace') -> prefer task type 'vscode'
     if (taskSource === 'Workspace') {
       const vs = candidates.find((item) => item.taskType === 'vscode');
       if (vs) {
