@@ -1,7 +1,7 @@
 export async function taskOne() {}
 
 export { taskOne as 'group-test2-build-ui-one' };
-export const taskTwo = () => {}; 
+export const taskTwo = () => {};
 export { taskTwo as 'group-test2-build-ui-two' };
 
 export const taskThree = () => {};

@@ -1,6 +1,6 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskTreeDataProvider } from "../taskTreeDataProvider";
+import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 
 export class RefreshTreeCommand extends BaseCommand {
   private taskTreeDataProvider: TaskTreeDataProvider;

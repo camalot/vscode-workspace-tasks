@@ -20,7 +20,6 @@ import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 
-
 type TaskProviderConstructor =
   | (new () => NpmTaskProvider)
   | (new () => PnpmTaskProvider)
@@ -66,7 +65,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     GithubActionsTaskProvider,
     GradleTaskProvider,
     PipenvTaskProvider,
-    JupyterTaskProvider
+    JupyterTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   for (const ProviderClass of providers) {

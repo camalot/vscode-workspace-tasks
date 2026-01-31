@@ -1,0 +1,80 @@
+---
+name: CI
+
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - develop
+  # pull_request:
+  #   branches:
+  #     - develop
+
+permissions: {}
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Super-Linter
+        uses: super-linter/super-linter@v8
+        env:
+          GITHUB_TOKEN: '${{ github.token }}'
+          DEFAULT_BRANCH: '${{ env.ACT && github.ref_name || github.event.repository.default_branch }}'
+          CREATE_LOG_FILE: true
+          LOG_FILE: reports/super-linter/super-linter-summary.ansi.log
+          FILTER_REGEX_EXCLUDE: '(test|node_modules)/|(CHANGELOG|CONFIGURATION|SUPPORT|README|CONTRIBUTING|copilot-instructions)\.md$'
+          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_BASH_EXEC: false
+          VALIDATE_BIOME_FORMAT: false
+          VALIDATE_BIOME_LINT: false
+          VALIDATE_CHECKOV: false
+          VALIDATE_JSON: false
+          VALIDATE_JSON_PRETTIER: false
+          VALIDATE_JSCPD: false
+          VALIDATE_MARKDOWN_PRETTIER: false
+          VALIDATE_PRETTIER: false
+          VALIDATE_SPELL_CODESPELL: false
+          VALIDATE_TRIVY: false
+          VALIDATE_TYPESCRIPT_ES: false  # TEMPORARY DISABLE
+          VALIDATE_YAML_PRETTIER: false
+          FIX_BIOME_FORMAT: false
+          FIX_JSON_PRETTIER: false
+          FIX_MARKDOWN_PRETTIER: false
+          FIX_YAML_PRETTIER: false
+
+      - name: Build
+        run: npm run compile
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnspr4 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 \
+          libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
+
+      - name: Test
+        run: xvfb-run -a npm test
+
+      - name: Package VSIX (dry run)
+        run: npm run package:vsix
+
+      - name: VSIX Information
+        run: npx vsce ls --tree

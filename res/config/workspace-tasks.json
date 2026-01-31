@@ -3,9 +3,7 @@
   "pipenv": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/[pP]ip[fF]ile"
-      ]
+      "include": ["**/[pP]ip[fF]ile"]
     },
     "iconUri": "Pipfile",
     "tasks": [
@@ -32,9 +30,7 @@
   "docker-compose": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/docker-compose.yml"
-      ]
+      "include": ["**/docker-compose.yml"]
     },
     "iconUri": "docker-compose.yml",
     "tasks": [
@@ -55,9 +51,7 @@
   "dockerfile": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"
-      ]
+      "include": ["{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"]
     },
     "iconUri": "dockerfile",
     "inputs": [
@@ -86,9 +80,7 @@
   "typescript": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/tsconfig.json"
-      ]
+      "include": ["**/tsconfig.json"]
     },
     "iconUri": "tsconfig.json",
     "tasks": [
@@ -109,9 +101,7 @@
   "npm": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/package.json"
-      ]
+      "include": ["**/package.json"]
     },
     "inputs": [
       {
@@ -152,9 +142,7 @@
   "pnpm": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/package.json"
-      ]
+      "include": ["**/package.json"]
     },
     "inputs": [
       {
@@ -183,9 +171,7 @@
   "yarn": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/package.json"
-      ]
+      "include": ["**/package.json"]
     },
     "inputs": [
       {
@@ -214,9 +200,7 @@
   "venv": {
     "version": "2.0.0",
     "globs": {
-      "include": [
-        "**/.venv/pyvenv.cfg"
-      ]
+      "include": ["**/.venv/pyvenv.cfg"]
     },
     "iconUri": "venv.py",
     "tasks": [

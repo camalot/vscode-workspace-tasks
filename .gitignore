@@ -1,6 +1,7 @@
 
 sample/**/tools/**
 tools/
+reports/
 
 *.sln
 

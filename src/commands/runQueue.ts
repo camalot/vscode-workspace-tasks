@@ -1,14 +1,12 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskItem } from "../taskItem";
-import { QueueService } from "../services/queueService";
-import { TaskRunner } from "../taskRunner";
+import { TaskItem } from '../taskItem';
+import { QueueService } from '../services/queueService';
+import { TaskRunner } from '../taskRunner';
 
 export class RunQueueCommand extends BaseCommand {
-
   constructor(context: vscode.ExtensionContext) {
     super('runQueue', context);
-
   }
 
   async run(item?: TaskItem): Promise<void> {
@@ -23,7 +21,7 @@ export class RunQueueCommand extends BaseCommand {
 
     const queues = queueService.getQueueNames();
     if (queues.length === 0) {
-      vscode.window.showInformationMessage("No queues to run.");
+      vscode.window.showInformationMessage('No queues to run.');
       return;
     }
 
@@ -37,6 +35,5 @@ export class RunQueueCommand extends BaseCommand {
     if (queueName) {
       taskRunner.runQueue(queueName);
     }
-
   }
 }

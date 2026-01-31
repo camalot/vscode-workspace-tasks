@@ -52,7 +52,7 @@ Answer questions in [GitHub Discussions](https://github.com/camalot/vscode-works
 ### ⭐ Spread the Word
 
 - Star the repository on GitHub
-- Leave a review on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+- Leave a review on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 - Share the extension with colleagues and friends
 
 ## Creating Good Issues
@@ -72,7 +72,7 @@ If you find an existing issue that matches yours:
 
 ### Quick Issue Creation
 
-You can create issues directly from VS Code:
+You can create issues directly from Visual Studio Code:
 
 1. Click the **GitHub icon** in the Workspace Tasks navigation bar
 2. Select the appropriate issue type from the menu
@@ -87,7 +87,7 @@ When reporting a bug, please include:
 
 **Required Information:**
 
-- **VS Code Version** - Help > About (or `code --version`)
+- **Visual Studio Code Version** - Help > About (or `code --version`)
 - **Extension Version** - Found in Extensions view
 - **Operating System** - Windows, macOS, or Linux (including version)
 - **Reproducible Steps** - Clear numbered steps to reproduce the issue
@@ -110,11 +110,13 @@ When reporting a bug, please include:
 
 ```markdown
 **Environment:**
-- VS Code: 1.95.0
+
+- Visual Studio Code: 1.95.0
 - Extension: 2.0.0
 - OS: Windows 11
 
 **Steps to Reproduce:**
+
 1. Open workspace with package.json containing script "build": "tsc"
 2. Click on "build" task in Workspace Tasks view
 3. Task fails with error "tsc: command not found"
@@ -149,7 +151,7 @@ When requesting a feature, please describe:
 
 **Use Case:** As a developer working on microservices, I need to quickly restart different services. Being able to press Ctrl+Shift+1 for "Start API" and Ctrl+Shift+2 for "Start UI" would save significant time.
 
-**Alternatives:** Currently using VS Code tasks.json, but I prefer the Workspace Tasks favorites system for organization.
+**Alternatives:** Currently using Visual Studio Code tasks.json, but I prefer the Workspace Tasks favorites system for organization.
 ```
 
 ### Requesting New Task Type Support
@@ -177,8 +179,8 @@ When requesting support for a new task type (build tool, task runner, package ma
 **Example File:**
 \`\`\`python
 java_binary(
-    name = "my-app",
-    srcs = glob(["*.java"]),
+name = "my-app",
+srcs = glob(["*.java"]),
 )
 \`\`\`
 
@@ -194,7 +196,7 @@ java_binary(
 - **Node.js** - Version 18.x or later
 - **npm** - Comes with Node.js
 - **Git** - For cloning the repository
-- **VS Code** - Latest version recommended
+- **Visual Studio Code** - Latest version recommended
 
 #### Initial Setup
 
@@ -221,7 +223,7 @@ java_binary(
    npm install
    ```
 
-5. **Open in VS Code**
+5. **Open in Visual Studio Code**
 
    ```bash
    code .
@@ -241,7 +243,7 @@ java_binary(
 
 2. **Launch Extension Development Host**
 
-   Press `F5` to open a new VS Code window with your extension loaded.
+   Press `F5` to open a new Visual Studio Code window with your extension loaded.
 
    Alternatively, go to Run and Debug view (`Ctrl+Shift+D`) and select "Run Extension".
 
@@ -375,7 +377,6 @@ chore(deps): update typescript to 5.3.0
 Before submitting a pull request, test your changes thoroughly:
 
 1. **Manual Testing**
-
    - Run the extension in the Extension Development Host (`F5`)
    - Test the specific functionality you changed
    - Try edge cases and error scenarios
@@ -389,18 +390,15 @@ Before submitting a pull request, test your changes thoroughly:
    - Ensure tasks execute as expected
 
 3. **Check for Regressions**
-
    - Test existing functionality to ensure nothing broke
    - Run common workflows (favorites, queues, task execution)
 
 4. **Review Output and Logs**
-
    - Check Output panel (View > Output > Workspace Tasks)
    - Check Developer Tools Console (Help > Toggle Developer Tools)
    - Ensure no unexpected errors or warnings
 
 5. **Test on Different Platforms (if possible)**
-
    - Windows, macOS, and Linux may behave differently
    - Consider file path differences and shell execution
 
@@ -441,7 +439,6 @@ Once your changes are ready:
    ```
 
 5. **Open a Pull Request**
-
    - Go to your fork on GitHub
    - Click "Compare & pull request"
    - Select `camalot/vscode-workspace-tasks` `develop` branch as the base
@@ -461,24 +458,29 @@ Once your changes are ready:
 
 ```markdown
 ## Description
+
 Adds support for Bazel build tasks by implementing a new BazelTaskProvider.
 
 ## Related Issues
+
 Closes #456
 
 ## Changes Made
+
 - Created `bazelTaskProvider.ts` to discover Bazel BUILD files
 - Added Bazel icon to `res/icons/`
 - Updated configuration to include `bazel` in enabled task types
 - Added Bazel documentation to README.md
 
 ## Testing
+
 - Tested with sample Bazel workspace containing multiple BUILD files
 - Verified tasks appear in tree view with correct hierarchy
 - Confirmed task execution works with `bazel build` and `bazel test`
 - Tested on Windows and Ubuntu
 
 ## Screenshots
+
 [Screenshot showing Bazel tasks in tree view]
 ```
 
@@ -551,4 +553,4 @@ Your contributions make Workspace Tasks better for everyone. Whether you're fixi
 - 🐛 [Report a Bug](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=bug_report.yml)
 - ✨ [Request a Feature](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=feature_request.yml)
 - 💬 [GitHub Discussions](https://github.com/camalot/vscode-workspace-tasks/discussions)
-- 📦 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+- 📦 [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)

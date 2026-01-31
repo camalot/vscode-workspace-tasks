@@ -1,7 +1,8 @@
+---
 name: 🐛 Bug Report
 description: Report a bug or unexpected behavior in Workspace Tasks
-title: "[Bug]: "
-labels: ["bug", "needs-triage"]
+title: '[Bug]: '
+labels: ['bug', 'needs-triage']
 body:
   - type: markdown
     attributes:
@@ -66,7 +67,7 @@ body:
         - Docker/Docker Compose
         - GitHub Actions
         - Shell Scripts
-        - VS Code Tasks
+        - Visual Studio Code Tasks
         - Workspace Tasks (.workspace-tasks.json)
         - Favorites
         - Queues
@@ -92,7 +93,7 @@ body:
       label: Environment
       description: Please provide information about your environment
       value: |
-        - **VS Code Version**:
+        - **Visual Studio Code Version**:
         - **Extension Version**:
         - **Operating System**:
         - **Task Tool Version** (if applicable):
@@ -135,5 +136,5 @@ body:
           required: true
         - label: I have checked the extension output logs for error messages
           required: false
-        - label: I have tried reloading VS Code to see if the issue persists
+        - label: I have tried reloading Visual Studio Code to see if the issue persists
           required: false

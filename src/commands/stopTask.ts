@@ -1,10 +1,9 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskItem } from "../taskItem";
-import { TaskStateManager } from "../taskStateManager";
+import { TaskItem } from '../taskItem';
+import { TaskStateManager } from '../taskStateManager';
 
 export class StopTaskCommand extends BaseCommand {
-
   constructor(context: vscode.ExtensionContext) {
     super('stopTask', context);
   }

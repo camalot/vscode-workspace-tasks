@@ -29,6 +29,8 @@ cliff.toml
 **/__mocks__
 build/
 DEVELOPMENT.md
+CONFIGURATION.md
+CONTRIBUTING.md
 docs/
 node_modules/
 ROADMAP.md
@@ -39,6 +41,10 @@ eslint.config.mjs
 tsconfig.json
 esbuild.mjs
 eslint.config.mjs
+
+reports/**
+
+res/assets/images/docs/**
 
 .tasksignore
 

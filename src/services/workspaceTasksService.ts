@@ -41,8 +41,7 @@ export class WorkspaceTasksService {
   private config: FileTasksConfig = {};
   private context?: vscode.ExtensionContext;
 
-  private constructor() {
-  }
+  private constructor() {}
 
   public static getInstance(): WorkspaceTasksService {
     if (!WorkspaceTasksService.instance) {
@@ -52,8 +51,8 @@ export class WorkspaceTasksService {
   }
 
   public initialize(context: vscode.ExtensionContext) {
-      this.context = context;
-      this.loadWorkspaceConfig();
+    this.context = context;
+    this.loadWorkspaceConfig();
   }
 
   private async loadWorkspaceConfig() {
@@ -90,7 +89,7 @@ export class WorkspaceTasksService {
           // Tag tasks with sourceUri
           for (const key in localConfig) {
             if (localConfig[key].tasks) {
-              localConfig[key].tasks.forEach(t => {
+              localConfig[key].tasks.forEach((t) => {
                 t.sourceUri = file;
                 // Find line number of the label
                 // This is a simple heuristic search
@@ -124,19 +123,21 @@ export class WorkspaceTasksService {
 
         // Merge inputs
         const inputMap = new Map<string, TaskInput>();
-        internalLang.inputs.forEach(i => inputMap.set(i.id, i));
-        localLang.inputs.forEach(i => inputMap.set(i.id, i));
+        internalLang.inputs.forEach((i) => inputMap.set(i.id, i));
+        localLang.inputs.forEach((i) => inputMap.set(i.id, i));
         internalLang.inputs = Array.from(inputMap.values());
 
         // Merge tasks
         const taskMap = new Map<string, FileTaskDefinition>();
-        internalLang.tasks.forEach(t => taskMap.set(t.label, t));
-        localLang.tasks.forEach(t => taskMap.set(t.label, t));
+        internalLang.tasks.forEach((t) => taskMap.set(t.label, t));
+        localLang.tasks.forEach((t) => taskMap.set(t.label, t));
         internalLang.tasks = Array.from(taskMap.values());
 
         // Merge globs
         if (localLang.globs) {
-          if (!internalLang.globs) { internalLang.globs = {}; }
+          if (!internalLang.globs) {
+            internalLang.globs = {};
+          }
           if (localLang.globs.include) {
             internalLang.globs.include = [...(internalLang.globs.include || []), ...localLang.globs.include];
           }
@@ -160,7 +161,7 @@ export class WorkspaceTasksService {
   public getLanguageConfig(languageId: string): LanguageTaskConfig | undefined {
     let config = this.config[languageId];
     if (!config) {
-      const key = Object.keys(this.config).find(k => k.toLowerCase() === languageId.toLowerCase());
+      const key = Object.keys(this.config).find((k) => k.toLowerCase() === languageId.toLowerCase());
       if (key) {
         config = this.config[key];
       }
@@ -185,20 +186,28 @@ export class WorkspaceTasksService {
     return config ? config.tasks : [];
   }
 
-  public async resolveTaskCommand(taskLabel: string, languageId: string, resourceUri: vscode.Uri): Promise<string | undefined> {
+  public async resolveTaskCommand(
+    taskLabel: string,
+    languageId: string,
+    resourceUri: vscode.Uri,
+  ): Promise<string | undefined> {
     await this.loadWorkspaceConfig();
     let config = this.config[languageId];
     if (!config) {
-      const key = Object.keys(this.config).find(k => k.toLowerCase() === languageId.toLowerCase());
+      const key = Object.keys(this.config).find((k) => k.toLowerCase() === languageId.toLowerCase());
       if (key) {
         config = this.config[key];
       }
     }
 
-    if (!config) { return undefined; }
+    if (!config) {
+      return undefined;
+    }
 
-    const task = config.tasks.find(t => t.label === taskLabel);
-    if (!task) { return undefined; }
+    const task = config.tasks.find((t) => t.label === taskLabel);
+    if (!task) {
+      return undefined;
+    }
 
     let command = task.command;
 
@@ -210,12 +219,11 @@ export class WorkspaceTasksService {
     // Extensionless name?
     // const fileNameNoExt = path.basename(resourceUri.fsPath, path.extname(resourceUri.fsPath));
     // if (fileName.toLowerCase() === 'dockerfile') {
-      // For Dockerfile, workspaceFolderBasename is often used.
-      // const ws = vscode.workspace.getWorkspaceFolder(resourceUri);
-      // const wsName = ws ? ws.name : path.basename(path.dirname(resourceUri.fsPath));
-      // Check if we need a specific var for that or if user uses inputs
+    // For Dockerfile, workspaceFolderBasename is often used.
+    // const ws = vscode.workspace.getWorkspaceFolder(resourceUri);
+    // const wsName = ws ? ws.name : path.basename(path.dirname(resourceUri.fsPath));
+    // Check if we need a specific var for that or if user uses inputs
     // }
-
 
     // 2. Identify Inputs
     // Regex to find {{ .VarName }}
@@ -232,7 +240,7 @@ export class WorkspaceTasksService {
 
     // 3. Prompt for Inputs
     for (const inputId of requiredInputs) {
-      const inputDef = config.inputs.find(i => i.id === inputId);
+      const inputDef = config.inputs.find((i) => i.id === inputId);
       if (!inputDef) {
         // Input undefined in json but used in command?
         console.warn(`Input '${inputId}' not defined in fileTasks.json`);
@@ -252,11 +260,11 @@ export class WorkspaceTasksService {
         value = await vscode.window.showInputBox({
           prompt: inputDef.description,
           value: defaultValue,
-          placeHolder: defaultValue
+          placeHolder: defaultValue,
         });
       } else if (inputDef.type === 'pickString') {
         value = await vscode.window.showQuickPick(inputDef.options || [], {
-          placeHolder: inputDef.description
+          placeHolder: inputDef.description,
         });
       }
 

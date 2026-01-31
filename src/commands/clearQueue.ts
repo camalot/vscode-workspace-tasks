@@ -1,8 +1,8 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskTreeDataProvider } from "../taskTreeDataProvider";
-import { TaskItem } from "../taskItem";
-import { QueueService } from "../services/queueService";
+import { TaskTreeDataProvider } from '../taskTreeDataProvider';
+import { TaskItem } from '../taskItem';
+import { QueueService } from '../services/queueService';
 
 export class ClearQueueCommand extends BaseCommand {
   private taskTreeDataProvider: TaskTreeDataProvider;

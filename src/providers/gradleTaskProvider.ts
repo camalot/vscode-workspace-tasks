@@ -21,17 +21,15 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
-    const files = await filesService.findFiles(
-      [constants.GLOB_GRADLE]
-    );
+    const files = await filesService.findFiles([constants.GLOB_GRADLE]);
 
     for (const file of files) {
       try {
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
 
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'build.gradle'));
-        const iconPath = iconService.getTaskTypeIcon(this.type, fallback);
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'build.gradle'));
+        const iconPath = iconService.getTaskIcon(this.type, fallback);
 
         const lines = content.split('\n');
 
@@ -55,9 +53,9 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
               taskName,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconPath?.DisplayUri || file,
+              file,
               undefined,
-              iconPath?.TaskIcon || undefined
+              iconPath,
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
@@ -66,7 +64,7 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, item.startLine || 0]
+              arguments: [file, item.startLine || 0],
             };
 
             tasks.push(item);
@@ -82,14 +80,17 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
 
-    const result = execService.getCommand({
-      configKey: 'applicationPath.gradle',
-      defaultValue: 'gradle',
-      configName: 'gradle',
-      resolveToAbsolutePath: false,
-      windowsExecutableExtension: '.bat',
-      windowsEnforceExtension: true
-    }, workspaceUri);
+    const result = execService.getCommand(
+      {
+        configKey: 'applicationPath.gradle',
+        defaultValue: 'gradle',
+        configName: 'gradle',
+        resolveToAbsolutePath: false,
+        windowsExecutableExtension: '.bat',
+        windowsEnforceExtension: true,
+      },
+      workspaceUri,
+    );
 
     // If user did not configure a gradle path, prefer the workspace's gradlew wrapper when present
     const configured = configuration.get<string>('applicationPath.gradle');

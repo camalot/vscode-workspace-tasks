@@ -65,7 +65,7 @@
   "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
   "config.workspaceTasks.enabledTaskTypes.venv": "Virtual Environment",
-  "config.workspaceTasks.enabledTaskTypes.vscode": "VS Code",
+  "config.workspaceTasks.enabledTaskTypes.vscode": "Visual Studio Code",
   "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
 
   "config.workspaceTasks.shellEnabledTaskTypes": "Supported Shell Task Types",
@@ -82,6 +82,12 @@
   "config.workspaceTasks.shellEnabledTaskTypes.sh": "Shell",
   "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
+
+  "config.workspaceTasks.task.iconType": "Choose the Icon Type for Tasks",
+  "config.workspaceTasks.task.iconType.markdown": "Select the type of icon to display for tasks. Options include predefined icons or custom icons specified by the user.",
+
+  "config.workspaceTasks.task.iconTypeCustom": "Custom Icon",
+  "config.workspaceTasks.task.iconTypeCustom.markdown": "Specify a custom icon for the task. This can be a path to an png or svg file, or it can be a [ThemeIcon](https://code.visualstudio.com/api/references/icons-in-labels) in the format `$(iconName)`. `workspaceTasks.task.iconType` must be set to `custom` for this to take effect.",
 
   "config.workspaceTasks.task.presentationOptions.panelKind": "Panel Kind",
   "config.workspaceTasks.task.presentationOptions.panelKind.description": "Controls if the task panel is used for this task only (dedicated), shared between tasks (shared) or if a new panel is created on every task execution (new).",

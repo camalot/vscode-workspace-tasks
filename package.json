@@ -1,9 +1,9 @@
 {
   "name": "workspace-tasks",
   "displayName": "Workspace Tasks",
-  "description": "A Task Explorer for VS Code",
+  "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -82,8 +82,8 @@
     "package": "npm run package:vsix",
     "package:prerelease": "npm run package:webpack && npm run package:vsix:prerelease",
     "package:webpack": "webpack --mode production --devtool hidden-source-map",
-    "package:vsix": "vsce package",
-    "package:vsix:prerelease": "vsce package --pre-release",
+    "package:vsix": "npx @vscode/vsce package",
+    "package:vsix:prerelease": "npx @vscode/vsce package --pre-release",
     "test": "npm run pretest && npm run vscode:test",
     "test:coverage": "npm run pretest && npm run vscode:test:coverage",
     "test:ui": "npm run compile:tests && node .vscode-uitest.mjs",
@@ -99,13 +99,13 @@
     "@types/vscode": "^1.108.1",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
-    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "eslint": "^9.39.2",
     "git-cliff": "^2.12.0",
     "glob": "^13.0.0",
-    "mocha": "^11.7.5",
+    "mocha": "^11.3.0",
     "prettier": "^3.8.1",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
@@ -114,7 +114,7 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.3.3",
+    "fast-xml-parser": "^5.3.4",
     "ignore": "^7.0.5",
     "smol-toml": "^1.6.0",
     "yaml": "^2.8.2"
@@ -548,6 +548,32 @@
               "default": "shared"
             }
           }
+        },
+        "workspaceTasks.task.iconType": {
+          "type": "string",
+          "enum": [
+            "type",
+            "file",
+            "gear",
+            "run",
+            "custom"
+          ],
+          "default": "type",
+          "description": "%config.workspaceTasks.task.iconType%",
+          "enumDescriptions": [
+            "The task type icon used to represent the type of the task",
+            "The vscode defined file icon for the task source file",
+            "A gear icon that usually represents settings or configuration",
+            "A play icon that usually represents running or starting something",
+            "A custom icon defined by the user"
+          ],
+          "markdownDescription": "%config.workspaceTasks.task.iconType.markdown%"
+        },
+        "workspaceTasks.task.iconTypeCustom": {
+          "type": "string",
+          "default": "",
+          "description": "%config.workspaceTasks.task.iconTypeCustom%",
+          "markdownDescription": "%config.workspaceTasks.task.iconTypeCustom.markdown%"
         },
         "workspaceTasks.shellEnabledTaskTypes": {
           "type": "object",

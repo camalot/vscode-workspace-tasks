@@ -37,7 +37,7 @@ export interface ExecutableResult {
 export class ExecutableService {
   private static instance: ExecutableService;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): ExecutableService {
     if (!ExecutableService.instance) {
@@ -130,39 +130,41 @@ export class ExecutableService {
     return undefined;
   }
 
-  private parseCommandString(initial: string): { command: string, args: string[] } {
-      const args: string[] = [];
-      let current = '';
-      let inQuote = false;
-      let quoteChar = '';
+  private parseCommandString(initial: string): { command: string; args: string[] } {
+    const args: string[] = [];
+    let current = '';
+    let inQuote = false;
+    let quoteChar = '';
 
-      for (let i = 0; i < initial.length; i++) {
-          const char = initial[i];
-          if (inQuote) {
-              if (char === quoteChar) {
-                  inQuote = false;
-              } else {
-                  current += char;
-              }
-          } else {
-              if (char === '"' || char === "'") {
-                  inQuote = true;
-                  quoteChar = char;
-              } else if (char === ' ') {
-                  if (current.length > 0) {
-                      args.push(current);
-                      current = '';
-                  }
-              } else {
-                  current += char;
-              }
+    for (let i = 0; i < initial.length; i++) {
+      const char = initial[i];
+      if (inQuote) {
+        if (char === quoteChar) {
+          inQuote = false;
+        } else {
+          current += char;
+        }
+      } else {
+        if (char === '"' || char === "'") {
+          inQuote = true;
+          quoteChar = char;
+        } else if (char === ' ') {
+          if (current.length > 0) {
+            args.push(current);
+            current = '';
           }
+        } else {
+          current += char;
+        }
       }
-      if (current.length > 0) {
-          args.push(current);
-      }
+    }
+    if (current.length > 0) {
+      args.push(current);
+    }
 
-      if (args.length === 0) return { command: '', args: [] };
-      return { command: args[0], args: args.slice(1) };
+    if (args.length === 0) {
+      return { command: '', args: [] };
+    }
+    return { command: args[0], args: args.slice(1) };
   }
 }

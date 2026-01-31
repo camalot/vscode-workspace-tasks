@@ -1,6 +1,8 @@
+---
 name: Run tests
 
-on: {}
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
   # push:
   #   branches:
   #     - develop
@@ -17,14 +19,18 @@ on: {}
   #     - 'syntaxes/**'
   #     - 'tests/**'
   #     - '**.md'
-
+permissions: {}
 jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    permissions:
+      contents: read
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -39,6 +45,9 @@ jobs:
         run: npm run lint
 
   test:
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -57,6 +66,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'

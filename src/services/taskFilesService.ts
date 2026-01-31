@@ -27,12 +27,11 @@ export class TaskFilesService {
     return TaskFilesService.instance;
   }
 
-
   public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
     // use vscode.workspace.findFiles with the provided pattern and exclude, then filter using the ignore rules
     const uris = await vscode.workspace.findFiles(pattern.join(','), exclude ? exclude.join(',') : undefined);
     const depthFiltered = this.filterByDepth(uris);
-    return depthFiltered.filter(uri => !this.shouldIgnore(uri));
+    return depthFiltered.filter((uri) => !this.shouldIgnore(uri));
   }
 
   private filterByDepth(uris: vscode.Uri[]): vscode.Uri[] {
@@ -43,7 +42,7 @@ export class TaskFilesService {
       return uris;
     }
 
-    return uris.filter(uri => {
+    return uris.filter((uri) => {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
       if (!workspaceFolder) {
         return true;
@@ -59,7 +58,6 @@ export class TaskFilesService {
     });
   }
 
-
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.context = context;
     this.globalIgnore = ignore();
@@ -69,10 +67,10 @@ export class TaskFilesService {
     try {
       const config = vscode.workspace.getConfiguration('workspaceTasks');
       const excludes = config.get<string[]>('exclude', []);
-      this.globalIgnore.add("**/node_modules/**"); // Always ignore node_modules
-      this.globalIgnore.add("**/.git/**"); // Always ignore .git
-      this.globalIgnore.add("**/__pycache__/**"); // Always ignore __pycache__
-      this.globalIgnore.add("**/.vscode-test/**");
+      this.globalIgnore.add('**/node_modules/**'); // Always ignore node_modules
+      this.globalIgnore.add('**/.git/**'); // Always ignore .git
+      this.globalIgnore.add('**/__pycache__/**'); // Always ignore __pycache__
+      this.globalIgnore.add('**/.vscode-test/**');
       if (Array.isArray(excludes) && excludes.length > 0) {
         this.globalIgnore.add(excludes);
       }
@@ -103,9 +101,9 @@ export class TaskFilesService {
       this.fileWatcher = undefined;
     }
     const watcher = vscode.workspace.createFileSystemWatcher('**/.tasksignore');
-    watcher.onDidChange(uri => this.loadIgnoreFile(uri));
-    watcher.onDidCreate(uri => this.loadIgnoreFile(uri));
-    watcher.onDidDelete(uri => this.removeIgnoreFile(uri));
+    watcher.onDidChange((uri) => this.loadIgnoreFile(uri));
+    watcher.onDidCreate((uri) => this.loadIgnoreFile(uri));
+    watcher.onDidDelete((uri) => this.removeIgnoreFile(uri));
     this.fileWatcher = watcher;
   }
 
@@ -113,9 +111,10 @@ export class TaskFilesService {
     try {
       const document = await vscode.workspace.openTextDocument(uri);
       const content = document.getText();
-      const rules = content.split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
+      const rules = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
 
       if (rules.length > 0) {
         const ig = ignore();
@@ -126,7 +125,7 @@ export class TaskFilesService {
 
         this.ignoreFiles.push({
           folderUri: vscode.Uri.file(path.dirname(uri.fsPath)),
-          ig: ig
+          ig: ig,
         });
         // Sort by path length descending so we check deepest nested ignore files first?
         // Actually we just want to find the one that applies.
@@ -139,13 +138,15 @@ export class TaskFilesService {
 
   private removeIgnoreFile(uri: vscode.Uri) {
     const folderPath = path.dirname(uri.fsPath);
-    this.ignoreFiles = this.ignoreFiles.filter(f => f.folderUri.fsPath !== folderPath);
+    this.ignoreFiles = this.ignoreFiles.filter((f) => f.folderUri.fsPath !== folderPath);
   }
 
   public shouldIgnore(uri: vscode.Uri): boolean {
     // 1. Check Global Ignore (absolute/workspace relative check)
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-    if (!workspaceFolder) { return false; } // Should we ignore files outside workspace?
+    if (!workspaceFolder) {
+      return false;
+    } // Should we ignore files outside workspace?
 
     const workspaceRelativePath = vscode.workspace.asRelativePath(uri, false);
     if (this.globalIgnore.ignores(workspaceRelativePath)) {
@@ -154,7 +155,7 @@ export class TaskFilesService {
 
     // 2. Check closest .tasksignore
     // Find all ignore files that are parents of this uri
-    const applicableIgnores = this.ignoreFiles.filter(ig => {
+    const applicableIgnores = this.ignoreFiles.filter((ig) => {
       const relative = path.relative(ig.folderUri.fsPath, uri.fsPath);
       return !relative.startsWith('..') && !path.isAbsolute(relative);
     });

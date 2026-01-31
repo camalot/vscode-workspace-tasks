@@ -2,7 +2,7 @@
   "name": "gulp-sample-tasks",
   "version": "1.0.0",
   "description": "Sample Gulp tasks for testing workspace tasks",
-    "scripts": {
+  "scripts": {
     "hello": "echo 'Hello from Node.js!'",
     "long-running": "node -e \"console.log('Starting long task...'); setTimeout(() => { console.log('Task completed!'); process.exit(0); }, 10000)\"",
     "failing-task": "node -e \"console.log('This task will fail...'); process.exit(1)\"",
@@ -10,7 +10,6 @@
     "test": "echo 'Running tests...' && echo 'All tests passed!'",
     "watch": "node -e \"let i=0; setInterval(() => console.log('Watching... ' + (++i)), 1000)\""
   },
-
   "devDependencies": {
     "gulp": "^4.0.2",
     "grunt": "^1.6.1",

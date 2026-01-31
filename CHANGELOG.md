@@ -1,29 +1,68 @@
-## [1.1.1] - 2026-01-30
+## [1.1.2] - 2026-01-31
 
 ### 🚀 Features
 
-- Deno task support
+- Different icons for type/folder/task #31
 
-- *(ux)* Add task hover button for showing the task location #33
 
-- *(ux)* Add settings to show or hide different task hover icons #32
+### 🐛 Bug Fixes
 
-- Improved Task Grouping for visibility in mono repo or workspace with a lot of the same task type. #30
+- Cant run powershell tasks if inside of subdirectory with spaces in name #36
+
+- Bump fast-xml-parser from 5.3.3 to 5.3.4 #38
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(changelog)* Update cliff config
+- *(repo)* Some workflow setup
 
-- *(changelog)* Generate changelog
+- *(repo)* Run prettier --fix
 
-- Added CONTRIBUTING and CODE_OF_CONDUCT
+- *(repo)* Added configuration documentation
 
-- *(repo)* Modified the CONTRIBUTING document
+- *(repo)* Run ci.yml action to get everything passing
 
-- *(repo)* Fix linter errors in markdown
 
-- *(repo)* Fix linter errors in markdown
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.1...v1.1.2
+
+## [1.1.1] - 2026-01-30
+
+### 🚀 Features
+
+- *(ux)* Add settings to show or hide different task hover icons #32 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- Improved Task Grouping for visibility in mono repo or workspace with a lot of the same task type. #30 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+
+### 💼 Other
+
+- V1.1.1 (#34) by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * feat: Deno task support by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(changelog): update cliff config by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(changelog): generate changelog by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * feat(ux): Add task hover button for showing the task location #33 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(repo): modified the CONTRIBUTING document by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(repo): fix linter errors in markdown by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(repo): fix linter errors in markdown by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(changelog): update changelog by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(repo): fix PR review comments by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+- * chore(repo): update version to v1.1.1 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Added CONTRIBUTING and CODE_OF_CONDUCT by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
 
 
@@ -253,4 +292,3 @@
 
 ### New Contributors
 * @camalot made their first contribution
-

@@ -25,27 +25,18 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
     const mavenFiles = await filesService.findFiles([constants.GLOB_MAVEN]);
 
     // Standard Maven lifecycle phases
-    const standardGoals = [
-      'clean',
-      'validate',
-      'compile',
-      'test',
-      'package',
-      'verify',
-      'install',
-      'site',
-      'deploy'
-    ];
+    const standardGoals = ['clean', 'validate', 'compile', 'test', 'package', 'verify', 'install', 'site', 'deploy'];
 
     const parser = new XMLParser({
       ignoreAttributes: false,
-      attributeNamePrefix: '@_'
+      attributeNamePrefix: '@_',
     });
 
     for (const file of mavenFiles) {
       try {
         const fileStat = await vscode.workspace.fs.stat(file);
-        if (fileStat.size > 1024 * 1024) { // Ignore large files
+        if (fileStat.size > 1024 * 1024) {
+          // Ignore large files
           continue;
         }
 
@@ -58,32 +49,24 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
           continue;
         }
 
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ""), 'pom.xml'));
-        const iconPath = iconService.getTaskTypeIcon(this.type, fallback);
+        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'pom.xml'));
+        const iconPath = iconService.getTaskIcon(this.type, fallback);
 
         // Create tasks for each standard goal
         for (const goal of standardGoals) {
-          const item = new TaskItem(
-            goal,
-            vscode.TreeItemCollapsibleState.None,
-            this.type,
-            iconPath?.DisplayUri || file,
-            undefined,
-            iconPath?.TaskIcon || undefined
-          );
+          const item = new TaskItem(goal, vscode.TreeItemCollapsibleState.None, this.type, file, undefined, iconPath);
 
           item.taskFileUri = file;
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [file, 0]
+            arguments: [file, 0],
           };
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = `Run mvn ${goal}`;
 
           tasks.push(item);
         }
-
       } catch (error) {
         console.error(`Failed to parse ${file.fsPath}: ${error}`);
         continue;
@@ -95,18 +78,21 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
-    return execService.getCommand({
-      configKey: 'applicationPath.maven',
-      defaultValue: 'mvn',
-      configName: 'mvn',
-      windowsExecutableExtension: '.cmd'
-    }, workspaceUri);
+    return execService.getCommand(
+      {
+        configKey: 'applicationPath.maven',
+        defaultValue: 'mvn',
+        configName: 'mvn',
+        windowsExecutableExtension: '.cmd',
+      },
+      workspaceUri,
+    );
   }
 
   private isMavenPom(xmlData: any): boolean {
     // Basic check for project root element
     if (!xmlData.project) {
-        return false;
+      return false;
     }
     // Could add more checks like modelVersion etc.
     return true;

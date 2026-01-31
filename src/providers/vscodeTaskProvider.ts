@@ -22,7 +22,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
 
     for (const file of files) {
       try {
-        const iconUri = iconService.getTaskTypeIcon(this.type, file);
+        const iconPath = iconService.getTaskIcon(this.type);
 
         const document = await vscode.workspace.openTextDocument(file);
         const text = document.getText();
@@ -32,7 +32,8 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
         const jsonText = text
           .replace(/\/\*[\s\S]*?\*\//g, '')
           .replace(/^[ \t]*\/\/.*/gm, '') // Line comments
-          .replace(/,\s*}/g, '}').replace(/,\s*]/g, ']'); // Trailing commas cleanup (partial)
+          .replace(/,\s*}/g, '}')
+          .replace(/,\s*]/g, ']'); // Trailing commas cleanup (partial)
 
         // A safer way would be to treat it as standard JSON if possible, catch error and log.
         // Or require a jsonc parser dependency. For now, try/catch with naive cleaning.
@@ -47,7 +48,6 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
 
         if (json && json.tasks && Array.isArray(json.tasks)) {
           for (const task of json.tasks) {
-
             // is the task hidden?
             if (this.isHiddenTask(task)) {
               continue;
@@ -58,9 +58,9 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
               label,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconUri?.DisplayUri || file,
+              file,
               undefined,
-              iconUri?.TaskIcon || undefined
+              iconPath,
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
@@ -78,7 +78,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, item.startLine || 0]
+              arguments: [file, item.startLine || 0],
             };
 
             tasks.push(item);

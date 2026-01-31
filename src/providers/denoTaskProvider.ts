@@ -1,11 +1,10 @@
-import * as vscode from "vscode";
-import constants from "../libs/constants";
-import { ExecutableResult, ExecutableService } from "../services/executableService";
-import { TaskItem } from "../taskItem";
-import { TaskFilesService } from "../services/taskFilesService";
-import { TaskIconService } from "../services/taskIconService";
-import { BaseTaskProvider } from "../taskProvider";
-
+import * as vscode from 'vscode';
+import constants from '../libs/constants';
+import { ExecutableResult, ExecutableService } from '../services/executableService';
+import { TaskItem } from '../taskItem';
+import { TaskFilesService } from '../services/taskFilesService';
+import { TaskIconService } from '../services/taskIconService';
+import { BaseTaskProvider } from '../taskProvider';
 
 export class DenoTaskProvider extends BaseTaskProvider {
   constructor() {
@@ -36,11 +35,13 @@ export class DenoTaskProvider extends BaseTaskProvider {
     const iconService = TaskIconService.getInstance();
 
     for (const file of files) {
-      if (filesService.shouldIgnore(file)) { continue; }
+      if (filesService.shouldIgnore(file)) {
+        continue;
+      }
       try {
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
-        const iconUri = iconService.getTaskTypeIcon(this.type, file);
+        const iconPath = iconService.getTaskIcon(this.type);
 
         // Simple parsing for now
         const json = JSON.parse(content);
@@ -51,9 +52,9 @@ export class DenoTaskProvider extends BaseTaskProvider {
               script,
               vscode.TreeItemCollapsibleState.None,
               this.type,
-              iconUri?.DisplayUri || file,
+              file,
               undefined,
-              iconUri?.TaskIcon || undefined
+              iconPath,
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
@@ -70,7 +71,7 @@ export class DenoTaskProvider extends BaseTaskProvider {
             item.onOpenActionCommand = {
               command: 'workspaceTasks.openFileAtLine',
               title: 'Open File',
-              arguments: [file, item.startLine || 0]
+              arguments: [file, item.startLine || 0],
             };
 
             tasks.push(item);
@@ -87,11 +88,14 @@ export class DenoTaskProvider extends BaseTaskProvider {
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const executableService = ExecutableService.getInstance();
-    return executableService.getCommand({
-      defaultValue: 'deno',
-      configName: 'deno',
-      resolveToAbsolutePath: false,
-      windowsEnforceExtension: false
-    }, workspaceUri);
+    return executableService.getCommand(
+      {
+        defaultValue: 'deno',
+        configName: 'deno',
+        resolveToAbsolutePath: false,
+        windowsEnforceExtension: false,
+      },
+      workspaceUri,
+    );
   }
 }

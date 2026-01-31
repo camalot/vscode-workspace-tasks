@@ -1,7 +1,7 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskItem } from "../taskItem";
-import { TaskCacheService } from "../services/taskCacheService";
+import { TaskItem } from '../taskItem';
+import { TaskCacheService } from '../services/taskCacheService';
 import { configuration } from '../libs/configuration';
 
 export class OnTreeItemClickCommand extends BaseCommand {
@@ -62,7 +62,10 @@ export class OnTreeItemClickCommand extends BaseCommand {
    * @returns The command action to execute
    */
   private getClickAction(item: TaskItem, clickType: 'single' | 'double'): vscode.Command | undefined {
-    const action = clickType === 'single' ? configuration.get<string>('task.singleClickAction', 'open') : configuration.get<string>('task.doubleClickAction', 'run');
+    const action =
+      clickType === 'single'
+        ? configuration.get<string>('task.singleClickAction', 'open')
+        : configuration.get<string>('task.doubleClickAction', 'run');
 
     if (action === 'none') {
       return undefined;

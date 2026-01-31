@@ -1,9 +1,9 @@
 {
-	"scopeName": "ignore.tasksignore",
-	"patterns": [
-		{
-			"match": "^\\s*#.*",
-			"name": "comment.line.number-sign.tasksignore"
-		}
-	]
+  "scopeName": "ignore.tasksignore",
+  "patterns": [
+    {
+      "match": "^\\s*#.*",
+      "name": "comment.line.number-sign.tasksignore"
+    }
+  ]
 }

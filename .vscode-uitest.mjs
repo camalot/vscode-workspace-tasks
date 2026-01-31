@@ -13,9 +13,9 @@ async function runTests() {
   }
 
   if (code_type) {
-    console.log(`Running tests for ${code_version} ${code_type} version of VS Code`);
+    console.log(`Running tests for ${code_version} ${code_type} version of Visual Studio Code`);
   } else {
-    console.log(`Running tests for ${code_version} version of VS Code`);
+    console.log(`Running tests for ${code_version} version of Visual Studio Code`);
   }
 
   process.env.HASHI_CODE_TEST = 'true';

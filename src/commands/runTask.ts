@@ -1,10 +1,9 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskItem } from "../taskItem";
-import { TaskRunner } from "../taskRunner";
+import { TaskItem } from '../taskItem';
+import { TaskRunner } from '../taskRunner';
 
 export class RunTaskCommand extends BaseCommand {
-
   constructor(context: vscode.ExtensionContext) {
     super('runTask', context);
   }

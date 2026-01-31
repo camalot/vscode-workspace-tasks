@@ -18,7 +18,7 @@ class TestableTaskTreeDataProvider extends TaskTreeDataProvider {
       return {
         uri: vscode.Uri.file('/root'),
         name: 'root',
-        index: 0
+        index: 0,
       };
     }
     // Simulate windows drive if needed?
@@ -26,7 +26,7 @@ class TestableTaskTreeDataProvider extends TaskTreeDataProvider {
       return {
         uri: vscode.Uri.file('c:/root'),
         name: 'root',
-        index: 0
+        index: 0,
       };
     }
     return undefined;
@@ -34,7 +34,6 @@ class TestableTaskTreeDataProvider extends TaskTreeDataProvider {
 }
 
 suite('Task Grouping Parent Folder Test Suite', () => {
-
   test('Groups tasks by parent folder with separator', () => {
     const provider = new TestableTaskTreeDataProvider();
 
@@ -47,7 +46,7 @@ suite('Task Grouping Parent Folder Test Suite', () => {
       new TaskItem('root-build', vscode.TreeItemCollapsibleState.None, 'npm', rootUri),
       new TaskItem('appA-build', vscode.TreeItemCollapsibleState.None, 'npm', appAUri),
       new TaskItem('appB-build', vscode.TreeItemCollapsibleState.None, 'npm', appBUri),
-      new TaskItem('appB-test', vscode.TreeItemCollapsibleState.None, 'npm', appBUri)
+      new TaskItem('appB-test', vscode.TreeItemCollapsibleState.None, 'npm', appBUri),
     ];
 
     tasks[0].taskFileUri = rootUri;
@@ -83,13 +82,12 @@ suite('Task Grouping Parent Folder Test Suite', () => {
     //   build
 
     // Let's verify appA folder existence
-    const folderAppA = grouped.find(t => t.label === 'appA' && t.contextValue === 'folder');
+    const folderAppA = grouped.find((t) => t.label === 'appA' && t.contextValue === 'folder');
     assert.ok(folderAppA, 'Should find appA folder');
 
     // Verify root grouping
-    const groupRoot = grouped.find(t => t.label === 'root' && t.contextValue === 'folder'); // contextValue 'folder' is set by groupByName for groups too
+    const groupRoot = grouped.find((t) => t.label === 'root' && t.contextValue === 'folder'); // contextValue 'folder' is set by groupByName for groups too
     assert.ok(groupRoot, 'Should find root group from root tasks');
-
   });
 
   test('Groups tasks by parent folder without separator', () => {
@@ -112,12 +110,12 @@ suite('Task Grouping Parent Folder Test Suite', () => {
     // appA (Folder) -> test
     // build (Task)
 
-    const appA = grouped.find(t => t.label === 'appA');
+    const appA = grouped.find((t) => t.label === 'appA');
     assert.ok(appA, 'Should find appA folder');
     assert.strictEqual(appA?.children.length, 1);
     assert.strictEqual(appA?.children[0].label, 'test');
 
-    const build = grouped.find(t => t.label === 'build');
+    const build = grouped.find((t) => t.label === 'build');
     assert.ok(build, 'Should find build task');
     assert.notStrictEqual(build?.contextValue, 'folder');
   });

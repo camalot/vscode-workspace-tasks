@@ -24,11 +24,11 @@ export class TaskItem extends vscode.TreeItem {
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly taskType: string,
-    public readonly resourceUri?: vscode.Uri,
+    resourceUri?: vscode.Uri,
     command?: vscode.Command,
     defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
     onRunActionCommand?: vscode.Command,
-    onRunWithArgsActionCommand?: vscode.Command
+    onRunWithArgsActionCommand?: vscode.Command,
   ) {
     super(label, collapsibleState);
 
@@ -41,7 +41,7 @@ export class TaskItem extends vscode.TreeItem {
       this.onRunActionCommand = {
         command: 'workspaceTasks.runTask',
         title: 'Run Task',
-        arguments: [this] // We pass 'this' here because runTask expects a TaskItem.
+        arguments: [this], // We pass 'this' here because runTask expects a TaskItem.
         // During onTreeItemClick, we resolve the real Item from cache,
         // so executing this command uses the real item from memory, preventing serialization issues.
       };
@@ -52,7 +52,7 @@ export class TaskItem extends vscode.TreeItem {
       this.command = {
         command: 'workspaceTasks.onTreeItemClick',
         title: 'On Tree Item Click',
-        arguments: [this]
+        arguments: [this],
       };
     }
 
@@ -71,7 +71,6 @@ export class TaskItem extends vscode.TreeItem {
     this.resourceUri = resourceUri;
     this.defaultIconPath = defaultIconPath;
 
-
     // Default open action
     // this will open the file, by default, to the start of the document.
     // it is up to the task creation to update/set this with settings
@@ -80,7 +79,7 @@ export class TaskItem extends vscode.TreeItem {
       this.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [this.resourceUri, 0]
+        arguments: [this.resourceUri, 0],
       };
     }
 
@@ -94,12 +93,19 @@ export class TaskItem extends vscode.TreeItem {
       id: this.id,
       label: this.label,
       taskType: this.taskType,
-      contextValue: this.contextValue
+      contextValue: this.contextValue,
     };
   }
 
   public updateContextValue() {
-    if (this.taskType === 'workspace' || this.taskType === 'folder' || this.taskType === 'type' || this.taskType === 'favorites' || this.taskType === 'queue' || this.taskType === 'recent') {
+    if (
+      this.taskType === 'workspace' ||
+      this.taskType === 'folder' ||
+      this.taskType === 'type' ||
+      this.taskType === 'favorites' ||
+      this.taskType === 'queue' ||
+      this.taskType === 'recent'
+    ) {
       this.contextValue = this.taskType;
     } else {
       // It's a task leaf node

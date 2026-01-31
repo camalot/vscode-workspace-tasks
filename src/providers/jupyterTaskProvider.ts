@@ -36,7 +36,7 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
     const command = await ExecutableService.getInstance().getVscodeCommand('jupyter.runcell', extensionId);
 
     if (!command) {
-        return [];
+      return [];
     }
 
     const tasks: TaskItem[] = [];
@@ -65,7 +65,7 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
 
     const filename = path.basename(uri.fsPath);
     const iconService = TaskIconService.getInstance();
-    const typeIcon = iconService.getTaskTypeIcon(this.type, uri);
+    const iconPath = iconService.getTaskIcon(this.type);
 
     const notebookItem = new TaskItem(
       filename,
@@ -75,9 +75,9 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
       {
         command: 'vscode.open',
         title: 'Open Notebook',
-        arguments: [uri]
+        arguments: [uri],
       },
-      typeIcon?.TaskIcon
+      iconPath,
     );
 
     notebookItem.children = [];
@@ -90,7 +90,9 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
         if (cell.cell_type === 'code') {
           const sourceLines = Array.isArray(cell.source)
             ? cell.source
-            : (typeof cell.source === 'string' ? [cell.source] : []);
+            : typeof cell.source === 'string'
+              ? [cell.source]
+              : [];
 
           const sourceText = sourceLines.join('').trim();
           // Even empty cells are cells. But maybe skip empty ones?
@@ -102,20 +104,19 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
             this.type,
             uri,
             {
-                command: 'vscode.open',
-                title: 'Open Notebook',
-                arguments: [uri]
+              command: 'vscode.open',
+              title: 'Open Notebook',
+              arguments: [uri],
             },
-            new vscode.ThemeIcon('code')
+            new vscode.ThemeIcon('code'),
           );
           item.id = `${this.type}:${uri.toString()}:${index}`;
-
 
           item.parent = notebookItem;
           item.metadata = {
             type: 'cell',
             cellIndex: index,
-            source: sourceText
+            source: sourceText,
           };
 
           notebookItem.children.push(item);

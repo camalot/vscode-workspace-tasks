@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 export class TaskConfigService {
   private static instance: TaskConfigService;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): TaskConfigService {
     if (!TaskConfigService.instance) {
@@ -23,27 +23,27 @@ export class TaskConfigService {
 
     // Map task type names to config keys
     const taskTypeMap: Record<string, string> = {
-      'ant': 'ant',
-      'dockerfile': 'docker',
-      'composer': 'composer',
+      ant: 'ant',
+      dockerfile: 'docker',
+      composer: 'composer',
       'github-actions': 'github-actions',
       'github-action': 'github-actions',
-      'gulp': 'gulp',
-      'grunt': 'grunt',
-      'jupyter': 'jupyter',
-      'justfile': 'just',
-      'makefile': 'make',
-      'maven': 'maven',
-      'mise': 'mise',
-      'msbuild': 'msbuild',
-      'npm': 'npm',
-      'vscode': 'vscode',
-      'pipenv': 'pipenv',
-      'pwsh': 'pwsh',
-      'python': 'python',
-      'shell': 'shell',
-      'venv': 'venv',
-      'workspace': 'workspace',
+      gulp: 'gulp',
+      grunt: 'grunt',
+      jupyter: 'jupyter',
+      justfile: 'just',
+      makefile: 'make',
+      maven: 'maven',
+      mise: 'mise',
+      msbuild: 'msbuild',
+      npm: 'npm',
+      vscode: 'vscode',
+      pipenv: 'pipenv',
+      pwsh: 'pwsh',
+      python: 'python',
+      shell: 'shell',
+      venv: 'venv',
+      workspace: 'workspace',
       'workspace-task': 'workspace',
     };
 
@@ -59,7 +59,7 @@ export class TaskConfigService {
    * @returns true if at least one task type is enabled, false if all are disabled
    */
   public isAnyTaskTypeEnabled(taskTypes: string[]): boolean {
-    return taskTypes.some(type => this.isTaskTypeEnabled(type));
+    return taskTypes.some((type) => this.isTaskTypeEnabled(type));
   }
 
   /**
@@ -68,6 +68,6 @@ export class TaskConfigService {
    * @returns true if all task types are enabled, false otherwise
    */
   public areAllTaskTypesEnabled(taskTypes: string[]): boolean {
-    return taskTypes.every(type => this.isTaskTypeEnabled(type));
+    return taskTypes.every((type) => this.isTaskTypeEnabled(type));
   }
 }

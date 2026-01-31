@@ -7,7 +7,7 @@ suite('Gulp Provider Test Suite', () => {
     const tasks = await provider.getTasks();
 
     // Should find at least the sample tasks defined in ../task-files/gulp/gulpfile.mjs
-    const names = tasks.map(t => t.label);
+    const names = tasks.map((t) => t.label);
     assert.ok(names.includes('group-test2-build-ui-one'));
     assert.ok(names.includes('group-test2-build-ui-two'));
     assert.ok(names.includes('group-test2-build-ui-three'));

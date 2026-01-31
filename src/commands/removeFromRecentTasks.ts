@@ -1,8 +1,8 @@
-import BaseCommand from "../common/baseCommand";
+import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
-import { TaskTreeDataProvider } from "../taskTreeDataProvider";
-import { RecentTasksService } from "../services/recentTasksService";
-import { TaskItem } from "../taskItem";
+import { TaskTreeDataProvider } from '../taskTreeDataProvider';
+import { RecentTasksService } from '../services/recentTasksService';
+import { TaskItem } from '../taskItem';
 
 export class RemoveFromRecentTasksCommand extends BaseCommand {
   private taskTreeDataProvider: TaskTreeDataProvider;

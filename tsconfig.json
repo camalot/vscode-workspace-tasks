@@ -3,24 +3,16 @@
     "module": "node20",
     "target": "es2024",
     "outDir": "out",
-    "lib": [
-      "ES2024"
-    ],
+    "lib": ["ES2024"],
     "sourceMap": true,
     "rootDir": "src",
     /* enable all strict type-checking options */
     "strict": true,
     "moduleResolution": "nodenext",
     /* Additional Checks */
-    "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
-    "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
-    "noUnusedParameters": true, /* Report errors on unused parameters. */
+    "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
+    "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
+    "noUnusedParameters": true /* Report errors on unused parameters. */
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    ".vscode-test-web",
-    ".test-storage",
-    ".test-extensions"
-  ]
+  "exclude": ["node_modules", ".vscode-test", ".vscode-test-web", ".test-storage", ".test-extensions"]
 }

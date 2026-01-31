@@ -1,3 +1,4 @@
+---
 blank_issues_enabled: true
 contact_links:
   - name: 📚 Documentation
@@ -6,6 +7,6 @@ contact_links:
   - name: 💬 Discussions
     url: https://github.com/camalot/vscode-workspace-tasks/discussions
     about: Ask questions, share ideas, and discuss with the community
-  - name: ⭐ VS Code Marketplace
+  - name: ⭐ Visual Studio Code Marketplace
     url: https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks
     about: Rate and review the extension

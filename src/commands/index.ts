@@ -45,7 +45,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
     removeFromQueue,
     runQueue,
     runTaskWithArgs,
-    stopTask
+    stopTask,
   ];
 
   for (const mod of modules) {

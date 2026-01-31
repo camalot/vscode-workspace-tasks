@@ -1,7 +1,8 @@
+---
 name: 🔧 New Task/Tool Support
 description: Request support for a new task type or build tool
-title: "[Task Support]: "
-labels: ["enhancement", "task-provider", "needs-triage"]
+title: '[Task Support]: '
+labels: ['enhancement', 'task-provider', 'needs-triage']
 body:
   - type: markdown
     attributes:
