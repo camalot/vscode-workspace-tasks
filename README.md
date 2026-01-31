@@ -7,7 +7,9 @@
 <!-- [![Installs](https://img.shields.io/visual-studio-marketplace/i/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) -->
 
-[![Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![VSCode Marketplace Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg?label=vscode%20rating)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Open VSX Rating](https://img.shields.io/open-vsx/stars/darthminos/workspace-tasks?label=open%20vsx%20rating)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+
+
 
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 

@@ -305,15 +305,19 @@ export class FilteredTaskService {
    *
    * This method:
    * 1. Clears the entire filtered tasks set
-   * 2. Persists the empty set to globalState
-   * 3. Fires the change event to trigger a tree refresh
+   * 2. Resets show hidden mode to false
+   * 3. Persists both changes to globalState
+   * 4. Fires the change event to trigger a tree refresh
    *
-   * After calling this, all previously hidden tasks will reappear in the tree view.
+   * After calling this, all previously hidden tasks will reappear in the tree view
+   * and the view will return to normal mode (not showing hidden tasks).
    * This is typically called from a "Clear Hidden Tasks" button in the title bar.
    */
   public clearFiltered(): void {
     this.filteredTasks.clear();
+    this.showHiddenMode = false;
     this.save();
+    this.context?.globalState.update(this.SHOW_HIDDEN_KEY, this.showHiddenMode);
     this._onDidChange.fire();
   }
 

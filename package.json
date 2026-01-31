@@ -483,6 +483,14 @@
             "queue": {
               "type": "boolean",
               "description": "%config.workspaceTasks.task.actionBar.queue%"
+            },
+            "hide": {
+              "type": "boolean",
+              "description": "%command.hideTask%"
+            },
+            "unhide": {
+              "type": "boolean",
+              "description": "%command.unhideTask%"
             }
           },
           "default": {
@@ -490,7 +498,9 @@
             "runWithArgs": true,
             "openFile": true,
             "favorite": true,
-            "queue": true
+            "queue": true,
+            "hide": false,
+            "unhide": true
           }
         },
         "workspaceTasks.task.statusResetDelay": {
@@ -1048,8 +1058,18 @@
           "group": "inline@0"
         },
         {
+          "command": "workspaceTasks.hideTask",
+          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask) && !workspaceTasks.taskIsFiltered && config.workspaceTasks.task.actionBar.hide",
+          "group": "inline@0"
+        },
+        {
           "command": "workspaceTasks.unhideTask",
-          "when": "(viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask) && workspaceTasks.showHiddenMode",
+          "when": "(viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask) && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
+          "group": "inline@0"
+        },
+        {
+          "command": "workspaceTasks.unhideGroup",
+          "when": "(viewItem == filteredWorkspace || viewItem == filteredType || viewItem == filteredFolder) && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
           "group": "inline@0"
         },
         {
