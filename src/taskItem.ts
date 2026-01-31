@@ -24,7 +24,7 @@ export class TaskItem extends vscode.TreeItem {
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly taskType: string,
-    public readonly resourceUri?: vscode.Uri,
+    resourceUri?: vscode.Uri,
     command?: vscode.Command,
     defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
     onRunActionCommand?: vscode.Command,

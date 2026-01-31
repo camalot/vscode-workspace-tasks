@@ -43,7 +43,7 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
         const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'justfile'));
-        const iconPath = iconService.getTaskIcon(this.type);
+        const iconPath = iconService.getTaskIcon(this.type, fallback);
         const lines = content.split('\n');
 
         for (let i = 0; i < lines.length; i++) {

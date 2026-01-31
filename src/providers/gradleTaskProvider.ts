@@ -29,7 +29,7 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
         const content = document.getText();
 
         const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'build.gradle'));
-        const iconPath = iconService.getTaskIcon(this.type);
+        const iconPath = iconService.getTaskIcon(this.type, fallback);
 
         const lines = content.split('\n');
 

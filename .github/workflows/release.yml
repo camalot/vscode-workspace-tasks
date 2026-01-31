@@ -9,11 +9,6 @@ on:  # yamllint disable-line rule:truthy
   #   types:
   #     - published
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to build and publish (ex: v1.1.1)'
-        required: true
-        default: 'v1.1.1'
 
 permissions: {}
 env:
@@ -27,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          persist-credentials: false
+          persist-credentials: true
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || (github.event_name == 'push' && github.ref) || github.ref }}
 
@@ -64,7 +59,7 @@ jobs:
       - name: Package VSIX
         run: |
           mkdir -p dist
-          npm run package:vsix --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+          npm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
         env:
           VERSION: ${{ steps.tag.outputs.version }}
 

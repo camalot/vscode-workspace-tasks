@@ -49,7 +49,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
         const targets = this.extractTargets(xmlData);
 
         const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'build.xml'));
-        const iconPath = iconService.getTaskIcon(this.type);
+        const iconPath = iconService.getTaskIcon(this.type, fallback);
 
         for (const target of targets) {
           const item = new TaskItem(

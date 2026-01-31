@@ -26,11 +26,11 @@ export class TaskTreeDragAndDropController implements vscode.TreeDragAndDropCont
     dataTransfer.set('application/vnd.code.tree.workspaceTasksView', new vscode.DataTransferItem(JSON.stringify(id)));
   }
 
-  public handleDrop(
+  public async handleDrop(
     target: TaskItem | undefined,
     sources: vscode.DataTransfer,
     _token: vscode.CancellationToken,
-  ): void | Thenable<void> {
+  ): Promise<void> {
     const transferItem = sources.get('application/vnd.code.tree.workspaceTasksView');
     if (!transferItem) {
       return;
@@ -45,7 +45,12 @@ export class TaskTreeDragAndDropController implements vscode.TreeDragAndDropCont
       return;
     }
 
-    const sourceId = JSON.parse(transferItem.value as string);
+    let sourceId: any;
+    try {
+      sourceId = JSON.parse(await transferItem.asString());
+    } catch {
+      return;
+    }
 
     // Perform the move in the state manager
     // Find source item across all queues

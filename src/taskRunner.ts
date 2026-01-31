@@ -27,11 +27,11 @@ export class TaskRunner {
     // Allow tasks that don't have a resourceUri (global workspace tasks).
     // Use file's folder as cwd when available, otherwise fall back to the first workspace folder or process.cwd().
     let task: vscode.Task | undefined;
-    const cwd = item.resourceUri
-      ? path.dirname(item.resourceUri.fsPath)
-      : vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : process.cwd();
+    // const cwd = item.resourceUri
+    //   ? path.dirname(item.resourceUri.fsPath)
+    //   : vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
+    //     ? vscode.workspace.workspaceFolders[0].uri.fsPath
+    //     : process.cwd();
 
     // Fallback Uri for commands that need one
     // const fallbackWorkspaceUri = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length) ? vscode.workspace.workspaceFolders[0].uri : vscode.Uri.file(cwd);

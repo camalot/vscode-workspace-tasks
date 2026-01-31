@@ -57,6 +57,7 @@ export class TaskIconService {
 
   public getTaskIcon(
     type: string,
+    fallback?: vscode.Uri,
   ): string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } | undefined {
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const iconType = config.get<string>('task.iconType', 'type');
@@ -66,7 +67,8 @@ export class TaskIconService {
     } else if (iconType === 'run') {
       return new vscode.ThemeIcon('play');
     } else if (iconType === 'file') {
-      return vscode.ThemeIcon.File;
+      // return vscode.ThemeIcon.File;
+      return undefined;
     } else if (iconType === 'custom') {
       const customPath = config.get<string>('task.iconTypeCustom', '');
       if (customPath) {
@@ -94,7 +96,7 @@ export class TaskIconService {
     }
 
     // Default 'type' behavior
-    const typeIcon = this.getTaskTypeIcon(type);
+    const typeIcon = this.getTaskTypeIcon(type, fallback);
     return typeIcon?.TaskIcon;
   }
 }

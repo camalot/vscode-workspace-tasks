@@ -412,8 +412,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
         // Create Queued Items
         for (const task of queueTasks) {
-          const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType, task.resourceUri);
-          const iconPath = iconObj ? iconObj.TaskIcon || iconObj.DisplayUri : undefined;
+          const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType);
+          const iconPath = iconObj ? iconObj.TaskIcon : undefined;
 
           const queuedItem = new TaskItem(
             task.label,
@@ -528,8 +528,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           const typeItem = TaskTypeFactory.create(type, groupState);
           typeItem.id = this.makeId(`recent:${type}`, groupSalt);
           typeItem.children = tasks.map((t: TaskItem) => {
-            const iconObj = TaskIconService.getInstance().getTaskTypeIcon(t.taskType, t.resourceUri);
-            const iconPath = iconObj ? iconObj.TaskIcon || iconObj.DisplayUri : undefined;
+            const iconPath = t.defaultIconPath;
             const copy = new TaskItem(
               t.label,
               vscode.TreeItemCollapsibleState.None,
@@ -568,8 +567,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       } else {
         // Flat list
         recentGroup.children = recentTasks.map((t: TaskItem) => {
-          const iconObj = TaskIconService.getInstance().getTaskTypeIcon(t.taskType, t.resourceUri);
-          const iconPath = iconObj ? iconObj.TaskIcon || iconObj.DisplayUri : undefined;
+          // Use the default icon path from the original task item which is hydrated from the cache
+          // Always recalculate icon to ensure consistency, especially for items with no default icon (like makefiles)
+          const iconObj = TaskIconService.getInstance().getTaskTypeIcon(t.taskType);
+          const iconPath = iconObj && iconObj.TaskIcon ? iconObj.TaskIcon : undefined;
+
           const copy = new TaskItem(
             t.label,
             vscode.TreeItemCollapsibleState.None,
