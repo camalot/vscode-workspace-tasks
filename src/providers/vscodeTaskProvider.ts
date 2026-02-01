@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { TaskProvider, BaseTaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
+import { FilteredTaskService } from '../services/filteredTaskService';
 
 export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -18,6 +18,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
+    const filteredTaskService = FilteredTaskService.getInstance();
     const files = await filesService.findFiles([constants.GLOB_VSCODE]);
 
     for (const file of files) {
@@ -48,10 +49,6 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
 
         if (json && json.tasks && Array.isArray(json.tasks)) {
           for (const task of json.tasks) {
-            // is the task hidden?
-            if (this.isHiddenTask(task)) {
-              continue;
-            }
 
             const label = task.label || 'Unnamed Task';
             const item = new TaskItem(
@@ -81,6 +78,13 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
               arguments: [file, item.startLine || 0],
             };
 
+            // is the task hidden?
+            if (this.isHiddenTask(task)) {
+              if (!filteredTaskService.isUnhidden(item.id!) && !filteredTaskService.isFiltered(item.id!)) {
+                filteredTaskService.hideTask(item);
+              }
+            }
+
             tasks.push(item);
           }
         }
@@ -92,6 +96,14 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
   }
 
   private isHiddenTask(task: any): boolean {
-    return (task.runOptions && task.runOptions.hide) || task.hide || (task.presentation && task.presentation.hide);
+    if (!task) {
+      return false;
+    }
+    const isTrue = (val: any) => val === true || val === 'true';
+    return (
+      (task.runOptions && isTrue(task.runOptions.hide)) ||
+      isTrue(task.hide) ||
+      (task.presentation && (isTrue(task.presentation.hide) || isTrue(task.presentation.hidden)))
+    );
   }
 }

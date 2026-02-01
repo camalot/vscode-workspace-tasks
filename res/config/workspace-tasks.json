@@ -8,22 +8,46 @@
     "iconUri": "Pipfile",
     "tasks": [
       {
-        "label": "~ Install Dependencies",
+        "label": "pipenv:install",
         "type": "shell",
         "command": "pipenv install",
-        "group": "build"
+        "group": "pipenv",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ Check Dependencies",
+        "label": "pipenv:check",
         "type": "shell",
         "command": "pipenv check",
-        "group": "build"
+        "group": "pipenv",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ Generate Pipfile.lock",
+        "label": "pipenv:lock",
         "type": "shell",
         "command": "pipenv lock",
-        "group": "build"
+        "group": "pipenv",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   },
@@ -35,16 +59,32 @@
     "iconUri": "docker-compose.yml",
     "tasks": [
       {
-        "label": "~ Start Services",
+        "label": "docker-compose:up",
         "type": "shell",
         "command": "docker-compose up -d",
-        "group": "build"
+        "group": "docker-compose",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ Stop Services",
+        "label": "docker-compose:down",
         "type": "shell",
         "command": "docker-compose down",
-        "group": "build"
+        "group": "docker-compose",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   },
@@ -70,10 +110,18 @@
     ],
     "tasks": [
       {
-        "label": "~ Build Docker Image",
+        "label": "dockerfile:build",
         "type": "shell",
         "command": "docker build -t {{ .Name }}:{{ .Tag }} .",
-        "group": "build"
+        "group": "dockerfile",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   },
@@ -85,16 +133,32 @@
     "iconUri": "tsconfig.json",
     "tasks": [
       {
-        "label": "~ Compile",
+        "label": "compile",
         "type": "shell",
         "command": "npx tsc -p {{ .FileName }}",
-        "group": "build"
+        "group": "typescript",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ Watch",
+        "label": "watch",
         "type": "shell",
         "command": "npx tsc -p {{ .FileName }} --watch",
-        "group": "build"
+        "group": "typescript",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   },
@@ -114,28 +178,60 @@
     ],
     "tasks": [
       {
-        "label": "~ NPM Install",
+        "label": "npm:install",
         "type": "shell",
         "command": "npm install",
-        "group": "build"
+        "group": "npm",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ NPM Audit",
+        "label": "npm:audit",
         "type": "shell",
         "command": "npm audit",
-        "group": "build"
+        "group": "npm",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ NPM Audit Fix",
+        "label": "npm:audit-fix",
         "type": "shell",
         "command": "npm audit fix",
-        "group": "build"
+        "group": "npm",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ NPM Update [package]",
+        "label": "npm:update",
         "type": "shell",
         "command": "npm update {{ .Package }}",
-        "group": "build"
+        "group": "npm",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   },
@@ -155,16 +251,32 @@
     ],
     "tasks": [
       {
-        "label": "~ PNPM Install",
+        "label": "pnpm:install",
         "type": "shell",
         "command": "pnpm install",
-        "group": "build"
+        "group": "pnpm",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ PNPM Update [package]",
+        "label": "pnpm:update",
         "type": "shell",
         "command": "pnpm update {{ .Package }}",
-        "group": "build"
+        "group": "pnpm",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   },
@@ -184,16 +296,32 @@
     ],
     "tasks": [
       {
-        "label": "~ Yarn Install",
+        "label": "yarn:install",
         "type": "shell",
         "command": "yarn install",
-        "group": "build"
+        "group": "yarn",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       },
       {
-        "label": "~ Yarn Update [package]",
+        "label": "yarn:update",
         "type": "shell",
         "command": "yarn upgrade {{ .Package }}",
-        "group": "build"
+        "group": "yarn",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   },
@@ -205,10 +333,229 @@
     "iconUri": "venv.py",
     "tasks": [
       {
-        "label": "~ Create Virtual Environment",
+        "label": "venv:create",
         "type": "shell",
         "command": "echo \"python -m venv .venv ${workspaceFolder}\"",
-        "group": "build"
+        "group": "venv",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
+  "eslint": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/eslint.config.{js,mjs,cjs,ts,mts,cts}"
+      ]
+    },
+    "iconUri": "eslint.config.mjs",
+    "inputs": [
+      {
+        "id": "eslint_cache_location",
+        "description": "Path to the cache file or directory",
+        "default": ".eslintcache",
+        "type": "promptString"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "run",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "run:cache",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --cache",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "run:verbose",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --verbose",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "fix",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "fix:cache",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --cache",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "fix:quiet",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --quiet",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "fix:verbose",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --verbose",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "fix:dryrun",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --dry-run",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "fix:dryrun:verbose",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --dry-run --verbose",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "analyze:config",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --inspect-config",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "analyze:problems",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --debug",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+
+  },
+  "webpack": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/webpack.config.{js,mjs,cjs,ts,mts,cts}"]
+    },
+    "iconUri": "webpack.config.js",
+    "tasks": [
+      {
+        "label": "build:production",
+        "type": "shell",
+        "command": "npx webpack --config {{ .FileName }} --mode production",
+        "group": "webpack",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "build:development",
+        "type": "shell",
+        "command": "npx webpack serve --config {{ .FileName }} --mode development",
+        "group": "webpack",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "build:watch",
+        "type": "shell",
+        "command": "npx webpack --config {{ .FileName }} --watch",
+        "group": "webpack",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
       }
     ]
   }

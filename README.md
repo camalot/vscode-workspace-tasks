@@ -7,7 +7,9 @@
 <!-- [![Installs](https://img.shields.io/visual-studio-marketplace/i/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) -->
 
-[![Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![VSCode Marketplace Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg?label=vscode%20rating)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Open VSX Rating](https://img.shields.io/open-vsx/stars/darthminos/workspace-tasks?label=open%20vsx%20rating)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+
+
 
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 
@@ -16,21 +18,21 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 ## 📑 Table of Contents
 
 - [✨ Key Features](#-key-features)
+- [📖 Documentation](#-documentation)
+- [📥 Installation](#-installation)
 - [🛠️ Supported Task Types](#️-supported-task-types)
 - [🌱 Recent Tasks](#-recent-tasks)
 - [⭐ Favorites](#-favorites)
 - [📋 Task Queues](#-task-queues)
-- [📥 Installation](#-installation)
-- [🚀 Quick Start](#-quick-start)
+- [🙈 Hide Tasks & Groups](#-hide-tasks--groups)
 - [⚙️ Configuration](#️-configuration)
-  - [Custom Workspace Tasks](#custom-workspace-tasks)
+  - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
   - [GitHub Actions Integration](#github-actions-integration)
-  - [Task Ignore Patterns](#task-ignore-patterns)
+  - [Task Ignore Patterns](docs/TaskFiltering.md)
 - [🔧 Advanced Features](#-advanced-features)
 - [📋 Requirements](#-requirements)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
-- [📖 Documentation](#-documentation)
 
 ## ✨ Key Features
 
@@ -45,7 +47,34 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
+- **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
 - **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
+
+## 📖 Documentation
+
+- [Configuration Guide](docs/Configuration.md)
+- [Task Filtering](docs/TaskFiltering.md)
+- [Workspace Tasks](docs/WorkspaceTasks.md)
+
+## 📥 Installation
+
+### From Visual Studio Code Marketplace
+
+1. Open Visual Studio Code
+2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "Workspace Tasks"
+4. Click **Install**
+
+### From Command Line
+
+```bash
+code --install-extension darthminos.workspace-tasks
+```
+
+### Requirements
+
+- **Visual Studio Code** 1.108.1 or later
+- **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
 
 ## 🛠️ Supported Task Types
 
@@ -203,25 +232,35 @@ CI Pipeline Queue:
 
 Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
 
-## 📥 Installation
+## 🙈 Hide Tasks & Groups
 
-### From Visual Studio Code Marketplace
+Declutter your task view by temporarily hiding individual tasks or entire task groups you don't need to see. Hidden items are dimmed when shown and can be easily restored.
 
-1. Open Visual Studio Code
-2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-3. Search for "Workspace Tasks"
-4. Click **Install**
+**How to Use:**
 
-### From Command Line
+1. Right-click on any task or task group
+2. Select "Hide Task" or "Hide Group" from the context menu
+3. Hidden items are removed from the default view
+4. Click "Show Hidden Tasks" button in the title bar to view all tasks including hidden ones
+5. When in "Show Hidden" mode, hidden items appear dimmed with a badge (●)
+6. Right-click a hidden item and select "Unhide" to restore it
+7. Click "Clear Hidden Tasks" to unhide everything and return to normal view
 
-```bash
-code --install-extension darthminos.workspace-tasks
-```
+**Features:**
 
-### Requirements
+- **Selective Hiding** - Hide individual tasks or entire task groups (npm, maven, etc.)
+- **Hierarchical** - Hiding a group automatically hides all tasks within it
+- **Visual Feedback** - Hidden items appear dimmed with a badge when viewing all tasks
+- **Toggle Mode** - Quickly switch between filtered view and showing all tasks
+- **Persistent** - Hidden state is saved across Visual Studio Code sessions
+- **Easy Restore** - Unhide individual items or clear all hidden tasks at once
 
-- **Visual Studio Code** 1.108.1 or later
-- **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
+**Perfect For:**
+
+- Hiding rarely-used task types in large monorepos
+- Temporarily removing test or build tasks from view
+- Focusing on specific task categories during development
+- Cleaning up the task tree without permanently removing tasks
 
 ## 🚀 Quick Start
 
@@ -243,85 +282,6 @@ code --install-extension darthminos.workspace-tasks
 - Drag the Explorer view to any panel location (sidebar, panel, or as a floating window)
 
 ## ⚙️ Configuration
-
-### Custom Workspace Tasks
-
-Create a `.workspace-tasks.json` file in your workspace to define custom reusable tasks with dynamic inputs. This is perfect for tasks that don't fit existing file types or need variable substitution.
-
-#### Basic Example
-
-```json
-{
-  "shell": {
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "Clean Build Artifacts",
-        "type": "workspace",
-        "command": "rm -rf dist build out",
-        "group": "build"
-      }
-    ]
-  }
-}
-```
-
-#### File-Associated Tasks with Inputs
-
-Tasks can be associated with file patterns and accept user inputs:
-
-```json
-{
-  "dockerfile": {
-    "version": "2.0.0",
-    "globs": {
-      "include": ["{**/Dockerfile,**/dockerfile,**/*.dockerfile}"],
-      "exclude": ["**/node_modules/**", "**/.git/**"]
-    },
-    "inputs": [
-      {
-        "id": "Name",
-        "type": "promptString",
-        "description": "Enter the name for the Docker image",
-        "default": "${workspaceFolderBasename}"
-      },
-      {
-        "id": "Tag",
-        "type": "promptString",
-        "description": "Enter the tag for the Docker image",
-        "default": "latest"
-      }
-    ],
-    "tasks": [
-      {
-        "label": "Build Docker Image",
-        "type": "workspace",
-        "command": "docker build -t {{ .Name }}:{{ .Tag }} .",
-        "group": "build"
-      }
-    ]
-  }
-}
-```
-
-#### Schema Reference
-
-- **Top-level keys** - Task type identifiers (e.g., `dockerfile`, `shell`)
-- **version** - Schema version (`"2.0.0"`)
-- **globs** (optional) - File pattern matching
-  - **include** - Array of glob patterns to match
-  - **exclude** - Array of glob patterns to ignore
-- **inputs** - Array of input definitions
-  - **id** - Unique input identifier
-  - **type** - `promptString` or `pickString`
-  - **description** - Prompt text for user
-  - **default** - Default value (supports `${workspaceFolderBasename}`)
-  - **options** - Array of choices (for `pickString`)
-- **tasks** - Array of task definitions
-  - **label** - Display name
-  - **type** - Must be `"workspace"`
-  - **command** - Shell command (use `{{ .InputId }}` for variables)
-  - **group** - Task group (`"build"`, `"test"`, etc.)
 
 ### GitHub Actions Integration
 
@@ -451,48 +411,6 @@ workspace-folder/
 - **Performance Issues** - Reduce depth if task discovery is slow
 - **Focused Workflows** - Limit to top-level tasks when working on specific projects
 - **Deep Structures** - Use `null` for full discovery in complex nested project layouts
-
-### Task Ignore Patterns
-
-Control task discovery using `.tasksignore` files (similar to `.gitignore`). This keeps your task list focused on relevant tasks.
-
-#### How It Works
-
-- **Per-Directory Control** - Place `.tasksignore` in any directory to exclude files from that location and subdirectories
-- **Gitignore Syntax** - Uses standard gitignore pattern syntax
-- **Global Exclusions** - Configure workspace-wide exclusions in Visual Studio Code settings
-- **Smart Defaults**: Ignored by default
-  - `**/node_modules/**`
-  - `**/.git/**`
-  - `**/.vscode-test/**`
-  - `**/__pycache__/**`
-
-#### Example `.tasksignore`
-
-```ignore
-# Ignore all test scripts
-**/test/**
-**/*.test.sh
-
-# Ignore build output
-build/
-dist/
-out/
-
-# Ignore temporary files
-*.tmp
-*.bak
-```
-
-#### Global Configuration
-
-Add workspace-wide exclusions in `settings.json`:
-
-```json
-{
-  "workspaceTasks.exclude": ["**/.git/**", "**/vendor/**", "**/__pycache__/**"]
-}
-```
 
 ## 🔧 Advanced Features
 
@@ -683,10 +601,6 @@ Made with [contrib.rocks](https://contrib.rocks).
 ## 📄 License
 
 This project is licensed under the [Apache 2.0 License](LICENSE).
-
-## 📖 Documentation
-
-For detailed information about all configuration settings, see the [Configuration Guide](CONFIGURATION.md).
 
 ---
 

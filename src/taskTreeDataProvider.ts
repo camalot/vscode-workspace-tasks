@@ -10,6 +10,7 @@ import { TaskIconService } from './services/taskIconService';
 import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
+import { FilteredTaskService } from './services/filteredTaskService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private static instance: TaskTreeDataProvider | undefined;
@@ -178,7 +179,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                   // Ensure root is expanded 3 levels deep (showing tasks)
                   await view.reveal(root, { expand: 3, select: false, focus: false });
                 }
-              } catch (e) {}
+              } catch (e) { }
             }
           }
         }, 100);
@@ -198,6 +199,69 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const useParentFolder = config.get<boolean>('groups.useParentFolder', false);
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
+
+    // Get filtered task service instance
+    const filteredService = FilteredTaskService.getInstance();
+    const showHiddenMode = filteredService.isShowHiddenMode();
+    const stateManager = TaskStateManager.getInstance();
+
+    /**
+     * Filter tasks based on filtered state.
+     *
+     * Logic:
+     * - If showHiddenMode is false (default): Filter out hidden tasks and groups completely
+     * - If showHiddenMode is true: Show all tasks including hidden ones
+     *
+     * This handles both individual tasks and groups:
+     * - Individual tasks are filtered if they or any parent group is filtered
+     * - Groups are filtered if they are explicitly filtered OR if all their children are filtered
+     *
+     * This needs to be applied recursively to handle nested task structures
+     * (e.g., GitHub Actions with workflow -> job hierarchy)
+     */
+    const filterTask = (task: TaskItem): TaskItem | null => {
+      // Check if this specific item is directly filtered
+      const isDirectlyFiltered = task.id ? filteredService.isFiltered(task.id) : false;
+
+      // Check if this item or any parent is filtered
+      const isFilteredViaParent = filteredService.isFilteredOrHasFilteredParent(task);
+
+      // If not in show hidden mode and item/parent is filtered, exclude it
+      if (!showHiddenMode && isFilteredViaParent) {
+        return null;
+      }
+
+      // If task has children, recursively filter them
+      if (task.children && task.children.length > 0) {
+        const filteredChildren = task.children
+          .map(child => filterTask(child))
+          .filter((child): child is TaskItem => child !== null);
+
+        // Update the task's children with filtered results
+        task.children = filteredChildren;
+
+        // If this is a group and all children were filtered out, hide the group too
+        // (unless we're in show hidden mode or the group itself is explicitly filtered)
+        const isGroup = task.taskType === 'workspace' ||
+          task.taskType === 'type' ||
+          task.taskType === 'folder';
+
+        if (!showHiddenMode && isGroup && filteredChildren.length === 0 && !isDirectlyFiltered) {
+          // All children filtered out and group not explicitly filtered
+          // Hide the empty group
+          return null;
+        }
+      }
+
+      return task;
+    };
+
+    // Apply filtering to all tasks
+    const filteredTasks = showHiddenMode
+      ? tasks // Show all tasks in show hidden mode
+      : tasks
+        .map(task => filterTask(task))
+        .filter((task): task is TaskItem => task !== null);
 
     // Determine group state based on collapseLevel
     // Level 1 = Groups Expanded (Expand All).
@@ -234,7 +298,6 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const favoriteTasks: TaskItem[] = [];
     const recentTasks = (RecentTasksService.getInstance() as any).getRecentTasks();
 
-    const stateManager = TaskStateManager.getInstance();
     const favoritesService = FavoritesService.getInstance();
     const queueService = QueueService.getInstance();
 
@@ -249,7 +312,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             ? vscode.TreeItemCollapsibleState.None
             : vscode.TreeItemCollapsibleState.Collapsed,
           item.taskType,
-          item.resourceUri,
+          item.taskFileUri,
           item.command,
           item.defaultIconPath,
         );
@@ -270,7 +333,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
               child.label,
               child.collapsibleState,
               child.taskType,
-              child.resourceUri,
+              child.taskFileUri,
               child.command,
               child.defaultIconPath,
             );
@@ -289,11 +352,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         }
 
         // Set description to workspace folder
-        const workspaceFolder = item.resourceUri ? vscode.workspace.getWorkspaceFolder(item.resourceUri) : undefined;
+        const itemUri = item.taskFileUri || item.resourceUri;
+        const workspaceFolder = itemUri ? vscode.workspace.getWorkspaceFolder(itemUri) : undefined;
         let description = workspaceFolder ? workspaceFolder.name : '';
 
-        if (item.resourceUri && workspaceFolder) {
-          const relativePath = vscode.workspace.asRelativePath(item.resourceUri, false);
+        if (itemUri && workspaceFolder) {
+          const relativePath = vscode.workspace.asRelativePath(itemUri, false);
           if (relativePath && relativePath !== description) {
             description = `${description} • ${relativePath}`;
           }
@@ -348,11 +412,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // console.log(`[TaskTreeDataProvider] organizeTasks - Collapse Level: ${this.collapseLevel}`);
 
-    for (const task of tasks) {
+    for (const task of filteredTasks) {
       checkFavorite(task);
       updateContextRecursively(task);
 
-      if (!task.resourceUri) {
+      const taskUri = task.taskFileUri || task.resourceUri;
+      if (!taskUri) {
         const workspaceId = 'workspace_generic';
         const workspaceName = 'Workspace';
         workspaceInfoMap.set(workspaceId, workspaceName);
@@ -376,7 +441,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // Update context value for the original task item to reflect current state
       // task.updateContextValue(); // Moved to start of loop and made recursive
 
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(task.resourceUri);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(taskUri);
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';
       const workspaceId = workspaceFolder ? workspaceFolder.uri.toString() : 'external';
       workspaceInfoMap.set(workspaceId, workspaceName);
@@ -409,6 +474,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         const queueGroup = new TaskItem(queueName, vscode.TreeItemCollapsibleState.Expanded, 'queue');
         queueGroup.iconPath = new vscode.ThemeIcon('list-ordered');
         queueGroup.id = `queue:${queueName}`;
+        // Update context value after setting the final ID
+        queueGroup.updateContextValue();
 
         // Create Queued Items
         for (const task of queueTasks) {
@@ -419,7 +486,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             task.label,
             vscode.TreeItemCollapsibleState.None,
             task.taskType,
-            task.resourceUri,
+            task.taskFileUri,
             task.command,
             iconPath,
           );
@@ -427,11 +494,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           queuedItem.startLine = task.startLine;
           queuedItem.metadata = task.metadata;
           // Set description to workspace folder and file path
-          const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
+          const workspaceFolder = task.taskFileUri ? vscode.workspace.getWorkspaceFolder(task.taskFileUri) : undefined;
           let description = workspaceFolder ? workspaceFolder.name : '';
 
-          if (task.resourceUri && workspaceFolder) {
-            const relativePath = vscode.workspace.asRelativePath(task.resourceUri, false);
+          if (task.taskFileUri && workspaceFolder) {
+            const relativePath = vscode.workspace.asRelativePath(task.taskFileUri, false);
             if (relativePath && relativePath !== description) {
               description = `${description} • ${relativePath}`;
             }
@@ -468,6 +535,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       );
       // Salt favorites
       favGroup.id = this.makeId('favorites', rootSalt);
+      // Update context value after setting the final ID
+      favGroup.updateContextValue();
       favGroup.iconPath = new vscode.ThemeIcon('star-full');
 
       // Group favorites by type
@@ -502,9 +571,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       recentGroup = new TaskItem('Recent Tasks', rootState, 'recent');
       // Salt recent
       recentGroup.id = this.makeId('recent', rootSalt);
+      // Update context value after setting the final ID
+      recentGroup.updateContextValue();
       recentGroup.iconPath = new vscode.ThemeIcon('history');
-      // Ensure this group has the proper context so inline action shows only the clear button
-      recentGroup.contextValue = 'recent';
 
       if (recentGroupsEnabled) {
         // Group by type
@@ -533,7 +602,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
               t.label,
               vscode.TreeItemCollapsibleState.None,
               t.taskType,
-              t.resourceUri,
+              t.taskFileUri,
               t.command,
               iconPath,
             );
@@ -546,11 +615,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             copy.description = t.description; // Preserve description (folder name etc)
             copy.parent = typeItem;
             copy.id = `recent:${t.id}`;
-            copy.contextValue = t.contextValue;
+            copy.contextValue = 'recentTask';
             copy.updateContextValue();
-            if (copy.contextValue !== 'runningTask') {
-              copy.contextValue = 'recentTask';
-            }
             return copy;
           });
 
@@ -576,7 +642,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             t.label,
             vscode.TreeItemCollapsibleState.None,
             t.taskType,
-            t.resourceUri,
+            t.taskFileUri,
             t.command,
             iconPath,
           );
@@ -590,11 +656,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           copy.description = t.description;
           copy.parent = recentGroup;
           copy.id = `recent:${t.id}`;
-          copy.contextValue = t.contextValue;
+          copy.contextValue = 'recentTask';
           copy.updateContextValue();
-          if (copy.contextValue !== 'runningTask') {
-            copy.contextValue = 'recentTask';
-          }
           return copy;
         });
       }
@@ -641,6 +704,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // Salt the ID of workspace item too!
         // Make ID robust using workspace ID (URI or special string)
         workspaceItem.id = this.makeId(`workspace:${workspaceId}`, rootSalt);
+        // Update context value after setting the final ID
+        workspaceItem.updateContextValue();
 
         // Try to enable folder icon for workspace item explicitly found via URI
         // Not essential but might look better
@@ -653,6 +718,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           const typeItem = TaskTypeFactory.create(taskType, groupState);
           // Use workspaceId in ID key for robustness
           typeItem.id = this.makeId(`type:${taskType}:${workspaceId}`, groupSalt);
+          // Update context value after setting the final ID
+          typeItem.updateContextValue();
 
           if (useParentFolder) {
             typeItem.children = this.groupTasksByParentFolder(
@@ -672,12 +739,18 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             child.parent = typeItem;
           }
 
+          // Create correct context value now that children are populated (checks for all-hidden children)
+          typeItem.updateContextValue();
+
           // console.log(`[TaskTreeDataProvider] Group Item Created: ID=${typeItem.id}, Type=${taskType}, State=${typeItem.collapsibleState} (Requested: ${groupState})`);
 
           workspaceItem.children.push(typeItem);
         }
         // Sort types by name
         workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
+
+        // Create correct context value now that children are populated (checks for all-hidden children)
+        workspaceItem.updateContextValue();
 
         workspaceRoots.push(workspaceItem);
       }
@@ -756,12 +829,14 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       const folderName = path.basename(folderPath);
       const folderItem = new TaskItem(folderName, vscode.TreeItemCollapsibleState.Collapsed, 'folder');
       folderItem.id = this.makeId(`folder:${folderPath}:${taskType}:${workspaceId}`, groupSalt);
-      folderItem.contextValue = 'folder';
+      // Update context value after setting the final ID
+      folderItem.updateContextValue();
       folderItem.iconPath = vscode.ThemeIcon.Folder;
       folderItem.children = this.groupTasksByName(tasks, separator);
       for (const child of folderItem.children) {
         child.parent = folderItem;
       }
+      folderItem.updateContextValue();
       folderChildren.push(folderItem);
     }
     folderChildren.sort((a, b) => a.label.localeCompare(b.label));
@@ -794,7 +869,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           remainder,
           task.collapsibleState,
           task.taskType,
-          task.resourceUri,
+          task.taskFileUri,
           task.onOpenActionCommand,
           task.iconPath,
           task.onRunActionCommand,
@@ -835,17 +910,19 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
 
       const groupItem = new TaskItem(groupName, vscode.TreeItemCollapsibleState.Collapsed, 'folder', iconUri);
-      groupItem.id = `group:${groupName}:${tasks[0]?.resourceUri?.toString() || 'unknown'}`;
+      groupItem.id = `group:${groupName}:${tasks[0]?.taskFileUri?.toString() || tasks[0]?.resourceUri?.toString() || 'unknown'}`;
+      // Update context value after setting the final ID
+      groupItem.updateContextValue();
       if (iconPath) {
         groupItem.iconPath = iconPath;
       } else if (iconUri) {
         groupItem.iconPath = vscode.ThemeIcon.File;
       }
-      groupItem.contextValue = 'folder';
       groupItem.children = this.groupTasksByName(groupTasks, separator);
       for (const child of groupItem.children) {
         child.parent = groupItem;
       }
+      groupItem.updateContextValue();
 
       rootItems.push(groupItem);
     }

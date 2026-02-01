@@ -51,7 +51,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     if (declared) {
       const fullCommand = args ? `${declared} ${args}` : declared;
       const task = new vscode.Task(
-        { type: 'workspace-task', task: taskLabel },
+        { type: 'workspace-task', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'workspace-task',
@@ -87,7 +87,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
 
         const task = new vscode.Task(
-          { type: 'npm', script: 'install' },
+          { type: 'npm', script: 'install', path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'npm',
@@ -105,7 +105,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
 
       const task = new vscode.Task(
-        { type: 'npm', script: taskLabel },
+        { type: 'npm', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'npm',
@@ -128,7 +128,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd });
 
       const task = new vscode.Task(
-        { type: 'yarn', script: taskLabel },
+        { type: 'yarn', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'yarn',
@@ -151,7 +151,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd });
 
       const task = new vscode.Task(
-        { type: 'pnpm', script: taskLabel },
+        { type: 'pnpm', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'pnpm',
@@ -186,6 +186,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         {
           type: 'deno',
           script: taskLabel,
+          path: resourceUri.fsPath,
         },
         vscode.TaskScope.Workspace,
         taskLabel,
@@ -210,7 +211,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(miseCmd, miseArgs, { cwd: miseCwd });
 
       const task = new vscode.Task(
-        { type: 'mise', script: taskLabel },
+        { type: 'mise', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'mise',
@@ -221,7 +222,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     case 'jupyter': {
       // Use CustomExecution to run Jupyter cell via Visual Studio Code command
       const task = new vscode.Task(
-        { type: 'jupyter', task: taskLabel },
+        { type: 'jupyter', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'jupyter',
@@ -247,7 +248,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(mvnCmd, mvnArgs, { cwd: mvnCwd });
 
       const task = new vscode.Task(
-        { type: 'maven', script: taskLabel },
+        { type: 'maven', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'maven',
@@ -275,7 +276,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd: gradleCwd });
 
       const task = new vscode.Task(
-        { type: 'gradle', script: taskLabel },
+        { type: 'gradle', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'gradle',
@@ -304,7 +305,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(composerCmd, composerArgs, { cwd: composerCwd });
 
       const task = new vscode.Task(
-        { type: 'composer', script: taskLabel },
+        { type: 'composer', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'composer',
@@ -313,7 +314,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command: full, cwd: composerCwd };
     }
     case 'shell': {
-      if (!item.resourceUri) {
+      if (!resourceUri) {
         return undefined;
       }
       const interpreter = item.metadata?.interpreter || '';
@@ -327,7 +328,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
 
       if (interpreter) {
         // Use array form to properly handle paths with spaces in both interpreter and script
-        const shellArgs = [item.resourceUri.fsPath];
+        const shellArgs = [resourceUri.fsPath];
         if (args) {
           shellArgs.push(...args.split(' '));
         }
@@ -335,7 +336,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         commandString = `${interpreter} ${shellArgs.join(' ')}`;
       } else {
         // Legacy fallback or just execute file directly
-        commandString = `"${item.resourceUri.fsPath}"`;
+        commandString = `"${resourceUri.fsPath}"`;
         if (args) {
           commandString += ` ${args}`;
         }
@@ -343,7 +344,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const task = new vscode.Task(
-        { type: 'shell', script: taskLabel },
+        { type: 'shell', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'shell',
@@ -364,15 +365,15 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (taskLabel && taskLabel.length > 0) {
         gruntArgs.push(taskLabel);
       }
-      if (item.resourceUri) {
-        const dir = path.dirname(item.resourceUri.fsPath);
+      if (resourceUri) {
+        const dir = path.dirname(resourceUri.fsPath);
         const rel = path.relative(gruntCwd, dir);
-        const fileName = path.basename(item.resourceUri.fsPath).toLowerCase();
+        const fileName = path.basename(resourceUri.fsPath).toLowerCase();
 
         // If the file is not in the CWD (workspace root) or the filename is not "gruntfile.js",
         // we need to pass the --gruntfile argument explicitly.
         if ((rel.length > 0 && rel !== '.') || fileName !== 'gruntfile.js') {
-          gruntArgs.push('--gruntfile', item.resourceUri.fsPath);
+          gruntArgs.push('--gruntfile', resourceUri.fsPath);
         }
       }
       if (args) {
@@ -380,7 +381,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const task = new vscode.Task(
-        { type: 'grunt', target: taskLabel },
+        { type: 'grunt', target: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'grunt',
@@ -424,7 +425,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const task = new vscode.Task(
-        { type: 'gulp', target: taskLabel },
+        { type: 'gulp', target: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'gulp',
@@ -468,7 +469,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         const ansiconArgs = commandArgs.map((arg) => `"${arg}"`).join(' ');
         const fullCommand = `"${command}" ${ansiconArgs}`;
         const task = new vscode.Task(
-          { type: 'ant', target: taskLabel },
+          { type: 'ant', target: taskLabel, path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'ant',
@@ -477,7 +478,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         return { task, command: fullCommand, cwd: antCwd };
       } else {
         const task = new vscode.Task(
-          { type: 'ant', target: taskLabel },
+          { type: 'ant', target: taskLabel, path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'ant',
@@ -493,7 +494,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (declared) {
         const fullCommand = args ? `${declared} ${args}` : declared;
         const task = new vscode.Task(
-          { type: 'workspace-task', task: taskLabel },
+          { type: 'workspace-task', task: taskLabel, path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'workspace-task',
@@ -727,7 +728,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(makeCmd, makeArgs, { cwd: makeCwd });
 
       const task = new vscode.Task(
-        { type: 'makefile', script: taskLabel },
+        { type: 'makefile', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'makefile',
@@ -747,7 +748,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         // So we leave it as is.
         const fullCommand = args ? `${command} ${args}` : command;
         const task = new vscode.Task(
-          { type: 'dockerfile', task: taskLabel },
+          { type: 'dockerfile', task: taskLabel, path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'dockerfile',
@@ -776,7 +777,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const shellExec = new vscode.ShellExecution(pipenvCmd, pipenvArgs, { cwd: pipenvCwd });
 
       const task = new vscode.Task(
-        { type: 'pipenv', script: taskLabel },
+        { type: 'pipenv', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'pipenv',
@@ -815,7 +816,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const task = new vscode.Task(
-        { type: 'venv', task: taskLabel },
+        { type: 'venv', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'venv',
@@ -824,11 +825,11 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command: commandString, cwd };
     }
     case 'msbuild': {
-      if (!item.resourceUri) {
+      if (!resourceUri) {
         return undefined;
       }
       const msbuildProvider = new MsBuildTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
       const workspaceUri = workspaceFolder?.uri;
       const {
         command: msbuildCmd,
@@ -836,12 +837,12 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         cwd: msbuildCwd,
       } = msbuildProvider.getCommand(workspaceUri);
       const commandArgs = msbuildInitialArgs ? [...msbuildInitialArgs] : [];
-      commandArgs.push(...msbuildProvider.getCommandArgs(taskLabel, item.resourceUri.fsPath));
+      commandArgs.push(...msbuildProvider.getCommandArgs(taskLabel, resourceUri.fsPath));
       if (args) {
         commandArgs.push(...args.split(' '));
       }
       const task = new vscode.Task(
-        { type: 'msbuild', target: taskLabel },
+        { type: 'msbuild', target: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'msbuild',
@@ -862,7 +863,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const fullCmd = `${justCommand} ${justArgs.join(' ')}`.trim();
 
       const task = new vscode.Task(
-        { type: 'justfile', task: taskLabel },
+        { type: 'justfile', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'just',

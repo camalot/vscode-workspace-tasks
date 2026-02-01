@@ -24,7 +24,7 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || (github.event_name == 'push' && github.ref) || github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref) || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

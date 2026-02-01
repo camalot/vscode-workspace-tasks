@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TaskStateManager } from './taskStateManager';
 import { FavoritesService } from './services/favoritesService';
+import { FilteredTaskService } from './services/filteredTaskService';
 
 export class TaskItem extends vscode.TreeItem {
   public children: TaskItem[] = [];
@@ -9,7 +10,27 @@ export class TaskItem extends vscode.TreeItem {
   public defaultIconPath: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } | undefined;
   public taskSource: string | undefined;
   public taskFileUri?: vscode.Uri;
-  public parent?: TaskItem;
+  private _parent?: TaskItem;
+  public get parent(): TaskItem | undefined {
+    return this._parent;
+  }
+  public set parent(value: TaskItem | undefined) {
+    this._parent = value;
+    // Update context value when parent changes to inherit filtered state
+    this.updateContextValue();
+    // Recursively update all children since the parent chain has changed
+    this.updateChildrenContext();
+  }
+
+  private updateChildrenContext() {
+    if (this.children) {
+      for (const child of this.children) {
+        child.updateContextValue();
+        child.updateChildrenContext(); // Recurse down
+      }
+    }
+  }
+
   public metadata?: any;
 
   // Static counter for ensure unique IDs within a session if needed,
@@ -56,20 +77,19 @@ export class TaskItem extends vscode.TreeItem {
       };
     }
 
-    // Deterministic ID base
-    const baseId = `${taskType}:${label}:${resourceUri?.toString() || 'workspace'}`;
-    // Verify if we need uniqueness for duplicates?
-    // We will handle duplicates by appending a counter at the Provider/Tree construction level if needed,
-    // but let's just use a simple counter here to ensure technical uniqueness to avoid the error.
-    // However, this breaks state preservation across refreshes.
-    // Better: Use the baseId. The TreeProvider should ensure it doesn't create duplicate logical items.
-    // If we really have duplicate tasks, we should distinguish them (e.g. by provider source).
-    this.id = baseId;
     this.originalLabel = label;
     this.tooltip = `${this.label} (${this.taskType})`;
     this.description = this.taskType;
-    this.resourceUri = resourceUri;
+    // Store the file URI but don't set resourceUri to avoid file decorations
+    // resourceUri will only be set for dimming filtered items in updateContextValue
+    if (resourceUri && !this.taskFileUri) {
+      this.taskFileUri = resourceUri;
+    }
     this.defaultIconPath = defaultIconPath;
+
+    // Use TaskStateManager to generate variable-based persistent ID strictly matching TaskCacheService logic
+    // This ensures that the ID generated here matches the ID generated when the cache is rebuilt
+    this.id = TaskStateManager.getInstance().getTaskId(this);
 
     // Default open action
     // this will open the file, by default, to the start of the document.
@@ -79,7 +99,7 @@ export class TaskItem extends vscode.TreeItem {
       this.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [this.resourceUri, 0],
+        arguments: [this.taskFileUri || resourceUri, 0],
       };
     }
 
@@ -98,6 +118,8 @@ export class TaskItem extends vscode.TreeItem {
   }
 
   public updateContextValue() {
+    const filteredService = FilteredTaskService.getInstance();
+
     if (
       this.taskType === 'workspace' ||
       this.taskType === 'folder' ||
@@ -106,12 +128,73 @@ export class TaskItem extends vscode.TreeItem {
       this.taskType === 'queue' ||
       this.taskType === 'recent'
     ) {
-      this.contextValue = this.taskType;
+      // Check if this group is filtered
+      const isFiltered = this.id ? filteredService.isFiltered(this.id) : false;
+      let isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
+
+      // Check if all children are filtered (recursively)
+      // If so, treat this group as effectively filtered (dimmed)
+      if (!isFilteredOrParent && this.children && this.children.length > 0) {
+        const checkChildren = (children: TaskItem[]): boolean => {
+          return children.every((child) => {
+            // Check if child itself is explicitly filtered
+            // Try direct ID (for groups) and canonical ID (for tasks)
+            const directId = child.id;
+            const canonicalId = TaskStateManager.getInstance().getTaskId(child);
+
+            if (directId && filteredService.isFiltered(directId)) {
+              return true;
+            }
+            if (canonicalId && filteredService.isFiltered(canonicalId)) {
+              return true;
+            }
+
+            // If child not explicitly filtered, check if it is a group with all children filtered
+            if (child.children && child.children.length > 0) {
+              return checkChildren(child.children);
+            }
+
+            // Leaf node, not filtered
+            return false;
+          });
+        };
+
+        if (checkChildren(this.children)) {
+          isFilteredOrParent = true;
+        }
+      }
+
+      // Resource URI includes dimmed fragment if filtered (explicitly or via parent)
+      if (this.id) {
+        this.resourceUri = vscode.Uri.from({
+          scheme: 'workspace-tasks',
+          path: '/group',
+          query: this.id,
+          fragment: isFilteredOrParent ? 'dimmed' : '',
+        });
+      }
+
+      if (isFiltered) {
+        // Add filtered prefix to group context value
+        this.contextValue = 'filtered' + this.taskType.charAt(0).toUpperCase() + this.taskType.slice(1);
+      } else {
+        this.contextValue = this.taskType;
+      }
     } else {
       // It's a task leaf node
       const id = TaskStateManager.getInstance().getTaskId(this);
       const status = TaskStateManager.getInstance().getStatus(id);
       const isFavorite = FavoritesService.getInstance().isFavorite(id);
+      const isFiltered = filteredService.isFiltered(id);
+      const isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
+
+      // resourceUri includes dimmed fragment if filtered (explicitly or via parent)
+      this.resourceUri = vscode.Uri.from({
+        scheme: 'workspace-tasks',
+        path: '/task',
+        query: id,
+        fragment: isFilteredOrParent ? 'dimmed' : ''
+      });
 
       if (this.taskType === 'jupyter') {
         this.contextValue = 'jupyterTask';
@@ -121,22 +204,25 @@ export class TaskItem extends vscode.TreeItem {
         this.contextValue = 'runningTask';
         this.iconPath = new vscode.ThemeIcon('loading~spin');
       } else {
+        // Determine base context value considering filtered state
+        let baseContext = 'task';
+
         // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
-        if (this.contextValue !== 'queuedTask') {
-          // For favorites view, we want to ensure it has 'favoriteTask' context value
-          // But if it is running, it takes precedence above.
-
-          // Should we have a specific 'favoriteTask' context?
-          // If the item is in the favorites LIST, it should definitely be 'favoriteTask'.
-          // If it is in the normal list, but is favorited, it should ALSO be 'favoriteTask' (to show "Remove") or maybe we want a distinct value?
-          // The existing logic was: isFavorite ? 'favoriteTask' : 'task'.
-          // This works for both locations if we want "Remove" available on both.
-          // But maybe the user wants 'favoriteTask' to imply "In Favorites Group".
-          // The issue report says: "interaction buttons include Add to Favorites, not Remove".
-          // This implies isFavorite is FALSE during the check.
-
-          this.contextValue = isFavorite ? 'favoriteTask' : 'task';
+        if (this.contextValue === 'queuedTask') {
+          baseContext = 'queuedTask';
+        } else if (this.contextValue === 'recentTask') {
+          baseContext = isFavorite ? 'favoriteRecentTask' : 'recentTask';
+        } else if (isFavorite) {
+          baseContext = 'favoriteTask';
         }
+
+        // Add filtered prefix if the task is in the filtered set
+        // This allows separate menu items for filtered tasks (e.g., "Unhide Task" vs "Hide Task")
+        if (isFiltered) {
+          baseContext = 'filtered' + baseContext.charAt(0).toUpperCase() + baseContext.slice(1);
+        }
+
+        this.contextValue = baseContext;
 
         if (status === 'success') {
           this.iconPath = new vscode.ThemeIcon('check', new vscode.ThemeColor('testing.iconPassed'));

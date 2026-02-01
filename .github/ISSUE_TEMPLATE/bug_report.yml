@@ -91,12 +91,15 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Please provide information about your environment
+      description: |
+        Please provide information about your environment.
+        In Visual Studio Code, go to `Help → About` and copy the information below:
       value: |
-        - **Visual Studio Code Version**:
-        - **Extension Version**:
-        - **Operating System**:
-        - **Task Tool Version** (if applicable):
+        - **Visual Studio Code Help Info**:
+          <!-- Copy and paste the info from Help → About here -->
+
+          <!-- End of Help Info -->
+        - **Workspace Tasks Extension Version**:
       render: markdown
     validations:
       required: true

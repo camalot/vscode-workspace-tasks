@@ -19,7 +19,7 @@ export class OpenFileAtLineCommand extends BaseCommand {
       lineToOpen = line || 0;
     }
 
-    if (uri) {
+    if (uri && uri.scheme !== 'workspace-tasks') {
       vscode.workspace.openTextDocument(uri).then((doc) => {
         vscode.window.showTextDocument(doc).then((editor) => {
           const position = new vscode.Position(lineToOpen, 0);

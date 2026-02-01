@@ -9,6 +9,7 @@
     "chglog",
     "darthminos",
     "Dockerfiles",
+    "dryrun",
     "elif",
     "Extensionless",
     "Favorited",
@@ -31,6 +32,7 @@
     "smol",
     "tasksignore",
     "uitest",
+    "unhide",
     "venv"
   ],
   // "files.associations": {

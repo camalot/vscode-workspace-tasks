@@ -3,6 +3,6 @@
     "comments": true
   },
   "rules": {
-    "terminology": true
+    "terminology": false
   }
 }
