@@ -314,7 +314,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command: full, cwd: composerCwd };
     }
     case 'shell': {
-      if (!item.resourceUri) {
+      if (!resourceUri) {
         return undefined;
       }
       const interpreter = item.metadata?.interpreter || '';
@@ -328,7 +328,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
 
       if (interpreter) {
         // Use array form to properly handle paths with spaces in both interpreter and script
-        const shellArgs = [item.resourceUri.fsPath];
+        const shellArgs = [resourceUri.fsPath];
         if (args) {
           shellArgs.push(...args.split(' '));
         }
@@ -336,7 +336,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         commandString = `${interpreter} ${shellArgs.join(' ')}`;
       } else {
         // Legacy fallback or just execute file directly
-        commandString = `"${item.resourceUri.fsPath}"`;
+        commandString = `"${resourceUri.fsPath}"`;
         if (args) {
           commandString += ` ${args}`;
         }
@@ -365,15 +365,15 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       if (taskLabel && taskLabel.length > 0) {
         gruntArgs.push(taskLabel);
       }
-      if (item.resourceUri) {
-        const dir = path.dirname(item.resourceUri.fsPath);
+      if (resourceUri) {
+        const dir = path.dirname(resourceUri.fsPath);
         const rel = path.relative(gruntCwd, dir);
-        const fileName = path.basename(item.resourceUri.fsPath).toLowerCase();
+        const fileName = path.basename(resourceUri.fsPath).toLowerCase();
 
         // If the file is not in the CWD (workspace root) or the filename is not "gruntfile.js",
         // we need to pass the --gruntfile argument explicitly.
         if ((rel.length > 0 && rel !== '.') || fileName !== 'gruntfile.js') {
-          gruntArgs.push('--gruntfile', item.resourceUri.fsPath);
+          gruntArgs.push('--gruntfile', resourceUri.fsPath);
         }
       }
       if (args) {
@@ -825,11 +825,11 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return { task, command: commandString, cwd };
     }
     case 'msbuild': {
-      if (!item.resourceUri) {
+      if (!resourceUri) {
         return undefined;
       }
       const msbuildProvider = new MsBuildTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
       const workspaceUri = workspaceFolder?.uri;
       const {
         command: msbuildCmd,
@@ -837,7 +837,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         cwd: msbuildCwd,
       } = msbuildProvider.getCommand(workspaceUri);
       const commandArgs = msbuildInitialArgs ? [...msbuildInitialArgs] : [];
-      commandArgs.push(...msbuildProvider.getCommandArgs(taskLabel, item.resourceUri.fsPath));
+      commandArgs.push(...msbuildProvider.getCommandArgs(taskLabel, resourceUri.fsPath));
       if (args) {
         commandArgs.push(...args.split(' '));
       }
