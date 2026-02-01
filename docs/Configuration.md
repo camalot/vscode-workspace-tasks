@@ -224,7 +224,7 @@ Maximum number of recent tasks to display in the Recent Tasks group. Once the li
 Select the type of icon to display for tasks.
 
 - **type** - The task type icon used to represent the type of the task
-- **file** - The vscode defined file icon for the task source file
+- **file** - The `vscode` defined file icon for the task source file
 - **gear** - A gear icon that usually represents settings or configuration
 - **run** - A play icon that usually represents running or starting something
 - **custom** - A custom icon defined by the user
@@ -888,6 +888,6 @@ When enabled, ANSICON will be used for Ant tasks to provide colored output in th
 
 ## Related Documentation
 
-- [README](README.md) - Main documentation
+- [Readme](README.md) - Main documentation
 - [CONTRIBUTING](CONTRIBUTING.md) - Contribution guidelines
 - [CHANGELOG](CHANGELOG.md) - Version history and changes

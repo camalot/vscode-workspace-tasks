@@ -179,7 +179,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
                   // Ensure root is expanded 3 levels deep (showing tasks)
                   await view.reveal(root, { expand: 3, select: false, focus: false });
                 }
-              } catch (e) {}
+              } catch (e) { }
             }
           }
         }, 100);
@@ -243,8 +243,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // If this is a group and all children were filtered out, hide the group too
         // (unless we're in show hidden mode or the group itself is explicitly filtered)
         const isGroup = task.taskType === 'workspace' ||
-                       task.taskType === 'type' ||
-                       task.taskType === 'folder';
+          task.taskType === 'type' ||
+          task.taskType === 'folder';
 
         if (!showHiddenMode && isGroup && filteredChildren.length === 0 && !isDirectlyFiltered) {
           // All children filtered out and group not explicitly filtered
@@ -260,8 +260,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const filteredTasks = showHiddenMode
       ? tasks // Show all tasks in show hidden mode
       : tasks
-          .map(task => filterTask(task))
-          .filter((task): task is TaskItem => task !== null);
+        .map(task => filterTask(task))
+        .filter((task): task is TaskItem => task !== null);
 
     // Determine group state based on collapseLevel
     // Level 1 = Groups Expanded (Expand All).

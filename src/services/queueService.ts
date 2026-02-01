@@ -97,7 +97,7 @@ export class QueueService {
           label: q.label,
           originalLabel: q.originalLabel || q.label,
           taskType: q.taskType,
-          resourceUri: q.resourceUri ? q.resourceUri.toString() : undefined,
+          resourceUri: (q.taskFileUri || q.resourceUri)?.toString(),
           startLine: q.startLine,
           metadata: q.metadata,
         }));
@@ -136,13 +136,17 @@ export class QueueService {
       const fullLabel = item.originalLabel || item.label;
 
       // Reconstruct the item to ensure we store a clean copy with the full label
+      // Use taskFileUri if available to ensure we store the real file path, not the decoration URI
       const queueItem = new TaskItem(
         fullLabel,
         vscode.TreeItemCollapsibleState.None,
         item.taskType,
-        item.resourceUri,
+        item.taskFileUri || item.resourceUri,
         item.command,
       );
+      if (item.taskFileUri) {
+        queueItem.taskFileUri = item.taskFileUri;
+      }
       // Persist the original ID
       queueItem.id = id;
       queueItem.startLine = item.startLine;

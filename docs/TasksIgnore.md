@@ -26,13 +26,13 @@ The `.tasksignore` file is a plain text file with one pattern per line. The form
 
 - **One pattern per line**: Each line specifies a pattern to exclude
 - **Comments**: Lines starting with `#` are treated as comments and ignored
-- **Blank lines**: Empty lines are ignored
+- **Empty lines**: Empty lines are ignored
 - **No quotes needed**: Patterns are specified directly without quotes
 
 ### Pattern Syntax
 
 | Pattern | Description | Example |
-|---------|-------------|---------|
+| --- | --- | --- |
 | `filename` | Matches the filename in any directory | `package.json` |
 | `*.ext` | Matches all files with the extension | `*.test.js` |
 | `dir/` | Matches the directory and all its contents | `build/` |
@@ -166,7 +166,7 @@ docs/build/
 
 ## Global Configuration
 
-In addition to `.tasksignore` files, you can configure workspace-wide exclusions in your VS Code `settings.json`:
+In addition to `.tasksignore` files, you can configure workspace-wide exclusions in your Visual Studio Code `settings.json`:
 
 ```json
 {
@@ -204,6 +204,7 @@ If any pattern matches, the file is excluded from task discovery.
 ## Common Use Cases
 
 ### Exclude Test Files
+
 ```ignore
 **/test/**
 **/__tests__/**
@@ -212,6 +213,7 @@ If any pattern matches, the file is excluded from task discovery.
 ```
 
 ### Exclude Build Artifacts
+
 ```ignore
 build/
 dist/
@@ -224,6 +226,7 @@ obj/
 ```
 
 ### Exclude Example/Demo Code
+
 ```ignore
 examples/
 demo/
@@ -232,6 +235,7 @@ playground/
 ```
 
 ### Exclude Generated Code
+
 ```ignore
 **/*.generated.*
 **/generated/**
@@ -270,4 +274,4 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
 - [Workspace Tasks Configuration](../CONFIGURATION.md)
-- [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings)
+- [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)

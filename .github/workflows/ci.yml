@@ -3,12 +3,10 @@ name: CI
 
 on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - develop
-  # pull_request:
-  #   branches:
-  #     - develop
+  push:
+  pull_request:
+    branches:
+      - develop
 
 permissions: {}
 jobs:
@@ -50,10 +48,12 @@ jobs:
           VALIDATE_JSON_PRETTIER: false
           VALIDATE_JSCPD: false
           VALIDATE_MARKDOWN_PRETTIER: false
+          VALIDATE_NATURAL_LANGUAGE: false
           VALIDATE_PRETTIER: false
           VALIDATE_SPELL_CODESPELL: false
           VALIDATE_TRIVY: false
           VALIDATE_TYPESCRIPT_ES: false  # TEMPORARY DISABLE
+          VALIDATE_TYPESCRIPT_PRETTIER: false
           VALIDATE_YAML_PRETTIER: false
           FIX_BIOME_FORMAT: false
           FIX_JSON_PRETTIER: false

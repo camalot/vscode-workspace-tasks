@@ -41,7 +41,7 @@ export class WorkspaceTasksService {
   private config: FileTasksConfig = {};
   private context?: vscode.ExtensionContext;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): WorkspaceTasksService {
     if (!WorkspaceTasksService.instance) {
@@ -106,9 +106,9 @@ export class WorkspaceTasksService {
           this.mergeConfig(newConfig, localConfig);
         } catch (e) {
           if (e instanceof Error && e.message.includes('Unexpected end of JSON input')) {
-             console.log(`[WorkspaceTasksService]: Incomplete JSON in ${file.fsPath}, ignoring.`);
+            console.log(`[WorkspaceTasksService]: Incomplete JSON in ${file.fsPath}, ignoring.`);
           } else {
-             console.error(`Failed to load workspace tasks from ${file.fsPath}`, e);
+            console.error(`Failed to load workspace tasks from ${file.fsPath}`, e);
           }
         }
       }

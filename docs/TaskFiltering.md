@@ -26,7 +26,7 @@ The `.tasksignore` file is a plain text file with one pattern per line. The form
 
 - **One pattern per line**: Each line specifies a pattern to exclude
 - **Comments**: Lines starting with `#` are treated as comments and ignored
-- **Blank lines**: Empty lines are ignored
+- **Empty lines**: Empty lines are ignored
 - **No quotes needed**: Patterns are specified directly without quotes
 
 ### Pattern Syntax
@@ -166,7 +166,7 @@ docs/build/
 
 ## Global Configuration
 
-In addition to `.tasksignore` files, you can configure workspace-wide exclusions in your VS Code `settings.json`:
+In addition to `.tasksignore` files, you can configure workspace-wide exclusions in your Visual Studio Code `settings.json`:
 
 ```json
 {
@@ -270,4 +270,5 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
 - [Workspace Tasks Configuration](Configuration.md)
-- [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings)
+- [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)
+- [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)
