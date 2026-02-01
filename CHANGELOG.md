@@ -1,26 +1,79 @@
-## [1.1.2] - 2026-01-31
+## [1.1.3] - 2026-02-01
 
 ### 🚀 Features
 
-- Different icons for type/folder/task #31
+- Ability to hide individual or groups of tasks
+
+- *(ux)* Ability to hide individual or groups of tasks #43
+
+- *(ux)* Ability to hide individual or groups of tasks #43
+
+- Ensure vscode tasks respect the 'hide' property
+
+- *(tasks)* Added eslint tasks
+
+- *(tasks)* Added action context menu items #44
 
 
 ### 🐛 Bug Fixes
 
-- Cant run powershell tasks if inside of subdirectory with spaces in name #36
+- Bump @vscode/test-cli from 0.0.11 to 0.0.12 #42 by @camalot
 
-- Bump fast-xml-parser from 5.3.3 to 5.3.4 #38
+- Bump mocha from 11.3.0 to 11.7.5 #41 by @camalot
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Some workflow setup
+- *(repo)* Update layout of readme
 
-- *(repo)* Run prettier --fix
+- *(repo)* Some readme and docs updates
 
-- *(repo)* Added configuration documentation
+- *(repo)* Super-linter fixes
 
-- *(repo)* Run ci.yml action to get everything passing
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.2...v1.1.3
+
+## [1.1.2] - 2026-01-31
+
+### 🚀 Features
+
+- Different icons for type/folder/task #31 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+
+### 🐛 Bug Fixes
+
+- Cant run powershell tasks if inside of subdirectory with spaces in name #36 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- Fixed JSON.parse(transferItem.value as string) can throw #40 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+
+### 💼 Other
+
+- V1.1.2 (#39) by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * chore(repo): some workflow setup by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * chore(repo): run prettier --fix by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * chore(repo): run ci.yml action to get everything passing by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * fix: Bump fast-xml-parser from 5.3.3 to 5.3.4 #38 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * chore(repo): generate changelog by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * fix: fix issue after updating fast-xml-parser by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * chore(repo): fix fast-xml-parser version. got reverted by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- * fix: missing icon for gradle and makefile in recent tasks group by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(repo)* Added configuration documenation by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+
+- *(repo)* Bump version by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
 
 
@@ -292,3 +345,4 @@
 
 ### New Contributors
 * @camalot made their first contribution
+
