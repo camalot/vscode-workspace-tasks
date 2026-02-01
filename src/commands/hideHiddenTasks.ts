@@ -65,9 +65,6 @@ export class HideHiddenTasksCommand extends BaseCommand {
       this.taskTreeDataProvider.refreshLocal();
 
       const count = service.getFilteredCount();
-      vscode.window.showInformationMessage(
-        `Hiding ${count} filtered task${count === 1 ? '' : 's'} from view`
-      );
     }
   }
 }

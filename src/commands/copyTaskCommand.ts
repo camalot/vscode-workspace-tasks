@@ -13,7 +13,6 @@ export class CopyTaskCommand extends BaseCommand {
       const created = await createTaskForItem(item);
       if (created && created.command) {
         await vscode.env.clipboard.writeText(created.command);
-        vscode.window.showInformationMessage(`Copied command to clipboard!`);
       } else {
         vscode.window.showWarningMessage('Could not resolve command for this task.');
       }

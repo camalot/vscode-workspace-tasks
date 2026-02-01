@@ -75,10 +75,5 @@ export class ToggleShowHiddenCommand extends BaseCommand {
     // listens to. We call refreshLocal here to ensure immediate UI update.
     this.taskTreeDataProvider.refreshLocal();
 
-    // Provide user feedback about the current mode
-    const message = newMode
-      ? 'Showing all tasks including hidden ones'
-      : 'Hiding filtered tasks from view';
-    vscode.window.showInformationMessage(message);
   }
 }
