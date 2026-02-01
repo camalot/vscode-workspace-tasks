@@ -212,7 +212,7 @@ export class TaskItem extends vscode.TreeItem {
         if (this.contextValue === 'queuedTask') {
           baseContext = 'queuedTask';
         } else if (this.contextValue === 'recentTask') {
-          baseContext = 'recentTask';
+          baseContext = isFavorite ? 'favoriteRecentTask' : 'recentTask';
         } else if (isFavorite) {
           baseContext = 'favoriteTask';
         }

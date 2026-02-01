@@ -89,12 +89,15 @@ export class RecentTasksService {
 
         // If definition has path, ensure it matches item resourceUri
         let pathMatch = true;
-        if (defPath && item.resourceUri) {
-          // Normalize paths for comparison (handle windows/unix separators and casing)
-          const p1 = vscode.Uri.file(defPath).fsPath.toLowerCase();
-          const p2 = item.resourceUri.fsPath.toLowerCase();
-          if (p1 !== p2) {
-            pathMatch = false;
+        if (defPath) {
+          const itemUri = item.taskFileUri || item.resourceUri;
+          if (itemUri && itemUri.scheme === 'file') {
+            // Normalize paths for comparison (handle windows/unix separators and casing)
+            const p1 = vscode.Uri.file(defPath).fsPath.toLowerCase();
+            const p2 = itemUri.fsPath.toLowerCase();
+            if (p1 !== p2) {
+              pathMatch = false;
+            }
           }
         }
 

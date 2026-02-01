@@ -2,6 +2,7 @@ import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { FilteredTaskService } from '../services/filteredTaskService';
+import { TaskCacheService } from '../services/taskCacheService';
 
 /**
  * Command to clear all hidden tasks, making them visible again.
@@ -32,19 +33,19 @@ import { FilteredTaskService } from '../services/filteredTaskService';
  * @example
  * ```typescript
  * // Clear all hidden tasks
- * await vscode.commands.executeCommand('workspaceTasks.clearFilteredTasks');
+ * await vscode.commands.executeCommand('workspaceTasks.resetFilteredTasks');
  * ```
  */
-export class ClearFilteredTasksCommand extends BaseCommand {
+export class ResetFilteredTasksCommand extends BaseCommand {
   private taskTreeDataProvider: TaskTreeDataProvider;
 
   /**
-   * Creates a new ClearFilteredTasksCommand instance.
+   * Creates a new ResetFilteredTasksCommand instance.
    *
    * @param context - The VSCode extension context
    */
   constructor(context: vscode.ExtensionContext) {
-    super('clearFilteredTasks', context);
+    super('resetFilteredTasks', context);
     this.taskTreeDataProvider = TaskTreeDataProvider.getInstance(this.context);
   }
 
@@ -73,16 +74,15 @@ export class ClearFilteredTasksCommand extends BaseCommand {
     // Clear all filtered tasks
     service.clearFiltered();
 
-    // Refresh the tree to show all tasks
-    this.taskTreeDataProvider.refreshLocal();
+    // force a refresh of the tasks so that the tasks are re-evaluated
+    await vscode.commands.executeCommand('workspaceTasks.refresh');
 
-    // Provide user feedback
+
+    // Show confirmation message
     if (count > 0) {
-      vscode.window.showInformationMessage(
-        `Cleared ${count} hidden task${count === 1 ? '' : 's'}. All tasks are now visible.`
-      );
+      vscode.window.showInformationMessage(`Reset ${count} hidden task(s).`);
     } else {
-      vscode.window.showInformationMessage('No hidden tasks to clear.');
+        vscode.window.showInformationMessage('Hidden tasks reset.');
     }
   }
 }

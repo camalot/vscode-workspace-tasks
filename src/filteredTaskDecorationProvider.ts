@@ -48,6 +48,7 @@ export class FilteredTaskDecorationProvider implements vscode.FileDecorationProv
         propagate: true, // Apply to children as well
         badge: '●',
         color: new vscode.ThemeColor('disabledForeground'),
+        tooltip: 'This task is hidden',
       };
     }
 

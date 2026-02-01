@@ -615,11 +615,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             copy.description = t.description; // Preserve description (folder name etc)
             copy.parent = typeItem;
             copy.id = `recent:${t.id}`;
-            copy.contextValue = t.contextValue;
+            copy.contextValue = 'recentTask';
             copy.updateContextValue();
-            if (copy.contextValue !== 'runningTask') {
-              copy.contextValue = 'recentTask';
-            }
             return copy;
           });
 
@@ -659,11 +656,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           copy.description = t.description;
           copy.parent = recentGroup;
           copy.id = `recent:${t.id}`;
-          copy.contextValue = t.contextValue;
+          copy.contextValue = 'recentTask';
           copy.updateContextValue();
-          if (copy.contextValue !== 'runningTask') {
-            copy.contextValue = 'recentTask';
-          }
           return copy;
         });
       }
@@ -744,7 +738,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           for (const child of typeItem.children) {
             child.parent = typeItem;
           }
-          
+
           // Create correct context value now that children are populated (checks for all-hidden children)
           typeItem.updateContextValue();
 

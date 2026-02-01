@@ -28,7 +28,8 @@ import * as unhideGroup from './unhideGroup';
 import * as showHiddenTasks from './showHiddenTasks';
 import * as hideHiddenTasks from './hideHiddenTasks';
 import * as toggleShowHidden from './toggleShowHidden';
-import * as clearFilteredTasks from './clearFilteredTasks';
+import * as resetFilteredTasks from './resetFilteredTasks';
+import * as copyTaskCommand from './copyTaskCommand';
 
 export function loadCommands(context: vscode.ExtensionContext) {
   const modules = [
@@ -37,8 +38,9 @@ export function loadCommands(context: vscode.ExtensionContext) {
     buyMeACoffee,
     clearQueue,
     clearRecentTasks,
-    clearFilteredTasks,
+    resetFilteredTasks,
     collapseAll,
+    copyTaskCommand,
     githubIssues,
     githubSponsor,
     hideTask,

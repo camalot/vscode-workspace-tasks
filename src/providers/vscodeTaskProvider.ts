@@ -82,7 +82,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
 
             // is the task hidden?
             if (this.isHiddenTask(task)) {
-              if (!filteredTaskService.isFiltered(item.id!)) {
+              if (!filteredTaskService.isUnhidden(item.id!) && !filteredTaskService.isFiltered(item.id!)) {
                  filteredTaskService.hideTask(item);
               }
             }

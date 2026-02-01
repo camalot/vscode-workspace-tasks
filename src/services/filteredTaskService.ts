@@ -58,6 +58,12 @@ export class FilteredTaskService {
   private filteredTasks: Set<string> = new Set();
 
   /**
+   * Set of task IDs that are explicitly unhidden (visible) by the user.
+   * This overrides default 'hidden: true' configuration.
+   */
+  private unhiddenTasks: Set<string> = new Set();
+
+  /**
    * VSCode extension context for accessing persistent storage
    */
   private context?: vscode.ExtensionContext;
@@ -66,6 +72,11 @@ export class FilteredTaskService {
    * Key used to store filtered task IDs in VSCode's globalState
    */
   private readonly STORAGE_KEY = 'filteredTasks';
+
+  /**
+   * Key used to store unhidden task IDs in VSCode's globalState
+   */
+  private readonly UNHIDDEN_STORAGE_KEY = 'unhiddenTasks';
 
   /**
    * Key used to store the show hidden mode state in VSCode's globalState
@@ -122,6 +133,10 @@ export class FilteredTaskService {
     const savedFilteredTasks = context.globalState.get<string[]>(this.STORAGE_KEY, []);
     this.filteredTasks = new Set(savedFilteredTasks);
 
+    // Load unhidden tasks
+    const savedUnhiddenTasks = context.globalState.get<string[]>(this.UNHIDDEN_STORAGE_KEY, []);
+    this.unhiddenTasks = new Set(savedUnhiddenTasks);
+
     // Load show hidden mode state
     this.showHiddenMode = context.globalState.get<boolean>(this.SHOW_HIDDEN_KEY, false);
   }
@@ -134,6 +149,16 @@ export class FilteredTaskService {
    */
   public isFiltered(id: string): boolean {
     return this.filteredTasks.has(id);
+  }
+
+  /**
+   * Checks if a task with the given ID is explicitly unhidden.
+   *
+   * @param id - The unique task identifier
+   * @returns true if the task is in the unhidden set, false otherwise
+   */
+  public isUnhidden(id: string): boolean {
+    return this.unhiddenTasks.has(id);
   }
 
   /**
@@ -228,9 +253,20 @@ export class FilteredTaskService {
     }
 
     if (id) {
-      this.filteredTasks.add(id);
-      this.save();
-      this._onDidChange.fire();
+      let changed = false;
+      if (!this.filteredTasks.has(id)) {
+        this.filteredTasks.add(id);
+        changed = true;
+      }
+      if (this.unhiddenTasks.has(id)) {
+        this.unhiddenTasks.delete(id);
+        changed = true;
+      }
+
+      if (changed) {
+        this.save();
+        this._onDidChange.fire();
+      }
     }
   }
 
@@ -268,10 +304,21 @@ export class FilteredTaskService {
       id = TaskStateManager.getInstance().getTaskId(item);
     }
 
-    if (id && this.filteredTasks.has(id)) {
-      this.filteredTasks.delete(id);
-      this.save();
-      this._onDidChange.fire();
+    if (id) {
+      let changed = false;
+      if (this.filteredTasks.has(id)) {
+        this.filteredTasks.delete(id);
+        changed = true;
+      }
+      if (!this.unhiddenTasks.has(id)) {
+        this.unhiddenTasks.add(id);
+        changed = true;
+      }
+
+      if (changed) {
+        this.save();
+        this._onDidChange.fire();
+      }
     }
   }
 
@@ -315,6 +362,7 @@ export class FilteredTaskService {
    */
   public clearFiltered(): void {
     this.filteredTasks.clear();
+    this.unhiddenTasks.clear();
     this.showHiddenMode = false;
     this.save();
     this.context?.globalState.update(this.SHOW_HIDDEN_KEY, this.showHiddenMode);
@@ -359,5 +407,6 @@ export class FilteredTaskService {
    */
   private save(): void {
     this.context?.globalState.update(this.STORAGE_KEY, Array.from(this.filteredTasks));
+    this.context?.globalState.update(this.UNHIDDEN_STORAGE_KEY, Array.from(this.unhiddenTasks));
   }
 }

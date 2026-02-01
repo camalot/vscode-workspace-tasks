@@ -82,7 +82,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
           // is the task hidden?
           if (this.isHiddenTask(taskDef)) {
-            if (!filteredTaskService.isFiltered(item.id!)) {
+            if (!filteredTaskService.isUnhidden(item.id!) && !filteredTaskService.isFiltered(item.id!)) {
               filteredTaskService.hideTask(item);
             }
           }
@@ -125,7 +125,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
           // is the task hidden?
           if (this.isHiddenTask(taskDef)) {
-            if (!filteredTaskService.isFiltered(item.id!)) {
+            if (!filteredTaskService.isUnhidden(item.id!) && !filteredTaskService.isFiltered(item.id!)) {
               filteredTaskService.hideTask(item);
             }
           }
