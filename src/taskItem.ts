@@ -77,15 +77,6 @@ export class TaskItem extends vscode.TreeItem {
       };
     }
 
-    // Deterministic ID base
-    const baseId = `${taskType}:${label}:${resourceUri?.toString() || 'workspace'}`;
-    // Verify if we need uniqueness for duplicates?
-    // We will handle duplicates by appending a counter at the Provider/Tree construction level if needed,
-    // but let's just use a simple counter here to ensure technical uniqueness to avoid the error.
-    // However, this breaks state preservation across refreshes.
-    // Better: Use the baseId. The TreeProvider should ensure it doesn't create duplicate logical items.
-    // If we really have duplicate tasks, we should distinguish them (e.g. by provider source).
-    this.id = baseId;
     this.originalLabel = label;
     this.tooltip = `${this.label} (${this.taskType})`;
     this.description = this.taskType;
@@ -95,6 +86,10 @@ export class TaskItem extends vscode.TreeItem {
       this.taskFileUri = resourceUri;
     }
     this.defaultIconPath = defaultIconPath;
+
+    // Use TaskStateManager to generate variable-based persistent ID strictly matching TaskCacheService logic
+    // This ensures that the ID generated here matches the ID generated when the cache is rebuilt
+    this.id = TaskStateManager.getInstance().getTaskId(this);
 
     // Default open action
     // this will open the file, by default, to the start of the document.
@@ -136,7 +131,39 @@ export class TaskItem extends vscode.TreeItem {
     ) {
       // Check if this group is filtered
       const isFiltered = this.id ? filteredService.isFiltered(this.id) : false;
-      const isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
+      let isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
+
+      // Check if all children are filtered (recursively)
+      // If so, treat this group as effectively filtered (dimmed)
+      if (!isFilteredOrParent && this.children && this.children.length > 0) {
+        const checkChildren = (children: TaskItem[]): boolean => {
+          return children.every((child) => {
+            // Check if child itself is explicitly filtered
+            // Try direct ID (for groups) and canonical ID (for tasks)
+            const directId = child.id;
+            const canonicalId = TaskStateManager.getInstance().getTaskId(child);
+
+            if (directId && filteredService.isFiltered(directId)) {
+              return true;
+            }
+            if (canonicalId && filteredService.isFiltered(canonicalId)) {
+              return true;
+            }
+
+            // If child not explicitly filtered, check if it is a group with all children filtered
+            if (child.children && child.children.length > 0) {
+              return checkChildren(child.children);
+            }
+
+            // Leaf node, not filtered
+            return false;
+          });
+        };
+
+        if (checkChildren(this.children)) {
+          isFilteredOrParent = true;
+        }
+      }
 
       // Resource URI includes dimmed fragment if filtered (explicitly or via parent)
       if (this.id) {
@@ -144,7 +171,7 @@ export class TaskItem extends vscode.TreeItem {
           scheme: 'workspace-tasks',
           path: '/group',
           query: this.id,
-          fragment: isFilteredOrParent ? 'dimmed' : ''
+          fragment: isFilteredOrParent ? 'dimmed' : '',
         });
       }
 

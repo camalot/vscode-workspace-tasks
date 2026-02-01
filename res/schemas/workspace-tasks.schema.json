@@ -95,6 +95,10 @@
                   { "type": "array", "items": { "type": "string" } },
                   { "type": "object" }
                 ]
+              },
+              "hide": {
+                "type": "boolean",
+                "description": "If true, the task will be hidden from the task list by default."
               }
             },
             "required": ["label", "command", "type"]

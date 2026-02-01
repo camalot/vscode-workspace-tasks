@@ -7,6 +7,7 @@ import constants from '../libs/constants';
 import * as path from 'path';
 import { TaskIconService } from '../services/taskIconService';
 import { TaskFilesService } from '../services/taskFilesService';
+import { FilteredTaskService } from '../services/filteredTaskService';
 
 export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -22,6 +23,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
     const service = WorkspaceTasksService.getInstance();
     const iconService = TaskIconService.getInstance();
     const filesService = TaskFilesService.getInstance();
+    const filteredTaskService = FilteredTaskService.getInstance();
 
     const providers = await service.getProviders();
     for (const provider of providers) {
@@ -78,6 +80,13 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             arguments: [resourceUri, taskDef.line || 0],
           };
 
+          // is the task hidden?
+          if (this.isHiddenTask(taskDef)) {
+            if (!filteredTaskService.isFiltered(item.id!)) {
+              filteredTaskService.hideTask(item);
+            }
+          }
+
           tasks.push(item);
         }
         continue;
@@ -114,10 +123,29 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             arguments: [file, 0],
           };
 
+          // is the task hidden?
+          if (this.isHiddenTask(taskDef)) {
+            if (!filteredTaskService.isFiltered(item.id!)) {
+              filteredTaskService.hideTask(item);
+            }
+          }
+
           tasks.push(item);
         }
       }
     }
     return tasks;
+  }
+
+  private isHiddenTask(task: any): boolean {
+    if (!task) {
+      return false;
+    }
+    const isTrue = (val: any) => val === true || val === 'true';
+    return (
+      (task.runOptions && isTrue(task.runOptions.hide)) ||
+      isTrue(task.hide) ||
+      (task.presentation && (isTrue(task.presentation.hide) || isTrue(task.presentation.hidden)))
+    );
   }
 }

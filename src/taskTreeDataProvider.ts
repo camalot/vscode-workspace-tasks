@@ -744,6 +744,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           for (const child of typeItem.children) {
             child.parent = typeItem;
           }
+          
+          // Create correct context value now that children are populated (checks for all-hidden children)
+          typeItem.updateContextValue();
 
           // console.log(`[TaskTreeDataProvider] Group Item Created: ID=${typeItem.id}, Type=${taskType}, State=${typeItem.collapsibleState} (Requested: ${groupState})`);
 
@@ -751,6 +754,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         }
         // Sort types by name
         workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
+
+        // Create correct context value now that children are populated (checks for all-hidden children)
+        workspaceItem.updateContextValue();
 
         workspaceRoots.push(workspaceItem);
       }
@@ -836,6 +842,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       for (const child of folderItem.children) {
         child.parent = folderItem;
       }
+      folderItem.updateContextValue();
       folderChildren.push(folderItem);
     }
     folderChildren.sort((a, b) => a.label.localeCompare(b.label));
@@ -921,6 +928,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       for (const child of groupItem.children) {
         child.parent = groupItem;
       }
+      groupItem.updateContextValue();
 
       rootItems.push(groupItem);
     }
