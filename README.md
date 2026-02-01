@@ -232,7 +232,7 @@ CI Pipeline Queue:
 
 Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
 
-## � Hide Tasks & Groups
+## 🙈 Hide Tasks & Groups
 
 Declutter your task view by temporarily hiding individual tasks or entire task groups you don't need to see. Hidden items are dimmed when shown and can be easily restored.
 
@@ -262,7 +262,7 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 - Focusing on specific task categories during development
 - Cleaning up the task tree without permanently removing tasks
 
-## �🚀 Quick Start
+## 🚀 Quick Start
 
 1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
 2. **Open the Workspace Tasks view** from the Activity Bar (sidebar) or Explorer panel

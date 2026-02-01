@@ -2,7 +2,6 @@ import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { FilteredTaskService } from '../services/filteredTaskService';
-import { TaskCacheService } from '../services/taskCacheService';
 
 /**
  * Command to clear all hidden tasks, making them visible again.

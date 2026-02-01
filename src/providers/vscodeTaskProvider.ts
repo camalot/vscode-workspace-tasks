@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { TaskProvider, BaseTaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { FilteredTaskService } from '../services/filteredTaskService';
-import { TaskStateManager } from '../taskStateManager';
 
 export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {

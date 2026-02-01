@@ -271,4 +271,3 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
 - [Workspace Tasks Configuration](Configuration.md)
 - [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)
-- [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)

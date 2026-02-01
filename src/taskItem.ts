@@ -119,7 +119,6 @@ export class TaskItem extends vscode.TreeItem {
 
   public updateContextValue() {
     const filteredService = FilteredTaskService.getInstance();
-    const isShowHiddenMode = filteredService.isShowHiddenMode();
 
     if (
       this.taskType === 'workspace' ||
@@ -232,21 +231,6 @@ export class TaskItem extends vscode.TreeItem {
         } else {
           this.iconPath = this.defaultIconPath; // Default
         }
-      }
-    }
-  }
-
-  /**
-   * Recursively applies dimming (via resourceUri) to all children of this item.
-   * This is used when a group is filtered to ensure all its children are also dimmed.
-   */
-  private applyDimmingToChildren(): void {
-    if (this.children && this.children.length > 0) {
-      for (const child of this.children) {
-        // Use the disabledResourceUriValue scheme which VS Code recognizes for dimming
-        child.resourceUri = vscode.Uri.parse('vscode://disabledResourceUriValue');
-        // Recursively apply to nested children
-        child.applyDimmingToChildren();
       }
     }
   }

@@ -12,9 +12,6 @@ export class FilteredTaskDecorationProvider implements vscode.FileDecorationProv
     this._onDidChangeFileDecorations.event;
 
   constructor() {
-    // Listen for changes to filtered tasks or show hidden mode
-    const filteredService = FilteredTaskService.getInstance();
-
     // Watch for changes to show hidden mode
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('workspaceTasks')) {
