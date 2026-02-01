@@ -49,7 +49,7 @@ jobs:
           VALIDATE_BIOME_FORMAT: false
           VALIDATE_BIOME_LINT: false
           VALIDATE_CHECKOV: false
-          VALIDATE_JAVASCRIPT_ES: false  # DISABLED 
+          VALIDATE_JAVASCRIPT_ES: false  # DISABLED
           VALIDATE_JSON: false
           VALIDATE_JSON_PRETTIER: false
           VALIDATE_JSCPD: false
