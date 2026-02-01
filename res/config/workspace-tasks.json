@@ -211,5 +211,146 @@
         "group": "build"
       }
     ]
+  },
+  "eslint": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/eslint.config.{js,mjs,cjs,ts,mts,cts}"
+      ]
+    },
+    "iconUri": "eslint.config.mjs",
+    "inputs": [
+      {
+        "id": "eslint_cache_location",
+        "description": "Path to the cache file or directory",
+        "default": ".eslintcache",
+        "type": "promptString"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "run",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "run:cache",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --cache",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "run:verbose",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --verbose",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "fix",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "fix:cache",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --cache",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "fix:quiet",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --quiet",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "fix:verbose",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --verbose",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "fix:dryrun",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --dry-run",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "fix:dryrun:verbose",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --dry-run --verbose",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "analyze:config",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --inspect-config",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "analyze:problems",
+        "type": "shell",
+        "command": "npx eslint {{ .FileName }} --color --fix --debug",
+        "group": "eslint",
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared"
+        }
+      }
+    ]
+
   }
 }

@@ -68,11 +68,11 @@
               },
               "group": {
                 "oneOf": [
-                  { "type": "string", "enum": ["build", "test", "none"] },
+                  { "type": "string" },
                   {
                     "type": "object",
                     "properties": {
-                      "kind": { "type": "string", "enum": ["build", "test", "none"] },
+                      "kind": { "type": "string" },
                       "isDefault": { "type": "boolean" }
                     }
                   }

@@ -976,11 +976,6 @@
           "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         },
         {
-          "command": "workspaceTasks.clearFilteredTasks",
-          "group": "navigation@7",
-          "when": "(view == workspaceTasksView || view == workspaceTasksExplorer) && workspaceTasks.hasFilteredTasks"
-        },
-        {
           "command": "workspaceTasks.showHiddenTasks",
           "group": "z_help@6",
           "when": "(view == workspaceTasksView || view == workspaceTasksExplorer) && workspaceTasks.hasFilteredTasks && !workspaceTasks.showHiddenMode"
@@ -989,6 +984,11 @@
           "command": "workspaceTasks.hideHiddenTasks",
           "group": "z_help@6",
           "when": "(view == workspaceTasksView || view == workspaceTasksExplorer) && workspaceTasks.hasFilteredTasks && workspaceTasks.showHiddenMode"
+        },
+        {
+          "command": "workspaceTasks.clearFilteredTasks",
+          "group": "z_help@7",
+          "when": "(view == workspaceTasksView || view == workspaceTasksExplorer) && workspaceTasks.hasFilteredTasks"
         }
       ],
       "view/item/context": [
