@@ -24,7 +24,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [🌱 Recent Tasks](#-recent-tasks)
 - [⭐ Favorites](#-favorites)
 - [📋 Task Queues](#-task-queues)
-- [🚀 Quick Start](#-quick-start)
+- [🙈 Hide Tasks & Groups](#-hide-tasks--groups)
 - [⚙️ Configuration](#️-configuration)
   - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
   - [GitHub Actions Integration](#github-actions-integration)
@@ -47,6 +47,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
+- **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
 - **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
 
 ## 📖 Documentation
@@ -231,7 +232,37 @@ CI Pipeline Queue:
 
 Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
 
-## 🚀 Quick Start
+## � Hide Tasks & Groups
+
+Declutter your task view by temporarily hiding individual tasks or entire task groups you don't need to see. Hidden items are dimmed when shown and can be easily restored.
+
+**How to Use:**
+
+1. Right-click on any task or task group
+2. Select "Hide Task" or "Hide Group" from the context menu
+3. Hidden items are removed from the default view
+4. Click "Show Hidden Tasks" button in the title bar to view all tasks including hidden ones
+5. When in "Show Hidden" mode, hidden items appear dimmed with a badge (●)
+6. Right-click a hidden item and select "Unhide" to restore it
+7. Click "Clear Hidden Tasks" to unhide everything and return to normal view
+
+**Features:**
+
+- **Selective Hiding** - Hide individual tasks or entire task groups (npm, maven, etc.)
+- **Hierarchical** - Hiding a group automatically hides all tasks within it
+- **Visual Feedback** - Hidden items appear dimmed with a badge when viewing all tasks
+- **Toggle Mode** - Quickly switch between filtered view and showing all tasks
+- **Persistent** - Hidden state is saved across Visual Studio Code sessions
+- **Easy Restore** - Unhide individual items or clear all hidden tasks at once
+
+**Perfect For:**
+
+- Hiding rarely-used task types in large monorepos
+- Temporarily removing test or build tasks from view
+- Focusing on specific task categories during development
+- Cleaning up the task tree without permanently removing tasks
+
+## �🚀 Quick Start
 
 1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
 2. **Open the Workspace Tasks view** from the Activity Bar (sidebar) or Explorer panel

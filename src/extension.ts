@@ -10,6 +10,7 @@ import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
 import { FilteredTaskService } from './services/filteredTaskService';
+import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
 import { loadCommands } from './commands/index';
 import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
@@ -28,6 +29,10 @@ export async function activate(context: vscode.ExtensionContext) {
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   await taskTreeDataProvider.initialize(context);
 
+  // Register FileDecorationProvider for dimming filtered tasks
+  const decorationProvider = new FilteredTaskDecorationProvider();
+  context.subscriptions.push(vscode.window.registerFileDecorationProvider(decorationProvider));
+
   const resetTimers = new Map<string, NodeJS.Timeout>();
 
   // Set up context keys for filtered tasks feature
@@ -44,6 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     FilteredTaskService.getInstance().onDidChange(() => {
       updateFilteredTasksContext();
+      decorationProvider.refresh(); // Refresh decorations when filtered tasks change
       taskTreeDataProvider.refreshLocal();
     })
   );

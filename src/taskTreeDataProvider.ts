@@ -312,7 +312,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             ? vscode.TreeItemCollapsibleState.None
             : vscode.TreeItemCollapsibleState.Collapsed,
           item.taskType,
-          item.resourceUri,
+          item.taskFileUri,
           item.command,
           item.defaultIconPath,
         );
@@ -333,7 +333,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
               child.label,
               child.collapsibleState,
               child.taskType,
-              child.resourceUri,
+              child.taskFileUri,
               child.command,
               child.defaultIconPath,
             );
@@ -352,11 +352,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         }
 
         // Set description to workspace folder
-        const workspaceFolder = item.resourceUri ? vscode.workspace.getWorkspaceFolder(item.resourceUri) : undefined;
+        const itemUri = item.taskFileUri || item.resourceUri;
+        const workspaceFolder = itemUri ? vscode.workspace.getWorkspaceFolder(itemUri) : undefined;
         let description = workspaceFolder ? workspaceFolder.name : '';
 
-        if (item.resourceUri && workspaceFolder) {
-          const relativePath = vscode.workspace.asRelativePath(item.resourceUri, false);
+        if (itemUri && workspaceFolder) {
+          const relativePath = vscode.workspace.asRelativePath(itemUri, false);
           if (relativePath && relativePath !== description) {
             description = `${description} • ${relativePath}`;
           }
@@ -415,7 +416,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       checkFavorite(task);
       updateContextRecursively(task);
 
-      if (!task.resourceUri) {
+      const taskUri = task.taskFileUri || task.resourceUri;
+      if (!taskUri) {
         const workspaceId = 'workspace_generic';
         const workspaceName = 'Workspace';
         workspaceInfoMap.set(workspaceId, workspaceName);
@@ -439,7 +441,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // Update context value for the original task item to reflect current state
       // task.updateContextValue(); // Moved to start of loop and made recursive
 
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(task.resourceUri);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(taskUri);
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';
       const workspaceId = workspaceFolder ? workspaceFolder.uri.toString() : 'external';
       workspaceInfoMap.set(workspaceId, workspaceName);
@@ -484,7 +486,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             task.label,
             vscode.TreeItemCollapsibleState.None,
             task.taskType,
-            task.resourceUri,
+            task.taskFileUri,
             task.command,
             iconPath,
           );
@@ -492,11 +494,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           queuedItem.startLine = task.startLine;
           queuedItem.metadata = task.metadata;
           // Set description to workspace folder and file path
-          const workspaceFolder = task.resourceUri ? vscode.workspace.getWorkspaceFolder(task.resourceUri) : undefined;
+          const workspaceFolder = task.taskFileUri ? vscode.workspace.getWorkspaceFolder(task.taskFileUri) : undefined;
           let description = workspaceFolder ? workspaceFolder.name : '';
 
-          if (task.resourceUri && workspaceFolder) {
-            const relativePath = vscode.workspace.asRelativePath(task.resourceUri, false);
+          if (task.taskFileUri && workspaceFolder) {
+            const relativePath = vscode.workspace.asRelativePath(task.taskFileUri, false);
             if (relativePath && relativePath !== description) {
               description = `${description} • ${relativePath}`;
             }
@@ -600,7 +602,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
               t.label,
               vscode.TreeItemCollapsibleState.None,
               t.taskType,
-              t.resourceUri,
+              t.taskFileUri,
               t.command,
               iconPath,
             );
@@ -643,7 +645,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             t.label,
             vscode.TreeItemCollapsibleState.None,
             t.taskType,
-            t.resourceUri,
+            t.taskFileUri,
             t.command,
             iconPath,
           );
@@ -866,7 +868,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           remainder,
           task.collapsibleState,
           task.taskType,
-          task.resourceUri,
+          task.taskFileUri,
           task.onOpenActionCommand,
           task.iconPath,
           task.onRunActionCommand,
@@ -907,7 +909,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
 
       const groupItem = new TaskItem(groupName, vscode.TreeItemCollapsibleState.Collapsed, 'folder', iconUri);
-      groupItem.id = `group:${groupName}:${tasks[0]?.resourceUri?.toString() || 'unknown'}`;
+      groupItem.id = `group:${groupName}:${tasks[0]?.taskFileUri?.toString() || tasks[0]?.resourceUri?.toString() || 'unknown'}`;
       // Update context value after setting the final ID
       groupItem.updateContextValue();
       if (iconPath) {

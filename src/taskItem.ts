@@ -10,7 +10,27 @@ export class TaskItem extends vscode.TreeItem {
   public defaultIconPath: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } | undefined;
   public taskSource: string | undefined;
   public taskFileUri?: vscode.Uri;
-  public parent?: TaskItem;
+  private _parent?: TaskItem;
+  public get parent(): TaskItem | undefined {
+    return this._parent;
+  }
+  public set parent(value: TaskItem | undefined) {
+    this._parent = value;
+    // Update context value when parent changes to inherit filtered state
+    this.updateContextValue();
+    // Recursively update all children since the parent chain has changed
+    this.updateChildrenContext();
+  }
+
+  private updateChildrenContext() {
+    if (this.children) {
+      for (const child of this.children) {
+        child.updateContextValue();
+        child.updateChildrenContext(); // Recurse down
+      }
+    }
+  }
+
   public metadata?: any;
 
   // Static counter for ensure unique IDs within a session if needed,
@@ -69,7 +89,11 @@ export class TaskItem extends vscode.TreeItem {
     this.originalLabel = label;
     this.tooltip = `${this.label} (${this.taskType})`;
     this.description = this.taskType;
-    this.resourceUri = resourceUri;
+    // Store the file URI but don't set resourceUri to avoid file decorations
+    // resourceUri will only be set for dimming filtered items in updateContextValue
+    if (resourceUri && !this.taskFileUri) {
+      this.taskFileUri = resourceUri;
+    }
     this.defaultIconPath = defaultIconPath;
 
     // Default open action
@@ -80,7 +104,7 @@ export class TaskItem extends vscode.TreeItem {
       this.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [this.resourceUri, 0],
+        arguments: [this.taskFileUri || resourceUri, 0],
       };
     }
 
@@ -99,6 +123,9 @@ export class TaskItem extends vscode.TreeItem {
   }
 
   public updateContextValue() {
+    const filteredService = FilteredTaskService.getInstance();
+    const isShowHiddenMode = filteredService.isShowHiddenMode();
+
     if (
       this.taskType === 'workspace' ||
       this.taskType === 'folder' ||
@@ -108,7 +135,18 @@ export class TaskItem extends vscode.TreeItem {
       this.taskType === 'recent'
     ) {
       // Check if this group is filtered
-      const isFiltered = this.id ? FilteredTaskService.getInstance().isFiltered(this.id) : false;
+      const isFiltered = this.id ? filteredService.isFiltered(this.id) : false;
+      const isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
+
+      // Resource URI includes dimmed fragment if filtered (explicitly or via parent)
+      if (this.id) {
+        this.resourceUri = vscode.Uri.from({
+          scheme: 'workspace-tasks',
+          path: '/group',
+          query: this.id,
+          fragment: isFilteredOrParent ? 'dimmed' : ''
+        });
+      }
 
       if (isFiltered) {
         // Add filtered prefix to group context value
@@ -121,7 +159,16 @@ export class TaskItem extends vscode.TreeItem {
       const id = TaskStateManager.getInstance().getTaskId(this);
       const status = TaskStateManager.getInstance().getStatus(id);
       const isFavorite = FavoritesService.getInstance().isFavorite(id);
-      const isFiltered = FilteredTaskService.getInstance().isFiltered(id);
+      const isFiltered = filteredService.isFiltered(id);
+      const isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
+
+      // resourceUri includes dimmed fragment if filtered (explicitly or via parent)
+      this.resourceUri = vscode.Uri.from({
+        scheme: 'workspace-tasks',
+        path: '/task',
+        query: id,
+        fragment: isFilteredOrParent ? 'dimmed' : ''
+      });
 
       if (this.taskType === 'jupyter') {
         this.contextValue = 'jupyterTask';
@@ -158,6 +205,21 @@ export class TaskItem extends vscode.TreeItem {
         } else {
           this.iconPath = this.defaultIconPath; // Default
         }
+      }
+    }
+  }
+
+  /**
+   * Recursively applies dimming (via resourceUri) to all children of this item.
+   * This is used when a group is filtered to ensure all its children are also dimmed.
+   */
+  private applyDimmingToChildren(): void {
+    if (this.children && this.children.length > 0) {
+      for (const child of this.children) {
+        // Use the disabledResourceUriValue scheme which VS Code recognizes for dimming
+        child.resourceUri = vscode.Uri.parse('vscode://disabledResourceUriValue');
+        // Recursively apply to nested children
+        child.applyDimmingToChildren();
       }
     }
   }
