@@ -31,6 +31,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Prepare Super-Linter log directory
+        run: mkdir -p reports/super-linter
+
       - name: Super-Linter
         uses: super-linter/super-linter@v8
         env:
