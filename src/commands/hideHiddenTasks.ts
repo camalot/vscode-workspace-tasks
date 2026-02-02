@@ -63,8 +63,6 @@ export class HideHiddenTasksCommand extends BaseCommand {
       // Refresh happens automatically via service change event,
       // but we call it explicitly for immediate feedback
       this.taskTreeDataProvider.refreshLocal();
-
-      const count = service.getFilteredCount();
     }
   }
 }
