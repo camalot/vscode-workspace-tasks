@@ -64,3 +64,4 @@ changelog.yml
 
 res/**/*.png
 res/**/*.gif
+!res/icon.png
