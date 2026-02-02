@@ -63,3 +63,4 @@ changelog.yml
 .chglog.yml
 
 res/**/*.png
+res/**/*.gif
