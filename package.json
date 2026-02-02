@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -24,6 +24,11 @@
     "url": "https://github.com/sponsors/camalot",
     "github": "https://github.com/sponsors/camalot",
     "buymeacoffee": "https://www.buymeacoffee.com/darthminos"
+  },
+  "urls": {
+    "vscmarketplace": "https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks",
+    "openvsx": "https://open-vsx.org/extension/darthminos/workspace-tasks",
+    "changelog": "https://github.com/camalot/vscode-workspace-tasks/blob/develop/CHANGELOG.md"
   },
   "license": "Apache-2.0",
   "publisher": "darthminos",

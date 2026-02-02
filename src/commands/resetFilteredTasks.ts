@@ -77,11 +77,5 @@ export class ResetFilteredTasksCommand extends BaseCommand {
     await vscode.commands.executeCommand('workspaceTasks.refresh');
 
 
-    // Show confirmation message
-    if (count > 0) {
-      vscode.window.showInformationMessage(`Reset ${count} hidden task(s).`);
-    } else {
-        vscode.window.showInformationMessage('Hidden tasks reset.');
-    }
   }
 }

@@ -64,10 +64,6 @@ export class ShowHiddenTasksCommand extends BaseCommand {
       // but we call it explicitly for immediate feedback
       this.taskTreeDataProvider.refreshLocal();
 
-      const count = service.getFilteredCount();
-      vscode.window.showInformationMessage(
-        `Showing all tasks including ${count} hidden task${count === 1 ? '' : 's'}`
-      );
     }
   }
 }
