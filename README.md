@@ -13,7 +13,7 @@
 
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 
-![Workspace-Tasks Sidebar Collapsed](res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](res/assets/images/sidebar-queues-favorites.png)
+![Workspace-Tasks Sidebar Collapsed](res/assets/images/sidebar-collapsed.png) ![Workspace-Tasks Sidebar Queues & Favorites](res/assets/images/sidebar-queues-favorites.png) ![Workspace-Tasks / TaskExplorer Side By Side](res/assets/images/wst-te-compare.gif)
 
 ## 📑 Table of Contents
 

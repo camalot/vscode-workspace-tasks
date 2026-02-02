@@ -109,6 +109,11 @@
         "cwd": "${workspaceFolder}/makefile"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "VSCode: Composite",
+      "dependsOn": ["VSCode: Hello", "VSCode: Hello Again"],
+      "problemMatcher": []
     }
   ]
 }
