@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { TaskItem } from './taskItem';
 import { TaskStateManager, TaskStatus } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';

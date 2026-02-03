@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 interface IBaseTaskConfiguration {
-  type: 'shell | process';
+  type: 'shell' | 'process';
   command: string;
   isBackground?: boolean;
   args?: string[];
@@ -309,7 +309,7 @@ interface ITaskDescription {
    * Defines the group to which this task belongs. Also supports to mark
    * a task as the default task in a group.
    */
-  group?: 'build' | 'test' | { kind: 'build' | 'test'; isDefault: boolean };
+  group?: string | { kind: string; isDefault: boolean };
 
   /**
    * The presentation options.
