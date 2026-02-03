@@ -9,11 +9,10 @@
 
 [![VSCode Marketplace Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg?label=vscode%20rating)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Open VSX Rating](https://img.shields.io/open-vsx/stars/darthminos/workspace-tasks?label=open%20vsx%20rating)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
-
-
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 
-![Workspace-Tasks Sidebar Collapsed](res/assets/images/sidebar-collapsed.png) ![Workspace-Tasks Sidebar Queues & Favorites](res/assets/images/sidebar-queues-favorites.png) ![Workspace-Tasks / TaskExplorer Side By Side](res/assets/images/wst-te-compare.gif)
+![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
+ ![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif)
 
 ## 📑 Table of Contents
 
@@ -83,14 +82,14 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 ### Package Managers & Build Tools
 
 <p align="left">
-  <img src="res/icons/dark/npm.png" width="32" alt="npm" title="npm"/>
-  <img src="res/icons/dark/yarn.png" width="32" alt="Yarn" title="Yarn"/>
-  <img src="res/icons/dark/pnpm.png" width="32" alt="pnpm" title="pnpm"/>
-  <img src="res/icons/dark/composer.png" width="32" alt="Composer" title="Composer"/>
-  <img src="res/icons/dark/pipenv.png" width="32" alt="Pipenv" title="Pipenv"/>
-  <img src="res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
-  <img src="res/icons/dark/maven.png" width="32" alt="Maven" title="Maven"/>
-  <img src="res/icons/dark/msbuild.png" width="32" alt="MSBuild" title="MSBuild"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/npm.png" width="32" alt="npm" title="npm"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/yarn.png" width="32" alt="Yarn" title="Yarn"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pnpm.png" width="32" alt="pnpm" title="pnpm"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/composer.png" width="32" alt="Composer" title="Composer"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pipenv.png" width="32" alt="Pipenv" title="Pipenv"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/maven.png" width="32" alt="Maven" title="Maven"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/msbuild.png" width="32" alt="MSBuild" title="MSBuild"/>
 </p>
 
 - **[npm](https://www.npmjs.com/)** - Scripts from `package.json`
@@ -106,10 +105,10 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 ### Task Runners
 
 <p align="left">
-  <img src="res/icons/dark/gulp.png" width="32" alt="Gulp" title="Gulp"/>
-  <img src="res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
-  <img src="res/icons/dark/justfile.png" width="32" alt="Just" title="Just"/>
-  <img src="res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/gulp.png" width="32" alt="Gulp" title="Gulp"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/justfile.png" width="32" alt="Just" title="Just"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
 </p>
 
 - **[Gulp](https://gulpjs.com/)** - Tasks from `gulpfile.js` or `gulpfile.mjs`
@@ -121,7 +120,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 ### DevOps & Containers
 
 <p align="left">
-  <img src="res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
 </p>
 
 - **[Docker](https://www.docker.com/)** - Build tasks from `Dockerfile`
@@ -131,10 +130,10 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 ### Scripts & Other
 
 <p align="left">
-  <img src="res/icons/dark/shell.png" width="32" alt="Shell Scripts" title="Shell Scripts"/>
-  <img src="res/icons/dark/python.png" width="32" alt="Python" title="Python"/>
-  <img src="res/icons/dark/jupyter.png" width="32" alt="Jupyter Notebook" title="Jupyter Notebook"/>
-  <img src="res/icons/dark/vscode.png" width="32" alt="Visual Studio Code" title="Visual Studio Code"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/shell.png" width="32" alt="Shell Scripts" title="Shell Scripts"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/python.png" width="32" alt="Python" title="Python"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/jupyter.png" width="32" alt="Jupyter Notebook" title="Jupyter Notebook"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/vscode.png" width="32" alt="Visual Studio Code" title="Visual Studio Code"/>
 </p>
 
 - **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`
@@ -163,14 +162,14 @@ As you run tasks they are tracked in a dedicated section at the top of the task 
 
 When enabled, task items are grouped by the task type. Default is `false`.
 
-![Recent Tasks - Grouping](res/assets/images/settings-groups-recenttasks-enabled.png)
+![Recent Tasks - Grouping](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/settings-groups-recenttasks-enabled.png)
 
 #### Maximum Recent Tasks
 
 The maximum number of task items to track in the recent tasks. Default is `20`.
 To disable tracking of recent tasks set to `0`.
 
-![Recent Tasks - Max Items](res/assets/images/settings-recenttasks-maxitems.png)
+![Recent Tasks - Max Items](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/settings-recenttasks-maxitems.png)
 
 ####
 
@@ -421,7 +420,7 @@ workspace-folder/
 - **Dedicated Sidebar** - Access Workspace Tasks from the Activity Bar for a dedicated panel
 - **Explorer Integration** - View tasks alongside your files in the Explorer panel
 
-  ![Explorer View](res/assets/images/explorer-view.png)
+  ![Explorer View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/explorer-view.png)
 
 - **Dockable Window** - Drag the Explorer view to any location (left, right, bottom panel, or floating)
 - **Synchronized State** - Both views share the same state—actions in one view reflect in the other
