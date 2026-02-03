@@ -44,7 +44,11 @@ body = """
 {% endif %}
 
 {%- macro remote_url() -%}
-  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+  {% if remote.github.owner and remote.github.repo -%}
+    https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+  {%- else -%}
+    https://github.com/camalot/vscode-workspace-tasks
+  {%- endif -%}
 {%- endmacro -%}
 """
 # Remove leading and trailing whitespaces from the changelog's body.

@@ -37,6 +37,27 @@
       "problemMatcher": "$ts-webpack",
       "group": "build",
       "label": "npm: compile"
+    },
+    {
+      "label": "TEST: Step 1",
+      "type": "shell",
+      "command": "echo",
+      "args": ["Step 1"],
+      "problemMatcher": [],
+      "hide": true
+    },
+    {
+      "label": "TEST: Step 2",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "echo 'This is step 2'"],
+      "problemMatcher": [],
+      "hide": true
+    },
+    {
+      "label": "TEST: RUN ALL",
+      "dependsOn": ["TEST: Step 1", "TEST: Step 2"],
+      "dependsOrder": "sequence"
     }
   ]
 }

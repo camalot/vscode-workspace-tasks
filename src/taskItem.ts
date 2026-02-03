@@ -191,9 +191,9 @@ export class TaskItem extends vscode.TreeItem {
       // resourceUri includes dimmed fragment if filtered (explicitly or via parent)
       this.resourceUri = vscode.Uri.from({
         scheme: 'workspace-tasks',
-        path: '/task',
+        path: this.taskFileUri ? this.taskFileUri.path : '/task',
         query: id,
-        fragment: isFilteredOrParent ? 'dimmed' : ''
+        fragment: isFilteredOrParent ? 'dimmed' : '',
       });
 
       if (this.taskType === 'jupyter') {

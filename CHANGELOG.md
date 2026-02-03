@@ -1,12 +1,44 @@
-## [1.1.4] - 2026-02-01
+## [1.1.5] - 2026-02-02
 
 ### 🐛 Bug Fixes
 
-- *(ux)* Notification message on show/hide tasks and other locations should not have been enabled. #47
+- *(ux)* Incorrect icons for gradle/makefile/shell
+
+- Exclude png files from package as not used in package
+
+
+### 💼 Other
+
+- Ensure that res/icon.png is included in package
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(repo)* Version bump
+
+- *(changelog)* Update changelog
+
+- *(repo)* Exclude gif from package
 
 
 
-**Full Changelog**: https://github.com///compare/v1.1.3...v1.1.4
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.4...v1.1.5
+
+## [1.1.4] - 2026-02-02
+
+### 💼 Other
+
+- V1.1.4 (#48)
+
+- * fix(ux): Notification message on show/hide tasks and other locations should not have been enabled. #47
+
+- * generate changelog
+
+- * chore(repo): remove some unused variables defined
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.3...v1.1.4
 
 ## [1.1.3] - 2026-02-01
 
@@ -55,7 +87,7 @@
 
 
 
-**Full Changelog**: https://github.com///compare/v1.1.2...v1.1.3
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.2...v1.1.3
 
 ## [1.1.2] - 2026-01-31
 
@@ -100,7 +132,7 @@
 
 
 
-**Full Changelog**: https://github.com///compare/v1.1.1...v1.1.2
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.1...v1.1.2
 
 ## [1.1.1] - 2026-01-30
 
@@ -142,7 +174,7 @@
 
 
 
-**Full Changelog**: https://github.com///compare/v1.1.0...v1.1.1
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.0...v1.1.1
 
 ## [1.1.0] - 2026-01-29
 
@@ -182,7 +214,7 @@
 
 
 
-**Full Changelog**: https://github.com///compare/v1.0.3...v1.1.0
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.0.3...v1.1.0
 
 ## [1.0.3] - 2026-01-27
 
@@ -245,7 +277,7 @@
 
 
 
-**Full Changelog**: https://github.com///compare/v1.0.2...v1.0.3
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.0.2...v1.0.3
 
 ## [1.0.2] - 2026-01-25
 
@@ -295,7 +327,7 @@
 
 
 
-**Full Changelog**: https://github.com///compare/v1.0.1...v1.0.2
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.0.1...v1.0.2
 
 ## [1.0.1] - 2026-01-24
 

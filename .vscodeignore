@@ -61,3 +61,7 @@ scripts/**
 .actrc
 changelog.yml
 .chglog.yml
+
+res/**/*.png
+res/**/*.gif
+!res/icon.png
