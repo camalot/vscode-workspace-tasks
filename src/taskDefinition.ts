@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-interface IBaseTaskConfiguration {
+export interface IBaseTaskConfiguration {
   type: 'shell' | 'process';
   command: string;
   isBackground?: boolean;
@@ -11,7 +11,7 @@ interface IBaseTaskConfiguration {
   tasks?: (ITaskDescription | ICompoundTaskDescription)[];
 }
 
-interface ITaskConfiguration extends IBaseTaskConfiguration {
+export interface ITaskConfiguration extends IBaseTaskConfiguration {
   version: '2.0.0';
   /**
    * Windows specific task configuration
@@ -29,13 +29,13 @@ interface ITaskConfiguration extends IBaseTaskConfiguration {
   linux?: IBaseTaskConfiguration;
 }
 
-interface ICommandOptions {
+export interface ICommandOptions {
   cwd?: string;
   env?: { [key: string]: string };
   shell?: IShellConfiguration;
 }
 
-interface IShellConfiguration {
+export interface IShellConfiguration {
   executable: string;
   args?: string[];
 }
@@ -44,7 +44,7 @@ interface IShellConfiguration {
  * A description of a problem matcher that detects problems
  * in build output.
  */
-interface IProblemMatcher {
+export interface IProblemMatcher {
   /**
    * The name of a base problem matcher to use. If specified the
    * base problem matcher will be used as a template and properties
@@ -121,7 +121,7 @@ interface IProblemMatcher {
 /**
  * A description to track the start and end of a background task.
  */
-interface IBackgroundMatcher {
+export interface IBackgroundMatcher {
   /**
    * If set to true the watcher is in active mode when the task
    * starts. This is equals of issuing a line that matches the
@@ -140,7 +140,7 @@ interface IBackgroundMatcher {
   endsPattern?: string;
 }
 
-interface IProblemPattern {
+export interface IProblemPattern {
   /**
    * The regular expression to find a problem in the console output of an
    * executed task.
@@ -220,7 +220,7 @@ interface IProblemPattern {
   loop?: boolean;
 }
 
-interface IPresentationOptions {
+export interface IPresentationOptions {
   /**
    * Controls whether the task output is reveal in the user interface.
    * Defaults to `always`.
@@ -264,9 +264,15 @@ interface IPresentationOptions {
    * will use split terminals to present instead of a new terminal panel.
    */
   group?: string;
+
+  /**
+   * Controls whether the terminal is closed when the task ends.
+   * Defaults to `false`.
+   */
+  close?: boolean;
 }
 
-interface ICompoundTaskDescription {
+export interface ICompoundTaskDescription {
   label: string;
   dependsOn?: string[];
   dependsOrder?: 'sequence' | 'parallel';
@@ -276,7 +282,7 @@ interface ICompoundTaskDescription {
 /**
  * The description of a task.
  */
-interface ITaskDescription {
+export interface ITaskDescription {
   /**
    * The task's name
    */
@@ -293,6 +299,12 @@ interface ITaskDescription {
    * command line including any additional arguments passed to the command.
    */
   command: string;
+
+  /**
+   * The command options such as the current working directory
+   * and environment variables.
+   */
+  options?: ICommandOptions;
 
   /**
    * Whether the executed command is kept alive and runs in the background.
@@ -334,7 +346,7 @@ interface ITaskDescription {
 /**
  * A description to when and how run a task.
  */
-interface IRunOptions {
+export interface IRunOptions {
   /**
    * Controls how variables are evaluated when a task is executed through
    * the Rerun Last Task command.

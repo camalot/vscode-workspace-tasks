@@ -4,6 +4,7 @@ import { TaskStateManager, TaskStatus } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';
 import { QueueService } from './services/queueService';
 import { configuration } from './libs/configuration';
+import { IPresentationOptions } from './taskDefinition';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -13,7 +14,7 @@ export class TaskRunner {
   // We can use an event emitter or just access the state manager and let the caller refresh.
   // Ideally, StateManager fires events. For now, we'll return promises.
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): TaskRunner {
     if (!TaskRunner.instance) {
@@ -47,63 +48,60 @@ export class TaskRunner {
     }
     task = created.task;
 
-    interface PresentationOptions {
-      reveal?: 'always' | 'silent' | 'never';
-      clear?: boolean;
-      close?: boolean;
-      echo?: boolean;
-      focus?: boolean;
-      panel?: 'dedicated' | 'shared' | 'new';
+    // Check if the task is a compound task (has dependsOn but no execution)
+    // modifying the task object in any way (including presentationOptions) causes executeTask to fail
+    // with "Tasks to execute must include an execution"
+    const isNative = task.execution === undefined || created.native;
+
+    if (!isNative) {
+      const presentationOptionsSetting = configuration.get<IPresentationOptions>('task.presentationOptions', {});
+
+      let reveal: vscode.TaskRevealKind;
+      switch (presentationOptionsSetting.reveal) {
+        case 'always':
+          reveal = vscode.TaskRevealKind.Always;
+          break;
+        case 'silent':
+          reveal = vscode.TaskRevealKind.Silent;
+          break;
+        case 'never':
+          reveal = vscode.TaskRevealKind.Never;
+          break;
+        default:
+          reveal = vscode.TaskRevealKind.Always;
+          break;
+      }
+      let panel: vscode.TaskPanelKind;
+      switch (presentationOptionsSetting.panel) {
+        case 'dedicated':
+          panel = vscode.TaskPanelKind.Dedicated;
+          break;
+        case 'shared':
+          panel = vscode.TaskPanelKind.Shared;
+          break;
+        case 'new':
+          panel = vscode.TaskPanelKind.New;
+          break;
+        default:
+          panel = vscode.TaskPanelKind.Shared;
+          break;
+      }
+
+      const presentation: vscode.TaskPresentationOptions = {
+        reveal: reveal,
+        clear: presentationOptionsSetting.clear,
+        close: presentationOptionsSetting.close,
+        echo: presentationOptionsSetting.echo,
+        focus: presentationOptionsSetting.focus,
+        panel: panel,
+      };
+
+      // merge the existing task presentation options with the new ones. the task's existing options take precedence
+      task.presentationOptions = {
+        ...presentation,
+        ...task.presentationOptions,
+      };
     }
-
-    const presentationOptionsSetting = configuration.get<PresentationOptions>('task.presentationOptions', {});
-
-    let reveal: vscode.TaskRevealKind;
-    switch (presentationOptionsSetting.reveal) {
-      case 'always':
-        reveal = vscode.TaskRevealKind.Always;
-        break;
-      case 'silent':
-        reveal = vscode.TaskRevealKind.Silent;
-        break;
-      case 'never':
-        reveal = vscode.TaskRevealKind.Never;
-        break;
-      default:
-        reveal = vscode.TaskRevealKind.Always;
-        break;
-    }
-    let panel: vscode.TaskPanelKind;
-    switch (presentationOptionsSetting.panel) {
-      case 'dedicated':
-        panel = vscode.TaskPanelKind.Dedicated;
-        break;
-      case 'shared':
-        panel = vscode.TaskPanelKind.Shared;
-        break;
-      case 'new':
-        panel = vscode.TaskPanelKind.New;
-        break;
-      default:
-        panel = vscode.TaskPanelKind.Shared;
-        break;
-    }
-
-    const presentation: vscode.TaskPresentationOptions = {
-      reveal: reveal,
-      clear: presentationOptionsSetting.clear,
-      close: presentationOptionsSetting.close,
-      echo: presentationOptionsSetting.echo,
-      focus: presentationOptionsSetting.focus,
-      panel: panel,
-    };
-
-    // merge the existing task presentation options with the new ones. the task's existing options take precedence
-    task.presentationOptions = {
-      ...presentation,
-      ...task.presentationOptions,
-    };
-
     // Extra debug info for gulp tasks
     // if (item.taskType === 'gulp') {
     //   console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);
@@ -114,8 +112,15 @@ export class TaskRunner {
     vscode.commands.executeCommand('workspaceTasks.refreshTree'); // Trigger refresh
 
     try {
+      // serialize the task, and log it to see what we get.
+      console.log(`[TaskRunner] Executing task: ${JSON.stringify(task, null, 2)}`);
       const execution = await vscode.tasks.executeTask(task);
       TaskStateManager.getInstance().setExecution(id, execution);
+      if (isNative && task.execution === undefined) {
+        // Compound tasks don't have an execution, so we just mark them as success
+        TaskStateManager.getInstance().setStatus(id, 'success');
+        vscode.commands.executeCommand('workspaceTasks.refreshTree');
+      }
     } catch (e) {
       console.error('[TaskRunner] executeTask failed:', e);
       TaskStateManager.getInstance().setStatus(id, 'failure');
