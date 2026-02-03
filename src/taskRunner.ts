@@ -112,8 +112,6 @@ export class TaskRunner {
     vscode.commands.executeCommand('workspaceTasks.refreshTree'); // Trigger refresh
 
     try {
-      // serialize the task, and log it to see what we get.
-      console.log(`[TaskRunner] Executing task: ${JSON.stringify(task, null, 2)}`);
       const execution = await vscode.tasks.executeTask(task);
       TaskStateManager.getInstance().setExecution(id, execution);
       if (isNative && task.execution === undefined) {

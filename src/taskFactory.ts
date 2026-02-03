@@ -16,7 +16,6 @@ import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider
 import { MiseTaskProvider } from './providers/miseTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
 import { DenoTaskProvider } from './providers/denoTaskProvider';
-import { ITaskDescription } from './taskDefinition';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -89,7 +88,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
 
         const task = new vscode.Task(
-          { type: 'process', script: 'install', path: resourceUri.fsPath },
+          { type: 'npm', script: 'install', path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'npm',
@@ -712,7 +711,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       });
 
       if (found) {
-        return { task: found, cwd: undefined, native: true};
+        return { task: found, cwd: undefined, native: true };
       }
       return undefined;
     }
