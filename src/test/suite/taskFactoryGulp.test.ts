@@ -24,7 +24,7 @@ suite('TaskFactory Gulp Tests', () => {
     // In the test environment, the workspace root is the extension root
     // And TaskFactory Gulp logic explicitly prefers workspace root as CWD
     const workspaceRoot = vscode.workspace.workspaceFolders![0].uri.fsPath;
-    assert.strictEqual(created?.cwd.toLowerCase(), workspaceRoot.toLowerCase());
+    assert.strictEqual(created?.cwd?.toLowerCase(), workspaceRoot.toLowerCase());
 
     // Since the gulpfile lives in a subfolder, the command should include --gulpfile with its path
     assert.ok(
