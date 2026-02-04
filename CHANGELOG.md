@@ -1,24 +1,47 @@
-## [1.1.5] - 2026-02-02
+## [1.1.6] - 2026-02-03
+
+### 🚀 Features
+
+- *(tasks)* Universal task interfaces initial
+
 
 ### 🐛 Bug Fixes
 
-- *(ux)* Incorrect icons for gradle/makefile/shell
+- Treat vscode tasks as they are natively defined by vscode. #50 #49 #56
 
-- Exclude png files from package as not used in package
 
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.5...v1.1.6
+
+## [1.1.5] - 2026-02-03
 
 ### 💼 Other
 
-- Ensure that res/icon.png is included in package
+- V1.1.5 (#55)
 
+- * fix(ux): incorrect icons for gradle/makefile/shell
 
-### ⚙️ Miscellaneous Tasks
+- * fix: exclude png files from package as not used in package
 
-- *(repo)* Version bump
+- * chore(deps-dev): bump @typescript-eslint/eslint-plugin from 8.53.1 to 8.54.0 #53
 
-- *(changelog)* Update changelog
+- * chore(deps-dev): bump @typescript-eslint/parser from 8.53.1 to 8.54.0 #52
 
-- *(repo)* Exclude gif from package
+- * chore(deps-dev): bump typescript-eslint from 8.53.1 to 8.54.0 #51
+
+- * chore(repo): version bump
+
+- * chore(changelog): update changelog
+
+- * chore(repo): exclude gif from package
+
+- * ensure that res/icon.png is included in package
+
+- * chore(changelog): fix changelog compare link and regenerate
+
+- * chore(repo): update npm package.lock
+
+- * chore(repo): set remote urls for images
 
 
 

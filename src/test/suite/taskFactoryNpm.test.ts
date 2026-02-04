@@ -25,7 +25,7 @@ suite('Task Factory NPM Test Suite', () => {
     assert.ok(created, 'Should create a task');
     // Check CWD. It should be the subdirectory.
     // Normalize paths for comparison (lowercase on Windows)
-    const createdCwd = created?.cwd.toLowerCase();
+    const createdCwd = created?.cwd?.toLowerCase();
     const expectedCwd = subDir.toLowerCase();
 
     assert.strictEqual(createdCwd, expectedCwd, `CWD should be ${expectedCwd} but was ${createdCwd}`);

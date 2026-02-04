@@ -20,7 +20,8 @@ import { DenoTaskProvider } from './providers/denoTaskProvider';
 export interface CreatedTask {
   task: vscode.Task;
   command?: string; // the resolved shell command string (if any)
-  cwd: string;
+  cwd?: string;
+  native: boolean;
 }
 
 export async function createTaskForItem(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
@@ -58,7 +59,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         new vscode.ShellExecution(fullCommand, { cwd }),
       );
 
-      return { task, command: fullCommand, cwd };
+      return { task, command: fullCommand, cwd, native: false };
     }
   }
 
@@ -93,7 +94,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           'npm',
           shellExec,
         );
-        return { task, command: full, cwd };
+        return { task, command: full, cwd, native: false };
       }
 
       npmArgs.push('run', `${taskLabel}`);
@@ -111,7 +112,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'npm',
         shellExec,
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd, native: false };
     }
     case 'yarn': {
       const yarnProvider = new YarnTaskProvider();
@@ -134,7 +135,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'yarn',
         shellExec,
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd, native: false };
     }
     case 'pnpm': {
       const pnpmProvider = new PnpmTaskProvider();
@@ -157,7 +158,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'pnpm',
         shellExec,
       );
-      return { task, command: full, cwd };
+      return { task, command: full, cwd, native: false };
     }
     case 'deno': {
       // deno task <taskLabel> [args]
@@ -193,7 +194,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'deno',
         shellExec,
       );
-      return { task, command: full, cwd: denoCwd };
+      return { task, command: full, cwd: denoCwd, native: false };
     }
     case 'mise': {
       // mise run <taskLabel> [args]
@@ -217,7 +218,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'mise',
         shellExec,
       );
-      return { task, command: full, cwd: miseCwd };
+      return { task, command: full, cwd: miseCwd, native: false };
     }
     case 'jupyter': {
       // Use CustomExecution to run Jupyter cell via Visual Studio Code command
@@ -230,7 +231,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           return new JupyterTerm(resourceUri, item.metadata?.cellIndex, taskLabel);
         }),
       );
-      return { task, command: 'jupyter.runcell', cwd: path.dirname(resourceUri.fsPath) };
+      return { task, command: 'jupyter.runcell', cwd: path.dirname(resourceUri.fsPath), native: false };
     }
     case 'maven': {
       // mvn <goal> [args]
@@ -254,7 +255,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'maven',
         shellExec,
       );
-      return { task, command: full, cwd: mvnCwd };
+      return { task, command: full, cwd: mvnCwd, native: false };
     }
     case 'gradle': {
       // gradle [task] [args]
@@ -282,7 +283,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'gradle',
         shellExec,
       );
-      return { task, command: full, cwd: gradleCwd };
+      return { task, command: full, cwd: gradleCwd, native: false };
     }
     case 'composer': {
       // composer run-script [script] [args]
@@ -311,7 +312,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'composer',
         shellExec,
       );
-      return { task, command: full, cwd: composerCwd };
+      return { task, command: full, cwd: composerCwd, native: false };
     }
     case 'shell': {
       if (!resourceUri) {
@@ -350,7 +351,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'shell',
         shellExec,
       );
-      return { task, command: commandString, cwd };
+      return { task, command: commandString, cwd, native: false };
     }
     case 'grunt': {
       const gruntProvider = new GruntTaskProvider();
@@ -387,7 +388,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'grunt',
         new vscode.ShellExecution(gruntCmd, gruntArgs, { cwd: gruntCwd }),
       );
-      return { task, command: `${gruntCmd} ${gruntArgs.join(' ')}`.trim(), cwd: gruntCwd };
+      return { task, command: `${gruntCmd} ${gruntArgs.join(' ')}`.trim(), cwd: gruntCwd, native: false };
     }
     case 'gulp': {
       // Use npx to prefer workspace-local gulp if available
@@ -435,7 +436,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       // Debug info to help diagnose incorrect gulpfile selection
       // console.log(`[TaskFactory] Gulp task created. cwd=${gulpCwd}, args=${JSON.stringify(gulpArgs)}`);
 
-      return { task, command: `${gulpCmd} ${gulpArgs.join(' ')}`.trim(), cwd: gulpCwd };
+      return { task, command: `${gulpCmd} ${gulpArgs.join(' ')}`.trim(), cwd: gulpCwd, native: false };
     }
     case 'ant': {
       const antProvider = new AntTaskProvider();
@@ -475,7 +476,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           'ant',
           new vscode.ShellExecution(fullCommand, { cwd: antCwd }),
         );
-        return { task, command: fullCommand, cwd: antCwd };
+        return { task, command: fullCommand, cwd: antCwd, native: false };
       } else {
         const task = new vscode.Task(
           { type: 'ant', target: taskLabel, path: resourceUri.fsPath },
@@ -484,7 +485,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           'ant',
           new vscode.ShellExecution(command, commandArgs, { cwd: antCwd }),
         );
-        return { task, command: `${command} ${commandArgs.join(' ')}`, cwd: antCwd };
+        return { task, command: `${command} ${commandArgs.join(' ')}`, cwd: antCwd, native: false };
       }
     }
     case 'workspace-task': {
@@ -500,7 +501,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           'workspace-task',
           new vscode.ShellExecution(fullCommand, { cwd }),
         );
-        return { task, command: fullCommand, cwd };
+        return { task, command: fullCommand, cwd, native: false };
       }
       return undefined;
     }
@@ -684,13 +685,14 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const safeCmd = /\s/.test(actPath) ? `"${actPath}"` : actPath;
       const full = `${safeCmd} ${actArgs.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')}`;
 
-      return { task, command: full, cwd: actCwd };
+      return { task, command: full, cwd: actCwd, native: false };
     }
     case 'vscode': {
       // Use existing Visual Studio Code task defined in .vscode/tasks.json
       const tasks = await vscode.tasks.fetchTasks();
-      const targetWorkspaceFolder = item.resourceUri
-        ? vscode.workspace.getWorkspaceFolder(item.resourceUri)
+      const taskUri = item.taskFileUri || item.resourceUri;
+      const targetWorkspaceFolder = taskUri
+        ? vscode.workspace.getWorkspaceFolder(taskUri)
         : undefined;
 
       const found = tasks.find((t) => {
@@ -709,14 +711,18 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       });
 
       if (found) {
-        return { task: found, cwd };
+        return { task: found, cwd: undefined, native: true };
       }
       return undefined;
     }
     case 'makefile': {
       const makeProvider = new MakefileTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: makeCmd, args: makeInitialArgs, cwd: makeCwd } = makeProvider.getCommand(workspaceFolder?.uri);
+      // cwd needs to be the workspace folder where Makefile is located
+      // use resourceUri to find the makefile location if possible
+      const makeFileCwd = path.dirname(resourceUri.fsPath);
+
+      const { command: makeCmd, args: makeInitialArgs } = makeProvider.getCommand(workspaceFolder?.uri);
 
       const makeArgs = makeInitialArgs ? [...makeInitialArgs] : [];
       makeArgs.push(taskLabel);
@@ -725,16 +731,16 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const full = `${makeCmd} ${makeArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(makeCmd, makeArgs, { cwd: makeCwd });
+      const shellExec = new vscode.ShellExecution(makeCmd, makeArgs, { cwd: makeFileCwd });
 
       const task = new vscode.Task(
-        { type: 'makefile', script: taskLabel, path: resourceUri.fsPath },
+        { type: 'process', script: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'makefile',
         shellExec,
       );
-      return { task, command: full, cwd: makeCwd };
+      return { task, command: full, cwd: makeFileCwd, native: false };
     }
     case 'dockerfile': {
       const command = await WorkspaceTasksService.getInstance().resolveTaskCommand(
@@ -754,7 +760,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
           'dockerfile',
           new vscode.ShellExecution(fullCommand, { cwd }),
         );
-        return { task, command: fullCommand, cwd };
+        return { task, command: fullCommand, cwd, native: false };
       }
       return undefined;
     }
@@ -783,7 +789,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'pipenv',
         shellExec,
       );
-      return { task, command: full, cwd: pipenvCwd };
+      return { task, command: full, cwd: pipenvCwd, native: false };
     }
     case 'venv': {
       const taskUri = item.taskFileUri || item.resourceUri;
@@ -822,7 +828,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'venv',
         shellExec,
       );
-      return { task, command: commandString, cwd };
+      return { task, command: commandString, cwd, native: false };
     }
     case 'msbuild': {
       if (!resourceUri) {
@@ -848,7 +854,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'msbuild',
         new vscode.ShellExecution(msbuildCmd, commandArgs, { cwd: msbuildCwd }),
       );
-      return { task, command: `${msbuildCmd} ${commandArgs.join(' ')}`, cwd: msbuildCwd };
+      return { task, command: `${msbuildCmd} ${commandArgs.join(' ')}`, cwd: msbuildCwd, native: false };
     }
     case 'justfile': {
       const justProvider = new JustfileTaskProvider();
@@ -869,7 +875,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'just',
         new vscode.ShellExecution(justCommand, justArgs, { cwd: justCwd }),
       );
-      return { task, command: fullCmd, cwd: justCwd };
+      return { task, command: fullCmd, cwd: justCwd, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task
