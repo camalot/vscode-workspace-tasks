@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { TaskFilesService } from './taskFilesService';
 import { parseJsonWithComments } from '../libs/jsonUtils';
+import { LoggerService } from './loggerService';
 
 interface TaskInput {
   id: string;
@@ -40,6 +41,7 @@ export class WorkspaceTasksService {
   private static instance: WorkspaceTasksService;
   private config: FileTasksConfig = {};
   private context?: vscode.ExtensionContext;
+  private logger = LoggerService.getInstance();
 
   private constructor() { }
 
@@ -66,14 +68,13 @@ export class WorkspaceTasksService {
       defaultsPath = path.resolve(__dirname, '..', '..', 'res', 'config', 'workspace-tasks.json');
     }
 
-    // console.debug(`[WorkspaceTasksService]: Loading default workspace tasks from ${defaultsPath}`);
     try {
       if (defaultsPath && fs.existsSync(defaultsPath)) {
         const content = await fs.promises.readFile(defaultsPath, 'utf8');
         newConfig = parseJsonWithComments(content);
       }
     } catch (e) {
-      console.error(`[WorkspaceTasksService]: Failed to load default workspace tasks from ${defaultsPath}`, e);
+      this.logger.error(`[WorkspaceTasksService]: Failed to load default workspace tasks from ${defaultsPath}`, e);
     }
 
     const filesService = TaskFilesService.getInstance();
@@ -106,15 +107,14 @@ export class WorkspaceTasksService {
           this.mergeConfig(newConfig, localConfig);
         } catch (e) {
           if (e instanceof Error && e.message.includes('Unexpected end of JSON input')) {
-            console.log(`[WorkspaceTasksService]: Incomplete JSON in ${file.fsPath}, ignoring.`);
+            this.logger.debug(`[WorkspaceTasksService]: Incomplete JSON in ${file.fsPath}, ignoring.`);
           } else {
-            console.error(`Failed to load workspace tasks from ${file.fsPath}`, e);
+            this.logger.error(`[WorkspaceTasksService]: Failed to load workspace tasks from ${file.fsPath}`, e);
           }
         }
       }
     }
     this.config = newConfig;
-    // console.debug('Workspace tasks configuration loaded');
   }
 
   private mergeConfig(target: FileTasksConfig, local: FileTasksConfig) {
@@ -247,7 +247,7 @@ export class WorkspaceTasksService {
       const inputDef = config.inputs.find((i) => i.id === inputId);
       if (!inputDef) {
         // Input undefined in json but used in command?
-        console.warn(`Input '${inputId}' not defined in fileTasks.json`);
+        this.logger.warn(`[WorkspaceTasksService] Input '${inputId}' not defined in fileTasks.json`);
         continue;
       }
 

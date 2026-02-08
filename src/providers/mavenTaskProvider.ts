@@ -68,12 +68,19 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
           tasks.push(item);
         }
       } catch (error) {
-        console.error(`Failed to parse ${file.fsPath}: ${error}`);
+        this.logger.error(`[MavenTaskProvider] Failed to parse ${file.fsPath}: ${error}`);
         continue;
       }
     }
 
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {

@@ -65,6 +65,13 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
     return tasks;
   }
 
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
+  }
+
   private parseWorkflowFile(uri: vscode.Uri, text: string): TaskItem | undefined {
     let workflow: Workflow;
     try {

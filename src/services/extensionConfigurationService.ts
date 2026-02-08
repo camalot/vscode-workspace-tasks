@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { LoggerService } from './loggerService';
 
 export class ExtensionConfigurationService {
   private static instance: ExtensionConfigurationService;
   private packageJson: any;
+  private logger = LoggerService.getInstance();
 
   private constructor() {}
 
@@ -22,7 +24,7 @@ export class ExtensionConfigurationService {
         const content = fs.readFileSync(packageJsonPath, 'utf8');
         this.packageJson = JSON.parse(content);
       } catch (e) {
-        console.error('Failed to load package.json', e);
+        this.logger.error('[ExtensionConfigurationService] Failed to load package.json', e);
       }
     }
   }

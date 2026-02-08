@@ -106,6 +106,13 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     return tasks;
   }
 
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
+  }
+
   private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string): TaskItem {
     const filename = path.basename(resourceUri.fsPath);
     const iconPath = TaskIconService.getInstance().getTaskIcon(subType) || vscode.ThemeIcon.File;

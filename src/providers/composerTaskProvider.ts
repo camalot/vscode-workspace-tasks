@@ -27,7 +27,7 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
         const content = document.getText();
 
         const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'composer.json'));
-        const iconPath = iconService.getTaskIcon(this.type);
+        const iconPath = iconService.getTaskIcon(this.type, fallback);
 
         const json = JSON.parse(content);
         if (json.scripts) {
@@ -62,10 +62,18 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
           }
         }
       } catch (e) {
-        console.error(`Error parsing composer.json: ${file.fsPath}`, e);
+        this.logger.error(`[ComposerTaskProvider] Error parsing composer.json: ${file.fsPath}`, e);
       }
     }
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    // Composer does not have system-wide tasks, so return an empty array
+    return [];
   }
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {

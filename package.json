@@ -3,9 +3,9 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "engines": {
-    "vscode": "^1.108.1"
+    "vscode": "^1.105.1"
   },
   "author": {
     "name": "darthminos",
@@ -101,7 +101,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "25.x",
-    "@types/vscode": "^1.108.1",
+    "@types/vscode": "^1.105.1",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "@vscode/test-cli": "^0.0.12",
@@ -379,6 +379,11 @@
       "type": "object",
       "title": "%view.name%",
       "properties": {
+        "workspaceTasks.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.workspaceTasks.debug%"
+        },
         "workspaceTasks.act.envFile": {
           "type": "string",
           "default": "",

@@ -1,13 +1,54 @@
-## [1.1.6] - 2026-02-03
+## [1.1.7] - 2026-02-08
 
 ### 🚀 Features
 
-- *(tasks)* Universal task interfaces initial
+- *(cursor)* Support for Cursor (VS Code Version 1.105.1) #62
 
 
 ### 🐛 Bug Fixes
 
-- Treat vscode tasks as they are natively defined by vscode. #50 #49 #56
+- No tasks visible how best to debug? #61
+
+- Some types not displaying proper icon for the group #59
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(repo)* Update svg -> png to not overwite existing png by default
+
+- *(debug)* Added logging channel and debug option
+
+- *(tasks)* Changed how vscode tasks and npm tasks are initially loaded
+
+- *(tasks)* If system tasks defined for supported task type, those are used
+
+- *(changelog)* Update changelog
+
+- *(core)* Downgrade the minimum required vscode engine version
+
+- *(changelog)* Update changelog
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.6...v1.1.7
+
+## [1.1.6] - 2026-02-04
+
+### 💼 Other
+
+- V1.1.6 (#57)
+
+- * feat(tasks): universal task interfaces initial
+
+- * fix: treat vscode tasks as they are natively defined by vscode. #50 #49 #56
+
+- * chore(changelog): update changelog
+
+- * chore(repo): fix failing test
+
+- * chore: checking for the file uri
+
+- * chore: resolve copilot suggestions
 
 
 

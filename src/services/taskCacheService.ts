@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskProvider } from '../taskProvider';
+import { LoggerService } from './loggerService';
 
 export class TaskCacheService {
   private static instance: TaskCacheService;
+  private logger = LoggerService.getInstance();
   private fileTaskMap: Map<string, TaskItem[]> = new Map();
   private allTasks: TaskItem[] = [];
   private context?: vscode.ExtensionContext;
@@ -52,7 +54,7 @@ export class TaskCacheService {
 
       this.providerTasks.set(type, tasks);
     } catch (e) {
-      console.error(`Error refreshing provider ${type}`, e);
+      this.logger.error(`[TaskCacheService] Error refreshing provider ${type}`, e);
       this.providerTasks.set(type, []);
     }
     this.rebuildCache();
@@ -156,7 +158,7 @@ export class TaskCacheService {
           this._onDidUpdate.fire();
         } catch (e) {
           const duration = Date.now() - start;
-          console.error(`Error refreshing provider ${type} (took ${duration}ms)`, e);
+          this.logger.error(`[TaskCacheService] Error refreshing provider ${type} (took ${duration}ms)`, e);
           this.providerTasks.set(type, []);
         }
       }

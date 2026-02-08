@@ -46,7 +46,6 @@ export class DenoTaskProvider extends BaseTaskProvider {
         // Simple parsing for now
         const json = JSON.parse(content);
         if (json.tasks) {
-          // console.log(`Found ${Object.keys(json.tasks).length} tasks in ${file.fsPath}`);
           for (const script of Object.keys(json.tasks)) {
             const item = new TaskItem(
               script,
@@ -78,12 +77,19 @@ export class DenoTaskProvider extends BaseTaskProvider {
           }
         }
       } catch (e) {
-        console.warn(`Error parsing Deno configuration file (deno.json/deno.jsonc): ${file.fsPath}`, e);
+        this.logger.warn(`[DenoTaskProvider] Error parsing Deno configuration file (deno.json/deno.jsonc): ${file.fsPath}`, e);
       }
     }
 
     // ...packageJsonTasks,
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {

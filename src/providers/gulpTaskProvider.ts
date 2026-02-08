@@ -65,7 +65,6 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               title: 'Open File',
               arguments: [file, i],
             };
-            // console.log(`[GulpTaskProvider] Discovered task '${name}' in ${file.fsPath}`);
             tasks.push(item);
             continue;
           }
@@ -83,7 +82,6 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               title: 'Open File',
               arguments: [file, i],
             };
-            // console.log(`[GulpTaskProvider] Discovered export task '${name}' in ${file.fsPath}`);
             tasks.push(item);
             continue;
           }
@@ -101,7 +99,6 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               title: 'Open File',
               arguments: [file, i],
             };
-            // console.log(`[GulpTaskProvider] Discovered export function '${name}' in ${file.fsPath}`);
             tasks.push(item);
             continue;
           }
@@ -119,7 +116,6 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
               title: 'Open File',
               arguments: [file, i],
             };
-            //  console.log(`[GulpTaskProvider] Discovered export alias '${name}' in ${file.fsPath}`);
             tasks.push(item);
             continue;
           }
@@ -145,7 +141,6 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
                 title: 'Open File',
                 arguments: [file, 0],
               };
-              // console.log(`[GulpTaskProvider] Discovered series/parallel referenced task '${name}' in ${file.fsPath}`);
               tasks.push(item);
             }
           }
@@ -173,17 +168,23 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
                   title: 'Open File',
                   arguments: [file, 0],
                 };
-                // console.log(`[GulpTaskProvider] Discovered referenced identifier task '${id}' in ${file.fsPath}`);
                 tasks.push(item);
               }
             }
           }
         }
       } catch (e) {
-        console.error(`Error parsing Gulpfile: ${file.fsPath}`, e);
+        this.logger.error(`[GulpTaskProvider] Error parsing Gulpfile: ${file.fsPath}`, e);
       }
     }
 
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 }

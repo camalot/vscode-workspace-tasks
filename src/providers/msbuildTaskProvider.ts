@@ -74,11 +74,18 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
           tasks.push(item);
         }
       } catch (err) {
-        console.warn(`Error parsing MSBuild file ${file.fsPath}:`, err);
+        this.logger.warn(`[MsBuildTaskProvider] Error parsing MSBuild file ${file.fsPath}:`, err);
       }
     }
 
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 
   private extractTargets(xmlData: any): { name: string; description?: string }[] {

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { TaskItem } from './taskItem';
 import { TaskConfigService } from './services/taskConfigService';
 import { TaskStateManager } from './taskStateManager';
+import { LoggerService } from './services/loggerService';
 
 export interface TaskProvider {
   getTasks(): Promise<TaskItem[]>;
@@ -13,6 +14,7 @@ export abstract class BaseTaskProvider implements TaskProvider {
   readonly type: string;
   public filePattern?: string;
   protected context: vscode.ExtensionContext | undefined;
+  protected logger = LoggerService.getInstance();
   constructor(type: string, filePattern?: string) {
     this.type = type;
     this.filePattern = filePattern;
@@ -24,4 +26,6 @@ export abstract class BaseTaskProvider implements TaskProvider {
   }
 
   abstract getTasks(): Promise<TaskItem[]>;
+
+  abstract getSystemTasks(): Promise<TaskItem[]>;
 }

@@ -37,6 +37,8 @@
   "tree.tasks": "Tasks",
   "tree.recentTasks": "Recent Tasks",
 
+  "config.workspaceTasks.debug": "Enable debug logging for Workspace Tasks",
+
   "config.workspaceTasks.task.actionBar": "Select which items should be shown in the task action bar for each task. This allows you to customize the actions available for tasks in the workspace.",
 
   "config.workspaceTasks.task.actionBar.run": "Run Task",

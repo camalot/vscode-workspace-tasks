@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 // @ts-ignore
 import ignore from 'ignore';
+import { LoggerService } from './loggerService';
 
 interface IgnoreFile {
   folderUri: vscode.Uri;
@@ -15,6 +16,7 @@ export class TaskFilesService {
   private configWatcher?: vscode.Disposable;
   private fileWatcher?: vscode.Disposable;
   private context?: vscode.ExtensionContext;
+  private logger = LoggerService.getInstance();
 
   private constructor() {
     this.globalIgnore = ignore();
@@ -75,7 +77,7 @@ export class TaskFilesService {
         this.globalIgnore.add(excludes);
       }
     } catch (e) {
-      console.error('Failed to read workspaceTasks.exclude', e);
+      this.logger.error('[TaskFilesService] Failed to read workspaceTasks.exclude', e);
     }
 
     // Find all .tasksignore files in the workspace
@@ -132,7 +134,7 @@ export class TaskFilesService {
         // Gitignore logic: check from file up to root.
       }
     } catch (e) {
-      console.error(`Failed to load .tasksignore at ${uri.fsPath}`, e);
+      this.logger.error(`[TaskFilesService] Failed to load .tasksignore at ${uri.fsPath}`, e);
     }
   }
 

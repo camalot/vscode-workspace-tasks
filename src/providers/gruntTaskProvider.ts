@@ -75,10 +75,17 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
           }
         }
       } catch (e) {
-        console.error(`Error parsing Gruntfile: ${file.fsPath}`, e);
+        this.logger.error(`[GruntTaskProvider] Error parsing Gruntfile: ${file.fsPath}`, e);
       }
     }
 
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 }

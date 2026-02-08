@@ -55,6 +55,13 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
     return tasks;
   }
 
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
+  }
+
   private parseNotebookFile(uri: vscode.Uri, text: string): TaskItem | undefined {
     let notebook: JupyterNotebook;
     try {

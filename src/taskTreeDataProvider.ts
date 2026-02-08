@@ -410,8 +410,6 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
     };
 
-    // console.log(`[TaskTreeDataProvider] organizeTasks - Collapse Level: ${this.collapseLevel}`);
-
     for (const task of filteredTasks) {
       checkFavorite(task);
       updateContextRecursively(task);
@@ -711,8 +709,6 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // Not essential but might look better
         workspaceItem.iconPath = vscode.ThemeIcon.Folder;
 
-        // console.log(`[TaskTreeDataProvider] Workspace Item Created: ID=${workspaceItem.id}, Label=${workspaceItem.label}, State=${workspaceItem.collapsibleState}`);
-
         for (const [taskType, typeTasks] of projectMap) {
           // Use Factory to create typed item
           const typeItem = TaskTypeFactory.create(taskType, groupState);
@@ -741,8 +737,6 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
           // Create correct context value now that children are populated (checks for all-hidden children)
           typeItem.updateContextValue();
-
-          // console.log(`[TaskTreeDataProvider] Group Item Created: ID=${typeItem.id}, Type=${taskType}, State=${typeItem.collapsibleState} (Requested: ${groupState})`);
 
           workspaceItem.children.push(typeItem);
         }

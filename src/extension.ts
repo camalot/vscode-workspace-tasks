@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TaskTreeDataProvider } from './taskTreeDataProvider';
 import { TaskStateManager } from './taskStateManager';
+import { LoggerService } from './services/loggerService';
 import { TaskFilesService } from './services/taskFilesService';
 import { TaskCacheService } from './services/taskCacheService';
 import { ExtensionConfigurationService } from './services/extensionConfigurationService';
@@ -16,6 +17,9 @@ import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 
 export async function activate(context: vscode.ExtensionContext) {
+  LoggerService.getInstance().initialize(context);
+  const logger = LoggerService.getInstance();
+  logger.debug('Workspace Tasks extension activating...');
   ExtensionConfigurationService.getInstance().initialize(context);
   TaskStateManager.getInstance().initialize(context);
   await TaskFilesService.getInstance().initialize(context);
@@ -96,7 +100,7 @@ export async function activate(context: vscode.ExtensionContext) {
   try {
     loadCommands(context);
   } catch (err) {
-    console.error('Command loading error:', err);
+    logger.error('Command loading error:', err);
   }
 
   // Monitor state changes to cancel pending resets if task restarts
