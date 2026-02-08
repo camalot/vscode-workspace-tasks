@@ -2,6 +2,7 @@ import { TomlTaskProvider } from './tomlTaskProvider';
 import constants from '../libs/constants';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import * as vscode from 'vscode';
+import { TaskItem } from '../taskItem';
 
 export class PipenvTaskProvider extends TomlTaskProvider {
   constructor() {
@@ -15,6 +16,13 @@ export class PipenvTaskProvider extends TomlTaskProvider {
   protected getScriptsPath(): string {
     return 'scripts';
   }
+
+    async getSystemTasks(): Promise<TaskItem[]> {
+      if (!this.enabled) {
+        return [];
+      }
+      return [];
+    }
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();

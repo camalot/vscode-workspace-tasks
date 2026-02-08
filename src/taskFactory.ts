@@ -29,6 +29,10 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     return undefined;
   }
 
+  if (item.task) {
+    return { task: item.task, native: true };
+  }
+
   const effectiveResourceUri = item.taskFileUri || item.resourceUri;
   const cwd = effectiveResourceUri
     ? path.dirname(effectiveResourceUri.fsPath)
@@ -432,9 +436,6 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'gulp',
         new vscode.ShellExecution(gulpCmd, gulpArgs, { cwd: gulpCwd }),
       );
-
-      // Debug info to help diagnose incorrect gulpfile selection
-      // console.log(`[TaskFactory] Gulp task created. cwd=${gulpCwd}, args=${JSON.stringify(gulpArgs)}`);
 
       return { task, command: `${gulpCmd} ${gulpArgs.join(' ')}`.trim(), cwd: gulpCwd, native: false };
     }

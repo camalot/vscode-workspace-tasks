@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "engines": {
     "vscode": "^1.108.1"
   },
@@ -379,6 +379,11 @@
       "type": "object",
       "title": "%view.name%",
       "properties": {
+        "workspaceTasks.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.workspaceTasks.debug%"
+        },
         "workspaceTasks.act.envFile": {
           "type": "string",
           "default": "",

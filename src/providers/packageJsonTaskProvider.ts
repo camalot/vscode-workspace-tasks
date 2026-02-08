@@ -7,6 +7,8 @@ import { TaskIconService } from '../services/taskIconService';
 import { ExecutableResult } from '../services/executableService';
 
 export abstract class PackageJsonTaskProvider extends BaseTaskProvider implements TaskProvider {
+  protected readonly addedTasks: Set<string> = new Set<string>();
+
   constructor(type: string, globPattern: string) {
     super(type, globPattern);
   }
@@ -18,7 +20,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
       return [];
     }
 
-    const tasks: TaskItem[] = [];
+    const tasks: TaskItem[] = await this.getSystemTasks();
     const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
     const files = await filesService.findFiles([constants.GLOB_NODEJS]);
@@ -48,6 +50,10 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
 
+            if (this.addedTasks.has(item.id!)) {
+              continue;
+            }
+
             // Find line number
             const lines = content.split('\n');
             for (let i = 0; i < lines.length; i++) {
@@ -64,10 +70,11 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
             };
 
             tasks.push(item);
+            this.addedTasks.add(item.id!);
           }
         }
       } catch (e) {
-        console.error(`Error parsing package.json: ${file.fsPath}`, e);
+        this.logger.error(`[PackageJsonTaskProvider] Error parsing package.json: ${file.fsPath}`, e);
       }
     }
     return tasks;

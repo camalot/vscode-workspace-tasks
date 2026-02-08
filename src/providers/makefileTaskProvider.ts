@@ -73,9 +73,16 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
           }
         }
       } catch (e) {
-        console.error(`Error parsing Makefile: ${file.fsPath}`, e);
+        this.logger.error(`[MakefileTaskProvider] Error parsing Makefile: ${file.fsPath}`, e);
       }
     }
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 }

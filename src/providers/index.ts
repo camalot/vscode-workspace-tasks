@@ -19,6 +19,7 @@ import { PipenvTaskProvider } from './pipenvTaskProvider';
 import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
+import { LoggerService } from '../services/loggerService';
 
 type TaskProviderConstructor =
   | (new () => NpmTaskProvider)
@@ -44,6 +45,7 @@ type TaskProviderConstructor =
   | (new () => JupyterTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
+  const logger = LoggerService.getInstance();
   const providers: TaskProviderConstructor[] = [
     NpmTaskProvider,
     PnpmTaskProvider,
@@ -74,12 +76,11 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
       // Assuming there's a global taskTreeDataProvider instance
       if (taskTreeDataProvider) {
         taskTreeDataProvider.registerProvider(providerInstance);
-        // console.log(`Registered task provider: ${ProviderClass.name}`);
       } else {
-        console.error('taskTreeDataProvider instance not found.');
+        logger.error('[Providers] taskTreeDataProvider instance not found.');
       }
     } catch (err) {
-      console.error(`Failed to register task provider ${ProviderClass.name}:`, err);
+      logger.error(`[Providers] Failed to register task provider ${ProviderClass.name}:`, err);
     }
   }
 }

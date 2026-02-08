@@ -2,8 +2,10 @@
 
 import * as vscode from 'vscode';
 import constants from '../libs/constants';
+import { LoggerService } from '../services/loggerService';
 
 export default abstract class BaseCommand {
+  protected readonly logger = LoggerService.getInstance();
   constructor(
     public readonly commandName: string,
     public readonly context: vscode.ExtensionContext,

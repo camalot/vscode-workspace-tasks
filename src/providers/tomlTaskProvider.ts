@@ -36,7 +36,7 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
         try {
           tomlObj = parseFunc(textContent);
         } catch (e) {
-          console.warn(`Error parsing TOML file ${file.fsPath}:`, e);
+          this.logger.warn(`[TomlTaskProvider] Error parsing TOML file ${file.fsPath}:`, e);
           continue;
         }
 
@@ -70,7 +70,7 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
           tasks.push(item);
         }
       } catch (err) {
-        console.warn(`Error processing file ${file.fsPath}:`, err);
+        this.logger.warn(`[TomlTaskProvider] Error processing file ${file.fsPath}:`, err);
       }
     }
     return tasks;

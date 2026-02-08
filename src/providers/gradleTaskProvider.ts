@@ -71,10 +71,17 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
           }
         }
       } catch (e) {
-        console.error(`Error parsing gradle file: ${file.fsPath}`, e);
+        this.logger.error(`[GradleTaskProvider] Error parsing gradle file: ${file.fsPath}`, e);
       }
     }
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {

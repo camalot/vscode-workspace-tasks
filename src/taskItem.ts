@@ -33,13 +33,10 @@ export class TaskItem extends vscode.TreeItem {
 
   public metadata?: any;
 
-  // Static counter for ensure unique IDs within a session if needed,
-  // though deterministic IDs are better for state preservation.
-  private static idCounter = 0;
-
   public onOpenActionCommand?: vscode.Command;
   public onRunActionCommand?: vscode.Command;
   public onRunWithArgsActionCommand?: vscode.Command;
+  public task?: vscode.Task;
 
   constructor(
     public readonly label: string,

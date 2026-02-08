@@ -39,4 +39,11 @@ export class VenvTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
     return tasks;
   }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
+  }
 }

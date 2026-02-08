@@ -108,9 +108,16 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
           }
         }
       } catch (e) {
-        console.error(`Error parsing Justfile: ${file.fsPath}`, e);
+        this.logger.error(`[JustfileTaskProvider] Error parsing Justfile: ${file.fsPath}`, e);
       }
     }
     return tasks;
+  }
+
+  async getSystemTasks(): Promise<TaskItem[]> {
+    if (!this.enabled) {
+      return [];
+    }
+    return [];
   }
 }

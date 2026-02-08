@@ -5,10 +5,11 @@ import { createTaskForItem } from './taskFactory';
 import { QueueService } from './services/queueService';
 import { configuration } from './libs/configuration';
 import { IPresentationOptions } from './taskDefinition';
+import { LoggerService } from './services/loggerService';
 
 export class TaskRunner {
   private static instance: TaskRunner;
-
+  private readonly logger = LoggerService.getInstance();
   // We need to notify the tree provider to refresh when state changes,
   // but the provider is in extension.ts or similar.
   // We can use an event emitter or just access the state manager and let the caller refresh.
@@ -102,10 +103,6 @@ export class TaskRunner {
         ...task.presentationOptions,
       };
     }
-    // Extra debug info for gulp tasks
-    // if (item.taskType === 'gulp') {
-    //   console.log(`[TaskRunner] Running gulp task '${taskLabel}' from file: ${item.resourceUri?.fsPath} -- command: ${created.command}`);
-    // }
 
     const id = TaskStateManager.getInstance().getTaskId(item);
     TaskStateManager.getInstance().setStatus(id, 'running');
@@ -120,7 +117,7 @@ export class TaskRunner {
         vscode.commands.executeCommand('workspaceTasks.refreshTree');
       }
     } catch (e) {
-      console.error('[TaskRunner] executeTask failed:', e);
+      this.logger.error('[TaskRunner] executeTask failed:', e);
       TaskStateManager.getInstance().setStatus(id, 'failure');
       vscode.commands.executeCommand('workspaceTasks.refreshTree');
       vscode.window.showErrorMessage(`Failed to run task: ${e}`);

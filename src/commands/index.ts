@@ -31,7 +31,11 @@ import * as toggleShowHidden from './toggleShowHidden';
 import * as resetFilteredTasks from './resetFilteredTasks';
 import * as copyTaskCommand from './copyTaskCommand';
 
+import { LoggerService } from '../services/loggerService';
+
+
 export function loadCommands(context: vscode.ExtensionContext) {
+  const logger = LoggerService.getInstance();
   const modules = [
     addToFavorites,
     addToQueue,
@@ -74,9 +78,8 @@ export function loadCommands(context: vscode.ExtensionContext) {
           try {
             // instantiate; constructor will register the command via BaseCommand
             new CommandClass(context);
-            // console.log(`Loading command: ${key}`);
           } catch (err) {
-            console.error(`Failed to load command ${key}:`, err);
+            logger.error(`[Commands] Failed to load command ${key}:`, err);
           }
         }
       }
