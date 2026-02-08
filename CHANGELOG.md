@@ -9,16 +9,22 @@
 
 - No tasks visible how best to debug? #61
 
+- Some types not displaying proper icon for the group #59
+
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Update svg -> png to not overwrite existing png by default
+- *(repo)* Update svg -> png to not overwite existing png by default
 
 - *(debug)* Added logging channel and debug option
 
 - *(tasks)* Changed how vscode tasks and npm tasks are initially loaded
 
 - *(tasks)* If system tasks defined for supported task type, those are used
+
+- *(changelog)* Update changelog
+
+- *(core)* Downgrade the minimum required vscode engine version
 
 - *(changelog)* Update changelog
 
@@ -450,3 +456,6 @@
 ### ◀️ Revert
 
 - Reverted some changes and update the target
+
+
+
