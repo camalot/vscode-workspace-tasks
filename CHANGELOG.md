@@ -1,5 +1,10 @@
 ## [1.1.7] - 2026-02-08
 
+### 🚀 Features
+
+- *(cursor)* Support for Cursor (VS Code Version 1.105.1) #62
+
+
 ### 🐛 Bug Fixes
 
 - No tasks visible how best to debug? #61
@@ -7,13 +12,15 @@
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Update svg -> png to not overwite existing png by default
+- *(repo)* Update svg -> png to not overwrite existing png by default
 
 - *(debug)* Added logging channel and debug option
 
 - *(tasks)* Changed how vscode tasks and npm tasks are initially loaded
 
 - *(tasks)* If system tasks defined for supported task type, those are used
+
+- *(changelog)* Update changelog
 
 
 
@@ -443,6 +450,3 @@
 ### ◀️ Revert
 
 - Reverted some changes and update the target
-
-
-

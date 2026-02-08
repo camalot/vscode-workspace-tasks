@@ -33,6 +33,20 @@ export class TaskIconService {
     return this;
   }
 
+  private mapLookup(type: string, map: { [key: string]: string }): string {
+    // create generic map and merge with provided map
+    const genericMap: { [key: string]: string } = {
+      'npm': 'npm',
+      'node': 'npm',
+      'nodejs': 'npm',
+      'yarn': 'npm',
+      'dockerfile': 'docker',
+      'docker-compose': 'docker'
+    };
+    const combinedMap = { ...genericMap, ...map };
+    return combinedMap[type.toLowerCase()] || type;
+  }
+
   public getTaskTypeIcon(type: string, fallback?: vscode.Uri): TaskIconUri | undefined {
     if (!this.context) {
       return {
@@ -40,9 +54,10 @@ export class TaskIconService {
         DisplayUri: fallback || undefined,
       };
     }
+    const mappedType = this.mapLookup(type, {});
     let iconUri: TaskIcon | vscode.Uri | undefined = {
-      light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${type}.svg`)),
-      dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${type}.svg`)),
+      light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${mappedType}.svg`)),
+      dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${mappedType}.svg`)),
     };
 
     if (!fs.existsSync(iconUri.light.fsPath) || !fs.existsSync(iconUri.dark.fsPath)) {

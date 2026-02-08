@@ -91,7 +91,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
       const files = await filesService.findFiles(glob_include, exclude_joined);
       for (const file of files) {
-        const iconPath = iconService.getTaskIcon(langId);
+        const iconPath = iconService.getTaskIcon(langId, file);
 
         for (const taskDef of taskDefs) {
           const item = new TaskItem(
