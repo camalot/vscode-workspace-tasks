@@ -152,8 +152,43 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.tasks.onDidEndTask(() => {
-      // This fires when a task ends. No action required here; onDidEndTaskProcess handles status updates.
+    vscode.tasks.onDidEndTask((e) => {
+      // This fires when a task ends.
+      // We handle non-process tasks (like compound tasks) here.
+      // If the task was a process task, onDidEndTaskProcess should have already handled it.
+      const stateManager = TaskStateManager.getInstance();
+      const id = stateManager.getIdByExecution(e.execution);
+      if (id) {
+        // Only act if the task is still marked as running.
+        // If it was a process task, status would be 'success' or 'failure' by now.
+        if (stateManager.getStatus(id) === 'running') {
+          stateManager.setStatus(id, 'success');
+          stateManager.clearExecution(id);
+          taskTreeDataProvider.refreshLocal();
+
+          // Clear any existing reset timer for this task
+          if (resetTimers.has(id)) {
+            clearTimeout(resetTimers.get(id)!);
+            resetTimers.delete(id);
+          }
+
+          const delay = configuration.get<number>('task.statusResetDelay', 500);
+          if (delay > 0) {
+            const timer = setTimeout(() => {
+              // Double check status hasn't changed to running in the meantime
+              if (stateManager.getStatus(id) !== 'running') {
+                stateManager.setStatus(id, 'idle');
+                taskTreeDataProvider.refreshLocal();
+              }
+              resetTimers.delete(id);
+            }, delay);
+            resetTimers.set(id, timer);
+          } else {
+            stateManager.setStatus(id, 'idle');
+            taskTreeDataProvider.refreshLocal();
+          }
+        }
+      }
     }),
   );
 }

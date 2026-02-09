@@ -111,11 +111,6 @@ export class TaskRunner {
     try {
       const execution = await vscode.tasks.executeTask(task);
       TaskStateManager.getInstance().setExecution(id, execution);
-      if (isNative && task.execution === undefined) {
-        // Compound tasks don't have an execution, so we just mark them as success
-        TaskStateManager.getInstance().setStatus(id, 'success');
-        vscode.commands.executeCommand('workspaceTasks.refreshTree');
-      }
     } catch (e) {
       this.logger.error('[TaskRunner] executeTask failed:', e);
       TaskStateManager.getInstance().setStatus(id, 'failure');
