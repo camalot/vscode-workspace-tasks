@@ -20,6 +20,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
       return [];
     }
 
+    this.addedTasks.clear();
     const tasks: TaskItem[] = await this.getSystemTasks();
     const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();

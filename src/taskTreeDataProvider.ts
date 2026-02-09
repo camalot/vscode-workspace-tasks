@@ -296,7 +296,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const workspaceInfoMap = new Map<string, string>(); // URI -> Name mapping
 
     const favoriteTasks: TaskItem[] = [];
-    const recentTasks = (RecentTasksService.getInstance() as any).getRecentTasks();
+    const allRecentTasks = (RecentTasksService.getInstance() as any).getRecentTasks();
+    const recentTasks = showHiddenMode
+      ? allRecentTasks
+      : allRecentTasks.filter((t: TaskItem) => !filteredService.isFilteredOrHasFilteredParent(t));
 
     const favoritesService = FavoritesService.getInstance();
     const queueService = QueueService.getInstance();
