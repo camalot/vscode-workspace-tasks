@@ -82,6 +82,7 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
         this.type,
         fileUri,
       );
+      item.metadata = { systemTaskName: task.name };
       item.description = fileUri ? vscode.workspace.asRelativePath(fileUri) : task.source;
 
       if (fileUri) {

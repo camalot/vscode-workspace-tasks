@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { TaskItem } from '../taskItem';
 import { TaskCacheService } from './taskCacheService';
 
@@ -84,6 +85,7 @@ export class RecentTasksService {
     const visit = (items: TaskItem[]) => {
       for (const item of items) {
         const labelMatch = item.label === task.name || (item.originalLabel && item.originalLabel === task.name);
+        const metaMatch = item.metadata && item.metadata.systemTaskName === task.name;
         // Also match against definition name if available (more reliable than UI name)
         const defMatch = defName && (item.label === defName || (item.originalLabel && item.originalLabel === defName));
 
@@ -92,16 +94,31 @@ export class RecentTasksService {
         if (defPath) {
           const itemUri = item.taskFileUri || item.resourceUri;
           if (itemUri && itemUri.scheme === 'file') {
+            // Get task scope folder if available
+            let scopeFolder: vscode.WorkspaceFolder | undefined;
+            if (task.scope && typeof task.scope !== 'number') {
+              scopeFolder = task.scope as vscode.WorkspaceFolder;
+            }
+
             // Normalize paths for comparison (handle windows/unix separators and casing)
-            const p1 = vscode.Uri.file(defPath).fsPath.toLowerCase();
-            const p2 = itemUri.fsPath.toLowerCase();
-            if (p1 !== p2) {
+            let defPathNorm = vscode.Uri.file(defPath).fsPath.toLowerCase();
+
+            // validation for relative paths. If defPath is relative, and we have a scope, resolve it.
+            if (!path.isAbsolute(defPath) && scopeFolder) {
+               defPathNorm = vscode.Uri.joinPath(scopeFolder.uri, defPath).fsPath.toLowerCase();
+            }
+
+            const itemPathNorm = itemUri.fsPath.toLowerCase();
+            const itemDirNorm = path.dirname(itemPathNorm);
+
+            // Match exact file path OR directory of the item (some tasks use folder scope)
+            if (defPathNorm !== itemPathNorm && defPathNorm !== itemDirNorm) {
               pathMatch = false;
             }
           }
         }
 
-        if ((labelMatch || defMatch) && pathMatch) {
+        if ((labelMatch || defMatch || metaMatch) && pathMatch) {
           candidates.push(item);
         }
         if (item.children && item.children.length > 0) {
