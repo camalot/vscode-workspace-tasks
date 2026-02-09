@@ -142,6 +142,27 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Task Events
   context.subscriptions.push(
+    vscode.tasks.onDidStartTask((e) => {
+      const stateManager = TaskStateManager.getInstance();
+      const task = e.execution.task;
+      const item = TaskCacheService.getInstance().findMatchingTask(task);
+      if (item) {
+        const id = stateManager.getTaskId(item);
+        if (id) {
+          stateManager.setExecution(id, e.execution);
+          stateManager.setStatus(id, 'running');
+          taskTreeDataProvider.refreshLocal();
+
+          if (resetTimers.has(id)) {
+            clearTimeout(resetTimers.get(id)!);
+            resetTimers.delete(id);
+          }
+        }
+      }
+    }),
+  );
+
+  context.subscriptions.push(
     vscode.tasks.onDidEndTaskProcess((e) => {
       const stateManager = TaskStateManager.getInstance();
       const id = stateManager.getIdByExecution(e.execution);
