@@ -1,32 +1,48 @@
-## [1.1.7] - 2026-02-08
-
-### 🚀 Features
-
-- *(cursor)* Support for Cursor (VS Code Version 1.105.1) #62
-
+## [1.1.8] - 2026-02-09
 
 ### 🐛 Bug Fixes
 
-- No tasks visible how best to debug? #61
+- Composite-only tasks finish immediately #64
 
-- Some types not displaying proper icon for the group #59
+
+### ⚙️ Miscellaneous Tasks
+
+- *(repo)* Update readme and ignore test task files
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.7...v1.1.8
+
+## [1.1.7] - 2026-02-08
+
+### 💼 Other
+
+- V1.1.7 (#63)
+
+- * fix: No tasks visible how best to debug? #61
+
+- * chore(debug): added logging channel and debug option
+
+- * chore(tasks): changed how vscode tasks and npm tasks are initially loaded
+
+- * chore(tasks): if system tasks defined for supported task type, those are used
+
+- * chore(changelog): update changelog
+
+- * feat(cursor): Support for Cursor (VS Code Version 1.105.1) #62
+
+- * chore(core): downgrade the minimum required vscode engine version
+
+- * chore(changelog): update changelog
+
+- * fix: Some types not displaying proper icon for the group #59
+
+- * chore(task): add docker icon for #59
 
 
 ### ⚙️ Miscellaneous Tasks
 
 - *(repo)* Update svg -> png to not overwite existing png by default
-
-- *(debug)* Added logging channel and debug option
-
-- *(tasks)* Changed how vscode tasks and npm tasks are initially loaded
-
-- *(tasks)* If system tasks defined for supported task type, those are used
-
-- *(changelog)* Update changelog
-
-- *(core)* Downgrade the minimum required vscode engine version
-
-- *(changelog)* Update changelog
 
 
 
