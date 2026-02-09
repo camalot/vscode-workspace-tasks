@@ -16,6 +16,7 @@ export class TaskStateManager {
   private static instance: TaskStateManager;
   private states: Map<string, TaskStatus> = new Map();
   private executions: Map<string, vscode.TaskExecution> = new Map();
+  private terminatedTasks: Set<string> = new Set();
   private context: vscode.ExtensionContext | undefined;
 
   private _onDidStateChange = new vscode.EventEmitter<{ id: string; status: TaskStatus }>();
@@ -102,6 +103,18 @@ export class TaskStateManager {
       }
     }
     return undefined;
+  }
+
+  public markTerminated(id: string) {
+    this.terminatedTasks.add(id);
+  }
+
+  public isTerminated(id: string): boolean {
+    return this.terminatedTasks.has(id);
+  }
+
+  public clearTerminated(id: string) {
+    this.terminatedTasks.delete(id);
   }
 
   public clearExecution(id: string) {

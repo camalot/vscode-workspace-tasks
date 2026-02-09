@@ -167,7 +167,12 @@ export async function activate(context: vscode.ExtensionContext) {
         // Only act if the task is still marked as running.
         // If it was a process task, status would be 'success' or 'failure' by now.
         if (stateManager.getStatus(id) === 'running') {
-          stateManager.setStatus(id, 'success');
+          if (stateManager.isTerminated(id)) {
+            stateManager.setStatus(id, 'idle');
+            stateManager.clearTerminated(id);
+          } else {
+            stateManager.setStatus(id, 'success');
+          }
           stateManager.clearExecution(id);
           taskTreeDataProvider.refreshLocal();
 
