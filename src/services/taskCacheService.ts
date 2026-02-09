@@ -225,7 +225,7 @@ export class TaskCacheService {
         if (defPath && item.taskType !== 'vscode') {
           const itemUri = item.taskFileUri || item.resourceUri;
           if (itemUri && itemUri.scheme === 'file') {
-             // Get task scope folder if available
+            // Get task scope folder if available
             let scopeFolder: vscode.WorkspaceFolder | undefined;
             if (task.scope && typeof task.scope !== 'number') {
               scopeFolder = task.scope as vscode.WorkspaceFolder;
@@ -236,7 +236,7 @@ export class TaskCacheService {
 
             // validation for relative paths. If defPath is relative, and we have a scope, resolve it.
             if (!path.isAbsolute(defPath) && scopeFolder) {
-               defPathNorm = vscode.Uri.joinPath(scopeFolder.uri, defPath).fsPath.toLowerCase();
+              defPathNorm = vscode.Uri.joinPath(scopeFolder.uri, defPath).fsPath.toLowerCase();
             }
 
             const itemPathNorm = itemUri.fsPath.toLowerCase();
