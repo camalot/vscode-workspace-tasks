@@ -219,7 +219,7 @@ export class TaskCacheService {
 
         // If definition has path, ensure it matches item resourceUri
         let pathMatch = true;
-        
+
         // Skip path checking for 'vscode' tasks (tasks.json) because their definition path
         // reflects the CWD/script location, not the definition file (tasks.json)
         if (defPath && item.taskType !== 'vscode') {
