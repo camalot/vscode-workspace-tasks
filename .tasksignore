@@ -1,3 +1,4 @@
 sample/**
 .vscode-test/**
 .github/workflows/release.yml
+src/test/task-files

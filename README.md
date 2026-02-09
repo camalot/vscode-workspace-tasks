@@ -64,6 +64,17 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 3. Search for "Workspace Tasks"
 4. Click **Install**
 
+[Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+
+### From Open VSX
+
+1. Open Editor (example: Cursor)
+2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "Workspace Tasks"
+4. Click **Install**
+
+[Open VSX Registry](https://open-vsx.org/extension/darthminos/workspace-tasks)
+
 ### From Command Line
 
 ```bash
@@ -72,7 +83,7 @@ code --install-extension darthminos.workspace-tasks
 
 ### Requirements
 
-- **Visual Studio Code** 1.108.1 or later
+- **Visual Studio Code** 1.105.1 or later
 - **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
 
 ## 🛠️ Supported Task Types
