@@ -20,6 +20,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     if (!this.enabled) {
       return [];
     }
+    this.addedTasks.clear();
     const tasks: TaskItem[] = await this.getSystemTasks();
     const files = await this.filesService.findFiles([constants.GLOB_VSCODE]);
 

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { TaskItem } from '../taskItem';
 import { TaskProvider } from '../taskProvider';
 import { LoggerService } from './loggerService';
@@ -195,5 +196,120 @@ export class TaskCacheService {
 
   public getAllTasks(): TaskItem[] {
     return this.allTasks;
+  }
+
+  public findMatchingTask(task: vscode.Task): TaskItem | undefined {
+    const allTasks = this.getAllTasks();
+
+    // Extract definition name (task, script, or target) depending on type
+    const def = task.definition as any;
+    const defName = def.task || def.script || def.target;
+    // path added for github-actions to be specific
+    const defPath = def.path;
+
+    // Helper to collect matching candidates recursively
+    const candidates: TaskItem[] = [];
+    const visit = (items: TaskItem[]) => {
+      for (const item of items) {
+        const labelMatch = item.label === task.name || (item.originalLabel && item.originalLabel === task.name);
+        // Handle metadata.systemTaskName which stores original "script - path" names
+        const metaMatch = item.metadata && item.metadata.systemTaskName === task.name;
+        // Also match against definition name if available (more reliable than UI name)
+        const defMatch = defName && (item.label === defName || (item.originalLabel && item.originalLabel === defName));
+
+        // If definition has path, ensure it matches item resourceUri
+        let pathMatch = true;
+
+        // Skip path checking for 'vscode' tasks (tasks.json) because their definition path
+        // reflects the CWD/script location, not the definition file (tasks.json)
+        if (defPath && item.taskType !== 'vscode') {
+          const itemUri = item.taskFileUri || item.resourceUri;
+          if (itemUri && itemUri.scheme === 'file') {
+            // Get task scope folder if available
+            let scopeFolder: vscode.WorkspaceFolder | undefined;
+            if (task.scope && typeof task.scope !== 'number') {
+              scopeFolder = task.scope as vscode.WorkspaceFolder;
+            }
+
+            // Normalize paths for comparison (handle windows/unix separators and casing)
+            let defPathNorm = vscode.Uri.file(defPath).fsPath.toLowerCase();
+
+            // validation for relative paths. If defPath is relative, and we have a scope, resolve it.
+            if (!path.isAbsolute(defPath) && scopeFolder) {
+              defPathNorm = vscode.Uri.joinPath(scopeFolder.uri, defPath).fsPath.toLowerCase();
+            }
+
+            const itemPathNorm = itemUri.fsPath.toLowerCase();
+            const itemDirNorm = path.dirname(itemPathNorm);
+
+            // Match exact file path OR directory of the item (some tasks use folder scope)
+            if (defPathNorm !== itemPathNorm && defPathNorm !== itemDirNorm) {
+              pathMatch = false;
+            }
+          }
+        }
+
+        if ((labelMatch || defMatch || metaMatch) && pathMatch) {
+          candidates.push(item);
+        }
+        if (item.children && item.children.length > 0) {
+          visit(item.children); // Recurse
+        }
+      }
+    };
+    visit(allTasks);
+
+    if (candidates.length === 0) {
+      return undefined;
+    }
+
+    const defType =
+      task.definition && (task.definition as any).type ? ((task.definition as any).type as string) : undefined;
+    const taskSource = (task as any).source as string | undefined;
+    const taskScopeFolder =
+      task.scope && typeof task.scope !== 'number' && (task.scope as vscode.WorkspaceFolder).uri
+        ? (task.scope as vscode.WorkspaceFolder).uri.toString()
+        : undefined;
+
+    // 1) Exact type match (preferred)
+    if (defType) {
+      const exact = candidates.find((item) => item.taskType === defType);
+      if (exact) {
+        return exact;
+      }
+    }
+
+    // 2) Workspace-declared tasks
+    if (defType === 'workspace-task') {
+      const ws = candidates.find((item) => !!item.taskSource);
+      if (ws) {
+        return ws;
+      }
+    }
+
+    // 3) Visual Studio Code declared tasks
+    if (taskSource === 'Workspace') {
+      const vs = candidates.find((item) => item.taskType === 'vscode');
+      if (vs) {
+        return vs;
+      }
+    }
+
+    // 4) Match by workspace folder if available
+    if (taskScopeFolder) {
+      const byFolder = candidates.find((item) => {
+        if (!item.resourceUri) {
+          return false;
+        }
+        const itemFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
+        return itemFolder?.uri.toString() === taskScopeFolder;
+      });
+      if (byFolder) {
+        return byFolder;
+      }
+    }
+
+    // 5) Fallback to first candidate
+    return candidates[0];
   }
 }

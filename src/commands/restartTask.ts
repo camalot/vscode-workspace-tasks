@@ -13,6 +13,7 @@ export class RestartTaskCommand extends BaseCommand {
     const id = TaskStateManager.getInstance().getTaskId(item);
     const execution = TaskStateManager.getInstance().getExecution(id);
     if (execution) {
+      TaskStateManager.getInstance().markTerminated(id);
       execution.terminate();
       // Wait a moment to ensure termination
       setTimeout(() => {

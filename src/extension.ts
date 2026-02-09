@@ -39,6 +39,31 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const resetTimers = new Map<string, NodeJS.Timeout>();
 
+  const scheduleStatusReset = (id: string) => {
+    // Clear any existing reset timer for this task
+    if (resetTimers.has(id)) {
+      clearTimeout(resetTimers.get(id)!);
+      resetTimers.delete(id);
+    }
+
+    const stateManager = TaskStateManager.getInstance();
+    const delay = configuration.get<number>('task.statusResetDelay', 500);
+    if (delay > 0) {
+      const timer = setTimeout(() => {
+        // Double check status hasn't changed to running in the meantime
+        if (stateManager.getStatus(id) !== 'running') {
+          stateManager.setStatus(id, 'idle');
+          taskTreeDataProvider.refreshLocal();
+        }
+        resetTimers.delete(id);
+      }, delay);
+      resetTimers.set(id, timer);
+    } else {
+      stateManager.setStatus(id, 'idle');
+      taskTreeDataProvider.refreshLocal();
+    }
+  };
+
   // Set up context keys for filtered tasks feature
   const updateFilteredTasksContext = () => {
     const filteredService = FilteredTaskService.getInstance();
@@ -117,6 +142,27 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Task Events
   context.subscriptions.push(
+    vscode.tasks.onDidStartTask((e) => {
+      const stateManager = TaskStateManager.getInstance();
+      const task = e.execution.task;
+      const item = TaskCacheService.getInstance().findMatchingTask(task);
+      if (item) {
+        const id = stateManager.getTaskId(item);
+        if (id) {
+          stateManager.setExecution(id, e.execution);
+          stateManager.setStatus(id, 'running');
+          taskTreeDataProvider.refreshLocal();
+
+          if (resetTimers.has(id)) {
+            clearTimeout(resetTimers.get(id)!);
+            resetTimers.delete(id);
+          }
+        }
+      }
+    }),
+  );
+
+  context.subscriptions.push(
     vscode.tasks.onDidEndTaskProcess((e) => {
       const stateManager = TaskStateManager.getInstance();
       const id = stateManager.getIdByExecution(e.execution);
@@ -126,27 +172,7 @@ export async function activate(context: vscode.ExtensionContext) {
         stateManager.clearExecution(id);
         taskTreeDataProvider.refreshLocal();
 
-        // Clear any existing reset timer for this task
-        if (resetTimers.has(id)) {
-          clearTimeout(resetTimers.get(id)!);
-          resetTimers.delete(id);
-        }
-
-        const delay = configuration.get<number>('task.statusResetDelay', 500);
-        if (delay > 0) {
-          const timer = setTimeout(() => {
-            // Double check status hasn't changed to running in the meantime
-            if (stateManager.getStatus(id) !== 'running') {
-              stateManager.setStatus(id, 'idle');
-              taskTreeDataProvider.refreshLocal();
-            }
-            resetTimers.delete(id);
-          }, delay);
-          resetTimers.set(id, timer);
-        } else {
-          stateManager.setStatus(id, 'idle');
-          taskTreeDataProvider.refreshLocal();
-        }
+        scheduleStatusReset(id);
       }
     }),
   );
@@ -162,31 +188,16 @@ export async function activate(context: vscode.ExtensionContext) {
         // Only act if the task is still marked as running.
         // If it was a process task, status would be 'success' or 'failure' by now.
         if (stateManager.getStatus(id) === 'running') {
-          stateManager.setStatus(id, 'success');
+          if (stateManager.isTerminated(id)) {
+            stateManager.setStatus(id, 'idle');
+            stateManager.clearTerminated(id);
+          } else {
+            stateManager.setStatus(id, 'success');
+          }
           stateManager.clearExecution(id);
           taskTreeDataProvider.refreshLocal();
 
-          // Clear any existing reset timer for this task
-          if (resetTimers.has(id)) {
-            clearTimeout(resetTimers.get(id)!);
-            resetTimers.delete(id);
-          }
-
-          const delay = configuration.get<number>('task.statusResetDelay', 500);
-          if (delay > 0) {
-            const timer = setTimeout(() => {
-              // Double check status hasn't changed to running in the meantime
-              if (stateManager.getStatus(id) !== 'running') {
-                stateManager.setStatus(id, 'idle');
-                taskTreeDataProvider.refreshLocal();
-              }
-              resetTimers.delete(id);
-            }, delay);
-            resetTimers.set(id, timer);
-          } else {
-            stateManager.setStatus(id, 'idle');
-            taskTreeDataProvider.refreshLocal();
-          }
+          scheduleStatusReset(id);
         }
       }
     }),
