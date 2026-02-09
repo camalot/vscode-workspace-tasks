@@ -149,6 +149,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (item) {
         const id = stateManager.getTaskId(item);
         if (id) {
+          stateManager.clearTerminated(id); // Clear any terminated state if task is restarting
           stateManager.setExecution(id, e.execution);
           stateManager.setStatus(id, 'running');
           taskTreeDataProvider.refreshLocal();
