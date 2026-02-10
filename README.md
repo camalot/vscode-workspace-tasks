@@ -308,7 +308,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 - **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
 - **Sortable Columns** - Click any column header to sort tasks by that field
 - **Comprehensive Details** - View status, type, task name, source path, timestamp, exit code, and execution time
-- **Status Indicators** - Color-coded status badges for quick identification
+- **Status Indicators** - Color-coded status labels/icons for quick identification
   - 🟢 Success - Task completed successfully
   - 🔴 Failed - Task exited with an error
   - 🔵 Running - Task is currently executing
