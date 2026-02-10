@@ -32,6 +32,19 @@
   "command.hideHiddenTasks": "Hide Hidden Tasks",
   "command.resetFilteredTasks": "Reset Hidden Tasks",
 
+
+  "command.history.switchTreeView": "View as Tree",
+  "command.history.switchTableView": "View as Table",
+  "command.history.clear": "Clear History",
+  "command.history.enableFilterRunning": "Running",
+  "command.history.disableFilterRunning": "Running ✓",
+  "command.history.enableFilterSuccess": "Success",
+  "command.history.disableFilterSuccess": "Success ✓",
+  "command.history.enableFilterFailed": "Failed",
+  "command.history.disableFilterFailed": "Failed ✓",
+  "command.history.enableFilterTerminated": "Terminated",
+  "command.history.disableFilterTerminated": "Terminated ✓",
+
   "tree.favorites": "Favorites",
   "tree.queue": "Queue",
   "tree.tasks": "Tasks",

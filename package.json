@@ -281,45 +281,50 @@
       },
       {
         "command": "workspaceTasks.history.clear",
-        "title": "Clear History",
+        "title": "%command.history.clear%",
         "icon": "$(clear-all)"
       },
       {
-        "command": "workspaceTasks.history.switchView",
-        "title": "Switch View",
+        "command": "workspaceTasks.history.switchTreeView",
+        "title": "%command.history.switchTreeView%",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "workspaceTasks.history.switchTableView",
+        "title": "%command.history.switchTableView%",
         "icon": "$(list-flat)"
       },
       {
         "command": "workspaceTasks.history.enableFilterRunning",
-        "title": "⨯ Running"
+        "title": "%command.history.enableFilterRunning%"
       },
       {
         "command": "workspaceTasks.history.disableFilterRunning",
-        "title": "✓ Running"
+        "title": "%command.history.disableFilterRunning%"
       },
       {
         "command": "workspaceTasks.history.enableFilterSuccess",
-        "title": "⨯ Success"
+        "title": "%command.history.enableFilterSuccess%"
       },
       {
         "command": "workspaceTasks.history.disableFilterSuccess",
-        "title": "✓ Success"
+        "title": "%command.history.disableFilterSuccess%"
       },
       {
         "command": "workspaceTasks.history.enableFilterFailed",
-        "title": "⨯ Failed"
+        "title": "%command.history.enableFilterFailed%"
       },
       {
         "command": "workspaceTasks.history.disableFilterFailed",
-        "title": "✓ Failed"
+        "title": "%command.history.disableFilterFailed%"
       },
       {
         "command": "workspaceTasks.history.enableFilterTerminated",
-        "title": "Terminated"
+        "title": "%command.history.enableFilterTerminated%"
       },
       {
         "command": "workspaceTasks.history.disableFilterTerminated",
-        "title": "✓ Terminated"
+        "title": "%command.history.disableFilterTerminated%"
       },
       {
         "command": "workspaceTasks.runTaskWithArgs",
@@ -1037,17 +1042,13 @@
           "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
         },
         {
-          "command": "workspaceTasks.history.switchView",
+          "command": "workspaceTasks.history.switchTableView",
           "group": "navigation@2",
-          "title": "View as Table",
-          "icon": "$(list-flat)",
           "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'tree'"
         },
         {
-          "command": "workspaceTasks.history.switchView",
+          "command": "workspaceTasks.history.switchTreeView",
           "group": "navigation@2",
-          "title": "View as Tree",
-          "icon": "$(list-tree)",
           "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'table'"
         },
         {
@@ -1056,10 +1057,8 @@
           "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
         },
         {
-          "command": "workspaceTasks.history.switchView",
+          "command": "workspaceTasks.history.switchTreeView",
           "group": "navigation@2",
-          "title": "View as Tree",
-          "icon": "$(list-tree)",
           "when": "view == workspaceTasksHistoryWebView"
         },
         {

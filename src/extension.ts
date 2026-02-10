@@ -39,7 +39,8 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     historyTreeView,
     vscode.commands.registerCommand('workspaceTasks.history.clear', () => taskHistoryTreeDataProvider.clear()),
-    vscode.commands.registerCommand('workspaceTasks.history.switchView', () => taskHistoryTreeDataProvider.toggleViewMode()),
+    vscode.commands.registerCommand('workspaceTasks.history.switchTreeView', () => taskHistoryTreeDataProvider.toggleViewMode()),
+    vscode.commands.registerCommand('workspaceTasks.history.switchTableView', () => taskHistoryTreeDataProvider.toggleViewMode()),
     vscode.commands.registerCommand('workspaceTasks.history.enableFilterRunning', () => taskHistoryTreeDataProvider.toggleFilter('Running')),
     vscode.commands.registerCommand('workspaceTasks.history.disableFilterRunning', () => taskHistoryTreeDataProvider.toggleFilter('Running')),
     vscode.commands.registerCommand('workspaceTasks.history.enableFilterSuccess', () => taskHistoryTreeDataProvider.toggleFilter('Success')),
