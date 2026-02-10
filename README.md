@@ -275,7 +275,7 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 
 ## 🕰️ Task History
 
-Track and review all task executions with comprehensive history views. Task History provides both a tree view and webview panel for monitoring task execution status, timing, and results.
+Track and review all task executions with comprehensive history views. Task History provides both a tree view and table panel for monitoring task execution status, timing, and results.
 
 ### Tree View
 
@@ -292,7 +292,7 @@ The Task History tree view provides a hierarchical, filterable view of all execu
 
 **How to Use:**
 
-1. Open the Task History view from the Explorer panel
+1. Open the Task History  in the Panel View
 2. Use the filter buttons in the title bar to show/hide specific statuses
 3. Click on any task item to view more details
 4. Right-click for additional options (clear history, etc.)
@@ -301,7 +301,7 @@ The Task History tree view provides a hierarchical, filterable view of all execu
 
 The Task History Table View provides a tabular, sortable view of all task executions with detailed information.
 
-![Task History Webview](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-webview.png)
+![Task History Table](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-webview.png)
 
 **Features:**
 
@@ -318,7 +318,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 **How to Use:**
 
-1. Open the Task History webview from the Explorer panel or sidebar
+1. Open the Task History in the Panel View and choose 'View as Table'
 2. Click column headers to sort by that field (click again to reverse order)
 3. Review detailed execution information including exact timestamps and durations
 4. Use the scrollable view to review extensive task history

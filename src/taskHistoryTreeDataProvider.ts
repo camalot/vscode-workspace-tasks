@@ -6,7 +6,7 @@ export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<Hist
   readonly onDidChangeTreeData: vscode.Event<HistoryItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
   private service: TaskHistoryService;
-  private viewMode: 'tree' | 'webview' = 'tree';
+  private viewMode: 'tree' | 'table' = 'tree';
 
   constructor(context: vscode.ExtensionContext) {
     this.service = TaskHistoryService.getInstance();
@@ -28,12 +28,12 @@ export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<Hist
   }
 
   public async toggleViewMode() {
-    this.viewMode = this.viewMode === 'tree' ? 'webview' : 'tree';
+    this.viewMode = this.viewMode === 'tree' ? 'table' : 'tree';
     await vscode.commands.executeCommand('setContext', 'workspaceTasks.history.viewMode', this.viewMode);
     this.refresh();
 
-    if (this.viewMode === 'webview') {
-      vscode.commands.executeCommand('workspaceTasksHistoryWebView.focus');
+    if (this.viewMode === 'table') {
+      vscode.commands.executeCommand('workspaceTasksHistoryTableView.focus');
     } else {
       vscode.commands.executeCommand('workspaceTasksHistoryView.focus');
     }

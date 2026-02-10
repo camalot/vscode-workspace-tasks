@@ -3,8 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TaskHistoryService, ITaskExecutionRecord } from './services/taskHistoryService';
 
-export class TaskHistoryWebviewViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = 'workspaceTasksHistoryWebView';
+export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider {
+  public static readonly viewType = 'workspaceTasksHistoryTableView';
 
   private _view?: vscode.WebviewView;
 

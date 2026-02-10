@@ -13,7 +13,7 @@ import { QueueService } from './services/queueService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
-import { TaskHistoryWebviewViewProvider } from './taskHistoryWebviewViewProvider';
+import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
 import { loadCommands } from './commands/index';
 import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
@@ -31,9 +31,9 @@ export async function activate(context: vscode.ExtensionContext) {
     showCollapseAll: true
   });
 
-  const taskHistoryWebviewViewProvider = new TaskHistoryWebviewViewProvider(context.extensionUri);
+  const taskHistoryTableViewProvider = new TaskHistoryTableViewProvider(context.extensionUri);
   context.subscriptions.push(
-      vscode.window.registerWebviewViewProvider(TaskHistoryWebviewViewProvider.viewType, taskHistoryWebviewViewProvider)
+      vscode.window.registerWebviewViewProvider(TaskHistoryTableViewProvider.viewType, taskHistoryTableViewProvider)
   );
 
   context.subscriptions.push(

@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -206,11 +206,11 @@
           "when": "workspaceTasks.history.viewMode == 'tree'"
         },
         {
-          "id": "workspaceTasksHistoryWebView",
+          "id": "workspaceTasksHistoryTableView",
           "name": "Task History",
           "type": "webview",
           "icon": "res/icon.svg",
-          "when": "workspaceTasks.history.viewMode == 'webview'"
+          "when": "workspaceTasks.history.viewMode == 'table'"
         }
       ],
       "workspace-tasks": [
@@ -1039,7 +1039,7 @@
         {
           "command": "workspaceTasks.history.clear",
           "group": "navigation@1",
-          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
+          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryTableView"
         },
         {
           "command": "workspaceTasks.history.switchTableView",
@@ -1054,12 +1054,12 @@
         {
           "submenu": "workspaceTasks.history.filter",
           "group": "navigation@3",
-          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
+          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryTableView"
         },
         {
           "command": "workspaceTasks.history.switchTreeView",
           "group": "navigation@2",
-          "when": "view == workspaceTasksHistoryWebView"
+          "when": "view == workspaceTasksHistoryTableView"
         },
         {
           "command": "workspaceTasks.githubIssues",
