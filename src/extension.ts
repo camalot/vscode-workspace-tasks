@@ -12,6 +12,8 @@ import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
+import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
+import { TaskHistoryWebviewViewProvider } from './taskHistoryWebviewViewProvider';
 import { loadCommands } from './commands/index';
 import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
@@ -22,6 +24,32 @@ export async function activate(context: vscode.ExtensionContext) {
   logger.debug('Workspace Tasks extension activating...');
   ExtensionConfigurationService.getInstance().initialize(context);
   TaskStateManager.getInstance().initialize(context);
+
+  const taskHistoryTreeDataProvider = new TaskHistoryTreeDataProvider(context);
+  const historyTreeView = vscode.window.createTreeView('workspaceTasksHistoryView', {
+    treeDataProvider: taskHistoryTreeDataProvider,
+    showCollapseAll: true
+  });
+
+  const taskHistoryWebviewViewProvider = new TaskHistoryWebviewViewProvider(context.extensionUri);
+  context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(TaskHistoryWebviewViewProvider.viewType, taskHistoryWebviewViewProvider)
+  );
+
+  context.subscriptions.push(
+    historyTreeView,
+    vscode.commands.registerCommand('workspaceTasks.history.clear', () => taskHistoryTreeDataProvider.clear()),
+    vscode.commands.registerCommand('workspaceTasks.history.switchTreeView', () => taskHistoryTreeDataProvider.toggleViewMode()),
+    vscode.commands.registerCommand('workspaceTasks.history.switchTableView', () => taskHistoryTreeDataProvider.toggleViewMode()),
+    vscode.commands.registerCommand('workspaceTasks.history.enableFilterRunning', () => taskHistoryTreeDataProvider.toggleFilter('Running')),
+    vscode.commands.registerCommand('workspaceTasks.history.disableFilterRunning', () => taskHistoryTreeDataProvider.toggleFilter('Running')),
+    vscode.commands.registerCommand('workspaceTasks.history.enableFilterSuccess', () => taskHistoryTreeDataProvider.toggleFilter('Success')),
+    vscode.commands.registerCommand('workspaceTasks.history.disableFilterSuccess', () => taskHistoryTreeDataProvider.toggleFilter('Success')),
+    vscode.commands.registerCommand('workspaceTasks.history.enableFilterFailed', () => taskHistoryTreeDataProvider.toggleFilter('Failed')),
+    vscode.commands.registerCommand('workspaceTasks.history.disableFilterFailed', () => taskHistoryTreeDataProvider.toggleFilter('Failed')),
+    vscode.commands.registerCommand('workspaceTasks.history.enableFilterTerminated', () => taskHistoryTreeDataProvider.toggleFilter('Terminated')),
+    vscode.commands.registerCommand('workspaceTasks.history.disableFilterTerminated', () => taskHistoryTreeDataProvider.toggleFilter('Terminated'))
+  );
   await TaskFilesService.getInstance().initialize(context);
   TaskCacheService.getInstance().initialize(context);
   TaskIconService.getInstance().initialize(context);
@@ -32,6 +60,8 @@ export async function activate(context: vscode.ExtensionContext) {
   FilteredTaskService.getInstance().initialize(context);
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   await taskTreeDataProvider.initialize(context);
+
+
 
   // Register FileDecorationProvider for dimming filtered tasks
   const decorationProvider = new FilteredTaskDecorationProvider();
@@ -149,6 +179,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (item) {
         const id = stateManager.getTaskId(item);
         if (id) {
+          stateManager.clearTerminated(id); // Clear any terminated state if task is restarting
           stateManager.setExecution(id, e.execution);
           stateManager.setStatus(id, 'running');
           taskTreeDataProvider.refreshLocal();

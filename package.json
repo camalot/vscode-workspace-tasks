@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -188,9 +188,31 @@
           "title": "Workspace Tasks",
           "icon": "res/icon.svg"
         }
+      ],
+      "panel": [
+        {
+          "id": "workspaceTasksHistory",
+          "title": "Task History",
+          "icon": "res/icon.svg"
+        }
       ]
     },
     "views": {
+      "workspaceTasksHistory": [
+        {
+          "id": "workspaceTasksHistoryView",
+          "name": "Task History",
+          "icon": "res/icon.svg",
+          "when": "workspaceTasks.history.viewMode == 'tree'"
+        },
+        {
+          "id": "workspaceTasksHistoryWebView",
+          "name": "Task History",
+          "type": "webview",
+          "icon": "res/icon.svg",
+          "when": "workspaceTasks.history.viewMode == 'webview'"
+        }
+      ],
       "workspace-tasks": [
         {
           "id": "workspaceTasksView",
@@ -256,6 +278,53 @@
         "command": "workspaceTasks.runTask",
         "title": "%command.runTask%",
         "icon": "$(debug-start)"
+      },
+      {
+        "command": "workspaceTasks.history.clear",
+        "title": "%command.history.clear%",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "workspaceTasks.history.switchTreeView",
+        "title": "%command.history.switchTreeView%",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "workspaceTasks.history.switchTableView",
+        "title": "%command.history.switchTableView%",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterRunning",
+        "title": "%command.history.enableFilterRunning%"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterRunning",
+        "title": "%command.history.disableFilterRunning%"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterSuccess",
+        "title": "%command.history.enableFilterSuccess%"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterSuccess",
+        "title": "%command.history.disableFilterSuccess%"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterFailed",
+        "title": "%command.history.enableFilterFailed%"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterFailed",
+        "title": "%command.history.disableFilterFailed%"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterTerminated",
+        "title": "%command.history.enableFilterTerminated%"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterTerminated",
+        "title": "%command.history.disableFilterTerminated%"
       },
       {
         "command": "workspaceTasks.runTaskWithArgs",
@@ -958,8 +1027,40 @@
         }
       }
     },
+    "submenus": [
+      {
+        "id": "workspaceTasks.history.filter",
+        "label": "Filter",
+        "icon": "$(filter)"
+      }
+    ],
     "menus": {
       "view/title": [
+        {
+          "command": "workspaceTasks.history.clear",
+          "group": "navigation@1",
+          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
+        },
+        {
+          "command": "workspaceTasks.history.switchTableView",
+          "group": "navigation@2",
+          "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'tree'"
+        },
+        {
+          "command": "workspaceTasks.history.switchTreeView",
+          "group": "navigation@2",
+          "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'table'"
+        },
+        {
+          "submenu": "workspaceTasks.history.filter",
+          "group": "navigation@3",
+          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
+        },
+        {
+          "command": "workspaceTasks.history.switchTreeView",
+          "group": "navigation@2",
+          "when": "view == workspaceTasksHistoryWebView"
+        },
         {
           "command": "workspaceTasks.githubIssues",
           "group": "navigation@1",
@@ -1004,6 +1105,48 @@
           "command": "workspaceTasks.resetFilteredTasks",
           "group": "z_filter_reset@7",
           "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
+        }
+      ],
+      "workspaceTasks.history.filter": [
+        {
+          "command": "workspaceTasks.history.enableFilterRunning",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showRunning"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterRunning",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showRunning"
+        },
+        {
+          "command": "workspaceTasks.history.enableFilterSuccess",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showSuccess"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterSuccess",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showSuccess"
+        },
+        {
+          "command": "workspaceTasks.history.enableFilterFailed",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showFailed"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterFailed",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showFailed"
+        },
+        {
+          "command": "workspaceTasks.history.enableFilterTerminated",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showTerminated"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterTerminated",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showTerminated"
         }
       ],
       "view/item/context": [

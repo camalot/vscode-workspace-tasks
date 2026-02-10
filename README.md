@@ -24,6 +24,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [⭐ Favorites](#-favorites)
 - [📋 Task Queues](#-task-queues)
 - [🙈 Hide Tasks & Groups](#-hide-tasks--groups)
+- [🕰️ Task History](#-task-history)
 - [⚙️ Configuration](#️-configuration)
   - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
   - [GitHub Actions Integration](#github-actions-integration)
@@ -271,6 +272,64 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 - Temporarily removing test or build tasks from view
 - Focusing on specific task categories during development
 - Cleaning up the task tree without permanently removing tasks
+
+## 🕰️ Task History
+
+Track and review all task executions with comprehensive history views. Task History provides both a tree view and webview panel for monitoring task execution status, timing, and results.
+
+### Tree View
+
+The Task History tree view provides a hierarchical, filterable view of all executed tasks.
+
+![Task History Tree View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-treeview.png)
+
+**Features:**
+
+- **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
+- **Hierarchical Organization** - Tasks grouped by status for easy navigation
+- **Task Details** - View task name, source, and execution time
+- **Quick Access** - Click to view full execution details
+- **Real-time Updates** - Automatically updates as tasks complete
+
+**How to Use:**
+
+1. Open the Task History view from the Explorer panel
+2. Use the filter buttons in the title bar to show/hide specific statuses
+3. Click on any task item to view more details
+4. Right-click for additional options (clear history, etc.)
+
+### Table View
+
+The Task History Table View provides a tabular, sortable view of all task executions with detailed information.
+
+![Task History Webview](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-webview.png)
+
+**Features:**
+
+- **Sortable Columns** - Click any column header to sort tasks by that field
+- **Comprehensive Details** - View status, type, task name, source path, timestamp, exit code, and execution time
+- **Status Indicators** - Color-coded status badges for quick identification
+  - 🟢 Success - Task completed successfully
+  - 🔴 Failed - Task exited with an error
+  - 🔵 Running - Task is currently executing
+  - 🟠 Terminated - Task was stopped manually
+- **Persistent View** - History persists across Visual Studio Code sessions
+- **Multi-column Sorting** - Sort by any column in ascending or descending order
+
+**How to Use:**
+
+1. Open the Task History webview from the Explorer panel or sidebar
+2. Click column headers to sort by that field (click again to reverse order)
+3. Review detailed execution information including exact timestamps and durations
+4. Use the scrollable view to review extensive task history
+
+**Perfect For:**
+
+- Debugging task failures by reviewing exit codes and execution times
+- Monitoring build and deployment pipeline status
+- Tracking task performance over time
+- Auditing task executions in CI/CD workflows
+- Identifying patterns in task failures or long-running tasks
 
 ## 🚀 Quick Start
 

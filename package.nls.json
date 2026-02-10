@@ -32,6 +32,19 @@
   "command.hideHiddenTasks": "Hide Hidden Tasks",
   "command.resetFilteredTasks": "Reset Hidden Tasks",
 
+
+  "command.history.switchTreeView": "View as Tree",
+  "command.history.switchTableView": "View as Table",
+  "command.history.clear": "Clear History",
+  "command.history.enableFilterRunning": "Running",
+  "command.history.disableFilterRunning": "Running ✓",
+  "command.history.enableFilterSuccess": "Success",
+  "command.history.disableFilterSuccess": "Success ✓",
+  "command.history.enableFilterFailed": "Failed",
+  "command.history.disableFilterFailed": "Failed ✓",
+  "command.history.enableFilterTerminated": "Terminated",
+  "command.history.disableFilterTerminated": "Terminated ✓",
+
   "tree.favorites": "Favorites",
   "tree.queue": "Queue",
   "tree.tasks": "Tasks",
@@ -56,6 +69,7 @@
   "config.workspaceTasks.enabledTaskTypes.markdown": "Choose the task types (e.g., npm, script, makefile) that the extension will recognize and show in the task list.",
 
   "config.workspaceTasks.enabledTaskTypes.ant": "Ant",
+  "config.workspaceTasks.enabledTaskTypes.bun": "Bun",
   "config.workspaceTasks.enabledTaskTypes.composer": "Composer",
   "config.workspaceTasks.enabledTaskTypes.deno": "Deno",
   "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
