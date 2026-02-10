@@ -36,6 +36,9 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.registerWebviewViewProvider(TaskHistoryTableViewProvider.viewType, taskHistoryTableViewProvider)
   );
 
+  // Initialize the view based on persisted preference
+  await taskHistoryTreeDataProvider.initializeView();
+
   context.subscriptions.push(
     historyTreeView,
     vscode.commands.registerCommand('workspaceTasks.history.clear', () => taskHistoryTreeDataProvider.clear()),

@@ -2,15 +2,22 @@ import * as vscode from 'vscode';
 import { TaskHistoryService, ITaskHistoryGroup, ITaskExecutionRecord } from './services/taskHistoryService';
 
 export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<HistoryItem> {
+  private static readonly VIEW_MODE_KEY = 'workspaceTasks.history.viewMode';
   private _onDidChangeTreeData: vscode.EventEmitter<HistoryItem | undefined | null | void> = new vscode.EventEmitter<HistoryItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<HistoryItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
   private service: TaskHistoryService;
-  private viewMode: 'tree' | 'table' = 'tree';
+  private viewMode: 'tree' | 'table' = 'table';
+  private context: vscode.ExtensionContext;
 
   constructor(context: vscode.ExtensionContext) {
+    this.context = context;
     this.service = TaskHistoryService.getInstance();
     this.service.initialize(context);
+
+    // Load persisted view mode (default to 'table')
+    this.viewMode = context.globalState.get<'tree' | 'table'>(TaskHistoryTreeDataProvider.VIEW_MODE_KEY, 'table');
+
     this.service.onDidChange(() => {
       this.updateContextKeys();
       this.refresh();
@@ -29,9 +36,23 @@ export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<Hist
 
   public async toggleViewMode() {
     this.viewMode = this.viewMode === 'tree' ? 'table' : 'tree';
+
+    // Persist the view mode
+    await this.context.globalState.update(TaskHistoryTreeDataProvider.VIEW_MODE_KEY, this.viewMode);
+
     await vscode.commands.executeCommand('setContext', 'workspaceTasks.history.viewMode', this.viewMode);
     this.refresh();
 
+    if (this.viewMode === 'table') {
+      vscode.commands.executeCommand('workspaceTasksHistoryTableView.focus');
+    } else {
+      vscode.commands.executeCommand('workspaceTasksHistoryView.focus');
+    }
+  }
+
+  public async initializeView() {
+    // Focus the appropriate view based on persisted mode
+    await vscode.commands.executeCommand('setContext', 'workspaceTasks.history.viewMode', this.viewMode);
     if (this.viewMode === 'table') {
       vscode.commands.executeCommand('workspaceTasksHistoryTableView.focus');
     } else {
