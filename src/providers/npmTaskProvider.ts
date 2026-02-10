@@ -190,6 +190,7 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
 
   constructor() {
     super('bun', constants.GLOB_NODEJS);
+    this.logger.debug('BunTaskProvider initialized');
   }
 
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {

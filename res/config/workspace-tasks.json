@@ -162,6 +162,58 @@
       }
     ]
   },
+  "bun": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "**/package.json"
+      ]
+    },
+    "tasks": [
+      {
+        "label": "bun:install",
+        "type": "bun",
+        "command": "bun install",
+        "group": "bun",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "bun:build",
+        "type": "bun",
+        "command": "bun build",
+        "group": "build",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "bun:test",
+        "type": "bun",
+        "command": "bun test",
+        "group": "test",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
   "npm": {
     "version": "2.0.0",
     "globs": {

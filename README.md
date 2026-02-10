@@ -97,6 +97,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/npm.png" width="32" alt="npm" title="npm"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/yarn.png" width="32" alt="Yarn" title="Yarn"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pnpm.png" width="32" alt="pnpm" title="pnpm"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/bun.png" width="32" alt="Bun" title="Bun"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/composer.png" width="32" alt="Composer" title="Composer"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pipenv.png" width="32" alt="Pipenv" title="Pipenv"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
@@ -107,6 +108,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[npm](https://www.npmjs.com/)** - Scripts from `package.json`
 - **[Yarn](https://yarnpkg.com/)** - Scripts from `package.json`
 - **[pnpm](https://pnpm.io/)** - Scripts from `package.json`
+- **[Bun](https://bun.com/)** - Scripts from `package.json` via `bun run <script>`, plus built-in `bun:install`, `bun:build`, and `bun:test`
 - **[Composer](https://getcomposer.org/)** - PHP scripts from `composer.json`
 - **[Pipenv](https://pipenv.pypa.io/)** - Python scripts from `Pipfile`
 - **[Apache Ant](https://ant.apache.org/)** - Targets from `*.xml` build files
@@ -133,6 +135,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 
 <p align="left">
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/docker.png" width="32" alt="Docker" title="Docker"/>
 </p>
 
 - **[Docker](https://www.docker.com/)** - Build tasks from `Dockerfile`
@@ -161,7 +164,6 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json`
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
-> [!Note]
 > The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
 
 ## 🌱 Recent Tasks
