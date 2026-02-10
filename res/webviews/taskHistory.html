@@ -2,6 +2,8 @@
 <html>
 
 <head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';">
   <title>Task History</title>
   <style>
     body {
@@ -106,7 +108,7 @@
     </thead>
     <tbody id="table-body"></tbody>
   </table>
-  <script>
+  <script nonce="{{nonce}}">
     const vscode = acquireVsCodeApi();
     let tableData = [];
     let sortKey = null;

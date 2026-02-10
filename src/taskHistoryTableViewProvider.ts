@@ -24,10 +24,10 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
       enableScripts: true,
       localResourceRoots: [
         this._extensionUri
-      ]
+      ],
     };
 
-    webviewView.webview.html = this._getHtmlForWebview();
+    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     const historyService = TaskHistoryService.getInstance();
     const changeListener = historyService.onDidChange(() => {
@@ -89,9 +89,24 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
     return `${(ms / 1000).toFixed(2)}s`;
   }
 
-  private _getHtmlForWebview(): string {
+  private _getHtmlForWebview(webview: vscode.Webview): string {
     const htmlPath = path.join(this._extensionUri.fsPath, 'res', 'webviews', 'taskHistory.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    const nonce = getNonce();
+
+    htmlContent = htmlContent.replace(/{{cspSource}}/g, webview.cspSource);
+    htmlContent = htmlContent.replace(/{{nonce}}/g, nonce);
+
     return htmlContent;
   }
+}
+
+function getNonce() {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 }
