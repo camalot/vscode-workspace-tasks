@@ -1,193 +1,212 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <style>
-      body {
-        font-family: var(--vscode-font-family);
-        padding: 10px;
-        color: var(--vscode-foreground);
-        background-color: var(--vscode-editor-background);
-        cursor: default;
-      }
+<head>
+  <title>Task History</title>
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      padding: 10px;
+      color: var(--vscode-foreground);
+      background-color: var(--vscode-editor-background);
+      cursor: default;
+    }
 
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        font-size: var(--vscode-font-size);
-      }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: var(--vscode-font-size);
+    }
 
-      th, td {
-        text-align: left;
-        padding: 6px 10px;
-        border-bottom: 1px solid var(--vscode-panel-border);
-      }
+    th,
+    td {
+      text-align: left;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--vscode-panel-border);
+    }
 
-      th {
-        background-color: var(--vscode-editorGroupHeader-tabsBackground);
-        color: var(--vscode-editor-foreground);
-        font-weight: 600;
-        position: sticky;
-        top: 0;
-        cursor: pointer;
-        user-select: none;
-      }
+    th {
+      background-color: var(--vscode-editorGroupHeader-tabsBackground);
+      color: var(--vscode-editor-foreground);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      cursor: pointer;
+      user-select: none;
+    }
 
-      th:hover {
-        background-color: var(--vscode-list-hoverBackground);
-      }
+    th:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
 
-      th.sort-asc::after {
-        content: " ▲";
-        font-size: 0.8em;
-      }
+    th.sort-asc::after {
+      content: " ▲";
+      font-size: 0.8em;
+    }
 
-      th.sort-desc::after {
-        content: " ▼";
-        font-size: 0.8em;
-      }
+    th.sort-desc::after {
+      content: " ▼";
+      font-size: 0.8em;
+    }
 
-      tr:hover {
-        background-color: var(--vscode-list-hoverBackground);
-      }
+    tr:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
 
-      .status-running { color: var(--vscode-debugIcon-startForeground); }
-      .status-running::before {
-        content: "🔵 ";
-      }
-      .status-success { color: var(--vscode-testing-iconPassed); }
-      .status-success::before {
-        content: "🟢 ";
-      }
-      .status-failed { color: var(--vscode-testing-iconFailed); }
-      .status-failed::before {
-        content: "🔴 ";
-      }
-      .status-terminated { color: var(--vscode-debugConsole-warningForeground); }
-      .status-terminated::before {
-        content: "🟠 ";
-      }
+    .status-running {
+      color: var(--vscode-debugIcon-startForeground);
+    }
 
-      .time { white-space: nowrap; }
-    </style>
-  </head>
+    .status-running::before {
+      content: "🔵 ";
+    }
 
-  <body>
-    <table id="taskHistoryTable">
-      <thead>
-        <tr>
-          <th data-key="status">Status</th>
-          <th data-key="type">Type</th>
-          <th data-key="task">Task</th>
-          <th data-key="source">Source</th>
-          <th data-key="timestampRaw">Timestamp</th>
-          <th data-key="exitCode">Exit Code</th>
-          <th data-key="durationRaw">Execution Time</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <script>
-      const vscode = acquireVsCodeApi();
-      let tableData = [];
-      let sortKey = null;
-      let sortDirection = 1; // 1 for asc, -1 for desc
+    .status-success {
+      color: var(--vscode-testing-iconPassed);
+    }
 
-      window.addEventListener('message', event => {
-        const message = event.data;
-        if (message.command === 'loadData') {
-           tableData = message.data;
-           renderTable();
+    .status-success::before {
+      content: "🟢 ";
+    }
+
+    .status-failed {
+      color: var(--vscode-testing-iconFailed);
+    }
+
+    .status-failed::before {
+      content: "🔴 ";
+    }
+
+    .status-terminated {
+      color: var(--vscode-debugConsole-warningForeground);
+    }
+
+    .status-terminated::before {
+      content: "🟠 ";
+    }
+
+    .time {
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <table id="task-history-table">
+    <thead>
+      <tr>
+        <th data-key="status">Status</th>
+        <th data-key="type">Type</th>
+        <th data-key="task">Task</th>
+        <th data-key="source">Source</th>
+        <th data-key="timestampRaw">Timestamp</th>
+        <th data-key="exitCode">Exit Code</th>
+        <th data-key="durationRaw">Execution Time</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+  <script>
+    const vscode = acquireVsCodeApi();
+    let tableData = [];
+    let sortKey = null;
+    let sortDirection = 1; // 1 for asc, -1 for desc
+
+    window.addEventListener('message', event => {
+      const message = event.data;
+      if (message.command === 'loadData') {
+        tableData = message.data;
+        renderTable();
+      }
+    });
+
+    // Add click listeners to headers
+    document.querySelectorAll('th[data-key]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.getAttribute('data-key');
+        if (sortKey === key) {
+          sortDirection *= -1;
+        } else {
+          sortKey = key;
+          sortDirection = 1; // Default to ascending on new column
+        }
+        renderTable();
+      });
+    });
+
+    function renderTable() {
+      // Update header classes
+      document.querySelectorAll('th').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (th.getAttribute('data-key') === sortKey) {
+          th.classList.add(sortDirection === 1 ? 'sort-asc' : 'sort-desc');
         }
       });
 
-      // Add click listeners to headers
-      document.querySelectorAll('th[data-key]').forEach(th => {
-        th.addEventListener('click', () => {
-          const key = th.getAttribute('data-key');
-          if (sortKey === key) {
-            sortDirection *= -1;
-          } else {
-            sortKey = key;
-            sortDirection = 1; // Default to ascending on new column
-          }
-          renderTable();
-        });
+      // Sort data
+      const sortedData = [...tableData].sort((a, b) => {
+        if (!sortKey) return 0;
+
+        let valA = a[sortKey];
+        let valB = b[sortKey];
+
+        // Handle undefined/nulls
+        if (valA === undefined || valA === null) valA = '';
+        if (valB === undefined || valB === null) valB = '';
+
+        if (valA < valB) return -1 * sortDirection;
+        if (valA > valB) return 1 * sortDirection;
+        return 0;
       });
 
-      function renderTable() {
-        // Update header classes
-        document.querySelectorAll('th').forEach(th => {
-          th.classList.remove('sort-asc', 'sort-desc');
-          if (th.getAttribute('data-key') === sortKey) {
-            th.classList.add(sortDirection === 1 ? 'sort-asc' : 'sort-desc');
-          }
-        });
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = ''; // Clear existing
 
-        // Sort data
-        const sortedData = [...tableData].sort((a, b) => {
-          if (!sortKey) return 0;
+      sortedData.forEach(row => {
+        const tr = document.createElement('tr');
 
-          let valA = a[sortKey];
-          let valB = b[sortKey];
+        // Status
+        const tdStatus = document.createElement('td');
+        tdStatus.textContent = row.status;
+        tdStatus.className = `status-${row.status.toLowerCase()}`;
+        tr.appendChild(tdStatus);
 
-          // Handle undefined/nulls
-          if (valA === undefined || valA === null) valA = '';
-          if (valB === undefined || valB === null) valB = '';
+        // Type
+        const tdType = document.createElement('td');
+        tdType.textContent = row.type;
+        tr.appendChild(tdType);
 
-          if (valA < valB) return -1 * sortDirection;
-          if (valA > valB) return 1 * sortDirection;
-          return 0;
-        });
+        // Task
+        const tdTask = document.createElement('td');
+        tdTask.textContent = row.task;
+        tr.appendChild(tdTask);
 
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = ''; // Clear existing
+        // Source
+        const tdSource = document.createElement('td');
+        tdSource.textContent = row.source;
+        tr.appendChild(tdSource);
 
-        sortedData.forEach(row => {
-          const tr = document.createElement('tr');
+        // Timestamp
+        const tdTimestamp = document.createElement('td');
+        tdTimestamp.textContent = row.timestamp;
+        tdTimestamp.classList.add('time');
+        tr.appendChild(tdTimestamp);
 
-          // Status
-          const tdStatus = document.createElement('td');
-          tdStatus.textContent = row.status;
-          tdStatus.className = `status-${row.status.toLowerCase()}`;
-          tr.appendChild(tdStatus);
+        // Exit Code
+        const tdExit = document.createElement('td');
+        tdExit.textContent = row.exitCode !== undefined && row.exitCode !== null ? row.exitCode : '';
+        tr.appendChild(tdExit);
 
-          // Type
-          const tdType = document.createElement('td');
-          tdType.textContent = row.type;
-          tr.appendChild(tdType);
+        // Execution Time
+        const tdTime = document.createElement('td');
+        tdTime.textContent = row.executionTime || '';
+        tdTime.classList.add('time');
+        tr.appendChild(tdTime);
 
-          // Task
-          const tdTask = document.createElement('td');
-          tdTask.textContent = row.task;
-          tr.appendChild(tdTask);
-
-          // Source
-          const tdSource = document.createElement('td');
-          tdSource.textContent = row.source;
-          tr.appendChild(tdSource);
-
-          // Timestamp
-          const tdTimestamp = document.createElement('td');
-          tdTimestamp.textContent = row.timestamp;
-          tdTimestamp.classList.add('time');
-          tr.appendChild(tdTimestamp);
-
-          // Exit Code
-          const tdExit = document.createElement('td');
-          tdExit.textContent = row.exitCode !== undefined && row.exitCode !== null ? row.exitCode : '';
-          tr.appendChild(tdExit);
-
-          // Execution Time
-          const tdTime = document.createElement('td');
-          tdTime.textContent = row.executionTime || '';
-          tdTime.classList.add('time');
-          tr.appendChild(tdTime);
-
-          tbody.appendChild(tr);
-        });
-      }
-    </script>
-  </body>
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
 
 </html>
