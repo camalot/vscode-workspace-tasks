@@ -313,7 +313,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
   - 🔴 Failed - Task exited with an error
   - 🔵 Running - Task is currently executing
   - 🟠 Terminated - Task was stopped manually
-- **Multi-column Sorting** - Sort by any column in ascending or descending order
+- **Single-column Sorting** - Sort by any column in ascending or descending order, one column at a time
 - **Real-time Updates** - Automatically updates as tasks complete
 
 **How to Use:**
