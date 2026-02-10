@@ -56,6 +56,7 @@
   "config.workspaceTasks.enabledTaskTypes.markdown": "Choose the task types (e.g., npm, script, makefile) that the extension will recognize and show in the task list.",
 
   "config.workspaceTasks.enabledTaskTypes.ant": "Ant",
+  "config.workspaceTasks.enabledTaskTypes.bun": "Bun",
   "config.workspaceTasks.enabledTaskTypes.composer": "Composer",
   "config.workspaceTasks.enabledTaskTypes.deno": "Deno",
   "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
