@@ -286,9 +286,8 @@ The Task History tree view provides a hierarchical, filterable view of all execu
 **Features:**
 
 - **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
-- **Hierarchical Organization** - Tasks grouped by status for easy navigation
+- **Hierarchical Organization** - Tasks grouped for easy navigation
 - **Task Details** - View task name, source, and execution time
-- **Quick Access** - Click to view full execution details
 - **Real-time Updates** - Automatically updates as tasks complete
 
 **How to Use:**
@@ -306,6 +305,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 **Features:**
 
+- **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
 - **Sortable Columns** - Click any column header to sort tasks by that field
 - **Comprehensive Details** - View status, type, task name, source path, timestamp, exit code, and execution time
 - **Status Indicators** - Color-coded status badges for quick identification
@@ -314,6 +314,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
   - 🔵 Running - Task is currently executing
   - 🟠 Terminated - Task was stopped manually
 - **Multi-column Sorting** - Sort by any column in ascending or descending order
+- **Real-time Updates** - Automatically updates as tasks complete
 
 **How to Use:**
 
