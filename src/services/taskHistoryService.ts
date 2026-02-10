@@ -29,7 +29,6 @@ export class TaskHistoryService {
   private historyGroups: Map<string, ITaskHistoryGroup> = new Map();
   private activeExecutions: Map<vscode.TaskExecution, ITaskExecutionRecord> = new Map();
   private context: vscode.ExtensionContext | undefined;
-  private logger = LoggerService.getInstance();
   private filters: Set<string> = new Set(['Running', 'Success', 'Failed', 'Terminated']);
 
   private constructor() { }

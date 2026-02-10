@@ -3,9 +3,7 @@ import constants from '../libs/constants';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { PackageJsonTaskProvider } from './packageJsonTaskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
-import { FilteredTaskService } from '../services/filteredTaskService';
 import { TaskStateManager } from '../taskStateManager';
 
 export class NpmTaskProvider extends PackageJsonTaskProvider {
