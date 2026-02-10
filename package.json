@@ -940,7 +940,7 @@
           },
           "default": {
             "ant": true,
-            "bun": true,
+            "bun": false,
             "deno": true,
             "shell": true,
             "composer": true,
