@@ -313,7 +313,6 @@ The Task History Table View provides a tabular, sortable view of all task execut
   - 🔴 Failed - Task exited with an error
   - 🔵 Running - Task is currently executing
   - 🟠 Terminated - Task was stopped manually
-- **Persistent View** - History persists across Visual Studio Code sessions
 - **Multi-column Sorting** - Sort by any column in ascending or descending order
 
 **How to Use:**
