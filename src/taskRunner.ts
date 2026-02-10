@@ -90,10 +90,10 @@ export class TaskRunner {
 
       const presentation: vscode.TaskPresentationOptions = {
         reveal: reveal,
-        clear: presentationOptionsSetting.clear,
-        close: presentationOptionsSetting.close,
-        echo: presentationOptionsSetting.echo,
-        focus: presentationOptionsSetting.focus,
+        clear: presentationOptionsSetting.clear ?? false,
+        close: presentationOptionsSetting.close ?? false,
+        echo: presentationOptionsSetting.echo ?? true,
+        focus: presentationOptionsSetting.focus ?? false,
         panel: panel,
       };
 

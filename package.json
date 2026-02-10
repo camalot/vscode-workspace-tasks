@@ -188,9 +188,31 @@
           "title": "Workspace Tasks",
           "icon": "res/icon.svg"
         }
+      ],
+      "panel": [
+        {
+          "id": "workspaceTasksHistory",
+          "title": "Task History",
+          "icon": "res/icon.svg"
+        }
       ]
     },
     "views": {
+      "workspaceTasksHistory": [
+        {
+          "id": "workspaceTasksHistoryView",
+          "name": "Task History",
+          "icon": "res/icon.svg",
+          "when": "workspaceTasks.history.viewMode == 'tree'"
+        },
+        {
+          "id": "workspaceTasksHistoryWebView",
+          "name": "Task History",
+          "type": "webview",
+          "icon": "res/icon.svg",
+          "when": "workspaceTasks.history.viewMode == 'webview'"
+        }
+      ],
       "workspace-tasks": [
         {
           "id": "workspaceTasksView",
@@ -256,6 +278,48 @@
         "command": "workspaceTasks.runTask",
         "title": "%command.runTask%",
         "icon": "$(debug-start)"
+      },
+      {
+        "command": "workspaceTasks.history.clear",
+        "title": "Clear History",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "workspaceTasks.history.switchView",
+        "title": "Switch View",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterRunning",
+        "title": "⨯ Running"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterRunning",
+        "title": "✓ Running"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterSuccess",
+        "title": "⨯ Success"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterSuccess",
+        "title": "✓ Success"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterFailed",
+        "title": "⨯ Failed"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterFailed",
+        "title": "✓ Failed"
+      },
+      {
+        "command": "workspaceTasks.history.enableFilterTerminated",
+        "title": "Terminated"
+      },
+      {
+        "command": "workspaceTasks.history.disableFilterTerminated",
+        "title": "✓ Terminated"
       },
       {
         "command": "workspaceTasks.runTaskWithArgs",
@@ -958,8 +1022,46 @@
         }
       }
     },
+    "submenus": [
+      {
+        "id": "workspaceTasks.history.filter",
+        "label": "Filter",
+        "icon": "$(filter)"
+      }
+    ],
     "menus": {
       "view/title": [
+        {
+          "command": "workspaceTasks.history.clear",
+          "group": "navigation@1",
+          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
+        },
+        {
+          "command": "workspaceTasks.history.switchView",
+          "group": "navigation@2",
+          "title": "View as Table",
+          "icon": "$(list-flat)",
+          "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'tree'"
+        },
+        {
+          "command": "workspaceTasks.history.switchView",
+          "group": "navigation@2",
+          "title": "View as Tree",
+          "icon": "$(list-tree)",
+          "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'table'"
+        },
+        {
+          "submenu": "workspaceTasks.history.filter",
+          "group": "navigation@3",
+          "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryWebView"
+        },
+        {
+          "command": "workspaceTasks.history.switchView",
+          "group": "navigation@2",
+          "title": "View as Tree",
+          "icon": "$(list-tree)",
+          "when": "view == workspaceTasksHistoryWebView"
+        },
         {
           "command": "workspaceTasks.githubIssues",
           "group": "navigation@1",
@@ -1004,6 +1106,48 @@
           "command": "workspaceTasks.resetFilteredTasks",
           "group": "z_filter_reset@7",
           "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
+        }
+      ],
+      "workspaceTasks.history.filter": [
+        {
+          "command": "workspaceTasks.history.enableFilterRunning",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showRunning"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterRunning",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showRunning"
+        },
+        {
+          "command": "workspaceTasks.history.enableFilterSuccess",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showSuccess"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterSuccess",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showSuccess"
+        },
+        {
+          "command": "workspaceTasks.history.enableFilterFailed",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showFailed"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterFailed",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showFailed"
+        },
+        {
+          "command": "workspaceTasks.history.enableFilterTerminated",
+          "group": "1_status",
+          "when": "!workspaceTasks.history.showTerminated"
+        },
+        {
+          "command": "workspaceTasks.history.disableFilterTerminated",
+          "group": "1_status",
+          "when": "workspaceTasks.history.showTerminated"
         }
       ],
       "view/item/context": [
