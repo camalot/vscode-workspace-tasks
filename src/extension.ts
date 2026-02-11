@@ -57,6 +57,8 @@ export async function activate(context: vscode.ExtensionContext) {
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
   QueueService.getInstance().initialize(context);
+  // Enable Settings Sync for favorites and queues so they sync across machines
+  context.globalState.setKeysForSync(['favorites', 'savedQueues']);
   FilteredTaskService.getInstance().initialize(context);
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   await taskTreeDataProvider.initialize(context);

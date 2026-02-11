@@ -16,25 +16,27 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ## 📑 Table of Contents
 
-- [✨ Key Features](#-key-features)
-- [📖 Documentation](#-documentation)
-- [📥 Installation](#-installation)
-- [🛠️ Supported Task Types](#️-supported-task-types)
-- [🌱 Recent Tasks](#-recent-tasks)
-- [⭐ Favorites](#-favorites)
-- [📋 Task Queues](#-task-queues)
-- [🙈 Hide Tasks & Groups](#-hide-tasks--groups)
-- [🕰️ Task History](#-task-history)
-- [⚙️ Configuration](#️-configuration)
+- [✨ Key Features](#key-features)
+- [📖 Documentation](#documentation)
+- [📥 Installation](#installation)
+- [🛠️ Supported Task Types](#supported-task-types)
+- [🌱 Recent Tasks](#recent-tasks)
+- [⭐ Favorites](#favorites)
+- [📋 Task Queues](#task-queues)
+- [🙈 Hide Tasks & Groups](#hide-tasks--groups)
+- [🕰️ Task History](#task-history)
+- [⚙️ Configuration](#configuration)
   - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
   - [GitHub Actions Integration](#github-actions-integration)
   - [Task Ignore Patterns](docs/TaskFiltering.md)
-- [🔧 Advanced Features](#-advanced-features)
-- [📋 Requirements](#-requirements)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+- [🔧 Advanced Features](#advanced-features)
+- [✔️ Requirements](#requirements)
+- [🤝 Contributing](#contributing)
+- [📄 License](#license)
 
 ## ✨ Key Features
+
+<a id="key-features"></a>
 
 - **🔍 Automatic Task Discovery** - Scans your workspace for tasks from 20+ file types and build systems
 - **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
@@ -49,14 +51,19 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
 - **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
+- **☁️ Settings Sync** - Sync your favorites and queues across multiple machines via VS Code's Settings Sync
 
 ## 📖 Documentation
+
+<a id="documentation"></a>
 
 - [Configuration Guide](docs/Configuration.md)
 - [Task Filtering](docs/TaskFiltering.md)
 - [Workspace Tasks](docs/WorkspaceTasks.md)
 
 ## 📥 Installation
+
+<a id="installation"></a>
 
 ### From Visual Studio Code Marketplace
 
@@ -82,13 +89,14 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 code --install-extension darthminos.workspace-tasks
 ```
 
-### Requirements
+### ✔️ Requirements
 
 - **Visual Studio Code** 1.105.1 or later
-- **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
+- **External tools** must be installed for task execution (see [Requirements](#requirements) section)
 
 ## 🛠️ Supported Task Types
 
+<a id="supported-task-types"></a>
 Workspace Tasks automatically discovers and organizes tasks from a wide variety of tools and frameworks:
 
 ### Package Managers & Build Tools
@@ -161,8 +169,9 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json`
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
-> [!Note]
-> The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
+> The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#requirements) for details.
+
+<a id="recent-tasks"></a>
 
 ## 🌱 Recent Tasks
 
@@ -183,7 +192,7 @@ To disable tracking of recent tasks set to `0`.
 
 ![Recent Tasks - Max Items](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/settings-recenttasks-maxitems.png)
 
-####
+<a id="favorites"></a>
 
 ## ⭐ Favorites
 
@@ -202,12 +211,15 @@ Pin your most frequently used tasks for instant access. Favorites appear in a de
 - **Workspace-Specific** - Each workspace maintains its own favorites list
 - **Visual Indicators** - Star icons show in both favorites section and original location
 - **Context Display** - Tasks show their workspace folder name in multi-root workspaces
+- **Settings Sync** - Favorites automatically sync across all your machines when VS Code Settings Sync is enabled
 
 **Perfect For:**
 
 - Build, test, and deploy tasks you use daily
 - Development scripts you run frequently
 - Tasks from different workspace folders you need regularly
+
+<a id="task-queues"></a>
 
 ## 📋 Task Queues
 
@@ -229,6 +241,7 @@ Create and manage multiple named queues to run sequences of tasks in order. Perf
 - **Queue Management** - Rename queues, clear all tasks, or delete empty queues
 - **Persistent Storage** - Queues are saved and restored between sessions
 - **Status Indicators** - Real-time visual feedback with running/success/failure icons
+- **Settings Sync** - Queues automatically sync across all your machines when VS Code Settings Sync is enabled
 
 **Example Workflow:**
 
@@ -242,6 +255,8 @@ CI Pipeline Queue:
 ```
 
 Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
+
+<a id="hide-tasks--groups"></a>
 
 ## 🙈 Hide Tasks & Groups
 
@@ -272,6 +287,8 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 - Temporarily removing test or build tasks from view
 - Focusing on specific task categories during development
 - Cleaning up the task tree without permanently removing tasks
+
+<a id="task-history"></a>
 
 ## 🕰️ Task History
 
@@ -333,6 +350,8 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 ## 🚀 Quick Start
 
+<a id="quick-start"></a>
+
 1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
 2. **Open the Workspace Tasks view** from the Activity Bar (sidebar) or Explorer panel
    - **Sidebar:** Click the Workspace Tasks icon in the Activity Bar
@@ -349,6 +368,8 @@ The Task History Table View provides a tabular, sortable view of all task execut
 - Use the collapse button (⊟) to toggle view states
 - Create `.tasksignore` files to exclude unwanted tasks
 - Drag the Explorer view to any panel location (sidebar, panel, or as a floating window)
+
+<a id="configuration"></a>
 
 ## ⚙️ Configuration
 
@@ -483,6 +504,8 @@ workspace-folder/
 
 ## 🔧 Advanced Features
 
+<a id="advanced-features"></a>
+
 ### View Placement and Layout
 
 **Multiple View Options:**
@@ -559,6 +582,8 @@ Each task type watches specific file patterns:
 
 All patterns respect `.gitignore` and `.tasksignore` exclusions.
 
+<a id="requirements"></a>
+
 ## 📋 Requirements
 
 ### Visual Studio Code Version
@@ -611,6 +636,8 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - Command Prompt for `.bat` and `.cmd` scripts
 
 > **Installation Instructions:** Visit each tool's official website (linked above) for installation guides specific to your operating system.
+
+<a id="contributing"></a>
 
 ## 🤝 Contributing
 
@@ -666,6 +693,8 @@ npm run watch
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
+
+<a id="license"></a>
 
 ## 📄 License
 

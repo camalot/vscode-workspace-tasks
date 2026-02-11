@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskCacheService } from './taskCacheService';
+import { TaskStateManager } from '../taskStateManager';
 
 export interface RecentTaskEntry {
   taskId: string;
@@ -26,7 +27,22 @@ export class RecentTasksService {
   public initialize(context: vscode.ExtensionContext) {
     this.context = context;
     // Load from storage
-    this.recentTasks = this.context.workspaceState.get<RecentTaskEntry[]>(this.STORAGE_KEY, []);
+    const savedRecentTasks = this.context.workspaceState.get<RecentTaskEntry[]>(this.STORAGE_KEY, []);
+
+    // Migrate old task IDs to new portable format
+    const stateManager = TaskStateManager.getInstance();
+    const migratedRecentTasks = savedRecentTasks.map(entry => ({
+      ...entry,
+      taskId: stateManager.normalizeTaskId(entry.taskId)
+    }));
+
+    // If any IDs were migrated (format changed), save the migrated data back
+    if (JSON.stringify(savedRecentTasks) !== JSON.stringify(migratedRecentTasks)) {
+      this.recentTasks = migratedRecentTasks;
+      this.save();
+    } else {
+      this.recentTasks = migratedRecentTasks;
+    }
 
     // Load max from configuration
     const cfgMax = vscode.workspace.getConfiguration('workspaceTasks').get<number>('recentTasks.maxItems');
@@ -77,35 +93,27 @@ export class RecentTasksService {
     }
 
     let canonicalId = item.id;
-    // Strip prefixes if present
-    if (canonicalId.startsWith('recent:')) {
-      canonicalId = canonicalId.substring(7);
-    }
+    // Normalize the ID to handle old format and prefixes
+    canonicalId = TaskStateManager.getInstance().normalizeTaskId(canonicalId);
 
     this.recentTasks = this.recentTasks.filter((t) => t.taskId !== canonicalId);
     this.save();
   }
 
   public addRecentTask(taskId: string) {
-    // IMPORTANT: Ensure we are using the canonical ID for deduplication
-    // The ID passed in comes from a found TaskItem, which likely has a "pure" ID.
-    // But if there's any prefix contamination (e.g. from UI interactions), strip it.
-    if (taskId.includes('recent:') || taskId.includes('fav:')) {
-      // This is a naive strip, ideally we use TaskStateManager.getTaskId logic but without circular dep.
-      // However, findMatchingTaskItem returns items from cache which are pure.
-      // So taskId here *should* be pure.
-    }
+    // Normalize the task ID to ensure consistency with stored format
+    const normalizedId = TaskStateManager.getInstance().normalizeTaskId(taskId);
 
     // Remove existing entry for this task if present
-    this.recentTasks = this.recentTasks.filter((t) => t.taskId !== taskId);
+    this.recentTasks = this.recentTasks.filter((t) => t.taskId !== normalizedId);
 
     if (this.maxRecentTasks === 0) {
       return;
     }
 
-    // Add to top
+    // Add to top with normalized ID
     this.recentTasks.unshift({
-      taskId: taskId,
+      taskId: normalizedId,
       timestamp: Date.now(),
     });
 

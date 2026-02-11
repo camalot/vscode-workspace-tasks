@@ -32,10 +32,20 @@ export class QueueService {
     // Restore Queues
     // Check for new persistence format first
     const savedQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
+    let hasMigration = false;
 
     if (savedQueues) {
       Object.entries(savedQueues).forEach(([queueName, items]) => {
-        this.queues.set(queueName, this.deserializeTasks(items));
+        // Track if any IDs were migrated during deserialization
+        const originalIds = items.map(q => q.id);
+        const deserializedTasks = this.deserializeTasks(items);
+        const newIds = deserializedTasks.map(t => TaskStateManager.getInstance().getTaskId(t));
+
+        if (JSON.stringify(originalIds) !== JSON.stringify(newIds)) {
+          hasMigration = true;
+        }
+
+        this.queues.set(queueName, deserializedTasks);
       });
     } else {
       // Legacy Migration: Check for old 'queueItems'
@@ -43,7 +53,13 @@ export class QueueService {
       if (legacyQueue.length > 0) {
         const legacyName = context.globalState.get<string>('queueName', 'Queue');
         this.queues.set(legacyName, this.deserializeTasks(legacyQueue));
+        hasMigration = true;
       }
+    }
+
+    // If any IDs were migrated, save the normalized data back to storage
+    if (hasMigration) {
+      this.saveQueues();
     }
   }
 
@@ -52,12 +68,14 @@ export class QueueService {
   }
 
   private deserializeTasks(serialized: SerializedTaskItem[]): TaskItem[] {
+    const stateManager = TaskStateManager.getInstance();
     return serialized.map((sq) => {
       const uri = sq.resourceUri ? vscode.Uri.parse(sq.resourceUri) : undefined;
       const label = sq.originalLabel || sq.label; // Prefer original label
       const item = new TaskItem(label, vscode.TreeItemCollapsibleState.None, sq.taskType, uri);
       if (sq.id) {
-        item.id = sq.id;
+        // Normalize the stored ID to handle old format
+        item.id = stateManager.normalizeTaskId(sq.id);
       }
       item.originalLabel = label;
       item.startLine = sq.startLine;
