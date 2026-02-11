@@ -1044,28 +1044,23 @@
       "view/title": [
         {
           "command": "workspaceTasks.history.clear",
-          "group": "navigation@1",
+          "group": "navigation@99",
           "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryTableView"
         },
         {
           "command": "workspaceTasks.history.switchTableView",
-          "group": "navigation@2",
-          "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'tree'"
+          "group": "navigation@1",
+          "when": "view == workspaceTasksHistoryView"
         },
         {
           "command": "workspaceTasks.history.switchTreeView",
-          "group": "navigation@2",
-          "when": "view == workspaceTasksHistoryView && workspaceTasks.history.viewMode == 'table'"
+          "group": "navigation@1",
+          "when": "view == workspaceTasksHistoryTableView"
         },
         {
           "submenu": "workspaceTasks.history.filter",
           "group": "navigation@3",
           "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryTableView"
-        },
-        {
-          "command": "workspaceTasks.history.switchTreeView",
-          "group": "navigation@2",
-          "when": "view == workspaceTasksHistoryTableView"
         },
         {
           "command": "workspaceTasks.githubIssues",
@@ -1116,42 +1111,42 @@
       "workspaceTasks.history.filter": [
         {
           "command": "workspaceTasks.history.enableFilterRunning",
-          "group": "1_status",
+          "group": "1_status@1",
           "when": "!workspaceTasks.history.showRunning"
         },
         {
           "command": "workspaceTasks.history.disableFilterRunning",
-          "group": "1_status",
+          "group": "1_status@1",
           "when": "workspaceTasks.history.showRunning"
         },
         {
           "command": "workspaceTasks.history.enableFilterSuccess",
-          "group": "1_status",
+          "group": "1_status@2",
           "when": "!workspaceTasks.history.showSuccess"
         },
         {
           "command": "workspaceTasks.history.disableFilterSuccess",
-          "group": "1_status",
+          "group": "1_status@2",
           "when": "workspaceTasks.history.showSuccess"
         },
         {
           "command": "workspaceTasks.history.enableFilterFailed",
-          "group": "1_status",
+          "group": "1_status@3",
           "when": "!workspaceTasks.history.showFailed"
         },
         {
           "command": "workspaceTasks.history.disableFilterFailed",
-          "group": "1_status",
+          "group": "1_status@3",
           "when": "workspaceTasks.history.showFailed"
         },
         {
           "command": "workspaceTasks.history.enableFilterTerminated",
-          "group": "1_status",
+          "group": "1_status@4",
           "when": "!workspaceTasks.history.showTerminated"
         },
         {
           "command": "workspaceTasks.history.disableFilterTerminated",
-          "group": "1_status",
+          "group": "1_status@4",
           "when": "workspaceTasks.history.showTerminated"
         }
       ],
