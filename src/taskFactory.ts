@@ -152,7 +152,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       }
 
       const full = `${bunCmd} ${bunArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(bunCmd, bunArgs, { cwd: bunCwd });
+      const shellExec = new vscode.ShellExecution(bunCmd, bunArgs, { cwd });
 
       const task = new vscode.Task(
         { type: 'bun', script: taskLabel, path: resourceUri.fsPath },
@@ -161,7 +161,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         'bun',
         shellExec,
       );
-      return { task, command: full, cwd: bunCwd, native: false };
+      return { task, command: full, cwd, native: false };
     }
     case 'pnpm': {
       const pnpmProvider = new PnpmTaskProvider();
