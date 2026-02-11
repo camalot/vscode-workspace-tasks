@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { LoggerService } from './loggerService';
 
 export interface ITaskExecutionRecord {
   id: string; // Unique ID for this execution (e.g. uuid or timestamp based)
@@ -29,7 +28,6 @@ export class TaskHistoryService {
   private historyGroups: Map<string, ITaskHistoryGroup> = new Map();
   private activeExecutions: Map<vscode.TaskExecution, ITaskExecutionRecord> = new Map();
   private context: vscode.ExtensionContext | undefined;
-  private logger = LoggerService.getInstance();
   private filters: Set<string> = new Set(['Running', 'Success', 'Failed', 'Terminated']);
 
   private constructor() { }

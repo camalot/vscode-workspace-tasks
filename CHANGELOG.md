@@ -1,22 +1,85 @@
-## [1.1.10] - 2026-02-10
+## [1.1.11] - 2026-02-11
 
 ### 🚀 Features
 
-- *(tasks)* Initial ground work for 'bun' support. WIP
+- Enable task history view presistence
 
-- *(ux)* Task Run History View #80
+- *(tasks)* Support for Bun and Bun for NPM Script Runner #77
+
+- Support for Bun and Bun for NPM Script Runner #77
 
 
 ### 🐛 Bug Fixes
 
-- TerminatedTasks is tracked by task id, but that flag is never cleared. #75
+- The view mode context key uses 'tree' | 'webview' #85
+
+- The webview enables scripts but the HTML is injected without a Content Security Policy (CSP) / nonce setup.  #84
+
+- Update steps for the release action
+
+
+### 💼 Other
+
+- Readme Cleanup (#89) by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- * chore(repo): README claims the Task History table view is "Persistent" across VS Code sessions #87 by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- * chore(repo): The Task History Tree View description doesn’t match the implementation #86 by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- * Update README.md by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- Copilot <175728472+Copilot@users.noreply.github.com> by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- Ryan Conrad <camalot@gmail.com> by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- * Update README.md by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- Copilot <175728472+Copilot@users.noreply.github.com> by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- Ryan Conrad <camalot@gmail.com> by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- --------- by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- Ryan Conrad <camalot@gmail.com> by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
+
+- Copilot <175728472+Copilot@users.noreply.github.com> by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(lint)* Path is imported but not used #76
+- *(repo)* Unused variable task. #88
 
-- *(tests)* FindMatchingTask introduces non-trivial matching behavior  #73
+- *(repo)* Logger is defined but never used in TaskHistoryService #83
+
+- Remove bun dependency
+
+- *(ux)* Ux changes to the task history table and actions
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.10...v1.1.11
+
+## [1.1.10] - 2026-02-10
+
+### 💼 Other
+
+- V1.1.10 (#81) by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * chore(lint): path is imported but not used #76 by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * fix: terminatedTasks is tracked by task id, but that flag is never cleared. #75 by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * chore(tests): findMatchingTask introduces non-trivial matching behavior  #73 by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * feat: Task Run History View #80 by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * feat(tasks): initial ground work for 'bun' support. WIP by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * feat(ux): Task Run History View #80 by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * chore(changelog): update changelog by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
+
+- * chore(lint): fix linter errors by @camalot in [#81](https://github.com/camalot/vscode-workspace-tasks/pull/81)
 
 
 
@@ -26,23 +89,23 @@
 
 ### 💼 Other
 
-- V1.1.9 (#72)
+- V1.1.9 (#72) by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * fix: The status-reset logic is duplicated in both onDidEndTaskProcess and onDidEndTask. #66
+- * fix: The status-reset logic is duplicated in both onDidEndTaskProcess and onDidEndTask. #66 by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * fix: onDidEndTask unconditionally marks any still-running task as success #69
+- * fix: onDidEndTask unconditionally marks any still-running task as success #69 by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * fix(tasks): When the tree is refreshed, npm tasks are not being added back. #70
+- * fix(tasks): When the tree is refreshed, npm tasks are not being added back. #70 by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * fix(tasks): Any task that seems to be a "system task" does not ever show up in the Recent Tasks. #71
+- * fix(tasks): Any task that seems to be a "system task" does not ever show up in the Recent Tasks. #71 by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * fix(tasks): VSCode Tasks executed by a compound task do not update state when running #67
+- * fix(tasks): VSCode Tasks executed by a compound task do not update state when running #67 by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * fix(tasks): npm type in .vscode/tasks.json not added to recent tasks when executed
+- * fix(tasks): npm type in .vscode/tasks.json not added to recent tasks when executed by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * chore(changelog): generate changelog
+- * chore(changelog): generate changelog by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
-- * fix(repo): EditorConfig lint error
+- * fix(repo): EditorConfig lint error by @camalot in [#72](https://github.com/camalot/vscode-workspace-tasks/pull/72)
 
 
 
@@ -52,13 +115,13 @@
 
 ### 💼 Other
 
-- V1.1.8 (#65)
+- V1.1.8 (#65) by @camalot in [#65](https://github.com/camalot/vscode-workspace-tasks/pull/65)
 
-- * fix: Composite-only tasks finish immediately #64
+- * fix: Composite-only tasks finish immediately #64 by @camalot in [#65](https://github.com/camalot/vscode-workspace-tasks/pull/65)
 
-- * chore(repo): update readme and ignore test task files
+- * chore(repo): update readme and ignore test task files by @camalot in [#65](https://github.com/camalot/vscode-workspace-tasks/pull/65)
 
-- * chore(changelog): update changelog
+- * chore(changelog): update changelog by @camalot in [#65](https://github.com/camalot/vscode-workspace-tasks/pull/65)
 
 
 
@@ -68,32 +131,32 @@
 
 ### 💼 Other
 
-- V1.1.7 (#63)
+- V1.1.7 (#63) by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * fix: No tasks visible how best to debug? #61
+- * fix: No tasks visible how best to debug? #61 by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * chore(debug): added logging channel and debug option
+- * chore(debug): added logging channel and debug option by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * chore(tasks): changed how vscode tasks and npm tasks are initially loaded
+- * chore(tasks): changed how vscode tasks and npm tasks are initially loaded by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * chore(tasks): if system tasks defined for supported task type, those are used
+- * chore(tasks): if system tasks defined for supported task type, those are used by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * chore(changelog): update changelog
+- * chore(changelog): update changelog by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * feat(cursor): Support for Cursor (VS Code Version 1.105.1) #62
+- * feat(cursor): Support for Cursor (VS Code Version 1.105.1) #62 by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * chore(core): downgrade the minimum required vscode engine version
+- * chore(core): downgrade the minimum required vscode engine version by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * chore(changelog): update changelog
+- * chore(changelog): update changelog by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * fix: Some types not displaying proper icon for the group #59
+- * fix: Some types not displaying proper icon for the group #59 by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
-- * chore(task): add docker icon for #59
+- * chore(task): add docker icon for #59 by @camalot in [#63](https://github.com/camalot/vscode-workspace-tasks/pull/63)
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Update svg -> png to not overwite existing png by default
+- *(repo)* Update svg -> png to not overwite existing png by default by @camalot
 
 
 
@@ -103,19 +166,19 @@
 
 ### 💼 Other
 
-- V1.1.6 (#57)
+- V1.1.6 (#57) by @camalot in [#57](https://github.com/camalot/vscode-workspace-tasks/pull/57)
 
-- * feat(tasks): universal task interfaces initial
+- * feat(tasks): universal task interfaces initial by @camalot in [#57](https://github.com/camalot/vscode-workspace-tasks/pull/57)
 
-- * fix: treat vscode tasks as they are natively defined by vscode. #50 #49 #56
+- * fix: treat vscode tasks as they are natively defined by vscode. #50 #49 #56 by @camalot in [#57](https://github.com/camalot/vscode-workspace-tasks/pull/57)
 
-- * chore(changelog): update changelog
+- * chore(changelog): update changelog by @camalot in [#57](https://github.com/camalot/vscode-workspace-tasks/pull/57)
 
-- * chore(repo): fix failing test
+- * chore(repo): fix failing test by @camalot in [#57](https://github.com/camalot/vscode-workspace-tasks/pull/57)
 
-- * chore: checking for the file uri
+- * chore: checking for the file uri by @camalot in [#57](https://github.com/camalot/vscode-workspace-tasks/pull/57)
 
-- * chore: resolve copilot suggestions
+- * chore: resolve copilot suggestions by @camalot in [#57](https://github.com/camalot/vscode-workspace-tasks/pull/57)
 
 
 
@@ -125,31 +188,31 @@
 
 ### 💼 Other
 
-- V1.1.5 (#55)
+- V1.1.5 (#55) by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * fix(ux): incorrect icons for gradle/makefile/shell
+- * fix(ux): incorrect icons for gradle/makefile/shell by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * fix: exclude png files from package as not used in package
+- * fix: exclude png files from package as not used in package by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(deps-dev): bump @typescript-eslint/eslint-plugin from 8.53.1 to 8.54.0 #53
+- * chore(deps-dev): bump @typescript-eslint/eslint-plugin from 8.53.1 to 8.54.0 #53 by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(deps-dev): bump @typescript-eslint/parser from 8.53.1 to 8.54.0 #52
+- * chore(deps-dev): bump @typescript-eslint/parser from 8.53.1 to 8.54.0 #52 by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(deps-dev): bump typescript-eslint from 8.53.1 to 8.54.0 #51
+- * chore(deps-dev): bump typescript-eslint from 8.53.1 to 8.54.0 #51 by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(repo): version bump
+- * chore(repo): version bump by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(changelog): update changelog
+- * chore(changelog): update changelog by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(repo): exclude gif from package
+- * chore(repo): exclude gif from package by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * ensure that res/icon.png is included in package
+- * ensure that res/icon.png is included in package by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(changelog): fix changelog compare link and regenerate
+- * chore(changelog): fix changelog compare link and regenerate by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(repo): update npm package.lock
+- * chore(repo): update npm package.lock by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
-- * chore(repo): set remote urls for images
+- * chore(repo): set remote urls for images by @camalot in [#55](https://github.com/camalot/vscode-workspace-tasks/pull/55)
 
 
 
@@ -159,13 +222,13 @@
 
 ### 💼 Other
 
-- V1.1.4 (#48)
+- V1.1.4 (#48) by @camalot in [#48](https://github.com/camalot/vscode-workspace-tasks/pull/48)
 
-- * fix(ux): Notification message on show/hide tasks and other locations should not have been enabled. #47
+- * fix(ux): Notification message on show/hide tasks and other locations should not have been enabled. #47 by @camalot in [#48](https://github.com/camalot/vscode-workspace-tasks/pull/48)
 
-- * generate changelog
+- * generate changelog by @camalot in [#48](https://github.com/camalot/vscode-workspace-tasks/pull/48)
 
-- * chore(repo): remove some unused variables defined
+- * chore(repo): remove some unused variables defined by @camalot in [#48](https://github.com/camalot/vscode-workspace-tasks/pull/48)
 
 
 
@@ -175,46 +238,46 @@
 
 ### 🐛 Bug Fixes
 
-- Bump @vscode/test-cli from 0.0.11 to 0.0.12 #42
+- Bump @vscode/test-cli from 0.0.11 to 0.0.12 #42 by @camalot
 
-- Bump mocha from 11.3.0 to 11.7.5 #41
+- Bump mocha from 11.3.0 to 11.7.5 #41 by @camalot
 
 
 ### 💼 Other
 
-- V1.1.3 (#46)
+- V1.1.3 (#46) by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * chore(repo): update layout of readme
+- * chore(repo): update layout of readme by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * chore(repo): some readme and docs updates
+- * chore(repo): some readme and docs updates by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * feat: ability to hide individual or groups of tasks
+- * feat: ability to hide individual or groups of tasks by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * feat(ux): Ability to hide individual or groups of tasks #43
+- * feat(ux): Ability to hide individual or groups of tasks #43 by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * feat(ux): Ability to hide individual or groups of tasks #43
+- * feat(ux): Ability to hide individual or groups of tasks #43 by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * feat: Ensure vscode tasks respect the 'hide' property
+- * feat: Ensure vscode tasks respect the 'hide' property by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * feat(tasks): Added eslint tasks
+- * feat(tasks): Added eslint tasks by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * feat(tasks): Added action context menu items #44
+- * feat(tasks): Added action context menu items #44 by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * chore(repo): super-linter fixes
+- * chore(repo): super-linter fixes by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * chore(repo): generate changelog
+- * chore(repo): generate changelog by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * fix(repo): Super-Linter log output directory
+- * fix(repo): Super-Linter log output directory by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * fix(repo): copilot PR suggestions to remove unused references.
+- * fix(repo): copilot PR suggestions to remove unused references. by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * fix(repo): fix permission to write comment on PR from super-linter
+- * fix(repo): fix permission to write comment on PR from super-linter by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * fix(repo): super-linter disable javascript_es due to not working correctly
+- * fix(repo): super-linter disable javascript_es due to not working correctly by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * fix(repo): editorconfig: extra space at end of line.
+- * fix(repo): editorconfig: extra space at end of line. by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
-- * fix(shell): fixed the execution of shell tasks which broke due to recent changes
+- * fix(shell): fixed the execution of shell tasks which broke due to recent changes by @camalot in [#46](https://github.com/camalot/vscode-workspace-tasks/pull/46)
 
 
 
@@ -224,42 +287,42 @@
 
 ### 🚀 Features
 
-- Different icons for type/folder/task #31
+- Different icons for type/folder/task #31 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
 
 ### 🐛 Bug Fixes
 
-- Cant run powershell tasks if inside of subdirectory with spaces in name #36
+- Cant run powershell tasks if inside of subdirectory with spaces in name #36 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- Fixed JSON.parse(transferItem.value as string) can throw #40
+- Fixed JSON.parse(transferItem.value as string) can throw #40 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
 
 ### 💼 Other
 
-- V1.1.2 (#39)
+- V1.1.2 (#39) by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * chore(repo): some workflow setup
+- * chore(repo): some workflow setup by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * chore(repo): run prettier --fix
+- * chore(repo): run prettier --fix by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * chore(repo): run ci.yml action to get everything passing
+- * chore(repo): run ci.yml action to get everything passing by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * fix: Bump fast-xml-parser from 5.3.3 to 5.3.4 #38
+- * fix: Bump fast-xml-parser from 5.3.3 to 5.3.4 #38 by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * chore(repo): generate changelog
+- * chore(repo): generate changelog by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * fix: fix issue after updating fast-xml-parser
+- * fix: fix issue after updating fast-xml-parser by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * chore(repo): fix fast-xml-parser version. got reverted
+- * chore(repo): fix fast-xml-parser version. got reverted by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- * fix: missing icon for gradle and makefile in recent tasks group
+- * fix: missing icon for gradle and makefile in recent tasks group by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Added configuration documenation
+- *(repo)* Added configuration documenation by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
-- *(repo)* Bump version
+- *(repo)* Bump version by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
 
 
@@ -269,39 +332,39 @@
 
 ### 🚀 Features
 
-- *(ux)* Add settings to show or hide different task hover icons #32
+- *(ux)* Add settings to show or hide different task hover icons #32 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- Improved Task Grouping for visibility in mono repo or workspace with a lot of the same task type. #30
+- Improved Task Grouping for visibility in mono repo or workspace with a lot of the same task type. #30 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
 
 ### 💼 Other
 
-- V1.1.1 (#34)
+- V1.1.1 (#34) by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * feat: Deno task support
+- * feat: Deno task support by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(changelog): update cliff config
+- * chore(changelog): update cliff config by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(changelog): generate changelog
+- * chore(changelog): generate changelog by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * feat(ux): Add task hover button for showing the task location #33
+- * feat(ux): Add task hover button for showing the task location #33 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(repo): modified the CONTRIBUTING document
+- * chore(repo): modified the CONTRIBUTING document by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(repo): fix linter errors in markdown
+- * chore(repo): fix linter errors in markdown by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(repo): fix linter errors in markdown
+- * chore(repo): fix linter errors in markdown by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(changelog): update changelog
+- * chore(changelog): update changelog by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(repo): fix PR review comments
+- * chore(repo): fix PR review comments by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
-- * chore(repo): update version to v1.1.1
+- * chore(repo): update version to v1.1.1 by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- Added CONTRIBUTING and CODE_OF_CONDUCT
+- Added CONTRIBUTING and CODE_OF_CONDUCT by @camalot in [#34](https://github.com/camalot/vscode-workspace-tasks/pull/34)
 
 
 
@@ -311,39 +374,42 @@
 
 ### 🐛 Bug Fixes
 
-- Add colors to the action buttons for tasks (#21) (#26)
+- Add colors to the action buttons for tasks (#21) (#26) by @jonatino in [#26](https://github.com/camalot/vscode-workspace-tasks/pull/26)
 
 
 ### 💼 Other
 
-- V1.1.0 (#27)
+- V1.1.0 (#27) by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * feat(ux): Add an Explorer view for tasks #15
+- * feat(ux): Add an Explorer view for tasks #15 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * chore(tests): work on the test coverage
+- * chore(tests): work on the test coverage by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * chore(commands): code cleanup of some commands
+- * chore(commands): code cleanup of some commands by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * chore(repo): remove runQueue command from extension.activate
+- * chore(repo): remove runQueue command from extension.activate by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * chore(repo): completed commands refactor
+- * chore(repo): completed commands refactor by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * feat(ux): Configurable click behavior of tasks #25
+- * feat(ux): Configurable click behavior of tasks #25 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * feat(ux): Allow to disable checkmark after first execution of task #24
+- * feat(ux): Allow to disable checkmark after first execution of task #24 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * chore(sample): update a sample file
+- * chore(sample): update a sample file by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * fix: Add colors to the action buttons for tasks - favorites #21
+- * fix: Add colors to the action buttons for tasks - favorites #21 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
-- * feat(tasks): Add setting to control task terminal panel behavior #20
+- * feat(tasks): Add setting to control task terminal panel behavior #20 by @camalot in [#27](https://github.com/camalot/vscode-workspace-tasks/pull/27)
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* SUPPORT document and assets for it
+- *(repo)* SUPPORT document and assets for it by @camalot
 
 
+
+### New Contributors
+* @jonatino made their first contribution in [#26](https://github.com/camalot/vscode-workspace-tasks/pull/26)
 
 **Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.0.3...v1.1.0
 
@@ -351,60 +417,60 @@
 
 ### 💼 Other
 
-- V1.0.3 (#17)
+- V1.0.3 (#17) by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(deps): update dependency version for @types/node
+- * chore(deps): update dependency version for @types/node by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * feat(tasks): added support for jupyter notebooks via the ms-toolsai.jupyter extensionn
+- * feat(tasks): added support for jupyter notebooks via the ms-toolsai.jupyter extensionn by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(task): ensure that the Tasks root has the proper icon
+- * chore(task): ensure that the Tasks root has the proper icon by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(repo): fix typo and lint issues
+- * chore(repo): fix typo and lint issues by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * feat(tasks): add abilitity to double click task item to run it #10
+- * feat(tasks): add abilitity to double click task item to run it #10 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore: Fix readme markdown error.
+- * chore: Fix readme markdown error. by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * feat: jupyter notebook support added in recent commit #11
+- * feat: jupyter notebook support added in recent commit #11 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * feat: update tasks to support double click to execute #10
+- * feat: update tasks to support double click to execute #10 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * tests: add Configuration tests for settings get/update and event handling
+- * tests: add Configuration tests for settings get/update and event handling by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(repo): setup some actions and scripts for helping with testing -> publish
+- * chore(repo): setup some actions and scripts for helping with testing -> publish by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * fix: preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable
+- * fix: preserve taskFileUri and taskSource when cloning items for Favorites/Recent so workspace tasks remain runnable by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * fix(tree): propagate original task ID to split tasks to prevent ID collisions in grouped trees
+- * fix(tree): propagate original task ID to split tasks to prevent ID collisions in grouped trees by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(repo): moved the samples to a separate repo to get better real world testing out of it
+- * chore(repo): moved the samples to a separate repo to get better real world testing out of it by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * fix: fixed an issue with unable to run multiple tasks at the same time.
+- * fix: fixed an issue with unable to run multiple tasks at the same time. by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(repo): added readme for info on sample repository location
+- * chore(repo): added readme for info on sample repository location by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * fix: grouped tasks by task separator may have wrong icon #13
+- * fix: grouped tasks by task separator may have wrong icon #13 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(repo): clean up some npm scripts
+- * chore(repo): clean up some npm scripts by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(commands): moving commands out of extension.activate
+- * chore(commands): moving commands out of extension.activate by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(commands): moving commands out of extension.activate
+- * chore(commands): moving commands out of extension.activate by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * fix: A few configuration options don't seem to be considered #14
+- * fix: A few configuration options don't seem to be considered #14 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(changelog): update changelog
+- * chore(changelog): update changelog by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore(config): remove unused function to check status of shell type
+- * chore(config): remove unused function to check status of shell type by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * feat(tasks): Restrict task search depth. #16
+- * feat(tasks): Restrict task search depth. #16 by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
-- * chore: cleanup unused changelog tool configuration
+- * chore: cleanup unused changelog tool configuration by @camalot in [#17](https://github.com/camalot/vscode-workspace-tasks/pull/17)
 
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Tooling config cleanup
+- *(repo)* Tooling config cleanup by @camalot
 
 
 
@@ -414,47 +480,47 @@
 
 ### 💼 Other
 
-- V1.0.2 Release (#9)
+- V1.0.2 Release (#9) by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * mise implementation
+- * mise implementation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * mise implementation
+- * mise implementation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * some code cleanup that copilot identified
+- * some code cleanup that copilot identified by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * fix readme lint errors
+- * fix readme lint errors by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * start implementation of maven support
+- * start implementation of maven support by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * fix: github actions not respecting the ignore definitions. #7
+- * fix: github actions not respecting the ignore definitions. #7 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * feat: add inline restart for running tasts. #6
+- * feat: add inline restart for running tasts. #6 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * chore(docs): Updated readme on running tasks
+- * chore(docs): Updated readme on running tasks by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * feat(maven): maven task provider implemented
+- * feat(maven): maven task provider implemented by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * feat: work on the recent tasks feature
+- * feat: work on the recent tasks feature by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * feat(recent): recent task tree items #4
+- * feat(recent): recent task tree items #4 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * feat(tasks): some pre-work and samples for supporting jupyter notebooks
+- * feat(tasks): some pre-work and samples for supporting jupyter notebooks by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * fix: Adding / Removing favorites is very slow #3
+- * fix: Adding / Removing favorites is very slow #3 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * chore(sample): updated the sample workspace to disable powershell profile
+- * chore(sample): updated the sample workspace to disable powershell profile by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * fix: Additional performance improvements when loading the task tree. #3
+- * fix: Additional performance improvements when loading the task tree. #3 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * fix: Task types not removed from tree after disabled in the settings #8
+- * fix: Task types not removed from tree after disabled in the settings #8 by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * chore(repo): setup some changelog generation
+- * chore(repo): setup some changelog generation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * chore(settings): fixed missing settings translation
+- * chore(settings): fixed missing settings translation by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * chore(settings): fixed configuration settings reference
+- * chore(settings): fixed configuration settings reference by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
-- * chore(repo): added .tasksignore to ignore list for vsix package
+- * chore(repo): added .tasksignore to ignore list for vsix package by @camalot in [#9](https://github.com/camalot/vscode-workspace-tasks/pull/9)
 
 
 
@@ -464,62 +530,68 @@
 
 ### 🐛 Bug Fixes
 
-- Fix readme error and dependabot config
+- Fix readme error and dependabot config by @camalot
 
-- Fix readme error
+- Fix readme error by @camalot
 
 
 ### 💼 Other
 
-- Initial commit
+- Initial commit by @camalot
 
-- Initial commit
+- Initial commit by @camalot
 
-- Removed the context menu for now
+- Removed the context menu for now by @camalot
 
-- Added some scafolding for settings
+- Added some scafolding for settings by @camalot
 
-- More task providers
+- More task providers by @camalot
 
-- Update icons. add more task providers
+- Update icons. add more task providers by @camalot
 
-- Set up eslint and update packages
+- Set up eslint and update packages by @camalot
 
-- Revert dynamic TOML import and fallback parsing; remove helper and fallback tests
+- Revert dynamic TOML import and fallback parsing; remove helper and fallback tests by @camalot
 
-- Added settings for github-actions and path config for act.
+- Added settings for github-actions and path config for act. by @camalot
 
-- Update the readme to fix some lint errors
+- Update the readme to fix some lint errors by @camalot
 
-- Added github actions support
+- Added github actions support by @camalot
 
-- Some refactoring of configuration
+- Some refactoring of configuration by @camalot
 
-- More cleanup of settings
+- More cleanup of settings by @camalot
 
-- Improve provider file-watching, venv handling, and Ant/ansicon execution
+- Improve provider file-watching, venv handling, and Ant/ansicon execution by @camalot
 
-- Updated and added some npm built-in tasks
+- Updated and added some npm built-in tasks by @camalot
 
-- Prepare for 'public' repository
+- Prepare for 'public' repository by @camalot
 
-- Prepare for 'public' repository
+- Prepare for 'public' repository by @camalot
 
-- Version bump for first public publish - 1.0.1
+- Version bump for first public publish - 1.0.1 by @camalot
 
 
 ### 🚜 Refactor
 
-- Refactoring and implementation
+- Refactoring and implementation by @camalot
 
-- Refactor the shell task provider to be flexible for just about any type of 'shell executed script'
+- Refactor the shell task provider to be flexible for just about any type of 'shell executed script' by @camalot
 
 
 ### 📚 Documentation
 
-- Documentation cleanup. yarn/pnpm support. png images for docs
+- Documentation cleanup. yarn/pnpm support. png images for docs by @camalot
 
 
 ### ◀️ Revert
 
-- Reverted some changes and update the target
+- Reverted some changes and update the target by @camalot
+
+
+
+### New Contributors
+* @camalot made their first contribution
+

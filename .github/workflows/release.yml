@@ -24,7 +24,6 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref) || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -35,20 +34,45 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Get Current Version
+        id: current_version
+        run: |
+          CURRENT_VERSION="$(node -p "require('./package.json').version")"
+          # if $CURRENT_VERSION starts with v do not add
+          if [[ "$CURRENT_VERSION" == v* ]]; then
+            CURRENT_VERSION="${CURRENT_VERSION:1}"
+          fi
+
+          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Get Next Version
         id: next_version
         run: |
           NEXT_VERSION="$(npx git-cliff --bumped-version)"
+          # if $NEXT_VERSION starts with v do not add
+          if [[ "$NEXT_VERSION" == v* ]]; then
+            NEXT_VERSION="${NEXT_VERSION:1}"
+          fi
+
           echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Clean Version and Tag
         id: tag
         run: |
+          if [[ -z "$VERSION" ]]; then
+            echo "VERSION is empty, using current version"
+            VERSION="${CURRENT_VERSION}"
+          fi
+          if [[ "$VERSION" == v* ]]; then
+            VERSION="${VERSION:1}"
+          fi
+
           TAG="v${VERSION}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
         env:
           VERSION: ${{ steps.next_version.outputs.next_version }}
+          CURRENT_VERSION: ${{ steps.current_version.outputs.current_version }}
 
       - name: Run Tests
         run: npm run test

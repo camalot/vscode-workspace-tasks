@@ -9,7 +9,7 @@ import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { GruntTaskProvider } from './providers/gruntTaskProvider';
 import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { JustfileTaskProvider } from './providers/justfileTaskProvider';
-import { NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './providers/npmTaskProvider';
+import { BunTaskProvider, NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './providers/npmTaskProvider';
 import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
@@ -137,6 +137,28 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         vscode.TaskScope.Workspace,
         taskLabel,
         'yarn',
+        shellExec,
+      );
+      return { task, command: full, cwd, native: false };
+    }
+    case 'bun': {
+      const bunProvider = new BunTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: bunCmd, args: bunInitialArgs, cwd: bunCwd } = bunProvider.getCommand(workspaceFolder?.uri);
+      const bunArgs = bunInitialArgs ? [...bunInitialArgs] : [];
+      bunArgs.push('run', `${taskLabel}`);
+      if (args) {
+        bunArgs.push(...args.split(' '));
+      }
+
+      const full = `${bunCmd} ${bunArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(bunCmd, bunArgs, { cwd });
+
+      const task = new vscode.Task(
+        { type: 'bun', script: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'bun',
         shellExec,
       );
       return { task, command: full, cwd, native: false };
