@@ -48,7 +48,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
 
           // Simple parsing for now
           const json = JSON.parse(content);
-          this.logger.debug(`[${this.type}TaskProvider] Parsed JSON from ${file.fsPath}`, json);
+          this.logger.debug(`[${this.type}TaskProvider] Parsed JSON from ${file.fsPath}`);
           if (json.scripts) {
             for (const script of Object.keys(json.scripts)) {
               this.logger.debug(`[${this.type}TaskProvider] Found script: ${script} in ${file.fsPath}`);

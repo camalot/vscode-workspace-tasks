@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { LoggerService } from './loggerService';
 
 export interface ITaskExecutionRecord {
   id: string; // Unique ID for this execution (e.g. uuid or timestamp based)
