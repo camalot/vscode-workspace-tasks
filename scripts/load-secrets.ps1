@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Loads environment variables from .secrets file for local testing.
 
@@ -28,7 +28,7 @@
 #>
 
 param(
-    [string]$SecretsFile = (Join-Path $PSScriptRoot ".." ".secrets"),
+    [string]$SecretsFile = (Join-Path -Path $PSScriptRoot -ChildPath ".." -ChildPath ".secrets"),
     [ValidateSet('Process', 'User')]
     [string]$Scope = 'Process'
 )
@@ -41,46 +41,46 @@ if (-not $SecretsFile -or -not (Test-Path $SecretsFile)) {
     exit 1
 }
 
-Write-Host "Loading secrets from: $SecretsFile" -ForegroundColor Cyan
+Write-Output "Loading secrets from: $SecretsFile" -ForegroundColor Cyan
 
 $loadedCount = 0
 $skippedCount = 0
 
 Get-Content $SecretsFile | ForEach-Object {
     $line = $_.Trim()
-    
+
     # Skip empty lines and comments
     if ([string]::IsNullOrWhiteSpace($line) -or $line.StartsWith('#')) {
         return
     }
-    
+
     # Parse KEY="VALUE" or KEY=VALUE format
     if ($line -match '^([^=]+)=(.+)$') {
         $key = $matches[1].Trim()
         $value = $matches[2].Trim()
-        
+
         # Remove quotes if present
         if ($value -match '^"(.*)"$' -or $value -match "^'(.*)'$") {
             $value = $matches[1]
         }
-        
+
         # Check if variable already exists
         $existing = [System.Environment]::GetEnvironmentVariable($key, $Scope)
-        
+
         if ($existing -and $Scope -eq 'Process') {
-            Write-Host "  ⚠️  Skipping $key (already set in current session)" -ForegroundColor Yellow
+            Write-Output "  ⚠️  Skipping $key (already set in current session)" -ForegroundColor Yellow
             $skippedCount++
         } else {
             # Set the environment variable
             [System.Environment]::SetEnvironmentVariable($key, $value, $Scope)
-            
+
             # Also set in the current session if scope is User
             if ($Scope -eq 'User') {
                 [System.Environment]::SetEnvironmentVariable($key, $value, 'Process')
             }
-            
+
             $indicator = if ($Scope -eq 'User') { '✓ [PERMANENT]' } else { '✓' }
-            Write-Host "  $indicator Set $key" -ForegroundColor Green
+            Write-Output "  $indicator Set $key" -ForegroundColor Green
             $loadedCount++
         }
     } else {
@@ -88,15 +88,15 @@ Get-Content $SecretsFile | ForEach-Object {
     }
 }
 
-Write-Host ""
-Write-Host "Summary:" -ForegroundColor Cyan
-Write-Host "  Loaded: $loadedCount" -ForegroundColor Green
+Write-Output ""
+Write-Output "Summary:" -ForegroundColor Cyan
+Write-Output "  Loaded: $loadedCount" -ForegroundColor Green
 if ($skippedCount -gt 0) {
-    Write-Host "  Skipped: $skippedCount" -ForegroundColor Yellow
+    Write-Output "  Skipped: $skippedCount" -ForegroundColor Yellow
 }
 
 if ($Scope -eq 'Process') {
-    Write-Host ""
-    Write-Host "Environment variables are set for this session only." -ForegroundColor Yellow
-    Write-Host "To set them permanently, run: .\scripts\load-secrets.ps1 -Scope User" -ForegroundColor Yellow
+    Write-Output ""
+    Write-Output "Environment variables are set for this session only." -ForegroundColor Yellow
+    Write-Output "To set them permanently, run: .\scripts\load-secrets.ps1 -Scope User" -ForegroundColor Yellow
 }

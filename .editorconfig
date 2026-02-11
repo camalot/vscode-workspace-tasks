@@ -8,6 +8,9 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_size = 2
 
+[*.ps1]
+charset = unset
+
 [*.md]
 indent_size = unset
 
