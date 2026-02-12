@@ -1,5 +1,134 @@
 {
   "$schema": "../schemas/workspace-tasks.schema.json",
+  "go": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/go.mod"]
+    },
+    "iconUri": "go.mod",
+    "inputs": [
+      {
+        "id": "PackageName",
+        "type": "promptString",
+        "description": "Enter the package name to build/test",
+        "default": "./..."
+      }
+    ],
+    "tasks": [
+      {
+        "label": "go:build",
+        "type": "shell",
+        "command": "go build ./...",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:build:package",
+        "type": "shell",
+        "command": "go build {{ .PackageName }}",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:clean",
+        "type": "shell",
+        "command": "go clean ./...",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:clean:package",
+        "type": "shell",
+        "command": "go clean {{ .PackageName }}",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:fmt",
+        "type": "shell",
+        "command": "go fmt ./...",
+        "group": "go",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:list",
+        "type": "shell",
+        "command": "go list./...",
+        "group": "go",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:test",
+        "type": "shell",
+        "command": "go test ./...",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:test:package",
+        "type": "shell",
+        "command": "go test {{ .PackageName }}",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
   "pipenv": {
     "version": "2.0.0",
     "globs": {

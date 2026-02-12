@@ -29,11 +29,13 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
     for (const provider of providers) {
       // Check if this specific provider type is enabled
       if (!TaskConfigService.getInstance().isTaskTypeEnabled(provider)) {
+        this.logger.debug(`Provider ${provider} is disabled. Skipping.`);
         continue;
       }
 
       const config = service.getLanguageConfig(provider);
       if (!config) {
+        this.logger.warn(`No configuration found for provider: ${provider}. Skipping.`);
         continue;
       }
       // Ensure we await the tasks definition since getTasks is async
@@ -91,6 +93,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
       const files = await filesService.findFiles(glob_include, exclude_joined);
       for (const file of files) {
+        this.logger.debug(`[${this.type}TaskProvider] Processing file: ${file.fsPath} for provider: ${provider}`);
         const iconPath = iconService.getTaskIcon(langId, file);
 
         for (const taskDef of taskDefs) {
