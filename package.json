@@ -868,6 +868,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.github-actions%"
             },
+            "go": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.go%"
+            },
             "gradle": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.gradle%"
@@ -940,6 +944,7 @@
             "composer": true,
             "docker": true,
             "github-actions": true,
+            "go": true,
             "gradle": true,
             "grunt": true,
             "gulp": true,

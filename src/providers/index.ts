@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './npmTaskProvider';
+import { BunTaskProvider, NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './npmTaskProvider';
 import { ComposerTaskProvider } from './composerTaskProvider';
 import { DenoTaskProvider } from './denoTaskProvider';
 import { ShellTaskProvider } from './shellTaskProvider';
@@ -18,6 +18,7 @@ import { GradleTaskProvider } from './gradleTaskProvider';
 import { PipenvTaskProvider } from './pipenvTaskProvider';
 import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
+import { GolangTaskProvider } from './golangTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 
@@ -43,7 +44,8 @@ type TaskProviderConstructor =
   | (new () => GithubActionsTaskProvider)
   | (new () => GradleTaskProvider)
   | (new () => PipenvTaskProvider)
-  | (new () => JupyterTaskProvider);
+  | (new () => JupyterTaskProvider)
+  | (new () => GolangTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
   const logger = LoggerService.getInstance();
@@ -53,6 +55,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     PnpmTaskProvider,
     YarnTaskProvider,
     ComposerTaskProvider,
+    GolangTaskProvider,
     DenoTaskProvider,
     ShellTaskProvider,
     VscodeTaskProvider,
