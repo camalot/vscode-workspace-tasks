@@ -13,6 +13,14 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
     super(type, globPattern);
   }
 
+  protected async parseContent(content: string, _uri?: vscode.Uri): Promise<any> {
+    try {
+      return JSON.parse(content);
+    } catch {
+      return {};
+    }
+  }
+
   public abstract getCommand(workspaceUri?: vscode.Uri): ExecutableResult;
 
   async getTasks(): Promise<TaskItem[]> {
@@ -24,7 +32,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
     const tasks: TaskItem[] = await this.getSystemTasks();
     const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
-    const files = await filesService.findFiles([constants.GLOB_NODEJS]);
+    const files = await filesService.findFiles([this.filePattern || constants.GLOB_NODEJS]);
 
     for (const file of files) {
       if (filesService.shouldIgnore(file)) {
@@ -37,7 +45,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
         const iconPath = iconService.getTaskIcon(this.type);
 
         // Simple parsing for now
-        const json = JSON.parse(content);
+        const json = await this.parseContent(content, file);
         if (json.scripts) {
           for (const script of Object.keys(json.scripts)) {
             const item = new TaskItem(

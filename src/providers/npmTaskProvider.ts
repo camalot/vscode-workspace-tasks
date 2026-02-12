@@ -2,10 +2,9 @@ import * as vscode from 'vscode';
 import constants from '../libs/constants';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { PackageJsonTaskProvider } from './packageJsonTaskProvider';
+import { PackageYamlTaskProvider } from './packageYamlTaskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
-import { FilteredTaskService } from '../services/filteredTaskService';
 import { TaskStateManager } from '../taskStateManager';
 
 export class NpmTaskProvider extends PackageJsonTaskProvider {
@@ -135,9 +134,9 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
   }
 }
 
-export class PnpmTaskProvider extends PackageJsonTaskProvider {
+export class PnpmTaskProvider extends PackageYamlTaskProvider {
   constructor() {
-    super('pnpm', constants.GLOB_NODEJS);
+    super('pnpm', constants.GLOB_PNPM);
   }
 
   async getSystemTasks(): Promise<TaskItem[]> {

@@ -21,6 +21,7 @@ const constants: Record<string, any> = {
   GLOB_GRADLE: '**/*.gradle',
   GLOB_MAKE: '**/[M]akefile',
   GLOB_NODEJS: '**/package.json',
+  GLOB_PNPM: '**/package.{json,yaml}',
   GLOB_PERL: '**/*.pl',
   GLOB_COMPOSER: '**/composer.json',
   GLOB_GITHUB_ACTIONS: '**/.github/workflows/*.{yml,yaml}',
