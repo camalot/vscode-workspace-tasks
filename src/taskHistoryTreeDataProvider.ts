@@ -51,13 +51,8 @@ export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<Hist
   }
 
   public async initializeView() {
-    // Focus the appropriate view based on persisted mode
+    // Set the appropriate view context based on persisted mode without forcing focus
     await vscode.commands.executeCommand('setContext', 'workspaceTasks.history.viewMode', this.viewMode);
-    if (this.viewMode === 'table') {
-      vscode.commands.executeCommand('workspaceTasksHistoryTableView.focus');
-    } else {
-      vscode.commands.executeCommand('workspaceTasksHistoryView.focus');
-    }
   }
 
   public toggleFilter(status: string) {
