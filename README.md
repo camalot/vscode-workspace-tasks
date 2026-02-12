@@ -105,6 +105,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/npm.png" width="32" alt="npm" title="npm"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/yarn.png" width="32" alt="Yarn" title="Yarn"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pnpm.png" width="32" alt="pnpm" title="pnpm"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/bun.png" width="32" alt="Bun" title="Bun"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/composer.png" width="32" alt="Composer" title="Composer"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pipenv.png" width="32" alt="Pipenv" title="Pipenv"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
@@ -115,6 +116,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[npm](https://www.npmjs.com/)** - Scripts from `package.json`
 - **[Yarn](https://yarnpkg.com/)** - Scripts from `package.json`
 - **[pnpm](https://pnpm.io/)** - Scripts from `package.json`
+- **[Bun](https://bun.com/)** - Scripts from `package.json` via `bun run <script>`, plus built-in `bun:install`, `bun:build`, and `bun:test`
 - **[Composer](https://getcomposer.org/)** - PHP scripts from `composer.json`
 - **[Pipenv](https://pipenv.pypa.io/)** - Python scripts from `Pipfile`
 - **[Apache Ant](https://ant.apache.org/)** - Targets from `*.xml` build files
@@ -141,6 +143,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 
 <p align="left">
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/docker.png" width="32" alt="Docker" title="Docker"/>
 </p>
 
 - **[Docker](https://www.docker.com/)** - Build tasks from `Dockerfile`
@@ -292,7 +295,7 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 
 ## 🕰️ Task History
 
-Track and review all task executions with comprehensive history views. Task History provides both a tree view and webview panel for monitoring task execution status, timing, and results.
+Track and review all task executions with comprehensive history views. Task History provides both a tree view and table panel for monitoring task execution status, timing, and results.
 
 ### Tree View
 
@@ -309,7 +312,7 @@ The Task History tree view provides a hierarchical, filterable view of all execu
 
 **How to Use:**
 
-1. Open the Task History view from the Explorer panel
+1. Open the Task History  in the Panel View
 2. Use the filter buttons in the title bar to show/hide specific statuses
 3. Click on any task item to view more details
 4. Right-click for additional options (clear history, etc.)
@@ -318,7 +321,7 @@ The Task History tree view provides a hierarchical, filterable view of all execu
 
 The Task History Table View provides a tabular, sortable view of all task executions with detailed information.
 
-![Task History Webview](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-webview.png)
+![Task History Table](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-webview.png)
 
 **Features:**
 
@@ -335,7 +338,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 **How to Use:**
 
-1. Open the Task History webview from the Explorer panel or sidebar
+1. Open the Task History in the Panel View and choose 'View as Table'
 2. Click column headers to sort by that field (click again to reverse order)
 3. Review detailed execution information including exact timestamps and durations
 4. Use the scrollable view to review extensive task history

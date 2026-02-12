@@ -23,7 +23,7 @@ import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 
 type TaskProviderConstructor =
-  // | (new () => BunTaskProvider)
+  | (new () => BunTaskProvider)
   | (new () => NpmTaskProvider)
   | (new () => PnpmTaskProvider)
   | (new () => YarnTaskProvider)
@@ -50,7 +50,7 @@ type TaskProviderConstructor =
 export function registerTaskProviders(context: vscode.ExtensionContext) {
   const logger = LoggerService.getInstance();
   const providers: TaskProviderConstructor[] = [
-    // BunTaskProvider,
+    BunTaskProvider,
     NpmTaskProvider,
     PnpmTaskProvider,
     YarnTaskProvider,
