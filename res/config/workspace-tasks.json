@@ -129,6 +129,121 @@
       }
     ]
   },
+  "poetry": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/[pP]y[pP]roject.toml,**/[pP]oetry.toml]"]
+    },
+    "iconUri": "pyproject.toml",
+    "inputs": [
+      {
+        "id": "PythonVersion",
+        "type": "promptString",
+        "description": "Enter the Python version to use for the environment",
+        "default": "system"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "poetry:env:info",
+        "type": "shell",
+        "command": "poetry env info",
+        "group": "poetry",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:env:use",
+        "type": "shell",
+        "command": "poetry env use {{ .PythonVersion }}",
+        "group": "poetry",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:build",
+        "type": "shell",
+        "command": "poetry build",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:publish",
+        "type": "shell",
+        "command": "poetry publish",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:install",
+        "type": "shell",
+        "command": "poetry install",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:update",
+        "type": "shell",
+        "command": "poetry update",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:lock",
+        "type": "shell",
+        "command": "poetry lock",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
   "pipenv": {
     "version": "2.0.0",
     "globs": {

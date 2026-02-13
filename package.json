@@ -64,6 +64,7 @@
     "bash",
     "bun",
     "pipenv",
+    "poetry",
     "make"
   ],
   "categories": [
@@ -917,6 +918,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.pipenv%"
             },
+            "poetry": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.poetry%"
+            },
             "pnpm": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.pnpm%"
@@ -960,6 +965,7 @@
             "msbuild": true,
             "npm": true,
             "pipenv": true,
+            "poetry": true,
             "jupyter": true,
             "tsc": true,
             "yarn": false,
@@ -1035,6 +1041,12 @@
           "description": "%config.workspaceTasks.applicationPath.pipenv%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.pipenv.markdown%",
           "default": "pipenv"
+        },
+        "workspaceTasks.applicationPath.poetry": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.poetry%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.poetry.markdown%",
+          "default": "poetry"
         }
       }
     },

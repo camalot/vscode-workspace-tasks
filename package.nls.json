@@ -84,6 +84,7 @@
   "config.workspaceTasks.enabledTaskTypes.msbuild": "MSBuild",
   "config.workspaceTasks.enabledTaskTypes.npm": "NPM",
   "config.workspaceTasks.enabledTaskTypes.pipenv": "Pipenv",
+  "config.workspaceTasks.enabledTaskTypes.poetry": "Poetry",
   "config.workspaceTasks.enabledTaskTypes.pnpm": "PNPM",
   "config.workspaceTasks.enabledTaskTypes.shell": "Scripts",
   "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
@@ -206,6 +207,9 @@
 
   "config.workspaceTasks.applicationPath.pipenv": "Path to Pipenv executable",
   "config.workspaceTasks.applicationPath.pipenv.markdown": "Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. On Windows, if the path ends with `pipenv`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+
+  "config.workspaceTasks.applicationPath.poetry": "Path to Poetry executable",
+  "config.workspaceTasks.applicationPath.poetry.markdown": "Specify the path to the [Poetry](https://python-poetry.org/) executable. On Windows, if the path ends with `poetry`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
 
   "config.workspaceTasks.applicationPath.make": "Path to Make executable",
   "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",

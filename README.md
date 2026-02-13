@@ -2,20 +2,17 @@
 
 <!-- markdownlint-disable-file MD033 -->
 
-[![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![VS Marketplace Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg?label=vscode%20rating)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Open VSX Rating](https://img.shields.io/open-vsx/stars/darthminos/workspace-tasks?label=open%20vsx%20rating)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
-<!-- [![Installs](https://img.shields.io/visual-studio-marketplace/i/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) -->
-
-[![VSCode Marketplace Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg?label=vscode%20rating)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Open VSX Rating](https://img.shields.io/open-vsx/stars/darthminos/workspace-tasks?label=open%20vsx%20rating)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+[![VSCode Installs](https://img.shields.io/visual-studio-marketplace/i/darthminos.workspace-tasks.svg?label=vsm%20installs)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![VS Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg?label=vsm%20downloads)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?label=ovsx%20downloads)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
 
-![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
- ![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif)
-
 ## 📑 Table of Contents
 
+- [📷 Screenshots](#screenshots)
 - [✨ Key Features](#key-features)
 - [📖 Documentation](#documentation)
 - [📥 Installation](#installation)
@@ -33,6 +30,13 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [✔️ Requirements](#requirements)
 - [🤝 Contributing](#contributing)
 - [📄 License](#license)
+
+## 📷 Screenshots
+
+<a id="screenshots"></a>
+
+![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
+ ![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif)
 
 ## ✨ Key Features
 
@@ -108,6 +112,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/bun.png" width="32" alt="Bun" title="Bun"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/composer.png" width="32" alt="Composer" title="Composer"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pipenv.png" width="32" alt="Pipenv" title="Pipenv"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/python.png" width="32" alt="Poetry" title="Poetry"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/maven.png" width="32" alt="Maven" title="Maven"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/msbuild.png" width="32" alt="MSBuild" title="MSBuild"/>
@@ -119,6 +124,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Bun](https://bun.com/)** - Scripts from `package.json` via `bun run <script>`, plus built-in `bun:install`, `bun:build`, and `bun:test`
 - **[Composer](https://getcomposer.org/)** - PHP scripts from `composer.json`
 - **[Pipenv](https://pipenv.pypa.io/)** - Python scripts from `Pipfile`
+- **[Poetry](https://python-poetry.org/)** - Python scripts from `pyproject.toml`
 - **[Apache Ant](https://ant.apache.org/)** - Targets from `*.xml` build files
 - **[Apache Maven](https://maven.apache.org/)** - Lifecycle goals from `pom.xml`
 - **[Gradle](https://gradle.org/)** - Tasks from `*.gradle` files
@@ -576,6 +582,7 @@ Each task type watches specific file patterns:
 | mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
 | MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
 | Pipenv | `**/Pipfile` | Python scripts |
+| Poetry | `**/pyproject.toml` | Python scripts |
 | Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
 | Docker | `**/Dockerfile*` | Container builds |
 | Docker Compose | `**/docker-compose.yml` | Service orchestration |
@@ -604,6 +611,7 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - [Yarn](https://yarnpkg.com/) for Yarn tasks
 - [Composer](https://getcomposer.org/) for PHP Composer tasks
 - [Pipenv](https://pipenv.pypa.io/) for Python Pipenv tasks
+- [Poetry](https://python-poetry.org/) for Python Poetry tasks
 
 **Build Systems:**
 

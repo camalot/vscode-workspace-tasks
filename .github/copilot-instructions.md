@@ -1,5 +1,7 @@
 # VSCode Extension Development Guidelines
 
+Ensure to keep the readme and other documentation up to date with the latest changes in the extension. This helps users understand how to use the extension effectively and provides them with the necessary information about its features and capabilities.
+
 ## Code Maintenance
 
 When maintaining code for VSCode extensions, consider the following best practices:

@@ -1,0 +1,33 @@
+[project]
+name = "sample-poetry-project"
+version = "0.1.0"
+description = "A sample Poetry project for testing Workspace Tasks extension"
+authors = [
+    { name = "Your Name", email = "you@example.com" }
+]
+requires-python = ">=3.8"
+
+# Standard PEP 621 scripts section (preferred)
+[project.scripts]
+hello = "sample_poetry_project.main:hello"
+test = "pytest tests/"
+lint = "flake8 src/"
+format = "black src/"
+build-docs = "mkdocs build"
+serve = "python -m http.server 8000"
+
+[tool.poetry]
+# Poetry-specific metadata can still go here
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.28.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+black = "^22.0"
+flake8 = "^5.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
