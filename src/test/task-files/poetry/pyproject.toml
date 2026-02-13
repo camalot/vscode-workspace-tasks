@@ -1,0 +1,68 @@
+[project]
+name = "sample-poetry-project"
+version = "0.1.0"
+description = "A sample Poetry project for testing Workspace Tasks extension"
+authors = [
+    { name = "Your Name", email = "you@example.com" }
+]
+requires-python = ">=3.8"
+
+# Standard PEP 621 scripts section (preferred)
+[project.scripts]
+hello = "sample_poetry_project.main:hello"
+test = "pytest tests/"
+lint = "flake8 src/"
+format = "black src/"
+build-docs = "mkdocs build"
+serve = "python -m http.server 8000"
+
+[tool.poetry.tasks]
+goodbye = "sample_poetry_project.main:goodbye"
+
+[tool.poetry]
+# Poetry-specific metadata can still go here
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.28.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+black = "^22.0"
+flake8 = "^5.0"
+
+# Poe the Poet task runner configuration
+[tool.poe.tasks]
+# Simple command tasks
+test = "pytest tests/ -v"
+test-quick = "pytest -m 'not slow'"
+lint = "flake8 src/"
+format = "black src/ --check"
+type-check = "mypy src/"
+
+# Shell task
+clean.shell = "rm -rf dist/ build/ *.egg-info"
+
+# Script task
+hello.script = "sample_poetry_project.main:hello"
+
+# Task with help text
+[tool.poe.tasks.docs]
+cmd = "mkdocs build"
+help = "Build the documentation"
+
+# Sequence task (runs multiple tasks)
+ci = ["lint", "type-check", "test"]
+
+# Task with environment variables
+[tool.poe.tasks.dev]
+cmd = "python -m sample_poetry_project"
+help = "Run the development server"
+env = { DEBUG = "1" }
+
+# Private task (won't be shown - starts with underscore)
+_internal-task = "echo This is private"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -16,6 +16,8 @@ import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider
 import { MiseTaskProvider } from './providers/miseTaskProvider';
 import { MavenTaskProvider } from './providers/mavenTaskProvider';
 import { DenoTaskProvider } from './providers/denoTaskProvider';
+import { PoetryTaskProvider } from './providers/poetryTaskProvider';
+import { PoeTaskProvider } from './providers/poeTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -899,6 +901,52 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         new vscode.ShellExecution(justCommand, justArgs, { cwd: justCwd }),
       );
       return { task, command: fullCmd, cwd: justCwd, native: false };
+    }
+    case "poe": {
+      const poeProvider = new PoeTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: poeCmd, args: poeInitialArgs, cwd: poeCwd } = poeProvider.getCommand(workspaceFolder?.uri);
+
+      const poeArgs = poeInitialArgs ? [...poeInitialArgs] : [];
+      poeArgs.push(taskLabel);
+      if (args) {
+        poeArgs.push(...args.split(' '));
+      }
+
+      const full = `${poeCmd} ${poeArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(poeCmd, poeArgs, { cwd: poeCwd });
+
+      const task = new vscode.Task(
+        { type: 'poe', script: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'poe',
+        shellExec,
+      );
+      return { task, command: full, cwd: poeCwd, native: false };
+    }
+    case "poetry": {
+      const poetryProvider = new PoetryTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: poetryCmd, args: poetryInitialArgs, cwd: poetryCwd } = poetryProvider.getCommand(workspaceFolder?.uri);
+
+      const poetryArgs = poetryInitialArgs ? [...poetryInitialArgs] : [];
+      poetryArgs.push('run', taskLabel);
+      if (args) {
+        poetryArgs.push(...args.split(' '));
+      }
+
+      const full = `${poetryCmd} ${poetryArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(poetryCmd, poetryArgs, { cwd: poetryCwd });
+
+      const task = new vscode.Task(
+        { type: 'poetry', script: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'poetry',
+        shellExec,
+      );
+      return { task, command: full, cwd: poetryCwd, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

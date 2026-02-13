@@ -16,9 +16,9 @@ export class PoetryTaskProvider extends TomlTaskProvider {
     return [constants.GLOB_POETRY];
   }
 
-  protected getScriptsPath(): string {
+  protected getScriptsPath(): string[] {
     // For backward compatibility - though we override getTasks() to check both locations
-    return 'project.scripts';
+    return ['project.scripts', 'tool.poetry.scripts'];
   }
 
   // Override getTasks to support both [project.scripts] (preferred, PEP 621)
@@ -132,8 +132,7 @@ export class PoetryTaskProvider extends TomlTaskProvider {
         defaultValue: 'poetry',
         configName: 'poetry',
         resolveToAbsolutePath: false,
-        windowsExecutableExtension: '.exe',
-        windowsEnforceExtension: true,
+        windowsEnforceExtension: false,
       },
       workspaceUri,
     );

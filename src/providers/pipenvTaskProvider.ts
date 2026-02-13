@@ -13,8 +13,8 @@ export class PipenvTaskProvider extends TomlTaskProvider {
     return [constants.GLOB_PIPENV];
   }
 
-  protected getScriptsPath(): string {
-    return 'scripts';
+  protected getScriptsPath(): string[] {
+    return ['scripts'];
   }
 
     async getSystemTasks(): Promise<TaskItem[]> {

@@ -16,6 +16,7 @@ import { GruntTaskProvider } from './gruntTaskProvider';
 import { GulpTaskProvider } from './gulpTaskProvider';
 import { GradleTaskProvider } from './gradleTaskProvider';
 import { PipenvTaskProvider } from './pipenvTaskProvider';
+import { PoeTaskProvider } from './poeTaskProvider';
 import { PoetryTaskProvider } from './poetryTaskProvider';
 import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
@@ -44,6 +45,7 @@ type TaskProviderConstructor =
   | (new () => GithubActionsTaskProvider)
   | (new () => GradleTaskProvider)
   | (new () => PipenvTaskProvider)
+  | (new () => PoeTaskProvider)
   | (new () => PoetryTaskProvider)
   | (new () => JupyterTaskProvider);
 
@@ -70,6 +72,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     MavenTaskProvider,
     GithubActionsTaskProvider,
     GradleTaskProvider,
+    PoeTaskProvider,
     PoetryTaskProvider,
     PipenvTaskProvider,
     JupyterTaskProvider,

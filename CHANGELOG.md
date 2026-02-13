@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### 🚀 Features
+
+- Add support for Poe the Poet (poe) task provider - Python task runner from `pyproject.toml` (`[tool.poe.tasks]` section)
+
 ## [1.1.11] - 2026-02-11
 
 ### 🚀 Features
@@ -594,4 +600,3 @@
 
 ### New Contributors
 * @camalot made their first contribution
-

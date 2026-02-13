@@ -29,6 +29,7 @@ const constants: Record<string, any> = {
   GLOB_JUPYTER: '**/*.ipynb',
   GLOB_PYTHON: '**/*.py',
   GLOB_PIPENV: '**/[Pp]ip[Ff]ile',
+  GLOB_POE: '**/pyproject.toml',
   GLOB_POETRY: '**/pyproject.toml',
   GLOB_RUBY: '**/*.rb',
   GLOB_TSCONFIG: '**/tsconfig.{json,*.json}',
