@@ -66,7 +66,6 @@
   "config.workspaceTasks.enabledTaskTypes": "Supported Task Types",
   "config.workspaceTasks.enabledTaskTypes.description": "Select the types of tasks that the extension should support and display in the task list.",
   "config.workspaceTasks.enabledTaskTypes.markdown": "Choose the task types (e.g., npm, script, makefile) that the extension will recognize and show in the task list.",
-
   "config.workspaceTasks.enabledTaskTypes.ant": "Ant",
   "config.workspaceTasks.enabledTaskTypes.bun": "Bun",
   "config.workspaceTasks.enabledTaskTypes.composer": "Composer",
@@ -87,6 +86,7 @@
   "config.workspaceTasks.enabledTaskTypes.poe": "Poe the Poet",
   "config.workspaceTasks.enabledTaskTypes.poetry": "Poetry",
   "config.workspaceTasks.enabledTaskTypes.pnpm": "PNPM",
+  "config.workspaceTasks.enabledTaskTypes.rake": "Rake",
   "config.workspaceTasks.enabledTaskTypes.shell": "Scripts",
   "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
@@ -217,6 +217,9 @@
 
   "config.workspaceTasks.applicationPath.make": "Path to Make executable",
   "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+
+  "config.workspaceTasks.applicationPath.rake": "Path to Rake executable",
+  "config.workspaceTasks.applicationPath.rake.markdown": "Specify the path to the [Rake](https://ruby.github.io/rake/) executable. On all platforms, '~/` will be expanded to the user's home directory.",
 
   "config.workspaceTasks.applicationPath.maven": "Path to Maven executable",
   "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",

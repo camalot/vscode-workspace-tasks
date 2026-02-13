@@ -18,6 +18,7 @@ import { GradleTaskProvider } from './gradleTaskProvider';
 import { PipenvTaskProvider } from './pipenvTaskProvider';
 import { PoeTaskProvider } from './poeTaskProvider';
 import { PoetryTaskProvider } from './poetryTaskProvider';
+import { RakeTaskProvider } from './rakeTaskProvider';
 import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
@@ -47,6 +48,7 @@ type TaskProviderConstructor =
   | (new () => PipenvTaskProvider)
   | (new () => PoeTaskProvider)
   | (new () => PoetryTaskProvider)
+  | (new () => RakeTaskProvider)
   | (new () => JupyterTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
@@ -75,6 +77,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     PoeTaskProvider,
     PoetryTaskProvider,
     PipenvTaskProvider,
+    RakeTaskProvider,
     JupyterTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);

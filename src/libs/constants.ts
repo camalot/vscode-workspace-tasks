@@ -31,6 +31,7 @@ const constants: Record<string, any> = {
   GLOB_PIPENV: '**/[Pp]ip[Ff]ile',
   GLOB_POE: '**/pyproject.toml',
   GLOB_POETRY: '**/pyproject.toml',
+  GLOB_RAKE: '{**/*.rake,**/Rakefile}',
   GLOB_RUBY: '**/*.rb',
   GLOB_TSCONFIG: '**/tsconfig.{json,*.json}',
   GLOB_VSCODE: '**/.vscode/tasks.json',

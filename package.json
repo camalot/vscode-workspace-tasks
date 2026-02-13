@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -57,6 +57,8 @@
     "makefile",
     "composer",
     "php",
+    "rake",
+    "ruby",
     "multi-root ready",
     "gradle",
     "tsc",
@@ -931,6 +933,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.pnpm%"
             },
+            "rake": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.rake%"
+            },
             "tsc": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.tsc%"
@@ -973,6 +979,7 @@
             "poe": true,
             "poetry": true,
             "jupyter": true,
+            "rake": true,
             "tsc": true,
             "yarn": false,
             "pnpm": false,
@@ -1059,6 +1066,12 @@
           "description": "%config.workspaceTasks.applicationPath.poetry%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.poetry.markdown%",
           "default": "poetry"
+        },
+        "workspaceTasks.applicationPath.rake": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.rake%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.rake.markdown%",
+          "default": "rake"
         }
       }
     },
