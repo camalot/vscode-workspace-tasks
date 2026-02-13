@@ -132,7 +132,7 @@
   "poetry": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/[pP]y[pP]roject.toml,**/[pP]oetry.toml]"]
+      "include": ["**/pyproject.toml"]
     },
     "iconUri": "pyproject.toml",
     "inputs": [
