@@ -1,11 +1,19 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { GulpTaskProvider } from '../../providers/gulpTaskProvider';
+import { TaskFilesService } from '../../services/taskFilesService';
 import { TaskRunner } from '../../taskRunner';
 import { TaskStateManager } from '../../taskStateManager';
 
 suite('Gulp Execution Test Suite', () => {
   test('Running a gulp task uses vscode.tasks.executeTask and sets running state', async () => {
+    const filesService = TaskFilesService.getInstance();
+    const originalFindFiles = filesService.findFiles;
+    filesService.findFiles = async () => [
+      vscode.Uri.file('d:/Development/projects/github/vscode-workspace-tasks/src/test/task-files/gulp/gulpfile.mjs'),
+      vscode.Uri.file('d:/Development/projects/github/vscode-workspace-tasks/src/test/task-files/gulp/gulpfile.js'),
+    ];
+
     const provider = new GulpTaskProvider();
     const tasks = await provider.getTasks();
     const names = tasks.map((t) => t.label);
@@ -37,6 +45,7 @@ suite('Gulp Execution Test Suite', () => {
       assert.ok(executedTask, 'vscode.tasks.executeTask should have been called');
     } finally {
       (vscode.tasks as any).executeTask = original;
+      filesService.findFiles = originalFindFiles;
     }
   });
 });

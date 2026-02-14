@@ -105,8 +105,9 @@ export class TaskCacheService {
         this.taskMap.set(uniqueId, task);
       }
 
-      if (task.resourceUri) {
-        const key = task.resourceUri.toString();
+      const resourceUri = task.taskFileUri || task.resourceUri;
+      if (resourceUri) {
+        const key = resourceUri.toString();
         if (!this.fileTaskMap.has(key)) {
           this.fileTaskMap.set(key, []);
         }
@@ -271,7 +272,22 @@ export class TaskCacheService {
         ? (task.scope as vscode.WorkspaceFolder).uri.toString()
         : undefined;
 
-    // 1) Exact type match (preferred)
+    // 1) Match by workspace folder if available (highest priority when scope is specified)
+    if (taskScopeFolder) {
+      const byFolder = candidates.find((item) => {
+        const itemUri = item.taskFileUri || item.resourceUri;
+        if (!itemUri) {
+          return false;
+        }
+        const itemFolder = vscode.workspace.getWorkspaceFolder(itemUri);
+        return itemFolder?.uri.toString() === taskScopeFolder;
+      });
+      if (byFolder) {
+        return byFolder;
+      }
+    }
+
+    // 2) Exact type match (preferred)
     if (defType) {
       const exact = candidates.find((item) => item.taskType === defType);
       if (exact) {
@@ -279,7 +295,7 @@ export class TaskCacheService {
       }
     }
 
-    // 2) Workspace-declared tasks
+    // 3) Workspace-declared tasks
     if (defType === 'workspace-task') {
       const ws = candidates.find((item) => !!item.taskSource);
       if (ws) {
@@ -287,25 +303,11 @@ export class TaskCacheService {
       }
     }
 
-    // 3) Visual Studio Code declared tasks
+    // 4) Visual Studio Code declared tasks
     if (taskSource === 'Workspace') {
       const vs = candidates.find((item) => item.taskType === 'vscode');
       if (vs) {
         return vs;
-      }
-    }
-
-    // 4) Match by workspace folder if available
-    if (taskScopeFolder) {
-      const byFolder = candidates.find((item) => {
-        if (!item.resourceUri) {
-          return false;
-        }
-        const itemFolder = vscode.workspace.getWorkspaceFolder(item.resourceUri);
-        return itemFolder?.uri.toString() === taskScopeFolder;
-      });
-      if (byFolder) {
-        return byFolder;
       }
     }
 

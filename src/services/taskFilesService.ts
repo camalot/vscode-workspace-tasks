@@ -30,10 +30,136 @@ export class TaskFilesService {
   }
 
   public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
+    if (this.context) {
+      await this.syncIgnoreFiles();
+    }
     // use vscode.workspace.findFiles with the provided pattern and exclude, then filter using the ignore rules
     const uris = await vscode.workspace.findFiles(pattern.join(','), exclude ? exclude.join(',') : undefined);
     const depthFiltered = this.filterByDepth(uris);
-    return depthFiltered.filter((uri) => !this.shouldIgnore(uri));
+    const filtered: vscode.Uri[] = [];
+    for (const uri of depthFiltered) {
+      if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
+        continue;
+      }
+      if (this.context && await this.isIgnoredByDiskRules(uri)) {
+        continue;
+      }
+      filtered.push(uri);
+    }
+    return filtered;
+  }
+
+  private async syncIgnoreFiles(): Promise<void> {
+    if (!this.context) {
+      return;
+    }
+
+    let files: vscode.Uri[] = [];
+    try {
+      files = await vscode.workspace.findFiles('**/.tasksignore', '**/node_modules/**,**/.git/**');
+    } catch {
+      return;
+    }
+
+    const folders = new Set(files.map((f) => this.normalizePathForComparison(path.dirname(f.fsPath))));
+    this.ignoreFiles = this.ignoreFiles.filter((f) => folders.has(this.normalizePathForComparison(f.folderUri.fsPath)));
+
+    for (const file of files) {
+      const folder = this.normalizePathForComparison(path.dirname(file.fsPath));
+      const alreadyLoaded = this.ignoreFiles.some(
+        (f) => this.normalizePathForComparison(f.folderUri.fsPath) === folder,
+      );
+      if (!alreadyLoaded) {
+        await this.loadIgnoreFile(file);
+      }
+    }
+  }
+
+  private async isIgnoredByDiskRules(uri: vscode.Uri): Promise<boolean> {
+    if (uri.scheme !== 'file') {
+      return false;
+    }
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+    const workspaceRoot = workspaceFolder
+      ? this.normalizePathForComparison(workspaceFolder.uri.fsPath)
+      : undefined;
+
+    let currentDir = path.dirname(uri.fsPath);
+    const targetPath = this.normalizePathForComparison(uri.fsPath);
+
+    while (true) {
+      const currentNormalized = this.normalizePathForComparison(currentDir);
+
+      const ignoreFile = vscode.Uri.file(path.join(currentDir, '.tasksignore'));
+      try {
+        const bytes = await vscode.workspace.fs.readFile(ignoreFile);
+        const content = new TextDecoder().decode(bytes);
+        const rules = content
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
+
+        if (rules.length > 0) {
+          const ig = ignore();
+          ig.add(rules);
+          if (targetPath.startsWith(`${currentNormalized}${path.sep}`)) {
+            const rel = targetPath.slice(currentNormalized.length + 1).replace(/\\/g, '/');
+            if (rel && ig.ignores(rel)) {
+              return true;
+            }
+          }
+        }
+      } catch {
+        // Ignore file not present/readable at this level
+      }
+
+      const parentDir = path.dirname(currentDir);
+      if (parentDir === currentDir) {
+        break;
+      }
+
+      if (workspaceRoot && !currentNormalized.startsWith(workspaceRoot)) {
+        break;
+      }
+
+      currentDir = parentDir;
+    }
+
+    return false;
+  }
+
+  private normalizePathForComparison(inputPath: string): string {
+    let normalized = path.normalize(inputPath);
+    // Normalize Windows long-path prefixes (e.g. "\\?\D:\\repo\\file")
+    normalized = normalized.replace(/^\\\\\?\\/, '');
+    normalized = normalized.replace(/^\/\/\?\//, '');
+    // VS Code URIs on Windows can sometimes yield paths like "\\d:\\repo\\file"
+    // while other APIs return "d:\\repo\\file". Normalize both to the same shape.
+    normalized = normalized.replace(/^[/\\]+(?=[a-zA-Z]:[/\\])/, '');
+    return normalized.toLowerCase();
+  }
+
+  private isIgnoredByLoadedRules(uri: vscode.Uri): boolean {
+    const targetPath = this.normalizePathForComparison(uri.fsPath);
+
+    for (const ignoreFile of this.ignoreFiles) {
+      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
+      if (targetPath === ignoreFolder || !targetPath.startsWith(`${ignoreFolder}${path.sep}`)) {
+        continue;
+      }
+
+      const relativePath = targetPath.slice(ignoreFolder.length + 1).replace(/\\/g, '/');
+      if (!relativePath) {
+        continue;
+      }
+
+      if (ignoreFile.ig.ignores(relativePath)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private filterByDepth(uris: vscode.Uri[]): vscode.Uri[] {
@@ -139,38 +265,57 @@ export class TaskFilesService {
   }
 
   private removeIgnoreFile(uri: vscode.Uri) {
-    const folderPath = path.dirname(uri.fsPath);
-    this.ignoreFiles = this.ignoreFiles.filter((f) => f.folderUri.fsPath !== folderPath);
+    const folderPath = this.normalizePathForComparison(path.dirname(uri.fsPath));
+    this.ignoreFiles = this.ignoreFiles.filter(
+      (f) => this.normalizePathForComparison(f.folderUri.fsPath) !== folderPath,
+    );
   }
 
   public shouldIgnore(uri: vscode.Uri): boolean {
     // 1. Check Global Ignore (absolute/workspace relative check)
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
     if (!workspaceFolder) {
-      return false;
-    } // Should we ignore files outside workspace?
-
-    const workspaceRelativePath = vscode.workspace.asRelativePath(uri, false);
-    if (this.globalIgnore.ignores(workspaceRelativePath)) {
-      return true;
+      // Workspace folder not found, but still check .tasksignore files
+      // This can happen in test environments or for files outside the workspace
+      // Skip global ignore check and proceed to .tasksignore check
+    } else {
+      const workspaceRelativePath = vscode.workspace.asRelativePath(uri, false);
+      // Normalize to forward slashes for ignore matching
+      const normalizedWorkspaceRelativePath = workspaceRelativePath.split(path.sep).join('/');
+      if (this.globalIgnore.ignores(normalizedWorkspaceRelativePath)) {
+        return true;
+      }
     }
 
     // 2. Check closest .tasksignore
     // Find all ignore files that are parents of this uri
+    const uriPath = this.normalizePathForComparison(uri.fsPath);
     const applicableIgnores = this.ignoreFiles.filter((ig) => {
-      const relative = path.relative(ig.folderUri.fsPath, uri.fsPath);
-      return !relative.startsWith('..') && !path.isAbsolute(relative);
+      const ignoreFolder = this.normalizePathForComparison(ig.folderUri.fsPath);
+
+      if (uriPath === ignoreFolder) {
+        return false;
+      }
+
+      return uriPath.startsWith(`${ignoreFolder}${path.sep}`);
     });
 
     // Sort by longest path (closest to file)
     applicableIgnores.sort((a, b) => b.folderUri.fsPath.length - a.folderUri.fsPath.length);
 
     for (const ignoreFile of applicableIgnores) {
-      const relativePath = path.relative(ignoreFile.folderUri.fsPath, uri.fsPath);
-      // relativePath is like "tools/ant/bin" if ignore file is at "vscode-project" and file is in "vscode-project/tools/ant/bin"
-      // path.relative returns platform specific separators. ignore expects /
-      const normalizedPath = relativePath.split(path.sep).join('/');
-      if (ignoreFile.ig.ignores(normalizedPath)) {
+      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
+      const filePath = this.normalizePathForComparison(uri.fsPath);
+
+      if (!filePath.startsWith(`${ignoreFolder}${path.sep}`)) {
+        continue;
+      }
+
+      const relativePath = filePath.slice(ignoreFolder.length + 1);
+      const normalizedPath = relativePath.replace(/\\/g, '/');
+
+      // Check if ignored (skip empty paths)
+      if (normalizedPath && ignoreFile.ig.ignores(normalizedPath)) {
         return true;
       }
     }
