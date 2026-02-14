@@ -6,7 +6,10 @@
       "script": "watch",
       "problemMatcher": {
         "owner": "typescript",
-        "fileLocation": ["relative", "${workspaceFolder}"],
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
         "pattern": {
           "regexp": "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
           "file": 1,
@@ -39,25 +42,13 @@
       "label": "npm: compile"
     },
     {
-      "label": "TEST: Step 1",
-      "type": "shell",
-      "command": "echo",
-      "args": ["Step 1"],
-      "problemMatcher": [],
-      "hide": true
-    },
-    {
-      "label": "TEST: Step 2",
-      "type": "shell",
-      "command": "bash",
-      "args": ["-c", "echo 'This is step 2'"],
-      "problemMatcher": [],
-      "hide": true
-    },
-    {
-      "label": "TEST: RUN ALL",
-      "dependsOn": ["TEST: Step 1", "TEST: Step 2"],
-      "dependsOrder": "sequence"
+      "type": "npm",
+      "script": "test",
+      "group": "test",
+      "label": "npm: test",
+      "presentation": {
+        "reveal": "always",
+      }
     }
   ]
 }

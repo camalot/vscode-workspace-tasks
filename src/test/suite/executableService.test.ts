@@ -41,4 +41,136 @@ suite('ExecutableService Tests', () => {
     assert.strictEqual(res.command, 'C:\\Program Files\\app.exe');
     assert.deepStrictEqual(res.args, ['arg1']);
   });
+
+  test('resolveToAbsolutePath resolves relative command against workspace root', async () => {
+    const exec = ExecutableService.getInstance();
+
+    const res = exec.getCommand(
+      { defaultValue: 'tools/mytool arg', configName: 'mytool', resolveToAbsolutePath: true },
+      vscode.Uri.file(process.cwd()),
+    );
+
+    const workspaceRoot = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0)
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : process.cwd();
+
+    let expected = path.join(workspaceRoot, 'tools', 'mytool');
+    if (process.platform === 'win32') {
+      expected += '.exe';
+    }
+
+    assert.strictEqual(res.command, expected);
+    assert.deepStrictEqual(res.args, ['arg']);
+  });
+
+  test('tilde (~) expansion expands to user home directory', async function () {
+    const exec = ExecutableService.getInstance();
+    const homeDir = process.env.HOME || process.env.USERPROFILE;
+    if (!homeDir) {
+      this.skip();
+      return;
+    }
+
+    const res = exec.getCommand({ defaultValue: '~/bin/app arg', configName: 'app', resolveToAbsolutePath: false });
+    let expected = path.join(homeDir, 'bin', 'app');
+    if (process.platform === 'win32') {
+      expected += '.exe';
+    }
+    assert.strictEqual(res.command, expected);
+    assert.deepStrictEqual(res.args, ['arg']);
+  });
+
+  test('uses configured value when configKey is provided', async function () {
+    // workspace-level update required for this test; skip if no workspace
+    if (!vscode.workspace.workspaceFolders) {
+      this.skip();
+      return;
+    }
+
+    // use a registered configuration object so Configuration.updateWs can write nested keys
+    const key = 'shellEnabledTaskTypes.bash';
+    const cfg = vscode.workspace.getConfiguration('workspaceTasks');
+    const parent = 'shellEnabledTaskTypes';
+    const originalParent = cfg.get<any>(parent);
+
+    try {
+      // write to workspace configuration and wait for internal cache to update
+      const { configuration } = await import('../../libs/configuration.js');
+      await configuration.updateWs(`${parent}.bash`, 'configuredcmd --flag');
+
+      // small wait loop to allow configuration cache to refresh
+      const start = Date.now();
+      while (configuration.get<string>(`${parent}.bash`) !== 'configuredcmd --flag' && Date.now() - start < 2000) {
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((r) => setTimeout(r, 50));
+      }
+
+      const exec = ExecutableService.getInstance();
+      const res = exec.getCommand({ configKey: `${parent}.bash`, defaultValue: 'fallback', configName: 'configuredcmd' });
+      const expectedCmd = process.platform === 'win32' ? 'configuredcmd.exe' : 'configuredcmd';
+      assert.strictEqual(res.command, expectedCmd);
+      assert.deepStrictEqual(res.args, ['--flag']);
+    } finally {
+      await cfg.update(parent, originalParent, vscode.ConfigurationTarget.Workspace);
+    }
+  });
+
+  test('getVscodeCommand returns undefined if extension not found', async () => {
+    const exec = ExecutableService.getInstance();
+    const res = await exec.getVscodeCommand('some.command', 'non.existent.extension');
+    assert.strictEqual(res, undefined);
+  });
+
+  test('getVscodeCommand returns command when extension exists and command registered', async () => {
+    const exec = ExecutableService.getInstance();
+
+    const originalGetExtension = (vscode.extensions as any).getExtension;
+    const originalGetCommands = (vscode.commands as any).getCommands;
+
+    try {
+      // fake an installed extension
+      (vscode.extensions as any).getExtension = (_id: string) => ({ id: 'fake.ext' } as any);
+      // fake command list
+      (vscode.commands as any).getCommands = async (_: boolean) => ['workspaceTasks.runTask', 'fake.command'];
+
+      const res = await exec.getVscodeCommand('workspaceTasks.runTask', 'fake.ext');
+      assert.strictEqual(res, 'workspaceTasks.runTask');
+    } finally {
+      (vscode.extensions as any).getExtension = originalGetExtension;
+      (vscode.commands as any).getCommands = originalGetCommands;
+    }
+  });
+
+  test('Windows: appends executable extension when required', function () {
+    if (process.platform !== 'win32') {
+      this.skip();
+      return;
+    }
+
+    const exec = ExecutableService.getInstance();
+    const res = exec.getCommand({ defaultValue: 'just', configName: 'just', resolveToAbsolutePath: false });
+    assert.strictEqual(res.command, 'just.exe');
+  });
+
+  test('Windows: does not append executable extension when windowsEnforceExtension is false', function () {
+    if (process.platform !== 'win32') {
+      this.skip();
+      return;
+    }
+
+    const exec = ExecutableService.getInstance();
+    const res = exec.getCommand({ defaultValue: 'just', configName: 'just', resolveToAbsolutePath: false, windowsEnforceExtension: false });
+    assert.strictEqual(res.command, 'just');
+  });
+
+  test('Windows: respects custom windowsExecutableExtension', function () {
+    if (process.platform !== 'win32') {
+      this.skip();
+      return;
+    }
+
+    const exec = ExecutableService.getInstance();
+    const res = exec.getCommand({ defaultValue: 'just', configName: 'just', resolveToAbsolutePath: false, windowsExecutableExtension: '.cmd' });
+    assert.strictEqual(res.command, 'just.cmd');
+  });
 });
