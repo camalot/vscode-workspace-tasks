@@ -1,4 +1,4 @@
-## [1.1.12] - 2026-02-13
+## [1.1.12] - 2026-02-14
 
 ### 🚀 Features
 
@@ -8,10 +8,14 @@
 
 - Add support for poe/poetry #95
 
+- Added rake tasks support #97
+
+- Added cargo and cargo-make support #94
+
 
 ### 🐛 Bug Fixes
 
-- Ask History Panel is 'Forced Focus' on extension activation #101
+- TAsk History Panel is 'Forced Focus' on extension activation #101
 
 
 ### ⚙️ Miscellaneous Tasks
@@ -639,4 +643,3 @@
 
 ### New Contributors
 * @camalot made their first contribution
-
