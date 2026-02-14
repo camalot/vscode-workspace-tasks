@@ -20,7 +20,7 @@ suite('Poe the Poet Provider', () => {
     const provider = new PoeTaskProvider();
     // Access protected method for testing
     const scriptsPath = (provider as any).getScriptsPath();
-    assert.strictEqual(scriptsPath, 'tool.poe.tasks');
+    assert.deepStrictEqual(scriptsPath, ['tool.poe.tasks', 'tool.poe.tasks.*']);
   });
 
   test('filters out private tasks starting with underscore', async function () {

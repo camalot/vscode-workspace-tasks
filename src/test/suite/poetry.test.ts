@@ -21,6 +21,6 @@ suite('Poetry Provider', () => {
     // Access protected method for testing
     const scriptsPath = (provider as any).getScriptsPath();
     // Should prefer project.scripts (PEP 621 standard)
-    assert.strictEqual(scriptsPath, 'project.scripts');
+    assert.deepStrictEqual(scriptsPath, ['project.scripts', 'tool.poetry.scripts']);
   });
 });
