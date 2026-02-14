@@ -17,8 +17,9 @@ suite('Cargo-Make Provider Test Suite', () => {
     const provider = new CargoMakeTaskProvider();
     const result = provider.getCommand();
 
-    assert.strictEqual(result.command, 'cargo-make');
+    assert.strictEqual(result.command, 'cargo');
     assert.ok(Array.isArray(result.args));
+    assert.strictEqual(result.args && result.args[0], 'make');
     assert.ok(result.cwd);
   });
 
