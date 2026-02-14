@@ -1,21 +1,44 @@
-## [1.1.11] - 2026-02-11
+## [1.1.12] - 2026-02-14
 
 ### 🚀 Features
 
-- Enable task history view presistence
+- Golang support simplified
 
-- *(tasks)* Support for Bun and Bun for NPM Script Runner #77
+- *(tasks)* Poetry initial task provider
 
-- Support for Bun and Bun for NPM Script Runner #77
+- Add support for poe/poetry #95
+
+- Added rake tasks support #97
+
+- Added cargo and cargo-make support #94
 
 
 ### 🐛 Bug Fixes
 
-- The view mode context key uses 'tree' | 'webview' #85
+- Task History Panel is 'Forced Focus' on extension activation #101
 
-- The webview enables scripts but the HTML is injected without a Content Security Policy (CSP) / nonce setup.  #84
 
-- Update steps for the release action
+### ⚙️ Miscellaneous Tasks
+
+- *(merge)* Merge develop to branch
+
+- Changes to poetry tasks glob
+
+- Added poetry icon
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.11...v1.1.12
+
+## [1.1.11] - 2026-02-11
+
+### 🚀 Features
+
+- Ability to sync favorites and queues. #91
+
+- Package.yaml support for pnpm #98
+
+- Golang support
 
 
 ### 💼 Other
@@ -44,16 +67,42 @@
 
 - Copilot <175728472+Copilot@users.noreply.github.com> by @camalot in [#89](https://github.com/camalot/vscode-workspace-tasks/pull/89)
 
+- V1.1.11 (#90) by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(repo): Unused variable task. #88 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(repo): logger is defined but never used in TaskHistoryService #83 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * fix: The view mode context key uses 'tree' | 'webview' #85 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * fix: The webview enables scripts but the HTML is injected without a Content Security Policy (CSP) / nonce setup.  #84 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * feat: enable task history view presistence by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * feat(tasks): Support for Bun and Bun for NPM Script Runner #77 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore: remove bun dependency by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * feat: Support for Bun and Bun for NPM Script Runner #77 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(ux): ux changes to the task history table and actions by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * fix: update steps for the release action by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(changelog): update changelog by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(repo): lint error resolution. by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(repo): update editorconfig expectations for ps1 files by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(repo): resolve copilot review suggestions by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
+- * chore(repo): fix broken test by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Unused variable task. #88
-
-- *(repo)* Logger is defined but never used in TaskHistoryService #83
-
-- Remove bun dependency
-
-- *(ux)* Ux changes to the task history table and actions
+- *(repo)* Update links and some info in readme
 
 
 
@@ -594,4 +643,3 @@
 
 ### New Contributors
 * @camalot made their first contribution
-

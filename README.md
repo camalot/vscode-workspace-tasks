@@ -2,39 +2,45 @@
 
 <!-- markdownlint-disable-file MD033 -->
 
-[![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![VS Marketplace Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg?label=vscode%20rating)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Open VSX Rating](https://img.shields.io/open-vsx/stars/darthminos/workspace-tasks?label=open%20vsx%20rating)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
-<!-- [![Installs](https://img.shields.io/visual-studio-marketplace/i/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) -->
-
-[![VSCode Marketplace Ratings](https://img.shields.io/visual-studio-marketplace/r/darthminos.workspace-tasks.svg?label=vscode%20rating)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Open VSX Rating](https://img.shields.io/open-vsx/stars/darthminos/workspace-tasks?label=open%20vsx%20rating)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+[![VSCode Installs](https://img.shields.io/visual-studio-marketplace/i/darthminos.workspace-tasks.svg?label=vsm%20installs)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![VS Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg?label=vsm%20downloads)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?label=ovsx%20downloads)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
+
+## 📑 Table of Contents
+
+- [📷 Screenshots](#screenshots)
+- [✨ Key Features](#key-features)
+- [📖 Documentation](#documentation)
+- [📥 Installation](#installation)
+- [🛠️ Supported Task Types](#supported-task-types)
+- [🌱 Recent Tasks](#recent-tasks)
+- [⭐ Favorites](#favorites)
+- [📋 Task Queues](#task-queues)
+- [🙈 Hide Tasks & Groups](#hide-tasks--groups)
+- [🕰️ Task History](#task-history)
+- [⚙️ Configuration](#configuration)
+  - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
+  - [GitHub Actions Integration](#github-actions-integration)
+  - [Task Ignore Patterns](docs/TaskFiltering.md)
+- [🔧 Advanced Features](#advanced-features)
+- [✔️ Requirements](#requirements)
+- [🤝 Contributing](#contributing)
+- [📄 License](#license)
+
+## 📷 Screenshots
+
+<a id="screenshots"></a>
 
 ![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
  ![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif)
 
-## 📑 Table of Contents
-
-- [✨ Key Features](#-key-features)
-- [📖 Documentation](#-documentation)
-- [📥 Installation](#-installation)
-- [🛠️ Supported Task Types](#️-supported-task-types)
-- [🌱 Recent Tasks](#-recent-tasks)
-- [⭐ Favorites](#-favorites)
-- [📋 Task Queues](#-task-queues)
-- [🙈 Hide Tasks & Groups](#-hide-tasks--groups)
-- [🕰️ Task History](#-task-history)
-- [⚙️ Configuration](#️-configuration)
-  - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
-  - [GitHub Actions Integration](#github-actions-integration)
-  - [Task Ignore Patterns](docs/TaskFiltering.md)
-- [🔧 Advanced Features](#-advanced-features)
-- [📋 Requirements](#-requirements)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-
 ## ✨ Key Features
+
+<a id="key-features"></a>
 
 - **🔍 Automatic Task Discovery** - Scans your workspace for tasks from 20+ file types and build systems
 - **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
@@ -49,14 +55,19 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
 - **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
+- **☁️ Settings Sync** - Sync your favorites and queues across multiple machines via VS Code's Settings Sync
 
 ## 📖 Documentation
+
+<a id="documentation"></a>
 
 - [Configuration Guide](docs/Configuration.md)
 - [Task Filtering](docs/TaskFiltering.md)
 - [Workspace Tasks](docs/WorkspaceTasks.md)
 
 ## 📥 Installation
+
+<a id="installation"></a>
 
 ### From Visual Studio Code Marketplace
 
@@ -82,13 +93,14 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 code --install-extension darthminos.workspace-tasks
 ```
 
-### Requirements
+### ✔️ Requirements
 
 - **Visual Studio Code** 1.105.1 or later
-- **External tools** must be installed for task execution (see [Requirements](#-requirements) section)
+- **External tools** must be installed for task execution (see [Requirements](#requirements) section)
 
 ## 🛠️ Supported Task Types
 
+<a id="supported-task-types"></a>
 Workspace Tasks automatically discovers and organizes tasks from a wide variety of tools and frameworks:
 
 ### Package Managers & Build Tools
@@ -100,6 +112,8 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/bun.png" width="32" alt="Bun" title="Bun"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/composer.png" width="32" alt="Composer" title="Composer"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/pipenv.png" width="32" alt="Pipenv" title="Pipenv"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/poe.png" width="32" alt="Poe the Poet" title="Poe the Poet"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/poetry.png" width="32" alt="Poetry" title="Poetry"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/maven.png" width="32" alt="Maven" title="Maven"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/msbuild.png" width="32" alt="MSBuild" title="MSBuild"/>
@@ -111,6 +125,8 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Bun](https://bun.com/)** - Scripts from `package.json` via `bun run <script>`, plus built-in `bun:install`, `bun:build`, and `bun:test`
 - **[Composer](https://getcomposer.org/)** - PHP scripts from `composer.json`
 - **[Pipenv](https://pipenv.pypa.io/)** - Python scripts from `Pipfile`
+- **[Poe the Poet](https://poethepoet.natn.io/)** - Python task runner from `pyproject.toml`
+- **[Poetry](https://python-poetry.org/)** - Python scripts from `pyproject.toml`
 - **[Apache Ant](https://ant.apache.org/)** - Targets from `*.xml` build files
 - **[Apache Maven](https://maven.apache.org/)** - Lifecycle goals from `pom.xml`
 - **[Gradle](https://gradle.org/)** - Tasks from `*.gradle` files
@@ -123,10 +139,14 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/justfile.png" width="32" alt="Just" title="Just"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo.png" width="32" alt="cargo" title="cargo"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo-make.png" width="32" alt="cargo-make" title="cargo-make"/>
 </p>
 
 - **[Gulp](https://gulpjs.com/)** - Tasks from `gulpfile.js` or `gulpfile.mjs`
 - **[Grunt](https://gruntjs.com/)** - Tasks from `Gruntfile.js`
+- **[Cargo](https://doc.rust-lang.org/cargo/)** - Tasks for `Cargo.toml`
+- **[cargo-make](https://sagiegurari.github.io/cargo-make/)** - Rust task runner from `Makefile.toml` or `*.toml` files (requires [Cargo](https://doc.rust-lang.org/cargo/))
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
 - **[mise](https://mise.jdx.dev/)** - Tasks from `mise.toml` or `mise-tasks/` directory
@@ -164,7 +184,9 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json`
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
 
-> The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#-requirements) for details.
+> The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#requirements) for details.
+
+<a id="recent-tasks"></a>
 
 ## 🌱 Recent Tasks
 
@@ -185,7 +207,7 @@ To disable tracking of recent tasks set to `0`.
 
 ![Recent Tasks - Max Items](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/settings-recenttasks-maxitems.png)
 
-####
+<a id="favorites"></a>
 
 ## ⭐ Favorites
 
@@ -204,12 +226,15 @@ Pin your most frequently used tasks for instant access. Favorites appear in a de
 - **Workspace-Specific** - Each workspace maintains its own favorites list
 - **Visual Indicators** - Star icons show in both favorites section and original location
 - **Context Display** - Tasks show their workspace folder name in multi-root workspaces
+- **Settings Sync** - Favorites automatically sync across all your machines when VS Code Settings Sync is enabled
 
 **Perfect For:**
 
 - Build, test, and deploy tasks you use daily
 - Development scripts you run frequently
 - Tasks from different workspace folders you need regularly
+
+<a id="task-queues"></a>
 
 ## 📋 Task Queues
 
@@ -231,6 +256,7 @@ Create and manage multiple named queues to run sequences of tasks in order. Perf
 - **Queue Management** - Rename queues, clear all tasks, or delete empty queues
 - **Persistent Storage** - Queues are saved and restored between sessions
 - **Status Indicators** - Real-time visual feedback with running/success/failure icons
+- **Settings Sync** - Queues automatically sync across all your machines when VS Code Settings Sync is enabled
 
 **Example Workflow:**
 
@@ -244,6 +270,8 @@ CI Pipeline Queue:
 ```
 
 Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
+
+<a id="hide-tasks--groups"></a>
 
 ## 🙈 Hide Tasks & Groups
 
@@ -274,6 +302,8 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 - Temporarily removing test or build tasks from view
 - Focusing on specific task categories during development
 - Cleaning up the task tree without permanently removing tasks
+
+<a id="task-history"></a>
 
 ## 🕰️ Task History
 
@@ -335,6 +365,8 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 ## 🚀 Quick Start
 
+<a id="quick-start"></a>
+
 1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
 2. **Open the Workspace Tasks view** from the Activity Bar (sidebar) or Explorer panel
    - **Sidebar:** Click the Workspace Tasks icon in the Activity Bar
@@ -351,6 +383,8 @@ The Task History Table View provides a tabular, sortable view of all task execut
 - Use the collapse button (⊟) to toggle view states
 - Create `.tasksignore` files to exclude unwanted tasks
 - Drag the Explorer view to any panel location (sidebar, panel, or as a floating window)
+
+<a id="configuration"></a>
 
 ## ⚙️ Configuration
 
@@ -485,6 +519,8 @@ workspace-folder/
 
 ## 🔧 Advanced Features
 
+<a id="advanced-features"></a>
+
 ### View Placement and Layout
 
 **Multiple View Options:**
@@ -541,6 +577,7 @@ Each task type watches specific file patterns:
 | --- | --- | --- |
 | npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
 | Ant | `**/*.xml` | Parses build file targets |
+| cargo-make | `**/{Makefile.toml,*.toml}` | Rust task runner from TOML files (requires Cargo) |
 | Composer | `**/composer.json` | PHP dependency scripts |
 | Gradle | `**/*.gradle` | Java/Android build tasks |
 | Grunt | `**/Gruntfile.js` | Registered tasks |
@@ -552,6 +589,8 @@ Each task type watches specific file patterns:
 | mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
 | MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
 | Pipenv | `**/Pipfile` | Python scripts |
+| Poe the Poet | `**/pyproject.toml` | Python task runner |
+| Poetry | `**/pyproject.toml` | Python scripts |
 | Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
 | Docker | `**/Dockerfile*` | Container builds |
 | Docker Compose | `**/docker-compose.yml` | Service orchestration |
@@ -560,6 +599,8 @@ Each task type watches specific file patterns:
 | Workspace | `.workspace-tasks.json` | Custom tasks |
 
 All patterns respect `.gitignore` and `.tasksignore` exclusions.
+
+<a id="requirements"></a>
 
 ## 📋 Requirements
 
@@ -578,6 +619,8 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - [Yarn](https://yarnpkg.com/) for Yarn tasks
 - [Composer](https://getcomposer.org/) for PHP Composer tasks
 - [Pipenv](https://pipenv.pypa.io/) for Python Pipenv tasks
+- [Poe the Poet](https://poethepoet.natn.io/) for Python Poe tasks
+- [Poetry](https://python-poetry.org/) for Python Poetry tasks
 
 **Build Systems:**
 
@@ -588,6 +631,7 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 
 **Task Runners:**
 
+- [Cargo](https://doc.rust-lang.org/cargo/) and [cargo-make](https://sagiegurari.github.io/cargo-make/) for cargo-make tasks
 - [Grunt](https://gruntjs.com/) for Grunt tasks
 - [Gulp](https://gulpjs.com/) for Gulp tasks
 - [Just](https://github.com/casey/just) for Just tasks
@@ -613,6 +657,8 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - Command Prompt for `.bat` and `.cmd` scripts
 
 > **Installation Instructions:** Visit each tool's official website (linked above) for installation guides specific to your operating system.
+
+<a id="contributing"></a>
 
 ## 🤝 Contributing
 
@@ -668,6 +714,8 @@ npm run watch
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
+
+<a id="license"></a>
 
 ## 📄 License
 

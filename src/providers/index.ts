@@ -7,6 +7,7 @@ import { VscodeTaskProvider } from './vscodeTaskProvider';
 import { VenvTaskProvider } from './venvTaskProvider';
 import { MiseTaskProvider } from './miseTaskProvider';
 import { MakefileTaskProvider } from './makefileTaskProvider';
+import { CargoMakeTaskProvider } from './cargoMakeTaskProvider';
 import { JustfileTaskProvider } from './justfileTaskProvider';
 import { WorkspaceTasksProvider } from './workspaceTasksProvider';
 import { AntTaskProvider } from './antTaskProvider';
@@ -16,6 +17,9 @@ import { GruntTaskProvider } from './gruntTaskProvider';
 import { GulpTaskProvider } from './gulpTaskProvider';
 import { GradleTaskProvider } from './gradleTaskProvider';
 import { PipenvTaskProvider } from './pipenvTaskProvider';
+import { PoeTaskProvider } from './poeTaskProvider';
+import { PoetryTaskProvider } from './poetryTaskProvider';
+import { RakeTaskProvider } from './rakeTaskProvider';
 import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
@@ -32,6 +36,7 @@ type TaskProviderConstructor =
   | (new () => VscodeTaskProvider)
   | (new () => VenvTaskProvider)
   | (new () => MakefileTaskProvider)
+  | (new () => CargoMakeTaskProvider)
   | (new () => MiseTaskProvider)
   | (new () => WorkspaceTasksProvider)
   | (new () => JustfileTaskProvider)
@@ -43,6 +48,9 @@ type TaskProviderConstructor =
   | (new () => GithubActionsTaskProvider)
   | (new () => GradleTaskProvider)
   | (new () => PipenvTaskProvider)
+  | (new () => PoeTaskProvider)
+  | (new () => PoetryTaskProvider)
+  | (new () => RakeTaskProvider)
   | (new () => JupyterTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
@@ -58,6 +66,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     VscodeTaskProvider,
     VenvTaskProvider,
     MakefileTaskProvider,
+    CargoMakeTaskProvider,
     MiseTaskProvider,
     WorkspaceTasksProvider,
     JustfileTaskProvider,
@@ -68,7 +77,10 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     MavenTaskProvider,
     GithubActionsTaskProvider,
     GradleTaskProvider,
+    PoeTaskProvider,
+    PoetryTaskProvider,
     PipenvTaskProvider,
+    RakeTaskProvider,
     JupyterTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);

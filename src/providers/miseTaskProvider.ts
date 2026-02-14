@@ -13,9 +13,9 @@ export class MiseTaskProvider extends TomlTaskProvider {
     return [constants.GLOB_MISE];
   }
 
-  protected getScriptsPath(): string {
+  protected getScriptsPath(): string[] {
     // can be tasks or tasks.*. this should probably be changed to return an array.
-    return 'tasks.*';
+    return ['tasks.*'];
   }
 
   async getSystemTasks(): Promise<TaskItem[]> {

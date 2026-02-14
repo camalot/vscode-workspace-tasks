@@ -1,0 +1,51 @@
+# Sample Rakefile for testing
+require 'rake'
+
+desc "Run all tests"
+task :test do
+  puts "Running tests..."
+end
+
+desc "Build the project"
+task :build do
+  puts "Building project..."
+end
+
+desc "Deploy to production"
+task :deploy => [:test, :build] do
+  puts "Deploying..."
+end
+
+namespace :db do
+  desc "Create the database"
+  task :create do
+    puts "Creating database..."
+  end
+
+  desc "Migrate the database"
+  task :migrate do
+    puts "Migrating database..."
+  end
+
+  desc "Seed the database"
+  task :seed do
+    puts "Seeding database..."
+  end
+end
+
+namespace :assets do
+  desc "Precompile assets"
+  task :precompile do
+    puts "Precompiling assets..."
+  end
+
+  desc "Clean compiled assets"
+  task :clean do
+    puts "Cleaning assets..."
+  end
+end
+
+# Task without description (should still be discoverable with -AT)
+task :secret_task do
+  puts "This is a secret task"
+end

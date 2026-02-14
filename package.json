@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -57,6 +57,8 @@
     "makefile",
     "composer",
     "php",
+    "rake",
+    "ruby",
     "multi-root ready",
     "gradle",
     "tsc",
@@ -64,6 +66,8 @@
     "bash",
     "bun",
     "pipenv",
+    "poe",
+    "poetry",
     "make"
   ],
   "categories": [
@@ -861,6 +865,14 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
             },
+            "cargo": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cargo%"
+            },
+            "cargo-make": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cargo-make%"
+            },
             "deno": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.deno%"
@@ -872,6 +884,10 @@
             "github-actions": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.github-actions%"
+            },
+            "go": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.go%"
             },
             "gradle": {
               "type": "boolean",
@@ -913,9 +929,21 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.pipenv%"
             },
+            "poe": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.poe%"
+            },
+            "poetry": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.poetry%"
+            },
             "pnpm": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.pnpm%"
+            },
+            "rake": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.rake%"
             },
             "tsc": {
               "type": "boolean",
@@ -944,8 +972,11 @@
             "deno": true,
             "shell": true,
             "composer": true,
+            "cargo": true,
+            "cargo-make": true,
             "docker": true,
             "github-actions": true,
+            "go": true,
             "gradle": true,
             "grunt": true,
             "gulp": true,
@@ -955,7 +986,10 @@
             "msbuild": true,
             "npm": true,
             "pipenv": true,
+            "poe": true,
+            "poetry": true,
             "jupyter": true,
+            "rake": true,
             "tsc": true,
             "yarn": false,
             "pnpm": false,
@@ -976,6 +1010,18 @@
           "description": "%config.workspaceTasks.applicationPath.composer%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.composer.markdown%",
           "default": "composer"
+        },
+        "workspaceTasks.applicationPath.cargo": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.cargo%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.cargo.markdown%",
+          "default": "cargo"
+        },
+        "workspaceTasks.applicationPath.cargo-make": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.cargo-make%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.cargo-make.markdown%",
+          "default": "cargo-make"
         },
         "workspaceTasks.applicationPath.deno": {
           "type": "string",
@@ -1030,6 +1076,24 @@
           "description": "%config.workspaceTasks.applicationPath.pipenv%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.pipenv.markdown%",
           "default": "pipenv"
+        },
+        "workspaceTasks.applicationPath.poe": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.poe%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.poe.markdown%",
+          "default": "poe"
+        },
+        "workspaceTasks.applicationPath.poetry": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.poetry%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.poetry.markdown%",
+          "default": "poetry"
+        },
+        "workspaceTasks.applicationPath.rake": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.rake%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.rake.markdown%",
+          "default": "rake"
         }
       }
     },

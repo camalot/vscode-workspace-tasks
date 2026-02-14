@@ -18,11 +18,12 @@ export class TaskStateManager {
   private executions: Map<string, vscode.TaskExecution> = new Map();
   private terminatedTasks: Set<string> = new Set();
   private context: vscode.ExtensionContext | undefined;
+  private idMigrationMap: Map<string, string> = new Map(); // Maps old IDs to new portable IDs
 
   private _onDidStateChange = new vscode.EventEmitter<{ id: string; status: TaskStatus }>();
   public readonly onDidStateChange = this._onDidStateChange.event;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): TaskStateManager {
     if (!TaskStateManager.instance) {
@@ -39,45 +40,133 @@ export class TaskStateManager {
     return this.context;
   }
 
-  public getTaskId(item: TaskItem): string {
-    let id = item.id;
+  /**
+   * Generates a portable task ID that is workspace-aware and can be synced across machines.
+   * For workspace tasks: Format: `workspace-name:relative-path:task-label`
+   * For external tasks: Format: `external:absolute-path:task-label`
+   * This allows tasks to be recognized across different machine setups where absolute paths differ.
+   */
+  public generatePortableTaskId(item: TaskItem): string {
+    const label = item.originalLabel || item.label;
+    const uri = item.taskFileUri || item.resourceUri;
 
-    // If ID is missing, fall back to calculating one.
-    // NOTE: This fallback logic MUST match how TaskCacheService generates IDs to ensure consistency.
-    // TaskCacheService uses: `${wsPath}|${fileUriStr}|${task.label}` + optional suffix
-    if (!id) {
-      const label = item.originalLabel || item.label;
-      let wsPath = '';
-      let fileUriStr = '';
-      const uri = item.taskFileUri || item.resourceUri;
-      if (uri) {
-        fileUriStr = uri.toString();
-        const ws = vscode.workspace.getWorkspaceFolder(uri);
-        if (ws) {
-          wsPath = ws.uri.fsPath;
-        }
+    if (!uri) {
+      // Fallback to label if no URI is available
+      return label;
+    }
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+    if (!workspaceFolder) {
+      // External task - use absolute path since it's not in any workspace
+      const absolutePath = uri.fsPath;
+      return `external:${absolutePath}:${label}`;
+    }
+
+    // Workspace task - use relative path
+    const workspaceName = workspaceFolder.name;
+    const relativePath = vscode.workspace.asRelativePath(uri, false);
+
+    return `${workspaceName}:${relativePath}:${label}`;
+  }
+
+  /**
+   * Converts old absolute path IDs to new portable IDs for migration.
+   * Old format: `${wsPath}|${fileUriStr}|${label}`
+   * New format: `${workspaceName}:${relativePath}:${label}`
+   */
+  private migrateOldIdToPortable(oldId: string): string | null {
+    // Check if this looks like an old-format ID (contains |)
+    if (!oldId.includes('|')) {
+      return null; // Already in new format or not a path-based ID
+    }
+
+    const parts = oldId.split('|');
+    if (parts.length < 2) {
+      return null;
+    }
+
+    const wsPath = parts[0];
+    const fileUriStr = parts[1];
+    const label = parts.slice(2).join('|'); // In case label contains |
+
+    if (!wsPath || !fileUriStr) {
+      return null;
+    }
+
+    try {
+      const uri = vscode.Uri.parse(fileUriStr);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+
+      if (!workspaceFolder) {
+        // External task - convert to new external format
+        const absolutePath = uri.fsPath;
+        return `external:${absolutePath}:${label}`;
       }
-      id = `${wsPath}|${fileUriStr}|${label}`;
-    }
 
-    // Canonicalize ID: Strip prefixes added by view logic
-    // Prefixes to strip: "recent:", "fav:", "queue:<name>:"
-
-    while (id && id.startsWith('recent:')) {
-      id = id.substring(7);
+      // Workspace task - convert to new portable format
+      const workspaceName = workspaceFolder.name;
+      const relativePath = vscode.workspace.asRelativePath(uri, false);
+      return `${workspaceName}:${relativePath}:${label}`;
+    } catch {
+      return null;
     }
-    while (id && id.startsWith('fav:')) {
-      id = id.substring(4);
+  }
+
+  /**
+   * Normalizes task IDs, handling both old and new formats.
+   * Returns the appropriate ID format, supporting backwards compatibility.
+   */
+  public normalizeTaskId(id: string): string {
+    // Strip prefixes added by view logic
+    let normalized = id;
+
+    while (normalized && normalized.startsWith('recent:')) {
+      normalized = normalized.substring(7);
+    }
+    while (normalized && normalized.startsWith('fav:')) {
+      normalized = normalized.substring(4);
     }
 
     // Handle queue prefix "queue:name:realId"
-    if (id && id.startsWith('queue:')) {
-      // Find the second colon
-      const firstColon = id.indexOf(':'); // char 5
-      const secondColon = id.indexOf(':', firstColon + 1);
+    if (normalized && normalized.startsWith('queue:')) {
+      const firstColon = normalized.indexOf(':');
+      const secondColon = normalized.indexOf(':', firstColon + 1);
       if (secondColon !== -1) {
-        id = id.substring(secondColon + 1);
+        normalized = normalized.substring(secondColon + 1);
       }
+    }
+
+    // Check if we have a cached migration for this old ID
+    if (this.idMigrationMap.has(normalized)) {
+      return this.idMigrationMap.get(normalized)!;
+    }
+
+    // Try to migrate old format IDs to new format
+    const migratedId = this.migrateOldIdToPortable(normalized);
+    if (migratedId) {
+      this.idMigrationMap.set(normalized, migratedId);
+      return migratedId;
+    }
+
+    return normalized;
+  }
+
+  /**
+   * Batch normalizes multiple task IDs. Useful for migrating stored collections.
+   */
+  public normalizeTaskIds(ids: string[]): string[] {
+    return ids.map(id => this.normalizeTaskId(id));
+  }
+
+  public getTaskId(item: TaskItem): string {
+    let id = item.id;
+
+    // If ID is missing, generate a portable one
+    if (!id) {
+      id = this.generatePortableTaskId(item);
+    } else {
+      // Normalize the ID (strip prefixes and handle migrations)
+      id = this.normalizeTaskId(id);
     }
 
     return id;

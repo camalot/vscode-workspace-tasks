@@ -306,8 +306,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Helper to recursively check and add favorites
     const checkFavorite = (item: TaskItem) => {
-      const id = stateManager.getTaskId(item);
-      if (favoritesService.isFavorite(id)) {
+      if (favoritesService.isFavorite(item)) {
         // Clone task for favorites view
         const favTask = new TaskItem(
           item.label,

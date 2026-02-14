@@ -12,7 +12,7 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
   }
 
   protected abstract getGlobPatterns(): string[];
-  protected abstract getScriptsPath(): string;
+  protected abstract getScriptsPath(): string[];
   public abstract getCommand(workspaceUri?: vscode.Uri): ExecutableResult;
 
   async getTasks(): Promise<TaskItem[]> {
@@ -40,34 +40,37 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
           continue;
         }
 
-        const scripts = this.resolveScripts(tomlObj, this.getScriptsPath());
+        for (const scriptsPath of this.getScriptsPath()) {
+          const scripts = this.resolveScripts(tomlObj, scriptsPath);
 
-        if (!scripts || typeof scripts !== 'object') {
-          continue;
-        }
 
-        const iconPath = iconService.getTaskIcon(this.type);
+          if (!scripts || typeof scripts !== 'object') {
+            continue;
+          }
 
-        for (const [name, script] of Object.entries(scripts)) {
-          // In simple cases, script is the command string
-          // We can support object if needed, but for now specific command string
-          const command = typeof script === 'string' ? script : JSON.stringify(script);
+          const iconPath = iconService.getTaskIcon(this.type);
 
-          const item = new TaskItem(name, vscode.TreeItemCollapsibleState.None, this.type, file, undefined, iconPath);
+          for (const [name, script] of Object.entries(scripts)) {
+            // In simple cases, script is the command string
+            // We can support object if needed, but for now specific command string
+            const command = typeof script === 'string' ? script : JSON.stringify(script);
 
-          item.taskFileUri = file;
-          item.description = vscode.workspace.asRelativePath(file);
-          item.tooltip = `${name}: ${command}`;
+            const item = new TaskItem(name, vscode.TreeItemCollapsibleState.None, this.type, file, undefined, iconPath);
 
-          item.startLine = this.findScriptLine(textContent, name);
+            item.taskFileUri = file;
+            item.description = vscode.workspace.asRelativePath(file);
+            item.tooltip = `${name}: ${command}`;
 
-          item.onOpenActionCommand = {
-            command: 'workspaceTasks.openFileAtLine',
-            title: 'Open File',
-            arguments: [file, item.startLine || 0],
-          };
+            item.startLine = this.findScriptLine(textContent, name);
 
-          tasks.push(item);
+            item.onOpenActionCommand = {
+              command: 'workspaceTasks.openFileAtLine',
+              title: 'Open File',
+              arguments: [file, item.startLine || 0],
+            };
+
+            tasks.push(item);
+          }
         }
       } catch (err) {
         this.logger.warn(`[TomlTaskProvider] Error processing file ${file.fsPath}:`, err);

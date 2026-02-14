@@ -181,7 +181,7 @@ export class TaskItem extends vscode.TreeItem {
       // It's a task leaf node
       const id = TaskStateManager.getInstance().getTaskId(this);
       const status = TaskStateManager.getInstance().getStatus(id);
-      const isFavorite = FavoritesService.getInstance().isFavorite(id);
+      const isFavorite = FavoritesService.getInstance().isFavorite(this);
       const isFiltered = filteredService.isFiltered(id);
       const isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
 

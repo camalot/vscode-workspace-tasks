@@ -15,6 +15,14 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
 
   }
 
+  protected async parseContent(content: string, _uri?: vscode.Uri): Promise<any> {
+    try {
+      return JSON.parse(content);
+    } catch {
+      return {};
+    }
+  }
+
   public abstract getCommand(workspaceUri?: vscode.Uri): ExecutableResult;
 
   async getTasks(): Promise<TaskItem[]> {
@@ -24,15 +32,13 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
     try {
       const glob = this.filePattern || constants.GLOB_NODEJS;
 
-      this.logger.debug(`[${this.type}TaskProvider] Searching for task files with pattern: ${glob}`);
-
       this.addedTasks.clear();
+      const tasks: TaskItem[] = await this.getSystemTasks();
       const filesService = TaskFilesService.getInstance();
       const iconService = TaskIconService.getInstance();
-      const files = await filesService.findFiles([glob]);
-
+      this.logger.debug(`[${this.type}TaskProvider] Searching for task files with pattern: ${glob}`);
+      const files = await filesService.findFiles([this.filePattern || constants.GLOB_NODEJS]);
       this.logger.debug(`[${this.type}TaskProvider] Found ${files.length} files matching pattern.`);
-      const tasks: TaskItem[] = await this.getSystemTasks();
 
       for (const file of files) {
         if (filesService.shouldIgnore(file)) {
@@ -45,6 +51,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
           const document = await vscode.workspace.openTextDocument(file);
           const content = document.getText();
           const iconPath = iconService.getTaskIcon(this.type);
+
 
           // Simple parsing for now
           const json = JSON.parse(content);

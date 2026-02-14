@@ -36,7 +36,7 @@ body:
         This tool is used for...
         It's commonly used in... projects
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: tool-category
@@ -82,7 +82,7 @@ body:
         - poetry publish
       render: shell
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: config-example
@@ -92,7 +92,7 @@ body:
       placeholder: Paste a minimal example of the tool's configuration file
       render: yaml
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: parsing-info
@@ -108,20 +108,7 @@ body:
         Tasks can be discovered by running: `tool list-tasks`
         Tasks are defined in the [tasks] section of the config file
     validations:
-      required: true
-
-  - type: dropdown
-    id: popularity
-    attributes:
-      label: Popularity/Usage
-      description: How widely used is this tool?
-      options:
-        - Very popular in my language/framework ecosystem
-        - Growing in popularity
-        - Niche but important for specific use cases
-        - New/emerging tool
-    validations:
-      required: true
+      required: false
 
   - type: textarea
     id: execution-info
@@ -134,7 +121,7 @@ body:
         - Requires installation: yes/no
         - Available on: Linux, macOS, Windows
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: additional

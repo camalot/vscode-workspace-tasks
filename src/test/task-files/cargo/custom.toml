@@ -1,0 +1,41 @@
+# Custom named toml file for cargo-make
+[config]
+skip_core_tasks = true
+
+[tasks.custom-build]
+description = "Custom build task"
+command = "cargo"
+args = ["build", "--all-features"]
+
+[tasks.custom-test]
+description = "Custom test task"
+command = "cargo"
+args = ["test", "--all"]
+
+[tasks.deploy]
+description = "Deploy the application"
+script = '''
+echo "Deploying application"
+'''
+
+[tasks.docker-build]
+description = "Build docker image"
+command = "docker"
+args = ["build", "-t", "myapp", "."]
+
+[tasks.lint]
+description = "Run linting checks"
+dependencies = ["clippy", "format-check"]
+
+[tasks.format-check]
+description = "Check if code is formatted"
+command = "cargo"
+args = ["fmt", "--", "--check"]
+
+[tasks.all]
+description = "Run everything"
+dependencies = [
+    "custom-build",
+    "custom-test",
+    "lint"
+]

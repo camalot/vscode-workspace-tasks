@@ -1,5 +1,344 @@
 {
   "$schema": "../schemas/workspace-tasks.schema.json",
+  "cargo": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/Cargo.toml"]
+    },
+    "iconUri": "Cargo.toml",
+    "inputs": [],
+    "tasks": [
+      {
+        "label": "cargo:build",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "build"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:clean",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "clean"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:fmt",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "fmt"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:test",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "test"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:run",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "run"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
+  "go": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/go.mod"]
+    },
+    "iconUri": "go.mod",
+    "inputs": [
+      {
+        "id": "PackageName",
+        "type": "promptString",
+        "description": "Enter the package name to build/test",
+        "default": "./..."
+      }
+    ],
+    "tasks": [
+      {
+        "label": "go:build",
+        "type": "shell",
+        "command": "go build ./...",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:build:package",
+        "type": "shell",
+        "command": "go build {{ .PackageName }}",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:clean",
+        "type": "shell",
+        "command": "go clean ./...",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:clean:package",
+        "type": "shell",
+        "command": "go clean {{ .PackageName }}",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:fmt",
+        "type": "shell",
+        "command": "go fmt ./...",
+        "group": "go",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:list",
+        "type": "shell",
+        "command": "go list./...",
+        "group": "go",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:test",
+        "type": "shell",
+        "command": "go test ./...",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "go:test:package",
+        "type": "shell",
+        "command": "go test {{ .PackageName }}",
+        "group": "go",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
+  "poetry": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/pyproject.toml"]
+    },
+    "iconUri": "pyproject.toml",
+    "inputs": [
+      {
+        "id": "PythonVersion",
+        "type": "promptString",
+        "description": "Enter the Python version to use for the environment",
+        "default": "system"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "poetry:env:info",
+        "type": "shell",
+        "command": "poetry env info",
+        "group": "poetry",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:env:use",
+        "type": "shell",
+        "command": "poetry env use {{ .PythonVersion }}",
+        "group": "poetry",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:build",
+        "type": "shell",
+        "command": "poetry build",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:publish",
+        "type": "shell",
+        "command": "poetry publish",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:install",
+        "type": "shell",
+        "command": "poetry install",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:update",
+        "type": "shell",
+        "command": "poetry update",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "poetry:lock",
+        "type": "shell",
+        "command": "poetry lock",
+        "group": "poetry",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
   "pipenv": {
     "version": "2.0.0",
     "globs": {
