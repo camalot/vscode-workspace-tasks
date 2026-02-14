@@ -15,7 +15,7 @@
 
 ### 🐛 Bug Fixes
 
-- TAsk History Panel is 'Forced Focus' on extension activation #101
+- Task History Panel is 'Forced Focus' on extension activation #101
 
 
 ### ⚙️ Miscellaneous Tasks
