@@ -18,6 +18,7 @@ import { MavenTaskProvider } from './providers/mavenTaskProvider';
 import { DenoTaskProvider } from './providers/denoTaskProvider';
 import { PoetryTaskProvider } from './providers/poetryTaskProvider';
 import { PoeTaskProvider } from './providers/poeTaskProvider';
+import { CargoMakeTaskProvider } from './providers/cargoMakeTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -947,6 +948,31 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec,
       );
       return { task, command: full, cwd: poetryCwd, native: false };
+    }
+    case "cargo-make": {
+      const cargoMakeProvider = new CargoMakeTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const relativeResourceUri = vscode.workspace.asRelativePath(resourceUri, false);
+      const { command: cargoMakeCmd, args: cargoMakeInitialArgs, cwd: cargoMakeCwd } = cargoMakeProvider.getCommand(workspaceFolder?.uri);
+
+      const cargoMakeArgs = cargoMakeInitialArgs ? [...cargoMakeInitialArgs] : [];
+      cargoMakeArgs.push('--makefile', relativeResourceUri);
+      cargoMakeArgs.push(taskLabel);
+      if (args) {
+        cargoMakeArgs.push(...args.split(' '));
+      }
+
+      const full = `${cargoMakeCmd} ${cargoMakeArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(cargoMakeCmd, cargoMakeArgs, { cwd: cargoMakeCwd });
+
+      const task = new vscode.Task(
+        { type: 'cargo-make', script: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'cargo-make',
+        shellExec,
+      );
+      return { task, command: full, cwd: cargoMakeCwd, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

@@ -139,10 +139,14 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/justfile.png" width="32" alt="Just" title="Just"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo.png" width="32" alt="cargo" title="cargo"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo-make.png" width="32" alt="cargo-make" title="cargo-make"/>
 </p>
 
 - **[Gulp](https://gulpjs.com/)** - Tasks from `gulpfile.js` or `gulpfile.mjs`
 - **[Grunt](https://gruntjs.com/)** - Tasks from `Gruntfile.js`
+- **[Cargo](https://doc.rust-lang.org/cargo/)** - Tasks for `Cargo.toml`
+- **[cargo-make](https://sagiegurari.github.io/cargo-make/)** - Rust task runner from `Makefile.toml` or `*.toml` files (requires [Cargo](https://doc.rust-lang.org/cargo/))
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
 - **[mise](https://mise.jdx.dev/)** - Tasks from `mise.toml` or `mise-tasks/` directory
@@ -573,6 +577,7 @@ Each task type watches specific file patterns:
 | --- | --- | --- |
 | npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
 | Ant | `**/*.xml` | Parses build file targets |
+| cargo-make | `**/{Makefile.toml,*.toml}` | Rust task runner from TOML files (requires Cargo) |
 | Composer | `**/composer.json` | PHP dependency scripts |
 | Gradle | `**/*.gradle` | Java/Android build tasks |
 | Grunt | `**/Gruntfile.js` | Registered tasks |
@@ -626,6 +631,7 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 
 **Task Runners:**
 
+- [Cargo](https://doc.rust-lang.org/cargo/) and [cargo-make](https://sagiegurari.github.io/cargo-make/) for cargo-make tasks
 - [Grunt](https://gruntjs.com/) for Grunt tasks
 - [Gulp](https://gulpjs.com/) for Gulp tasks
 - [Just](https://github.com/casey/just) for Just tasks

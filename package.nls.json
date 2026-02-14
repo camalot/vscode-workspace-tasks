@@ -69,6 +69,8 @@
   "config.workspaceTasks.enabledTaskTypes.ant": "Ant",
   "config.workspaceTasks.enabledTaskTypes.bun": "Bun",
   "config.workspaceTasks.enabledTaskTypes.composer": "Composer",
+  "config.workspaceTasks.enabledTaskTypes.cargo": "Cargo",
+  "config.workspaceTasks.enabledTaskTypes.cargo-make": "Cargo Make",
   "config.workspaceTasks.enabledTaskTypes.deno": "Deno",
   "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
   "config.workspaceTasks.enabledTaskTypes.github-actions": "GitHub Actions",
@@ -225,5 +227,11 @@
   "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
 
   "config.workspaceTasks.applicationPath.deno": "Path to Deno executable",
-  "config.workspaceTasks.applicationPath.deno.markdown": "Specify the path to the [Deno](https://deno.land/) executable. On Windows, if the path ends with `deno`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory."
+  "config.workspaceTasks.applicationPath.deno.markdown": "Specify the path to the [Deno](https://deno.land/) executable. On Windows, if the path ends with `deno`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+
+  "config.workspaceTasks.applicationPath.cargo": "Path to Cargo executable",
+  "config.workspaceTasks.applicationPath.cargo.markdown": "Specify the path to the [Cargo](https://doc.rust-lang.org/cargo/) executable. On Windows, if the path ends with `cargo`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+
+  "config.workspaceTasks.applicationPath.cargo-make": "Path to cargo-make executable",
+  "config.workspaceTasks.applicationPath.cargo-make.markdown": "Specify the path to the [cargo-make](https://sagiegurari.github.io/cargo-make/) executable. cargo-make is a Rust task runner and build tool using TOML-based Makefile.toml files. On Windows, if the path ends with `cargo-make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory."
 }

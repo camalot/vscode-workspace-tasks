@@ -865,6 +865,14 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
             },
+            "cargo": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cargo%"
+            },
+            "cargo-make": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cargo-make%"
+            },
             "deno": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.deno%"
@@ -964,6 +972,8 @@
             "deno": true,
             "shell": true,
             "composer": true,
+            "cargo": true,
+            "cargo-make": true,
             "docker": true,
             "github-actions": true,
             "go": true,
@@ -1000,6 +1010,18 @@
           "description": "%config.workspaceTasks.applicationPath.composer%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.composer.markdown%",
           "default": "composer"
+        },
+        "workspaceTasks.applicationPath.cargo": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.cargo%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.cargo.markdown%",
+          "default": "cargo"
+        },
+        "workspaceTasks.applicationPath.cargo-make": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.cargo-make%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.cargo-make.markdown%",
+          "default": "cargo-make"
         },
         "workspaceTasks.applicationPath.deno": {
           "type": "string",

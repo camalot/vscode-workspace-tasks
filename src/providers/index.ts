@@ -7,6 +7,7 @@ import { VscodeTaskProvider } from './vscodeTaskProvider';
 import { VenvTaskProvider } from './venvTaskProvider';
 import { MiseTaskProvider } from './miseTaskProvider';
 import { MakefileTaskProvider } from './makefileTaskProvider';
+import { CargoMakeTaskProvider } from './cargoMakeTaskProvider';
 import { JustfileTaskProvider } from './justfileTaskProvider';
 import { WorkspaceTasksProvider } from './workspaceTasksProvider';
 import { AntTaskProvider } from './antTaskProvider';
@@ -35,6 +36,7 @@ type TaskProviderConstructor =
   | (new () => VscodeTaskProvider)
   | (new () => VenvTaskProvider)
   | (new () => MakefileTaskProvider)
+  | (new () => CargoMakeTaskProvider)
   | (new () => MiseTaskProvider)
   | (new () => WorkspaceTasksProvider)
   | (new () => JustfileTaskProvider)
@@ -64,6 +66,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     VscodeTaskProvider,
     VenvTaskProvider,
     MakefileTaskProvider,
+    CargoMakeTaskProvider,
     MiseTaskProvider,
     WorkspaceTasksProvider,
     JustfileTaskProvider,

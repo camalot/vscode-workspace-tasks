@@ -1,0 +1,96 @@
+# Example cargo-make Makefile.toml
+[config]
+default_to_workspace = false
+
+[env]
+RUST_BACKTRACE = "1"
+BUILD_TYPE = "release"
+
+[tasks.format]
+description = "Format code using rustfmt"
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.clean]
+description = "Clean old target directory"
+command = "cargo"
+args = ["clean"]
+
+[tasks.build]
+description = "Runs the rust compiler"
+command = "cargo"
+args = ["build"]
+dependencies = ["clean"]
+
+[tasks.build-release]
+description = "Build in release mode"
+command = "cargo"
+args = ["build", "--release"]
+dependencies = ["clean"]
+
+[tasks.test]
+description = "Run all tests"
+command = "cargo"
+args = ["test"]
+dependencies = ["clean"]
+
+[tasks.test-verbose]
+description = "Run tests with verbose output"
+command = "cargo"
+args = ["test", "--verbose"]
+
+[tasks.bench]
+description = "Run benchmarks"
+command = "cargo"
+args = ["bench"]
+
+[tasks.doc]
+description = "Generate documentation"
+command = "cargo"
+args = ["doc", "--no-deps"]
+
+[tasks.clippy]
+description = "Run clippy linter"
+command = "cargo"
+args = ["clippy"]
+
+[tasks.check]
+description = "Check code without building"
+command = "cargo"
+args = ["check"]
+
+[tasks.ci-flow]
+description = "CI flow with build and test"
+dependencies = [
+    "format",
+    "build",
+    "test"
+]
+
+[tasks.dev-flow]
+description = "Development flow"
+dependencies = [
+    "format",
+    "build",
+    "test"
+]
+
+[tasks.pre-build]
+description = "Runs before build"
+script = '''
+echo "Preparing to build..."
+'''
+
+[tasks.post-build]
+description = "Runs after build"
+script = '''
+echo "Build completed!"
+'''
+
+[tasks.complex-task]
+description = "A task with multiple features"
+condition = { platforms = ["linux", "mac"] }
+env = { "MY_ENV_VAR" = "value" }
+command = "echo"
+args = ["Running complex task"]

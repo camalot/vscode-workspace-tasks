@@ -1,5 +1,100 @@
 {
   "$schema": "../schemas/workspace-tasks.schema.json",
+  "cargo": {
+    "version": "2.0.0",
+    "globs": {
+      "include": ["**/Cargo.toml"]
+    },
+    "iconUri": "Cargo.toml",
+    "inputs": [],
+    "tasks": [
+      {
+        "label": "cargo:build",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "build"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:clean",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "clean"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:fmt",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "fmt"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:test",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "test"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "cargo:run",
+        "type": "process",
+        "command": "cargo",
+        "args": [
+          "run"
+        ],
+        "group": "cargo",
+        "hide": false,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
   "go": {
     "version": "2.0.0",
     "globs": {
