@@ -715,12 +715,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     }
     case 'vscode': {
       // Use existing Visual Studio Code task defined in .vscode/tasks.json
-      let tasks: vscode.Task[] = [];
-      try {
-        tasks = await vscode.tasks.fetchTasks({ type: 'shell' });
-      } catch {
-        return undefined;
-      }
+      const tasks: vscode.Task[] = await vscode.tasks.fetchTasks();
       const taskUri = item.taskFileUri || item.resourceUri;
       const targetWorkspaceFolder = taskUri
         ? vscode.workspace.getWorkspaceFolder(taskUri)

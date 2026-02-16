@@ -121,7 +121,7 @@ suite('TaskCacheService Test Suite', () => {
         assert.strictEqual(tasks[1].resourceUri?.fsPath, u2.fsPath);
     });
 
-    test('rebuildCache - Includes workspace path in ID if available', async () => {
+    test('rebuildCache - Includes workspace name in ID if available', async () => {
         mockTasks.length = 0;
         const wsUri = vscode.Uri.file('/my/workspace');
         const fileUri = vscode.Uri.file('/my/workspace/file.txt');
@@ -129,7 +129,7 @@ suite('TaskCacheService Test Suite', () => {
 
         vscode.workspace.getWorkspaceFolder = (u: vscode.Uri) => {
             if (u.toString() === fileUri.toString()) {
-                return { uri: wsUri, name: 'ws', index: 0 };
+                return { uri: wsUri, name: 'ws-name', index: 0 };
             }
             return undefined;
         };
@@ -139,8 +139,8 @@ suite('TaskCacheService Test Suite', () => {
 
         const tasks = service.getAllTasks();
         const id = tasks[0].id!;
-        // ID format: ${wsPath}|${fileUriStr}|${task.label}
-        assert.ok(id.includes(wsUri.fsPath), 'ID should contain workspace path');
+        // ID format: ${workspaceName}:${relativePath}:${task.label}
+        assert.ok(id.includes('ws-name'), 'ID should contain workspace name');
     });
 
     test('findMatchingTask - Matches by label', async () => {
