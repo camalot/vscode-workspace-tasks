@@ -519,6 +519,30 @@
           "description": "%config.workspaceTasks.groups.useParentFolder.description%",
           "markdownDescription": "%config.workspaceTasks.groups.useParentFolder.markdown%"
         },
+        "workspaceTasks.groups.expanded": {
+          "type": "object",
+          "markdownDescription": "%config.workspaceTasks.groups.expanded.markdown%",
+          "additionalProperties": false,
+          "properties": {
+            "favorites": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.groups.expanded.favorites%"
+            },
+            "queue": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.groups.expanded.queue%"
+            },
+            "recent": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.groups.expanded.recent%"
+            }
+          },
+          "default": {
+            "favorites": true,
+            "queue": true,
+            "recent": true
+          }
+        },
         "workspaceTasks.groups.recentTasks.enabled": {
           "title": "%config.workspaceTasks.groups.recentTasks.enabled%",
           "type": "boolean",
