@@ -125,7 +125,6 @@ suite('TaskCacheService Test Suite', () => {
         mockTasks.length = 0;
         const wsUri = vscode.Uri.file('/my/workspace');
         const fileUri = vscode.Uri.file('/my/workspace/file.txt');
-        const item = createTaskItem('Test', 't', fileUri);
 
         vscode.workspace.getWorkspaceFolder = (u: vscode.Uri) => {
             if (u.toString() === fileUri.toString()) {
@@ -134,6 +133,7 @@ suite('TaskCacheService Test Suite', () => {
             return undefined;
         };
 
+        const item = createTaskItem('Test', 't', fileUri);
         mockTasks.push(item);
         await service.refreshProvider('mockType');
 

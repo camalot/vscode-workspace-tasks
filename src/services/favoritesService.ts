@@ -41,14 +41,14 @@ export class FavoritesService {
       id = this.taskStateManager.normalizeTaskId(itemOrId);
     } else {
       // If a TaskItem is passed, generate the portable ID
-      id = this.taskStateManager.generatePortableTaskId(itemOrId);
+      id = this.taskStateManager.getTaskId(itemOrId);
     }
 
     return this.favorites.has(id);
   }
 
   public addToFavorites(item: TaskItem) {
-    const portableId = this.taskStateManager.generatePortableTaskId(item);
+    const portableId = this.taskStateManager.getTaskId(item);
     if (portableId) {
       this.favorites.add(portableId);
       this.save();
@@ -56,7 +56,7 @@ export class FavoritesService {
   }
 
   public removeFromFavorites(item: TaskItem) {
-    const portableId = this.taskStateManager.generatePortableTaskId(item);
+    const portableId = this.taskStateManager.getTaskId(item);
     if (portableId && this.favorites.has(portableId)) {
       this.favorites.delete(portableId);
       this.save();

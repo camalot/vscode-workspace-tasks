@@ -37,6 +37,7 @@ suite('FavoritesService Test Suite', () => {
       normalizeTaskIds: (ids: string[]) => ids || [],
       normalizeTaskId: (id: string) => id,
       generatePortableTaskId: (item: TaskItem) => item.label,
+      getTaskId: (item: TaskItem) => item.label,
     } as unknown as TaskStateManager;
 
     (TaskStateManager as any).instance = fakeState;
@@ -64,6 +65,7 @@ suite('FavoritesService Test Suite', () => {
       normalizeTaskIds: (_ids: string[]) => ['migrated-id'],
       normalizeTaskId: (id: string) => (id === 'raw' ? 'migrated-id' : id),
       generatePortableTaskId: (item: TaskItem) => item.label,
+      getTaskId: (item: TaskItem) => item.label,
     } as unknown as TaskStateManager;
 
     (TaskStateManager as any).instance = fakeState;
@@ -177,7 +179,7 @@ suite('FavoritesService Test Suite', () => {
       normalizeTaskIds: (ids: string[]) => ids || [],
       normalizeTaskId: (id: string) => id,
       generatePortableTaskId: (_item: TaskItem) => '' as any,
-      getTaskId: (item: TaskItem) => item.label,
+      getTaskId: (_item: TaskItem) => '' as any,
     } as unknown as TaskStateManager;
     (TaskStateManager as any).instance = fakeState;
 

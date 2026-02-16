@@ -356,12 +356,13 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       let shellExec: vscode.ShellExecution;
       let commandString: string;
 
+      // Use array form to properly handle paths with spaces in both interpreter and script
+      const shellArgs = [resourceUri.fsPath];
+      if (args) {
+        shellArgs.push(...args.split(' '));
+      }
+
       if (interpreter) {
-        // Use array form to properly handle paths with spaces in both interpreter and script
-        const shellArgs = [resourceUri.fsPath];
-        if (args) {
-          shellArgs.push(...args.split(' '));
-        }
         shellExec = new vscode.ShellExecution(interpreter, shellArgs, { cwd });
         commandString = `${interpreter} ${shellArgs.join(' ')}`;
       } else {
@@ -373,10 +374,13 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec = new vscode.ShellExecution(commandString, { cwd });
       }
 
+      // Use relative path as task name to ensure uniqueness and prevent terminal reuse conflicts
+      const uniqueTaskName = vscode.workspace.asRelativePath(resourceUri);
+
       const task = new vscode.Task(
-        { type: 'shell', script: taskLabel, path: resourceUri.fsPath },
+        { type: 'shell', script: taskLabel, path: resourceUri.fsPath, id: item.id },
         vscode.TaskScope.Workspace,
-        taskLabel,
+        uniqueTaskName,
         'shell',
         shellExec,
       );
