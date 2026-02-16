@@ -115,14 +115,9 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     const tasks: TaskItem[] = [];
 
     // get the system registered tasks
-    let vscodeTasks: vscode.Task[] = [];
-    try {
-      vscodeTasks = await vscode.tasks.fetchTasks({ type: 'shell' });
-    } catch (error) {
-      this.logger.warn('[VscodeTaskProvider] Failed to fetch shell tasks.', error);
-      return [];
-    }
-    vscodeTasks = vscodeTasks.filter((t => t.source === 'Workspace'));
+    const allTasks: vscode.Task[] = await vscode.tasks.fetchTasks();
+
+    const vscodeTasks = allTasks.filter((t => t.source === 'Workspace'));
     this.logger.debug(`[VscodeTaskProvider] Fetched ${vscodeTasks.length} system tasks from VSCode.`);
 
     for (const vscodeTask of vscodeTasks) {
