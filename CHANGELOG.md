@@ -1,8 +1,10 @@
-## [1.1.13] - 2026-02-16
+## [1.1.13] - 2026-02-17
 
 ### 🚀 Features
 
 - Open all favorites by default or setting to do so #107
+
+- Too many context actions missing while script is executing #105
 
 
 ### 🐛 Bug Fixes
@@ -29,6 +31,8 @@
 - Bump dev dependencies
 
 - Ensure all tasks use the state manager to get a task id.
+
+- Fix some tests that were configured incorrectly
 
 
 
