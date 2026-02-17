@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -1254,112 +1254,112 @@
         },
         {
           "command": "workspaceTasks.clearQueue",
-          "when": "viewItem == queue",
-          "group": "inline@3"
-        },
-        {
-          "command": "workspaceTasks.runTask",
-          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask) && config.workspaceTasks.task.actionBar.run",
-          "group": "inline@3"
-        },
-        {
-          "command": "workspaceTasks.runTaskWithArgs",
-          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask) && config.workspaceTasks.task.actionBar.runWithArgs",
+          "when": "viewItem === queue",
           "group": "inline@3"
         },
         {
           "command": "workspaceTasks.openFileAtLine",
-          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask) && config.workspaceTasks.task.actionBar.openFile",
+          "when": "viewItem =~ /ask$/ && config.workspaceTasks.task.actionBar.openFile",
           "group": "inline@3"
         },
         {
           "command": "workspaceTasks.runTask",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask",
-          "group": "1_run@1"
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /running/) && config.workspaceTasks.task.actionBar.run",
+          "group": "inline@98"
         },
         {
           "command": "workspaceTasks.runTaskWithArgs",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask",
-          "group": "1_run@2"
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /running/) && config.workspaceTasks.task.actionBar.runWithArgs",
+          "group": "inline@99"
+        },
+        {
+          "command": "workspaceTasks.runTask",
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /running/)",
+          "group": "1_run@98"
+        },
+        {
+          "command": "workspaceTasks.runTaskWithArgs",
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /running/)",
+          "group": "1_run@99"
         },
         {
           "command": "workspaceTasks.openFileAtLine",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask",
-          "group": "2_open"
+          "when": "viewItem =~ /ask$/",
+          "group": "2_open@3"
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "viewItem == task || viewItem == queuedTask || viewItem == recentTask || viewItem == filteredTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask",
-          "group": "3_favorites"
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]avorite)/)",
+          "group": "3_favorites@1"
         },
         {
           "command": "workspaceTasks.removeFromFavorites",
-          "when": "viewItem == favoriteTask || viewItem == favoriteRecentTask || viewItem == filteredFavoriteTask || viewItem == filteredFavoriteRecentTask",
-          "group": "3_favorites"
+          "when": "viewItem =~ /([fF]avorite)/",
+          "group": "3_favorites@1"
         },
         {
           "command": "workspaceTasks.addToQueue",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask",
-          "group": "4_queue"
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([qQ]ueued)/)",
+          "group": "4_queue@2"
         },
         {
           "command": "workspaceTasks.removeFromQueue",
-          "when": "viewItem == queuedTask || viewItem == filteredQueuedTask",
-          "group": "4_queue"
+          "when": "viewItem =~ /([qQ]ueued)/",
+          "group": "4_queue@2"
         },
         {
           "command": "workspaceTasks.copyTaskCommand",
-          "when": "viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask",
+          "when": "viewItem =~ /ask$/",
           "group": "5_copy"
         },
         {
           "command": "workspaceTasks.restartTask",
-          "when": "viewItem == runningTask",
-          "group": "inline@1"
+          "when": "viewItem =~ /running/",
+          "group": "inline@98"
         },
         {
           "command": "workspaceTasks.stopTask",
-          "when": "viewItem == runningTask",
-          "group": "inline@2"
+          "when": "viewItem =~ /running/",
+          "group": "inline@99"
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "(viewItem == task || viewItem == queuedTask || viewItem == recentTask || viewItem == filteredTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask) && config.workspaceTasks.task.actionBar.favorite",
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]avorite)/) && config.workspaceTasks.task.actionBar.favorite",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.removeFromFavorites",
-          "when": "(viewItem == favoriteTask || viewItem == favoriteRecentTask || viewItem == filteredFavoriteTask || viewItem == filteredFavoriteRecentTask) && config.workspaceTasks.task.actionBar.favorite",
+          "when": "viewItem =~ /([fF]avorite)/ && config.workspaceTasks.task.actionBar.favorite",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.addToQueue",
-          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask) && config.workspaceTasks.task.actionBar.queue",
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([qQ]ueued)/) && config.workspaceTasks.task.actionBar.queue",
           "group": "inline@2"
         },
         {
           "command": "workspaceTasks.removeFromQueue",
-          "when": "(viewItem == queuedTask || viewItem == filteredQueuedTask) && config.workspaceTasks.task.actionBar.queue",
+          "when": "viewItem =~ /([qQ]ueued)/ && config.workspaceTasks.task.actionBar.queue",
           "group": "inline@2"
         },
         {
           "command": "workspaceTasks.removeFromRecentTasks",
-          "when": "viewItem == recentTask || viewItem == favoriteRecentTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask",
+          "when": "viewItem =~ /([rR]ecent)/",
           "group": "inline@0"
         },
         {
           "command": "workspaceTasks.hideTask",
-          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask) && !workspaceTasks.taskIsFiltered && config.workspaceTasks.task.actionBar.hide",
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]iltered)/) && config.workspaceTasks.task.actionBar.hide",
           "group": "inline@0"
         },
         {
           "command": "workspaceTasks.unhideTask",
-          "when": "(viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask) && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
+          "when": "viewItem =~ /([fF]iltered).*ask$/ && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
           "group": "inline@0"
         },
         {
           "command": "workspaceTasks.unhideGroup",
-          "when": "(viewItem == filteredWorkspace || viewItem == filteredType || viewItem == filteredFolder) && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
+          "when": "(viewItem =~ /^filteredWorkspace/ || viewItem =~ /^filteredType/ || viewItem =~ /^filteredFolder/) && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
           "group": "inline@0"
         },
         {
@@ -1369,22 +1369,22 @@
         },
         {
           "command": "workspaceTasks.hideTask",
-          "when": "(viewItem == task || viewItem == favoriteTask || viewItem == queuedTask || viewItem == recentTask || viewItem == favoriteRecentTask) && !workspaceTasks.taskIsFiltered",
+          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]iltered)/)",
           "group": "taskFiltering@1"
         },
         {
           "command": "workspaceTasks.unhideTask",
-          "when": "(viewItem == filteredTask || viewItem == filteredFavoriteTask || viewItem == filteredQueuedTask || viewItem == filteredRecentTask || viewItem == filteredFavoriteRecentTask) && workspaceTasks.showHiddenMode",
+          "when": "viewItem =~ /([fF]iltered).*ask$/ && workspaceTasks.showHiddenMode",
           "group": "taskFiltering@1"
         },
         {
           "command": "workspaceTasks.hideGroup",
-          "when": "(viewItem == workspace || viewItem == type || viewItem == folder) && !workspaceTasks.taskIsFiltered",
+          "when": "(viewItem =~ /^workspace/ || viewItem =~ /^type/ || viewItem =~ /^folder/) && !workspaceTasks.taskIsFiltered",
           "group": "taskFiltering@2"
         },
         {
           "command": "workspaceTasks.unhideGroup",
-          "when": "(viewItem == filteredWorkspace || viewItem == filteredType || viewItem == filteredFolder) && workspaceTasks.showHiddenMode",
+          "when": "(viewItem =~ /^filteredWorkspace/ || viewItem =~ /^filteredType/ || viewItem =~ /^filteredFolder/) && workspaceTasks.showHiddenMode",
           "group": "taskFiltering@2"
         }
       ]

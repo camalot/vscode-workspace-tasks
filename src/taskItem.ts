@@ -193,34 +193,33 @@ export class TaskItem extends vscode.TreeItem {
         fragment: isFilteredOrParent ? 'dimmed' : '',
       });
 
-      if (this.taskType === 'jupyter') {
-        this.contextValue = 'jupyterTask';
+      // Determine base context value considering filtered state
+      let baseContext = (this.taskType === 'jupyter') ? 'jupyterTask' : 'task';
+
+      // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
+      // Note: This check relies on contextValue being set before updateContextValue call
+      // which happens in constructor or by parent
+      if (this.contextValue === 'queuedTask' || (this.contextValue && this.contextValue.includes('queuedTask'))) {
+        baseContext = 'queuedTask';
+      } else if (this.contextValue === 'recentTask' || (this.contextValue && this.contextValue.includes('recentTask'))) {
+        baseContext = isFavorite ? 'favoriteRecentTask' : 'recentTask';
+      } else if (isFavorite) {
+        baseContext = 'favoriteTask';
+      }
+
+      // Add filtered prefix if the task is in the filtered set
+      // This allows separate menu items for filtered tasks (e.g., "Unhide Task" vs "Hide Task")
+      if (isFiltered) {
+        baseContext = 'filtered' + baseContext.charAt(0).toUpperCase() + baseContext.slice(1);
       }
 
       if (status === 'running') {
-        this.contextValue = 'runningTask';
+        this.contextValue = 'running' + baseContext.charAt(0).toUpperCase() + baseContext.slice(1);
         this.iconPath = new vscode.ThemeIcon('loading~spin');
       } else {
-        // Determine base context value considering filtered state
-        let baseContext = 'task';
-
-        // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
-        if (this.contextValue === 'queuedTask') {
-          baseContext = 'queuedTask';
-        } else if (this.contextValue === 'recentTask') {
-          baseContext = isFavorite ? 'favoriteRecentTask' : 'recentTask';
-        } else if (isFavorite) {
-          baseContext = 'favoriteTask';
-        }
-
-        // Add filtered prefix if the task is in the filtered set
-        // This allows separate menu items for filtered tasks (e.g., "Unhide Task" vs "Hide Task")
-        if (isFiltered) {
-          baseContext = 'filtered' + baseContext.charAt(0).toUpperCase() + baseContext.slice(1);
-        }
-
         this.contextValue = baseContext;
 
+        
         if (status === 'success') {
           this.iconPath = new vscode.ThemeIcon('check', new vscode.ThemeColor('testing.iconPassed'));
         } else if (status === 'failure') {
