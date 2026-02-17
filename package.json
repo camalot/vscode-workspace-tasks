@@ -1279,27 +1279,27 @@
         },
         {
           "command": "workspaceTasks.runTaskWithArgs",
-          "when": "viewItem =~ /ask$/ && !(viewItem =~ /running/)",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /running/)",
           "group": "1_run@99"
         },
         {
           "command": "workspaceTasks.openFileAtLine",
-          "when": "viewItem =~ /ask$/",
+          "when": "viewItem =~ /[tT]ask$/",
           "group": "2_open@3"
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]avorite)/)",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]avorite)/)",
           "group": "3_favorites@1"
         },
         {
           "command": "workspaceTasks.removeFromFavorites",
-          "when": "viewItem =~ /([fF]avorite)/",
+          "when": "viewItem =~ /[fF]avorite(Recent)?Task$/",
           "group": "3_favorites@1"
         },
         {
           "command": "workspaceTasks.addToQueue",
-          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([qQ]ueued)/)",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([qQ]ueued)/)",
           "group": "4_queue@2"
         },
         {
@@ -1309,7 +1309,7 @@
         },
         {
           "command": "workspaceTasks.copyTaskCommand",
-          "when": "viewItem =~ /ask$/",
+          "when": "viewItem =~ /[tT]ask$/",
           "group": "5_copy"
         },
         {
@@ -1324,17 +1324,17 @@
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]avorite)/) && config.workspaceTasks.task.actionBar.favorite",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]avorite)/) && config.workspaceTasks.task.actionBar.favorite",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.removeFromFavorites",
-          "when": "viewItem =~ /([fF]avorite)/ && config.workspaceTasks.task.actionBar.favorite",
+          "when": "viewItem =~ /[fF]avorite(Recent)?Task$/ && config.workspaceTasks.task.actionBar.favorite",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.addToQueue",
-          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([qQ]ueued)/) && config.workspaceTasks.task.actionBar.queue",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([qQ]ueued)/) && config.workspaceTasks.task.actionBar.queue",
           "group": "inline@2"
         },
         {
@@ -1344,17 +1344,17 @@
         },
         {
           "command": "workspaceTasks.removeFromRecentTasks",
-          "when": "viewItem =~ /([rR]ecent)/",
+          "when": "viewItem =~ /([Rr]ecentTask)$/",
           "group": "inline@0"
         },
         {
           "command": "workspaceTasks.hideTask",
-          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]iltered)/) && config.workspaceTasks.task.actionBar.hide",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]iltered)/) && config.workspaceTasks.task.actionBar.hide",
           "group": "inline@0"
         },
         {
           "command": "workspaceTasks.unhideTask",
-          "when": "viewItem =~ /([fF]iltered).*ask$/ && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
+          "when": "viewItem =~ /([fF]iltered).*([tT]ask)$/ && workspaceTasks.showHiddenMode && config.workspaceTasks.task.actionBar.unhide",
           "group": "inline@0"
         },
         {
@@ -1369,12 +1369,12 @@
         },
         {
           "command": "workspaceTasks.hideTask",
-          "when": "viewItem =~ /ask$/ && !(viewItem =~ /([fF]iltered)/)",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]iltered)/)",
           "group": "taskFiltering@1"
         },
         {
           "command": "workspaceTasks.unhideTask",
-          "when": "viewItem =~ /([fF]iltered).*ask$/ && workspaceTasks.showHiddenMode",
+          "when": "viewItem =~ /([fF]iltered).*([tT]ask)$/ && workspaceTasks.showHiddenMode",
           "group": "taskFiltering@1"
         },
         {

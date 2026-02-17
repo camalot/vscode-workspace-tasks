@@ -30,9 +30,6 @@ export class TaskFilesService {
   }
 
   public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
-    if (this.context) {
-      await this.syncIgnoreFiles();
-    }
     // use vscode.workspace.findFiles with the provided pattern and exclude, then filter using the ignore rules
     const uris = await vscode.workspace.findFiles(pattern.join(','), exclude ? exclude.join(',') : undefined);
     const depthFiltered = this.filterByDepth(uris);
@@ -41,92 +38,9 @@ export class TaskFilesService {
       if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
         continue;
       }
-      if (this.context && await this.isIgnoredByDiskRules(uri)) {
-        continue;
-      }
       filtered.push(uri);
     }
     return filtered;
-  }
-
-  private async syncIgnoreFiles(): Promise<void> {
-    if (!this.context) {
-      return;
-    }
-
-    let files: vscode.Uri[] = [];
-    try {
-      files = await vscode.workspace.findFiles('**/.tasksignore', '**/node_modules/**,**/.git/**');
-    } catch {
-      return;
-    }
-
-    const folders = new Set(files.map((f) => this.normalizePathForComparison(path.dirname(f.fsPath))));
-    this.ignoreFiles = this.ignoreFiles.filter((f) => folders.has(this.normalizePathForComparison(f.folderUri.fsPath)));
-
-    for (const file of files) {
-      const folder = this.normalizePathForComparison(path.dirname(file.fsPath));
-      const alreadyLoaded = this.ignoreFiles.some(
-        (f) => this.normalizePathForComparison(f.folderUri.fsPath) === folder,
-      );
-      if (!alreadyLoaded) {
-        await this.loadIgnoreFile(file);
-      }
-    }
-  }
-
-  private async isIgnoredByDiskRules(uri: vscode.Uri): Promise<boolean> {
-    if (uri.scheme !== 'file') {
-      return false;
-    }
-
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-    const workspaceRoot = workspaceFolder
-      ? this.normalizePathForComparison(workspaceFolder.uri.fsPath)
-      : undefined;
-
-    let currentDir = path.dirname(uri.fsPath);
-    const targetPath = this.normalizePathForComparison(uri.fsPath);
-
-    while (true) {
-      const currentNormalized = this.normalizePathForComparison(currentDir);
-
-      const ignoreFile = vscode.Uri.file(path.join(currentDir, '.tasksignore'));
-      try {
-        const bytes = await vscode.workspace.fs.readFile(ignoreFile);
-        const content = new TextDecoder().decode(bytes);
-        const rules = content
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
-
-        if (rules.length > 0) {
-          const ig = ignore();
-          ig.add(rules);
-          if (targetPath.startsWith(`${currentNormalized}${path.sep}`)) {
-            const rel = targetPath.slice(currentNormalized.length + 1).replace(/\\/g, '/');
-            if (rel && ig.ignores(rel)) {
-              return true;
-            }
-          }
-        }
-      } catch {
-        // Ignore file not present/readable at this level
-      }
-
-      const parentDir = path.dirname(currentDir);
-      if (parentDir === currentDir) {
-        break;
-      }
-
-      if (workspaceRoot && !currentNormalized.startsWith(workspaceRoot)) {
-        break;
-      }
-
-      currentDir = parentDir;
-    }
-
-    return false;
   }
 
   private normalizePathForComparison(inputPath: string): string {
