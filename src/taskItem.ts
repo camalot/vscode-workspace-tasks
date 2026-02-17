@@ -219,7 +219,6 @@ export class TaskItem extends vscode.TreeItem {
       } else {
         this.contextValue = baseContext;
 
-        
         if (status === 'success') {
           this.iconPath = new vscode.ThemeIcon('check', new vscode.ThemeColor('testing.iconPassed'));
         } else if (status === 'failure') {

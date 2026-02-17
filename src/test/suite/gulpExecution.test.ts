@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { GulpTaskProvider } from '../../providers/gulpTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
@@ -9,9 +10,13 @@ suite('Gulp Execution Test Suite', () => {
   test('Running a gulp task uses vscode.tasks.executeTask and sets running state', async () => {
     const filesService = TaskFilesService.getInstance();
     const originalFindFiles = filesService.findFiles;
+    const workspaceRoot = vscode.workspace.workspaceFolders![0].uri.fsPath;
+    const gulpfileMjs = path.join(workspaceRoot, 'src/test/task-files/gulp/gulpfile.mjs');
+    const gulpfileJs = path.join(workspaceRoot, 'src/test/task-files/gulp/gulpfile.js');
+
     filesService.findFiles = async () => [
-      vscode.Uri.file('d:/Development/projects/github/vscode-workspace-tasks/src/test/task-files/gulp/gulpfile.mjs'),
-      vscode.Uri.file('d:/Development/projects/github/vscode-workspace-tasks/src/test/task-files/gulp/gulpfile.js'),
+      vscode.Uri.file(gulpfileMjs),
+      vscode.Uri.file(gulpfileJs),
     ];
 
     const provider = new GulpTaskProvider();
