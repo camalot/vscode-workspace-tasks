@@ -369,7 +369,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         // Legacy fallback or just execute file directly
         commandString = `"${resourceUri.fsPath}"`;
         if (args) {
-          commandString += ` ${args}`;
+          commandString += ` ${shellArgs.slice(1).join(' ')}`;
         }
         shellExec = new vscode.ShellExecution(commandString, { cwd });
       }
@@ -719,7 +719,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     }
     case 'vscode': {
       // Use existing Visual Studio Code task defined in .vscode/tasks.json
-      const tasks: vscode.Task[] = await vscode.tasks.fetchTasks();
+      const tasks = await vscode.tasks.fetchTasks();
       const taskUri = item.taskFileUri || item.resourceUri;
       const targetWorkspaceFolder = taskUri
         ? vscode.workspace.getWorkspaceFolder(taskUri)

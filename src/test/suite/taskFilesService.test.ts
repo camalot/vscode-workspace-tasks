@@ -101,7 +101,7 @@ suite('TaskFilesService Test Suite', () => {
             if (ignoreFiles.some(ig => ig.folderUri.fsPath.toLowerCase() === expectedDir)) {
                 return;
             }
-            await new Promise(r => setTimeout(r, 100)); // Reduced to  100ms
+            await new Promise(r => setTimeout(r, 100)); // wait 100ms before retrying
         }
         // Fallback: manually trigger load if watcher missed it (common in test envs)
         await (service as any).loadIgnoreFile(uri);

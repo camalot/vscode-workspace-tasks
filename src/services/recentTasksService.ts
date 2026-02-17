@@ -148,6 +148,14 @@ export class RecentTasksService {
     for (const entry of this.recentTasks) {
       const item = TaskCacheService.getInstance().getTaskById(entry.taskId);
       if (item) {
+        // Double check that the item belongs to the workspace or is valid
+        const uri = item.taskFileUri || item.resourceUri;
+        if (uri) {
+           const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
+           if (!wsFolder) {
+             continue;
+           }
+        }
         validRecentTasks.push(item);
       }
     }

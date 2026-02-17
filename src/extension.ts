@@ -56,7 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await TaskFilesService.getInstance().initialize(context);
   TaskCacheService.getInstance().initialize(context);
   TaskIconService.getInstance().initialize(context);
-  WorkspaceTasksService.getInstance().initialize(context);
+  await WorkspaceTasksService.getInstance().initialize(context);
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
   QueueService.getInstance().initialize(context);

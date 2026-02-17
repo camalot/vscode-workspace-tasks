@@ -1254,7 +1254,7 @@
         },
         {
           "command": "workspaceTasks.clearQueue",
-          "when": "viewItem === queue",
+          "when": "viewItem == queue",
           "group": "inline@3"
         },
         {

@@ -31,11 +31,40 @@ export class QueueService {
     this.context = context;
     // Restore Queues
     // Check for new persistence format first
-    const savedQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
-    let hasMigration = false;
+    // Switch to workspaceState
+    const savedQueues = context.workspaceState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
 
-    if (savedQueues) {
-      Object.entries(savedQueues).forEach(([queueName, items]) => {
+    // Check global state for migration if workspace state is empty
+    if (!savedQueues) {
+        const globalQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
+        if (globalQueues) {
+            // We could migrate, but queues are often context specific.
+            // Let's migrate them to workspace state to preserve user data but stop syncing
+             // Note: deserialization and filtering happens later.
+             // We can just set savedQueues to globalQueues for this run, and let saveQueues() write to workspaceState
+             // But valid migration requires writing to workspaceState.
+
+             // We'll proceed as if we loaded them, and the `hasMigration` logic or subsequent saves will persist to workspaceState.
+             // But wait, `initialize` local variable `savedQueues` is const (or rather used below).
+             // Let's restructure.
+        }
+    }
+
+    let queuesToLoad = savedQueues;
+    let sourceIsGlobal = false;
+
+    if (!queuesToLoad) {
+         const globalQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
+         if (globalQueues) {
+             queuesToLoad = globalQueues;
+             sourceIsGlobal = true;
+         }
+    }
+
+    let hasMigration = sourceIsGlobal; // Valid reason to save back to workspaceState
+
+    if (queuesToLoad) {
+      Object.entries(queuesToLoad).forEach(([queueName, items]) => {
         // Track if any IDs were migrated during deserialization
         const originalIds = items.map(q => q.id);
         const deserializedTasks = this.deserializeTasks(items);
@@ -49,6 +78,7 @@ export class QueueService {
       });
     } else {
       // Legacy Migration: Check for old 'queueItems'
+      // Legacy was definitely global?
       const legacyQueue = context.globalState.get<SerializedTaskItem[]>('queueItems', []);
       if (legacyQueue.length > 0) {
         const legacyName = context.globalState.get<string>('queueName', 'Queue');
@@ -57,14 +87,28 @@ export class QueueService {
       }
     }
 
-    // If any IDs were migrated, save the normalized data back to storage
+    // If any IDs were migrated, save the normalized data back to storage (workspaceState)
     if (hasMigration) {
       this.saveQueues();
     }
   }
 
   public getAllQueues(): Map<string, TaskItem[]> {
-    return this.queues;
+    // Filter tasks to only include those in the current workspace or with accessible files
+    const filteredQueues = new Map<string, TaskItem[]>();
+    for (const [name, tasks] of this.queues) {
+      const validTasks = tasks.filter((task) => {
+        const uri = task.taskFileUri || task.resourceUri;
+        if (!uri) { return true; } // Keep tasks without URI (e.g. some virtual tasks)
+        // Check if file exists and is in workspace
+        const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
+        return !!wsFolder;
+      });
+      if (validTasks.length > 0) {
+        filteredQueues.set(name, validTasks);
+      }
+    }
+    return filteredQueues;
   }
 
   private deserializeTasks(serialized: SerializedTaskItem[]): TaskItem[] {
@@ -121,7 +165,7 @@ export class QueueService {
         }));
       }
     }
-    this.context.globalState.update(this.STORAGE_KEY, serializedQueues);
+    this.context.workspaceState.update(this.STORAGE_KEY, serializedQueues);
   }
 
   public getQueue(name: string): TaskItem[] | undefined {
