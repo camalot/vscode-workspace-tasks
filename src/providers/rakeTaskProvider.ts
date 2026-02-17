@@ -87,7 +87,13 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
 
     const tasks: TaskItem[] = [];
-    const systemTasks = (await vscode.tasks.fetchTasks()).filter((t) => t.source === 'rake');
+    let systemTasks: vscode.Task[] = [];
+    try {
+      systemTasks = await vscode.tasks.fetchTasks({ type: 'rake' });
+    } catch (error) {
+      this.logger.warn('[RakeTaskProvider] Failed to fetch rake system tasks.', error);
+      return [];
+    }
     this.logger.debug(`[RakeTaskProvider] Fetched ${systemTasks.length} system tasks.`);
 
     for (const task of systemTasks) {

@@ -40,6 +40,7 @@ interface FileTasksConfig {
 export class WorkspaceTasksService {
   private static instance: WorkspaceTasksService;
   private config: FileTasksConfig = {};
+  private configLoaded = false;
   private context?: vscode.ExtensionContext;
   private logger = LoggerService.getInstance();
 
@@ -54,6 +55,7 @@ export class WorkspaceTasksService {
 
   public initialize(context: vscode.ExtensionContext) {
     this.context = context;
+    this.configLoaded = false;
     this.loadWorkspaceConfig();
   }
 
@@ -63,9 +65,6 @@ export class WorkspaceTasksService {
 
     if (this.context) {
       defaultsPath = path.join(this.context.extensionPath, 'res', 'config', 'workspace-tasks.json');
-    } else {
-      // Allow test environment (no extension context) to load defaults from repo relative path
-      defaultsPath = path.resolve(__dirname, '..', '..', 'res', 'config', 'workspace-tasks.json');
     }
 
     try {
@@ -115,6 +114,7 @@ export class WorkspaceTasksService {
       }
     }
     this.config = newConfig;
+    this.configLoaded = true;
   }
 
   private mergeConfig(target: FileTasksConfig, local: FileTasksConfig) {
@@ -174,17 +174,9 @@ export class WorkspaceTasksService {
   }
 
   public async getTasks(languageId: string): Promise<FileTaskDefinition[]> {
-    // Ensure config is loaded (if loadWorkspaceConfig is pending, we might need to wait?)
-    // Since loadWorkspaceConfig is fired in constructor but not awaited, this might race.
-    // We should explicitly reload or wait here?
-    // Simple fix: call findFiles again? No, expensive.
-    // Better: trigger load on first access if needed, or assume it's loaded reasonably fast?
-    // To be safe and correct per user request "merge data with .workspace-tasks.json", we should ensure it's loaded.
-
-    // Let's re-trigger load to be safe or await a promise if we stored it?
-    // For now, let's just await the load logic again here or check a flag.
-    // Since we changed this to async, we can await!
-    await this.loadWorkspaceConfig();
+    if (!this.configLoaded && Object.keys(this.config).length === 0) {
+      await this.loadWorkspaceConfig();
+    }
 
     const config = this.getLanguageConfig(languageId);
     return config ? config.tasks : [];
@@ -195,7 +187,9 @@ export class WorkspaceTasksService {
     languageId: string,
     resourceUri: vscode.Uri,
   ): Promise<string | undefined> {
-    await this.loadWorkspaceConfig();
+    if (!this.configLoaded && Object.keys(this.config).length === 0) {
+      await this.loadWorkspaceConfig();
+    }
     let config = this.config[languageId];
     if (!config) {
       const key = Object.keys(this.config).find((k) => k.toLowerCase() === languageId.toLowerCase());

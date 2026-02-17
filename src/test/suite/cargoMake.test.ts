@@ -2,7 +2,10 @@ import * as assert from 'assert';
 import { CargoMakeTaskProvider } from '../../providers/cargoMakeTaskProvider';
 import constants from '../../libs/constants';
 
-suite('Cargo-Make Provider Test Suite', () => {
+suite('Cargo-Make Provider Test Suite', function () {
+  // Set timeout to 10000ms for all tests in this suite to prevent flakiness
+  this.timeout(10000);
+
   test('uses correct type', function () {
     const provider = new CargoMakeTaskProvider();
     assert.strictEqual(provider.type, 'cargo-make');

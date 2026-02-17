@@ -20,7 +20,13 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
     }
 
     const tasks: TaskItem[] = [];
-    const systemTasks = (await vscode.tasks.fetchTasks()).filter((t) => t.source === 'npm');
+    let systemTasks: vscode.Task[] = [];
+    try {
+      systemTasks = await vscode.tasks.fetchTasks({ type: 'npm' });
+    } catch (error) {
+      this.logger.warn('[NpmTaskProvider] Failed to fetch npm system tasks.', error);
+      return [];
+    }
     this.logger.debug(`[NpmTaskProvider] Fetched ${systemTasks.length} system tasks.`);
 
     const documentsCache: Map<string, vscode.TextDocument> = new Map();
@@ -213,7 +219,13 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
     }
 
     const tasks: TaskItem[] = [];
-    const systemTasks = (await vscode.tasks.fetchTasks()).filter((t) => t.source === 'bun');
+    let systemTasks: vscode.Task[] = [];
+    try {
+      systemTasks = await vscode.tasks.fetchTasks({ type: 'bun' });
+    } catch (error) {
+      this.logger.warn('[BunTaskProvider] Failed to fetch bun system tasks.', error);
+      return [];
+    }
     this.logger.debug(`[BunTaskProvider] Fetched ${systemTasks.length} system tasks.`);
 
     const documentsCache: Map<string, vscode.TextDocument> = new Map();

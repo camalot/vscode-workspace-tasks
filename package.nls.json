@@ -169,6 +169,13 @@
   "config.workspaceTasks.groups.recentTasks.enabled": "Group Recent Tasks",
   "config.workspaceTasks.groups.recentTasks.enabled.markdown": "When enabled, recent tasks will be grouped based on the specified separator and other grouping rules.",
 
+
+  "config.workspaceTasks.groups.expanded": "Expanded Groups",
+  "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, queue, and recent tasks.",
+  "config.workspaceTasks.groups.expanded.favorites": "Favorites",
+  "config.workspaceTasks.groups.expanded.queue": "Queue",
+  "config.workspaceTasks.groups.expanded.recent": "Recent",
+
   "config.workspaceTasks.recentTasks.maxItems": "Max Recent Tasks",
   "config.workspaceTasks.recentTasks.maxItems.description": "Maximum number of recent tasks to display.",
   "config.workspaceTasks.recentTasks.maxItems.markdown": "Maximum number of recent tasks to display in the Recent Tasks group. Once the limit is reached, the oldest tasks will drop off the list. Set to 0 to disable the Recent Tasks group.",

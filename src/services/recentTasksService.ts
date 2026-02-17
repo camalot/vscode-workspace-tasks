@@ -60,7 +60,7 @@ export class RecentTasksService {
             if (this.recentTasks.length > this.maxRecentTasks) {
               this.recentTasks = this.recentTasks.slice(0, this.maxRecentTasks);
               this.save();
-              vscode.commands.executeCommand('workspaceTasks.refreshTree');
+              vscode.commands.executeCommand('workspaceTasks.refreshTree').then(undefined, () => {});
             }
           }
         }
@@ -125,7 +125,7 @@ export class RecentTasksService {
     this.save();
 
     // Refresh tree
-    vscode.commands.executeCommand('workspaceTasks.refreshTree');
+    vscode.commands.executeCommand('workspaceTasks.refreshTree').then(undefined, () => {});
   }
 
   private save() {
@@ -135,7 +135,7 @@ export class RecentTasksService {
   public clear(): void {
     this.recentTasks = [];
     this.save();
-    vscode.commands.executeCommand('workspaceTasks.refreshTree');
+    vscode.commands.executeCommand('workspaceTasks.refreshTree').then(undefined, () => {});
   }
 
   public getRecentTasks(): TaskItem[] {

@@ -2,6 +2,8 @@
 vsc-extension-quickstart.md
 webpack.config.js
 tools/
+coverage/
+.nyc_output/
 .secrets
 cliff.toml
 
