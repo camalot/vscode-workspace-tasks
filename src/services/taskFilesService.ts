@@ -30,17 +30,103 @@ export class TaskFilesService {
   }
 
   public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
+    if (this.context) {
+      await this.syncIgnoreFiles();
+    }
     // use vscode.workspace.findFiles with the provided pattern and exclude, then filter using the ignore rules
     const uris = await vscode.workspace.findFiles(pattern.join(','), exclude ? exclude.join(',') : undefined);
     const depthFiltered = this.filterByDepth(uris);
     const filtered: vscode.Uri[] = [];
     for (const uri of depthFiltered) {
-      if (this.shouldIgnore(uri)) {
+      if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
+        continue;
+      }
+      if (this.context && await this.isIgnoredByDiskRules(uri)) {
         continue;
       }
       filtered.push(uri);
     }
     return filtered;
+  }
+
+  private async syncIgnoreFiles(): Promise<void> {
+    if (!this.context) {
+      return;
+    }
+
+    let files: vscode.Uri[] = [];
+    try {
+      files = await vscode.workspace.findFiles('**/.tasksignore', '**/node_modules/**,**/.git/**');
+    } catch {
+      return;
+    }
+
+    const folders = new Set(files.map((f) => this.normalizePathForComparison(path.dirname(f.fsPath))));
+    this.ignoreFiles = this.ignoreFiles.filter((f) => folders.has(this.normalizePathForComparison(f.folderUri.fsPath)));
+
+    for (const file of files) {
+      const folder = this.normalizePathForComparison(path.dirname(file.fsPath));
+      const alreadyLoaded = this.ignoreFiles.some(
+        (f) => this.normalizePathForComparison(f.folderUri.fsPath) === folder,
+      );
+      if (!alreadyLoaded) {
+        await this.loadIgnoreFile(file);
+      }
+    }
+  }
+
+  private async isIgnoredByDiskRules(uri: vscode.Uri): Promise<boolean> {
+    if (uri.scheme !== 'file') {
+      return false;
+    }
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+    const workspaceRoot = workspaceFolder
+      ? this.normalizePathForComparison(workspaceFolder.uri.fsPath)
+      : undefined;
+
+    let currentDir = path.dirname(uri.fsPath);
+    const targetPath = this.normalizePathForComparison(uri.fsPath);
+
+    while (true) {
+      const currentNormalized = this.normalizePathForComparison(currentDir);
+
+      const ignoreFile = vscode.Uri.file(path.join(currentDir, '.tasksignore'));
+      try {
+        const bytes = await vscode.workspace.fs.readFile(ignoreFile);
+        const content = new TextDecoder().decode(bytes);
+        const rules = content
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
+
+        if (rules.length > 0) {
+          const ig = ignore();
+          ig.add(rules);
+          if (targetPath.startsWith(`${currentNormalized}${path.sep}`)) {
+            const rel = targetPath.slice(currentNormalized.length + 1).replace(/\\/g, '/');
+            if (rel && ig.ignores(rel)) {
+              return true;
+            }
+          }
+        }
+      } catch {
+        // Ignore file not present/readable at this level
+      }
+
+      const parentDir = path.dirname(currentDir);
+      if (parentDir === currentDir) {
+        break;
+      }
+
+      if (workspaceRoot && !currentNormalized.startsWith(workspaceRoot)) {
+        break;
+      }
+
+      currentDir = parentDir;
+    }
+
+    return false;
   }
 
   private normalizePathForComparison(inputPath: string): string {
@@ -52,6 +138,28 @@ export class TaskFilesService {
     // while other APIs return "d:\\repo\\file". Normalize both to the same shape.
     normalized = normalized.replace(/^[/\\]+(?=[a-zA-Z]:[/\\])/, '');
     return normalized.toLowerCase();
+  }
+
+  private isIgnoredByLoadedRules(uri: vscode.Uri): boolean {
+    const targetPath = this.normalizePathForComparison(uri.fsPath);
+
+    for (const ignoreFile of this.ignoreFiles) {
+      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
+      if (targetPath === ignoreFolder || !targetPath.startsWith(`${ignoreFolder}${path.sep}`)) {
+        continue;
+      }
+
+      const relativePath = targetPath.slice(ignoreFolder.length + 1).replace(/\\/g, '/');
+      if (!relativePath) {
+        continue;
+      }
+
+      if (ignoreFile.ig.ignores(relativePath)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private filterByDepth(uris: vscode.Uri[]): vscode.Uri[] {
@@ -195,46 +303,23 @@ export class TaskFilesService {
     // Sort by longest path (closest to file)
     applicableIgnores.sort((a, b) => b.folderUri.fsPath.length - a.folderUri.fsPath.length);
 
-    const uriPathNormalized = this.normalizePathForComparison(uri.fsPath).split(path.sep).join('/');
-
     for (const ignoreFile of applicableIgnores) {
-      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath).split(path.sep).join('/');
+      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
+      const filePath = this.normalizePathForComparison(uri.fsPath);
 
-      if (!uriPathNormalized.startsWith(`${ignoreFolder}/`)) {
+      if (!filePath.startsWith(`${ignoreFolder}${path.sep}`)) {
         continue;
       }
 
-      const relativePath = uriPathNormalized.slice(ignoreFolder.length + 1);
+      const relativePath = filePath.slice(ignoreFolder.length + 1);
+      const normalizedPath = relativePath.replace(/\\/g, '/');
 
       // Check if ignored (skip empty paths)
-      if (relativePath && ignoreFile.ig.ignores(relativePath)) {
+      if (normalizedPath && ignoreFile.ig.ignores(normalizedPath)) {
         return true;
       }
     }
 
     return false;
   }
-
-
-  // private isIgnoredByLoadedRules(uri: vscode.Uri): boolean {
-  //   const targetPath = this.normalizePathForComparison(uri.fsPath);
-
-  //   for (const ignoreFile of this.ignoreFiles) {
-  //     const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
-  //     if (targetPath === ignoreFolder || !targetPath.startsWith(`${ignoreFolder}${path.sep}`)) {
-  //       continue;
-  //     }
-
-  //     const relativePath = targetPath.slice(ignoreFolder.length + 1).replace(/\\/g, '/');
-  //     if (!relativePath) {
-  //       continue;
-  //     }
-
-  //     if (ignoreFile.ig.ignores(relativePath)) {
-  //       return true;
-  //     }
-  //   }
-
-  //   return false;
-  // }
 }

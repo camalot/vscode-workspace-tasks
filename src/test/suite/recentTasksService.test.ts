@@ -326,7 +326,7 @@ suite('RecentTasksService Test Suite', () => {
         const cacheService = TaskCacheService.getInstance();
         const originalGetTaskById = cacheService.getTaskById;
         (cacheService as any).getTaskById = (id: string) => {
-                const item = new TaskItem(id, vscode.TreeItemCollapsibleState.None, 'test', vscode.Uri.file('/test'));
+                const item = new TaskItem(id, vscode.TreeItemCollapsibleState.None, 'test');
                 item.id = id;
                 return item;
         };
@@ -384,7 +384,7 @@ suite('RecentTasksService Test Suite', () => {
         const originalGetTaskById = cacheService.getTaskById;
         (cacheService as any).getTaskById = (id: string) => {
             if (id === 'task1') {
-                    const item = new TaskItem(id, vscode.TreeItemCollapsibleState.None, 'test', vscode.Uri.file('/test'));
+                    const item = new TaskItem(id, vscode.TreeItemCollapsibleState.None, 'test');
                     item.id = id;
                     return item;
             }

@@ -84,9 +84,8 @@ suite('QueueService Test Suite', () => {
 
     queueService.initialize(mockContext);
 
-    const queues = queueService.getAllQueues();
-    assert.ok(queues.has('TestQueue'));
-    const tasks = queues.get('TestQueue');
+    const tasks = queueService.getQueue('TestQueue');
+    assert.ok(tasks);
     assert.strictEqual(tasks?.length, 1);
     assert.strictEqual(tasks![0].label, 'Label');
   });
@@ -102,9 +101,8 @@ suite('QueueService Test Suite', () => {
 
     queueService.initialize(mockContext);
 
-    const queues = queueService.getAllQueues();
-    assert.ok(queues.has('LegacyQueue'));
-    const tasks = queues.get('LegacyQueue');
+    const tasks = queueService.getQueue('LegacyQueue');
+    assert.ok(tasks);
     assert.strictEqual(tasks?.length, 1);
     assert.strictEqual(tasks![0].label, 'LegacyTask');
 
