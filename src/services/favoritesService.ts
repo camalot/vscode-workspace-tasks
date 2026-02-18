@@ -75,13 +75,10 @@ export class FavoritesService {
       item = itemOrId;
     }
 
-    if (item) {
-      const uri = item.taskFileUri || item.resourceUri;
-      if (uri) {
-        const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
-        if (!wsFolder) {
-          return false;
-        }
+    if (item?.taskFileUri) {
+      const wsFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+      if (!wsFolder) {
+        return false;
       }
     }
 

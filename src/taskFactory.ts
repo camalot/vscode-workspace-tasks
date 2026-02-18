@@ -378,7 +378,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const uniqueTaskName = vscode.workspace.asRelativePath(resourceUri);
 
       const task = new vscode.Task(
-        { type: 'shell', script: taskLabel, path: resourceUri.fsPath, id: item.id },
+        { type: 'shell', script: taskLabel, path: resourceUri.fsPath, id: item.id || undefined },
         vscode.TaskScope.Workspace,
         uniqueTaskName,
         'shell',

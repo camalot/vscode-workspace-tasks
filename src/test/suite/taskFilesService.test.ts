@@ -178,7 +178,7 @@ suite('TaskFilesService Test Suite', () => {
         await config.update('taskDiscovery.fetchDepth', null, vscode.ConfigurationTarget.Workspace);
         // Force refresh config? filterByDepth reads config on invocation
         let filtered = (service as any).filterByDepth(uris);
-        assert.strictEqual(filtered.length, 3, 'Should verify all files without limit');
+        assert.strictEqual(filtered.length, 3, 'Should find all 3 files without depth limit');
 
         // 2. Limit to depth of depth0File
         await config.update('taskDiscovery.fetchDepth', d0, vscode.ConfigurationTarget.Workspace);

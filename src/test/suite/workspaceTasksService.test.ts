@@ -90,7 +90,7 @@ suite('WorkspaceTasksService Test Suite', () => {
         (fs.promises as any).readFile = originalFsReadFile;
 
         // Restore TaskFilesService.findFiles
-        const taskFilesService = TaskFilesService.   getInstance();
+        const taskFilesService = TaskFilesService.getInstance();
         taskFilesService.findFiles = originalTaskFilesFindFiles;
     });
 
