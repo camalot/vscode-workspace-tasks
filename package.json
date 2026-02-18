@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -113,7 +113,7 @@
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
-    "codecov": "^3.8.2",
+    "codecov": "^3.8.3",
     "eslint": "^9.39.2",
     "git-cliff": "^2.12.0",
     "glob": "^13.0.3",
@@ -127,7 +127,7 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.3.4",
+    "fast-xml-parser": "5.2.5",
     "ignore": "^7.0.5",
     "smol-toml": "^1.6.0",
     "yaml": "^2.8.2"
