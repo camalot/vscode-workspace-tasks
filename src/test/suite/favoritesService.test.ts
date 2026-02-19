@@ -14,15 +14,18 @@ suite('FavoritesService Test Suite', () => {
     (TaskStateManager as any).instance = undefined;
 
     updates = [];
-    // simple fake globalState
-    ctx = {
-      globalState: {
-        get: (_key: string, defaultValue?: any) => defaultValue,
-        update: async (key: string, value: any) => {
-          updates.push({ key, value });
-          return Promise.resolve();
-        },
+    // simple fake globalState and workspaceState
+    const fakeState = {
+      get: (_key: string, defaultValue?: any) => defaultValue,
+      update: async (key: string, value: any) => {
+        updates.push({ key, value });
+        return Promise.resolve();
       },
+    };
+
+    ctx = {
+      globalState: fakeState,
+      workspaceState: fakeState,
     } as unknown as vscode.ExtensionContext;
   });
 
@@ -50,15 +53,16 @@ suite('FavoritesService Test Suite', () => {
 
   test('initialize migrates old ids and persists migrated list', async () => {
     const saved = ['old:format:id'];
-    // override ctx.get to return saved data
-    ctx = {
-      globalState: {
-        get: (_k: string, _d?: any) => saved,
-        update: async (key: string, value: any) => {
-          updates.push({ key, value });
-          return Promise.resolve();
-        },
+    const fakeStateValue = {
+      get: (_k: string, _d?: any) => saved,
+      update: async (key: string, value: any) => {
+        updates.push({ key, value });
+        return Promise.resolve();
       },
+    };
+    ctx = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
     } as unknown as vscode.ExtensionContext;
 
     const fakeState = {
@@ -92,14 +96,16 @@ suite('FavoritesService Test Suite', () => {
     (TaskStateManager as any).instance = fakeState;
 
     // pre-populate storage via initialize
-    ctx = {
-      globalState: {
-        get: (_k: string, _d?: any) => ['p:MyTask'],
-        update: async (k: string, v: any) => {
-          updates.push({ key: k, value: v });
-          return Promise.resolve();
-        },
+    const fakeStateValue = {
+      get: (_k: string, _d?: any) => ['p:MyTask'],
+      update: async (k: string, v: any) => {
+        updates.push({ key: k, value: v });
+        return Promise.resolve();
       },
+    };
+    ctx = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
     } as unknown as vscode.ExtensionContext;
 
     const svc = FavoritesService.getInstance();
@@ -121,14 +127,16 @@ suite('FavoritesService Test Suite', () => {
     (TaskStateManager as any).instance = fakeState;
 
     // start with empty stored favorites
-    ctx = {
-      globalState: {
-        get: (_k: string, d?: any) => d,
-        update: async (k: string, v: any) => {
-          updates.push({ key: k, value: v });
-          return Promise.resolve();
-        },
+    const fakeStateValue = {
+      get: (_k: string, d?: any) => d,
+      update: async (k: string, v: any) => {
+        updates.push({ key: k, value: v });
+        return Promise.resolve();
       },
+    };
+    ctx = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
     } as unknown as vscode.ExtensionContext;
 
     const svc = FavoritesService.getInstance();
@@ -153,14 +161,16 @@ suite('FavoritesService Test Suite', () => {
     (TaskStateManager as any).instance = fakeState;
 
     // start with one favorite stored
-    ctx = {
-      globalState: {
-        get: (_k: string, _d?: any) => ['r:RemoveMe'],
-        update: async (k: string, v: any) => {
-          updates.push({ key: k, value: v });
-          return Promise.resolve();
-        },
+    const fakeStateValue = {
+      get: (_k: string, _d?: any) => ['r:RemoveMe'],
+      update: async (k: string, v: any) => {
+        updates.push({ key: k, value: v });
+        return Promise.resolve();
       },
+    };
+    ctx = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
     } as unknown as vscode.ExtensionContext;
 
     const svc = FavoritesService.getInstance();
@@ -183,14 +193,16 @@ suite('FavoritesService Test Suite', () => {
     } as unknown as TaskStateManager;
     (TaskStateManager as any).instance = fakeState;
 
-    ctx = {
-      globalState: {
-        get: (_k: string, d?: any) => d,
-        update: async (k: string, v: any) => {
-          updates.push({ key: k, value: v });
-          return Promise.resolve();
-        },
+    const fakeStateValue = {
+      get: (_k: string, d?: any) => d,
+      update: async (k: string, v: any) => {
+        updates.push({ key: k, value: v });
+        return Promise.resolve();
       },
+    };
+    ctx = {
+      workspaceState: fakeStateValue,
+      globalState: fakeStateValue,
     } as unknown as vscode.ExtensionContext;
 
     const svc = FavoritesService.getInstance();

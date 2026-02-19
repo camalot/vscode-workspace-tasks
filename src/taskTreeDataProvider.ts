@@ -670,6 +670,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // So we leave it as is (insertion order).
       } else {
         // Flat list
+        const seenRecentIds = new Set<string>();
+
         recentGroup.children = recentTasks.map((t: TaskItem) => {
           // Use the default icon path from the original task item which is hydrated from the cache
           // Always recalculate icon to ensure consistency, especially for items with no default icon (like makefiles)
@@ -693,7 +695,17 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           copy.taskSource = t.taskSource;
           copy.description = t.description;
           copy.parent = recentGroup;
-          copy.id = `recent:${t.id}`;
+
+          let uniqueId = `recent:${t.id}`;
+          let counter = 1;
+          const baseId = uniqueId;
+
+          while (seenRecentIds.has(uniqueId)) {
+            uniqueId = `${baseId}|${counter++}`;
+          }
+          seenRecentIds.add(uniqueId);
+
+          copy.id = uniqueId;
           copy.contextValue = 'recentTask';
           copy.updateContextValue();
           return copy;

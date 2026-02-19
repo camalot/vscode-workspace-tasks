@@ -53,10 +53,10 @@ export class WorkspaceTasksService {
     return WorkspaceTasksService.instance;
   }
 
-  public initialize(context: vscode.ExtensionContext) {
+  public async initialize(context: vscode.ExtensionContext) {
     this.context = context;
     this.configLoaded = false;
-    this.loadWorkspaceConfig();
+    await this.loadWorkspaceConfig();
   }
 
   private async loadWorkspaceConfig() {

@@ -20,7 +20,7 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
     }
 
     const tasks: TaskItem[] = [];
-    let systemTasks: vscode.Task[] = [];
+    let systemTasks = [];
     try {
       systemTasks = await vscode.tasks.fetchTasks({ type: 'npm' });
     } catch (error) {

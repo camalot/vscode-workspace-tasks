@@ -15,13 +15,20 @@ suite('QueueService Test Suite', () => {
 
     mockGlobalState = new Map();
 
-    // Mock ExtensionContext and globalState
+    // Mock ExtensionContext and workspaceState
     mockContext = {
       subscriptions: [],
       workspaceState: {
-        get: () => undefined,
-        update: () => Promise.resolve(),
-        keys: () => []
+        get: (key: string, defaultValue?: any) => mockGlobalState.get(key) ?? defaultValue,
+        update: (key: string, value: any) => {
+          if (value === undefined) {
+            mockGlobalState.delete(key);
+          } else {
+            mockGlobalState.set(key, value);
+          }
+          return Promise.resolve();
+        },
+        keys: () => Array.from(mockGlobalState.keys())
       },
       globalState: {
         get: (key: string, defaultValue?: any) => mockGlobalState.get(key) ?? defaultValue,
@@ -77,9 +84,8 @@ suite('QueueService Test Suite', () => {
 
     queueService.initialize(mockContext);
 
-    const queues = queueService.getAllQueues();
-    assert.ok(queues.has('TestQueue'));
-    const tasks = queues.get('TestQueue');
+    const tasks = queueService.getQueue('TestQueue');
+    assert.ok(tasks);
     assert.strictEqual(tasks?.length, 1);
     assert.strictEqual(tasks![0].label, 'Label');
   });
@@ -95,9 +101,8 @@ suite('QueueService Test Suite', () => {
 
     queueService.initialize(mockContext);
 
-    const queues = queueService.getAllQueues();
-    assert.ok(queues.has('LegacyQueue'));
-    const tasks = queues.get('LegacyQueue');
+    const tasks = queueService.getQueue('LegacyQueue');
+    assert.ok(tasks);
     assert.strictEqual(tasks?.length, 1);
     assert.strictEqual(tasks![0].label, 'LegacyTask');
 
@@ -111,9 +116,9 @@ suite('QueueService Test Suite', () => {
     queueService.initialize(mockContext);
     queueService.createQueue('NewQueue');
 
-    const queues = queueService.getAllQueues();
-    assert.ok(queues.has('NewQueue'));
-    assert.strictEqual(queues.get('NewQueue')?.length, 0);
+    const queue = queueService.getQueue('NewQueue');
+    assert.ok(queue);
+    assert.strictEqual(queue?.length, 0);
   });
 
   test('createQueue does not overwrite existing queue', () => {
@@ -265,8 +270,7 @@ suite('QueueService Test Suite', () => {
 
     queueService.initialize(mockContext);
 
-    const queues = queueService.getAllQueues();
-    const tasks = queues.get('MigrateQ');
+    const tasks = queueService.getQueue('MigrateQ');
     assert.ok(tasks);
     // The ID should have changed from oldFormatId
     assert.notStrictEqual(tasks![0].id, oldFormatId);

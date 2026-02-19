@@ -101,7 +101,7 @@ suite('TaskFilesService Test Suite', () => {
             if (ignoreFiles.some(ig => ig.folderUri.fsPath.toLowerCase() === expectedDir)) {
                 return;
             }
-            await new Promise(r => setTimeout(r, 100)); // Reduced to  100ms
+            await new Promise(r => setTimeout(r, 100)); // wait 100ms before retrying
         }
         // Fallback: manually trigger load if watcher missed it (common in test envs)
         await (service as any).loadIgnoreFile(uri);
@@ -178,7 +178,7 @@ suite('TaskFilesService Test Suite', () => {
         await config.update('taskDiscovery.fetchDepth', null, vscode.ConfigurationTarget.Workspace);
         // Force refresh config? filterByDepth reads config on invocation
         let filtered = (service as any).filterByDepth(uris);
-        assert.strictEqual(filtered.length, 3, 'Should verify all files without limit');
+        assert.strictEqual(filtered.length, 3, 'Should find all 3 files without depth limit');
 
         // 2. Limit to depth of depth0File
         await config.update('taskDiscovery.fetchDepth', d0, vscode.ConfigurationTarget.Workspace);

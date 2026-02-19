@@ -106,7 +106,6 @@ export class TaskRunner {
 
     const id = TaskStateManager.getInstance().getTaskId(item);
     TaskStateManager.getInstance().setStatus(id, 'running');
-    vscode.commands.executeCommand('workspaceTasks.refreshTree').then(undefined, () => {}); // Trigger refresh
 
     try {
       const execution = await vscode.tasks.executeTask(task);
@@ -114,7 +113,7 @@ export class TaskRunner {
     } catch (e) {
       this.logger.error('[TaskRunner] executeTask failed:', e);
       TaskStateManager.getInstance().setStatus(id, 'failure');
-      vscode.commands.executeCommand('workspaceTasks.refreshTree').then(undefined, () => {});
+      // await vscode.commands.executeCommand('workspaceTasks.refreshTree'); // Trigger refresh
       vscode.window.showErrorMessage(`Failed to run task: ${e}`);
       throw e;
     }
