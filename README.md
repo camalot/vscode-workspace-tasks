@@ -699,6 +699,12 @@ npm run watch
 - Update documentation for user-facing changes
 - Ensure all tests pass before submitting
 
+### Test Reports
+
+- Run `npm run test:coverage` to generate coverage and test analytics reports for CI uploads.
+- Coverage output: `coverage/lcov.info`
+- JUnit test results output: `.vscode-test/**/test-results.xml`
+
 ### Project Structure
 
 - `src/` - TypeScript source code
