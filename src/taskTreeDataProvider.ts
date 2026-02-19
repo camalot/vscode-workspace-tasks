@@ -701,7 +701,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           const baseId = uniqueId;
 
           while (seenRecentIds.has(uniqueId)) {
-             uniqueId = `${baseId}|${counter++}`;
+            uniqueId = `${baseId}|${counter++}`;
           }
           seenRecentIds.add(uniqueId);
 

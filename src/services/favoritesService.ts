@@ -28,24 +28,24 @@ export class FavoritesService {
     const globalFavorites = context.globalState.get<string[]>(this.STORAGE_KEY, []);
     if (globalFavorites.length > 0) {
       // Migrate applicable favorites to workspace state
-       const migratedGlobal = this.taskStateManager.normalizeTaskIds(globalFavorites);
-       // We can only filter if we had the items loaded, but here we only have strings.
-       // So we might as well just not migrate blindly to avoid pollution,
-       // OR we migrate everything and let the runtime filter filter it out as implemented in isFavorite.
+      const migratedGlobal = this.taskStateManager.normalizeTaskIds(globalFavorites);
+      // We can only filter if we had the items loaded, but here we only have strings.
+      // So we might as well just not migrate blindly to avoid pollution,
+      // OR we migrate everything and let the runtime filter filter it out as implemented in isFavorite.
 
-       // DECISION: For now, we just switch to workspaceState. Users might lose favorites if they relied on global sync.
-       // But user explicitly asked to disable syncing.
-       // We can clear global state to avoid confusion or keep it as backup.
-       // Let's JUST use workspaceState.
+      // DECISION: For now, we just switch to workspaceState. Users might lose favorites if they relied on global sync.
+      // But user explicitly asked to disable syncing.
+      // We can clear global state to avoid confusion or keep it as backup.
+      // Let's JUST use workspaceState.
 
-       // If workspace state is empty, maybe try to populate from global (copy over)?
-       if (savedFavorites.length === 0 && globalFavorites.length > 0) {
-          savedFavorites = this.taskStateManager.normalizeTaskIds(globalFavorites);
-          // Save to workspace immediately so we don't rely on global anymore
-          context.workspaceState.update(this.STORAGE_KEY, savedFavorites);
-          // Optional: Clear global state?
-          // context.globalState.update(this.STORAGE_KEY, undefined);
-       }
+      // If workspace state is empty, maybe try to populate from global (copy over)?
+      if (savedFavorites.length === 0 && globalFavorites.length > 0) {
+        savedFavorites = this.taskStateManager.normalizeTaskIds(globalFavorites);
+        // Save to workspace immediately so we don't rely on global anymore
+        context.workspaceState.update(this.STORAGE_KEY, savedFavorites);
+        // Optional: Clear global state?
+        // context.globalState.update(this.STORAGE_KEY, undefined);
+      }
     }
 
     // Migrate old task IDs to new portable format

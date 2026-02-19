@@ -40,13 +40,13 @@ export class QueueService {
         if (globalQueues) {
             // We could migrate, but queues are often context specific.
             // Let's migrate them to workspace state to preserve user data but stop syncing
-             // Note: deserialization and filtering happens later.
-             // We can just set savedQueues to globalQueues for this run, and let saveQueues() write to workspaceState
-             // But valid migration requires writing to workspaceState.
+            // Note: deserialization and filtering happens later.
+            // We can just set savedQueues to globalQueues for this run, and let saveQueues() write to workspaceState
+            // But valid migration requires writing to workspaceState.
 
-             // We'll proceed as if we loaded them, and the `hasMigration` logic or subsequent saves will persist to workspaceState.
-             // But wait, `initialize` local variable `savedQueues` is const (or rather used below).
-             // Let's restructure.
+            // We'll proceed as if we loaded them, and the `hasMigration` logic or subsequent saves will persist to workspaceState.
+            // But wait, `initialize` local variable `savedQueues` is const (or rather used below).
+            // Let's restructure.
         }
     }
 
@@ -54,11 +54,11 @@ export class QueueService {
     let sourceIsGlobal = false;
 
     if (!queuesToLoad) {
-         const globalQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
-         if (globalQueues) {
-             queuesToLoad = globalQueues;
-             sourceIsGlobal = true;
-         }
+        const globalQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
+        if (globalQueues) {
+            queuesToLoad = globalQueues;
+            sourceIsGlobal = true;
+        }
     }
 
     let hasMigration = sourceIsGlobal; // Valid reason to save back to workspaceState
