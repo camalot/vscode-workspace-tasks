@@ -6,12 +6,12 @@ import { LoggerService } from './loggerService';
 
 interface IgnoreFile {
   folderUri: vscode.Uri;
-  ig: any; // ignore instance
+  ig: ignore.Ignore; // ignore instance
 }
 
 export class TaskFilesService {
   private static instance: TaskFilesService;
-  private globalIgnore: any;
+  private globalIgnore: ignore.Ignore;
   private ignoreFiles: IgnoreFile[] = [];
   private configWatcher?: vscode.Disposable;
   private fileWatcher?: vscode.Disposable;
@@ -33,6 +33,7 @@ export class TaskFilesService {
     if (this.context) {
       await this.syncIgnoreFiles();
     }
+
     // use vscode.workspace.findFiles with the provided pattern and exclude, then filter using the ignore rules
     const uris = await vscode.workspace.findFiles(pattern.join(','), exclude ? exclude.join(',') : undefined);
     const depthFiltered = this.filterByDepth(uris);

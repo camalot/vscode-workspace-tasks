@@ -34,22 +34,6 @@ export class QueueService {
     // Switch to workspaceState
     const savedQueues = context.workspaceState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
 
-    // Check global state for migration if workspace state is empty
-    if (!savedQueues) {
-        const globalQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
-        if (globalQueues) {
-            // We could migrate, but queues are often context specific.
-            // Let's migrate them to workspace state to preserve user data but stop syncing
-            // Note: deserialization and filtering happens later.
-            // We can just set savedQueues to globalQueues for this run, and let saveQueues() write to workspaceState
-            // But valid migration requires writing to workspaceState.
-
-            // We'll proceed as if we loaded them, and the `hasMigration` logic or subsequent saves will persist to workspaceState.
-            // But wait, `initialize` local variable `savedQueues` is const (or rather used below).
-            // Let's restructure.
-        }
-    }
-
     let queuesToLoad = savedQueues;
     let sourceIsGlobal = false;
 
@@ -136,7 +120,8 @@ export class QueueService {
       if (uri && item.startLine !== undefined) {
         item.command = {
           command: 'workspaceTasks.openFileAtLine',
-          title: '%command.openFileAtLine%',
+          // TODO: use localized string
+          title: 'Open File',
           arguments: [uri, item.startLine],
         };
       }
