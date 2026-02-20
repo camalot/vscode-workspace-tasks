@@ -15,6 +15,9 @@ export class TaskRunner {
   // We can use an event emitter or just access the state manager and let the caller refresh.
   // Ideally, StateManager fires events. For now, we'll return promises.
 
+  /** Maximum milliseconds to wait for a task to finish. Overridable for tests. */
+  public taskWaitTimeoutMs = 60 * 60 * 1000; // 1 hour
+
   private constructor() { }
 
   public static getInstance(): TaskRunner {
@@ -160,7 +163,7 @@ export class TaskRunner {
   private waitForTask(item: TaskItem): Promise<TaskStatus> {
     return new Promise((resolve) => {
       const id = TaskStateManager.getInstance().getTaskId(item);
-      const maxWaitMs = 5 * 60 * 1000; // 5 minutes
+      const maxWaitMs = this.taskWaitTimeoutMs;
 
       // Check immediate status
       const currentStatus = TaskStateManager.getInstance().getStatus(id);
@@ -183,6 +186,7 @@ export class TaskRunner {
       });
 
       // Safety timeout
+      // In case something goes wrong and we never get a success/failure/idle event, we don't want to wait indefinitely.
       timer = setTimeout(() => {
         disposable.dispose();
         resolve(TaskStateManager.getInstance().getStatus(id));
