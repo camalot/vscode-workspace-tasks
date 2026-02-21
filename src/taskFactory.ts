@@ -32,7 +32,10 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
     return undefined;
   }
 
-  if (item.task) {
+  if (item.task && item.task instanceof vscode.Task) {
+    // Only use item.task directly when it is a proper vscode.Task instance (e.g. from getSystemTasks).
+    // Raw JSON objects set on item.task during JSON file parsing are not vscode.Task instances
+    // and have no execution — returning them would cause "Tasks to execute must include an execution".
     return { task: item.task, native: true };
   }
 
@@ -726,7 +729,8 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         : undefined;
 
       const found = tasks.find((t) => {
-        const nameMatch = t.name === taskLabel && t.source === 'Workspace';
+        // Accept both workspace tasks and user-level tasks (source === 'User')
+        const nameMatch = t.name === taskLabel && (t.source === 'Workspace' || t.source === 'User');
         if (!nameMatch) {
           return false;
         }

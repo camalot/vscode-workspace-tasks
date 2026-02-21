@@ -471,6 +471,38 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // task.updateContextValue(); // Moved to start of loop and made recursive
 
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(taskUri);
+
+      // User-level global tasks (taskSource === 'user') live outside any workspace folder.
+      // Instead of placing them in "External", assign them to each workspace folder so
+      // they appear alongside workspace tasks. In multi-root setups each workspace folder
+      // gets its own clone of the task so VS Code tree IDs remain unique.
+      if (!workspaceFolder && task.taskSource === 'user') {
+        const allFolders = vscode.workspace.workspaceFolders;
+        if (allFolders && allFolders.length > 0) {
+          for (const folder of allFolders) {
+            const wsId = folder.uri.toString();
+            workspaceInfoMap.set(wsId, folder.name);
+
+            let projectMap = workspaceMap.get(wsId);
+            if (!projectMap) {
+              projectMap = new Map<string, TaskItem[]>();
+              workspaceMap.set(wsId, projectMap);
+            }
+
+            let typeTasks = projectMap.get(task.taskType);
+            if (!typeTasks) {
+              typeTasks = [];
+              projectMap.set(task.taskType, typeTasks);
+            }
+
+            // Clone the task for each workspace so each instance gets a unique parent/ID
+            const copy = this.cloneUserTaskForWorkspace(task, folder);
+            typeTasks.push(copy);
+          }
+          continue;
+        }
+      }
+
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';
       const workspaceId = workspaceFolder ? workspaceFolder.uri.toString() : 'external';
       workspaceInfoMap.set(workspaceId, workspaceName);
@@ -827,6 +859,41 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
    */
   protected getWorkspaceFolder(uri: vscode.Uri): vscode.WorkspaceFolder | undefined {
     return vscode.workspace.getWorkspaceFolder(uri);
+  }
+
+  /**
+   * Creates a shallow clone of a user-level global task item scoped to a specific workspace folder.
+   * All original properties (file URI, start line, commands, etc.) are preserved so the task
+   * can still be opened/run correctly. The clone's ID is prefixed with the workspace folder name
+   * to keep tree node IDs unique in multi-root setups.
+   */
+  private cloneUserTaskForWorkspace(task: TaskItem, folder: vscode.WorkspaceFolder): TaskItem {
+    const copy = new TaskItem(
+      task.label,
+      task.collapsibleState,
+      task.taskType,
+      task.taskFileUri,
+      task.command,
+      task.defaultIconPath,
+      task.onRunActionCommand,
+      task.onRunWithArgsActionCommand,
+    );
+    copy.originalLabel = task.originalLabel || task.label;
+    copy.startLine = task.startLine;
+    copy.metadata = task.metadata;
+    copy.taskFileUri = task.taskFileUri;
+    copy.taskSource = task.taskSource;
+    copy.description = task.description;
+    copy.onOpenActionCommand = task.onOpenActionCommand;
+    copy.task = task.task;
+
+    // Use a workspace-scoped ID so each workspace gets a distinct tree node.
+    // This prevents VS Code from treating the same user task as the same tree item
+    // when it appears under multiple workspaces in a multi-root setup.
+    copy.id = `${folder.name}:user-global:${task.originalLabel || task.label}`;
+    copy.updateContextValue();
+
+    return copy;
   }
 
   /**
