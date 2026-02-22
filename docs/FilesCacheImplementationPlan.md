@@ -2,7 +2,8 @@
 
 ## Feedback on the Proposal
 
-The core idea is **sound** and would produce a meaningful performance improvement. Currently, every enabled task provider calls `filesService.findFiles()`, which in turn calls `vscode.workspace.findFiles()` — a non-trivial filesystem operation. With 25+ registered providers, this means 25+ separate filesystem scans per task refresh cycle. Batching them into a single scan and serving subsequent requests from an in-memory cache eliminates almost all of that I/O redundancy.
+The core idea is **sound** and would produce a meaningful performance improvement. Currently, every enabled task provider calls `filesService.findFiles()`, which in turn calls `vscode.workspace.findFiles()` — a non-trivial filesystem operation.
+With 25+ registered providers, this means 25+ separate filesystem scans per task refresh cycle. Batching them into a single scan and serving subsequent requests from an in-memory cache eliminates almost all of that I/O redundancy.
 
 However, there are several **non-trivial complications** that must be addressed:
 
@@ -41,7 +42,9 @@ The cache will become stale when any of the following change:
 
 ### Complication 4 — Post-fetch glob matching
 
-When a provider is no longer calling `vscode.workspace.findFiles(pattern)`, it needs to filter the cached URIs by its own glob pattern in user-space. `vscode.workspace.findFiles` uses VS Code's internal matcher. The equivalent in user-space is [`minimatch`](https://github.com/isaacs/minimatch) or [`micromatch`](https://github.com/micromatch/micromatch). One of these must be added as a dependency and used for cache filtering.
+When a provider is no longer calling `vscode.workspace.findFiles(pattern)`, it needs to filter the cached URIs by its own glob pattern in user-space.
+`vscode.workspace.findFiles` uses VS Code's internal matcher. The equivalent in user-space is [`minimatch`](https://github.com/isaacs/minimatch) or [`micromatch`](https://github.com/micromatch/micromatch).
+One of these must be added as a dependency and used for cache filtering.
 
 ### Complication 5 — Memory footprint
 
@@ -251,9 +254,12 @@ context.subscriptions.push(
 
 ### Step 7 — Handle `ShellTaskProvider`'s dynamic patterns correctly
 
-`ShellTaskProvider` computes patterns at discovery time based on the current value of `workspaceTasks.shellAdditionalExtensions`. Override `getFilePatterns()` in `ShellTaskProvider` to read `shellAdditionalExtensions` at registration time and include those extensions in the returned patterns.
+`ShellTaskProvider` computes patterns at discovery time based on the current value of `workspaceTasks.shellAdditionalExtensions`.
+Override `getFilePatterns()` in `ShellTaskProvider` to read `shellAdditionalExtensions` at registration time and include those extensions in the returned patterns.
 
-Also, ensure that any change to `workspaceTasks.shellAdditionalExtensions` configuration triggers a re-registration + `invalidateCache()`. This can be done in the existing `onDidChangeConfiguration` handler in `initialize()` by checking `e.affectsConfiguration('workspaceTasks.shellAdditionalExtensions')` and calling `rebuildRegisteredPatterns()` — a new helper that iterates all provider instances and re-collects their patterns.
+Also, ensure that any change to `workspaceTasks.shellAdditionalExtensions` configuration triggers a re-registration + `invalidateCache()`.
+This can be done in the existing `onDidChangeConfiguration` handler in `initialize()` by checking `e.affectsConfiguration('workspaceTasks.shellAdditionalExtensions')`
+and calling `rebuildRegisteredPatterns()` — a new helper that iterates all provider instances and re-collects their patterns.
 
 ---
 
