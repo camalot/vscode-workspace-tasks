@@ -4,7 +4,12 @@ webpack.config.js
 tools/
 coverage/
 .nyc_output/
+codecov
+codecov.*
+super-linter-output/
 .secrets
+.secrets/
+
 cliff.toml
 
 .mocharc.js
