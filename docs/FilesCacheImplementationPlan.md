@@ -19,6 +19,7 @@ Some providers compute their glob patterns at task-discovery time rather than at
 - `WorkspaceTasksProvider` — reads configured include/exclude globs from settings at discovery time.
 
 These providers cannot simply register a static pattern upfront. The cache must either:
+
 - (a) use sufficiently broad "umbrella" patterns that cover all possible values, or
 - (b) accept that these providers remain uncached, or
 - (c) allow providers to register a **pattern resolver** (a function) called at cache-build time.
@@ -30,7 +31,7 @@ Option (a) is the simplest and safest. For example, `ShellTaskProvider`'s dynami
 The cache will become stale when any of the following change:
 
 | Event | Current handling | Cache impact |
-|---|---|---|
+| --- | --- | --- |
 | File created/deleted/renamed | None (re-scans on refresh) | Cache must be cleared/rebuilt |
 | `workspaceTasks.exclude` changes | `initialize()` re-runs | Cache must be rebuilt |
 | `workspaceTasks.taskDiscovery.fetchDepth` changes | Checked at filter time | Cache must be rebuilt |
@@ -158,6 +159,7 @@ public invalidateCache(): void {
 ### Step 4 — Change `findFiles` to query the cache
 
 Replace the existing `findFiles` implementation with one that:
+
 1. Ensures the cache is built (calls `buildCache()` if stale).
 2. Filters cached paths against the requested patterns using `micromatch`.
 3. Re-applies any caller-supplied `exclude` patterns.
@@ -282,7 +284,7 @@ Document the new caching behaviour: the combined fetch, when the cache is invali
 ## Summary of Changed Files
 
 | File | Change |
-|---|---|
+| --- | --- |
 | `package.json` | Add `micromatch` dependency |
 | `src/taskProvider.ts` | Add `getFilePatterns()` to interface and base class |
 | `src/services/taskFilesService.ts` | Add `registeredPatterns`, cache fields, `buildCache()`, `invalidateCache()`, `registerPatterns()`, update `findFiles()` |
@@ -296,7 +298,7 @@ Document the new caching behaviour: the combined fetch, when the cache is invali
 ## Risks and Mitigations
 
 | Risk | Mitigation |
-|---|---|
+| --- | --- |
 | `micromatch` glob syntax differs from VS Code's internal glob matcher | Validate that all patterns in `constants.ts` produce identical results with both matchers; add unit tests comparing output |
 | Combined pattern string becomes extremely long in large setups | Use a `RelativePattern` array and iterate `vscode.workspace.findFiles` per workspace folder if a string length limit is hit |
 | Cache is stale during long-running task discovery | Cache is built once at the start of a discovery cycle; individual tasks within the cycle read from the same snapshot, which is consistent and predictable |
