@@ -962,7 +962,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     return [...folderChildren, ...rootChildren];
   }
 
-  public groupTasksByName(tasks: TaskItem[], separator: string): TaskItem[] {
+  public groupTasksByName(tasks: TaskItem[], separator: string, parentPath: string = ''): TaskItem[] {
     if (!separator) {
       return tasks.sort((a, b) => a.label.localeCompare(b.label));
     }
@@ -1025,7 +1025,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         iconPath = typeItem.iconPath;
       }
 
-      const groupId = `group:${groupName}:${tasks[0]?.taskFileUri?.toString() || tasks[0]?.resourceUri?.toString() || 'unknown'}`;
+      const fullGroupName = parentPath ? `${parentPath}${separator}${groupName}` : groupName;
+      const groupId = `group:${fullGroupName}:${tasks[0]?.taskFileUri?.toString() || tasks[0]?.resourceUri?.toString() || 'unknown'}`;
       const groupItem = new TaskItem(groupName, this.getExpandedState(groupId, vscode.TreeItemCollapsibleState.Collapsed), 'folder', iconUri);
       groupItem.id = groupId;
       // Update context value after setting the final ID
@@ -1035,7 +1036,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       } else if (iconUri) {
         groupItem.iconPath = vscode.ThemeIcon.File;
       }
-      groupItem.children = this.groupTasksByName(groupTasks, separator);
+      groupItem.children = this.groupTasksByName(groupTasks, separator, fullGroupName);
       for (const child of groupItem.children) {
         child.parent = groupItem;
       }
