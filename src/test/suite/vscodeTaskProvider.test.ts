@@ -227,7 +227,7 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.ok(tasks.some(t => t.label === 'User Task One'), 'User tasks should be included via the system API');
     });
 
-    test('user-level system tasks have taskSource set to "user"', async () => {
+    test('user-level system tasks have taskOrigin set to "user"', async () => {
       const mockUserTask = {
         name: 'User Task One',
         source: 'User',
@@ -240,7 +240,7 @@ suite('VscodeTaskProvider Test Suite', () => {
       const tasks = await provider.getSystemTasks();
       const userTask = tasks.find(t => t.label === 'User Task One');
       assert.ok(userTask, 'Should find user-level system task');
-      assert.strictEqual(userTask!.taskSource, 'user', 'taskSource should be "user" for user-level system tasks');
+      assert.strictEqual(userTask!.taskOrigin, 'user', 'taskOrigin should be "user" for user-level system tasks');
     });
 
     test('user-level system tasks point to the user tasks.json path', async () => {
@@ -509,7 +509,7 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.strictEqual(tasks.length, 0, 'Should return no tasks when no files exist');
     });
 
-    test('user tasks have taskSource set to "user"', async () => {
+    test('user tasks have taskOrigin set to "user"', async () => {
       const userTasksPath = getUserTasksPath();
       const userTasksUri = vscode.Uri.file(userTasksPath);
 
@@ -533,10 +533,10 @@ suite('VscodeTaskProvider Test Suite', () => {
       const tasks = await provider.getTasks();
       const userTask = tasks.find(t => t.label === 'User Task One');
       assert.ok(userTask, 'Should find user task');
-      assert.strictEqual(userTask!.taskSource, 'user', 'taskSource should be "user" for user tasks');
+      assert.strictEqual(userTask!.taskOrigin, 'user', 'taskOrigin should be "user" for user tasks');
     });
 
-    test('workspace tasks do NOT have taskSource set to "user"', async () => {
+    test('workspace tasks do NOT have taskOrigin set to "user"', async () => {
       const workspaceTasksFile = vscode.Uri.file('/workspace/.vscode/tasks.json');
       const taskFilesService = TaskFilesService.getInstance();
       taskFilesService.findFiles = async () => [workspaceTasksFile];
@@ -546,7 +546,7 @@ suite('VscodeTaskProvider Test Suite', () => {
       const tasks = await provider.getTasks();
       const wsTask = tasks.find(t => t.label === 'Workspace Task One');
       assert.ok(wsTask, 'Should find workspace task');
-      assert.notStrictEqual(wsTask!.taskSource, 'user', 'taskSource should NOT be "user" for workspace tasks');
+      assert.notStrictEqual(wsTask!.taskOrigin, 'user', 'taskOrigin should NOT be "user" for workspace tasks');
     });
 
     test('user task onOpenActionCommand references user tasks.json', async () => {

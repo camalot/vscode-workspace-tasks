@@ -44,8 +44,6 @@ suite('Issue 120 Reproduction Suite', () => {
 
         // IDs MUST be unique
         // Currently problematic: `group:C:file...` for both
-        console.log(`ID1: ${groupC1?.id}`);
-        console.log(`ID2: ${groupC2?.id}`);
         assert.notStrictEqual(groupC1?.id, groupC2?.id, 'Group IDs must be unique even with same label name');
     });
 });

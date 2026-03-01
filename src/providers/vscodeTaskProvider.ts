@@ -112,7 +112,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
             item.description = vscode.workspace.asRelativePath(file);
             // Mark whether this task comes from the global user tasks.json
             if (userTasksUri && file.fsPath === userTasksUri.fsPath) {
-              item.taskSource = 'user';
+              item.taskOrigin = 'user';
             }
             // We do NOT set defaultIconPath, so it uses resourceUri (iconUri)
 
@@ -215,7 +215,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       // (guarded by instanceof check to avoid treating raw JSON as a vscode.Task)
       item.task = vscodeTask;
       if (vscodeTask.source === 'User') {
-        item.taskSource = 'user';
+        item.taskOrigin = 'user';
       }
 
 
