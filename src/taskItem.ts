@@ -9,6 +9,7 @@ export class TaskItem extends vscode.TreeItem {
   public originalLabel: string;
   public defaultIconPath: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri } | undefined;
   public taskSource: string | undefined;
+  public taskOrigin: 'user' | 'workspace' | undefined;
   public taskFileUri?: vscode.Uri;
   private _parent?: TaskItem;
   public get parent(): TaskItem | undefined {

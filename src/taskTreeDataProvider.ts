@@ -353,6 +353,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // Preserve file association and source/provider so that cloned items remain runnable
         favTask.taskFileUri = item.taskFileUri;
         favTask.taskSource = item.taskSource;
+        favTask.taskOrigin = item.taskOrigin;
 
         // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
         // For favorites, we might want to flatten or keep structure.
@@ -375,6 +376,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             // Preserve child file association and source/provider as well
             childCopy.taskFileUri = child.taskFileUri;
             childCopy.taskSource = child.taskSource;
+            childCopy.taskOrigin = child.taskOrigin;
             // We don't recurse deeper for now as typically tasks are 1-2 levels deep.
             // But for GitHub Actions -> Events -> (maybe Jobs?), we might need more.
             // Actually GH Actions is "File -> Event / Job". Depth is 1.
@@ -471,6 +473,38 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // task.updateContextValue(); // Moved to start of loop and made recursive
 
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(taskUri);
+
+      // User-level global tasks (taskOrigin === 'user') live outside any workspace folder.
+      // Instead of placing them in "External", assign them to each workspace folder so
+      // they appear alongside workspace tasks. In multi-root setups each workspace folder
+      // gets its own clone of the task so VS Code tree IDs remain unique.
+      if (!workspaceFolder && task.taskOrigin === 'user') {
+        const allFolders = vscode.workspace.workspaceFolders;
+        if (allFolders && allFolders.length > 0) {
+          for (const folder of allFolders) {
+            const wsId = folder.uri.toString();
+            workspaceInfoMap.set(wsId, folder.name);
+
+            let projectMap = workspaceMap.get(wsId);
+            if (!projectMap) {
+              projectMap = new Map<string, TaskItem[]>();
+              workspaceMap.set(wsId, projectMap);
+            }
+
+            let typeTasks = projectMap.get(task.taskType);
+            if (!typeTasks) {
+              typeTasks = [];
+              projectMap.set(task.taskType, typeTasks);
+            }
+
+            // Clone the task for each workspace so each instance gets a unique parent/ID
+            const copy = this.cloneUserTaskForWorkspace(task, folder);
+            typeTasks.push(copy);
+          }
+          continue;
+        }
+      }
+
       const workspaceName = workspaceFolder ? workspaceFolder.name : 'External';
       const workspaceId = workspaceFolder ? workspaceFolder.uri.toString() : 'external';
       workspaceInfoMap.set(workspaceId, workspaceName);
@@ -650,6 +684,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             // Preserve file association and source/provider so recent items remain runnable
             copy.taskFileUri = t.taskFileUri;
             copy.taskSource = t.taskSource;
+            copy.taskOrigin = t.taskOrigin;
             copy.description = t.description; // Preserve description (folder name etc)
             copy.parent = typeItem;
             copy.id = `recent:${t.id}`;
@@ -693,6 +728,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           // Preserve file association and source/provider so recent items remain runnable
           copy.taskFileUri = t.taskFileUri;
           copy.taskSource = t.taskSource;
+          copy.taskOrigin = t.taskOrigin;
           copy.description = t.description;
           copy.parent = recentGroup;
 
@@ -830,6 +866,43 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   /**
+   * Creates a shallow clone of a user-level global task item scoped to a specific workspace folder.
+   * All original properties (file URI, start line, commands, etc.) are preserved so the task
+   * can still be opened/run correctly. The clone's ID is prefixed with the workspace folder name
+   * to keep tree node IDs unique in multi-root setups.
+   */
+  private cloneUserTaskForWorkspace(task: TaskItem, folder: vscode.WorkspaceFolder): TaskItem {
+    const copy = new TaskItem(
+      task.label,
+      task.collapsibleState,
+      task.taskType,
+      task.taskFileUri,
+      task.command,
+      task.defaultIconPath,
+      task.onRunActionCommand,
+      task.onRunWithArgsActionCommand,
+    );
+    copy.originalLabel = task.originalLabel || task.label;
+    copy.startLine = task.startLine;
+    copy.metadata = task.metadata;
+    copy.taskFileUri = task.taskFileUri;
+    copy.taskSource = task.taskSource;
+    copy.taskOrigin = task.taskOrigin;
+    copy.description = task.description;
+    copy.onOpenActionCommand = task.onOpenActionCommand;
+    copy.task = task.task;
+
+    // Use a workspace-scoped ID so each workspace gets a distinct tree node.
+    // This prevents VS Code from treating the same user task as the same tree item
+    // when it appears under multiple workspaces in a multi-root setup.
+    // Use folder.index to ensure uniqueness even if folder names are identical in multi-root workspace.
+    copy.id = `workspace:${folder.index}:user-global:${task.originalLabel || task.label}`;
+    copy.updateContextValue();
+
+    return copy;
+  }
+
+  /**
    * Group tasks by the parent folder name
    * @param tasks
    * @param separator
@@ -895,7 +968,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     return [...folderChildren, ...rootChildren];
   }
 
-  public groupTasksByName(tasks: TaskItem[], separator: string): TaskItem[] {
+  public groupTasksByName(tasks: TaskItem[], separator: string, parentPath: string = ''): TaskItem[] {
     if (!separator) {
       return tasks.sort((a, b) => a.label.localeCompare(b.label));
     }
@@ -958,7 +1031,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         iconPath = typeItem.iconPath;
       }
 
-      const groupId = `group:${groupName}:${tasks[0]?.taskFileUri?.toString() || tasks[0]?.resourceUri?.toString() || 'unknown'}`;
+      const fullGroupName = parentPath ? `${parentPath}${separator}${groupName}` : groupName;
+      const groupId = `group:${fullGroupName}:${tasks[0]?.taskFileUri?.toString() || tasks[0]?.resourceUri?.toString() || 'unknown'}`;
       const groupItem = new TaskItem(groupName, this.getExpandedState(groupId, vscode.TreeItemCollapsibleState.Collapsed), 'folder', iconUri);
       groupItem.id = groupId;
       // Update context value after setting the final ID
@@ -968,7 +1042,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       } else if (iconUri) {
         groupItem.iconPath = vscode.ThemeIcon.File;
       }
-      groupItem.children = this.groupTasksByName(groupTasks, separator);
+      groupItem.children = this.groupTasksByName(groupTasks, separator, fullGroupName);
       for (const child of groupItem.children) {
         child.parent = groupItem;
       }

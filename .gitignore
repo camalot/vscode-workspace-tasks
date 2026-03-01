@@ -3,8 +3,13 @@ sample/**/tools/**
 tools/
 reports/
 
+codecov
+codecov.*
+super-linter-output/
+
 *.sln
 
+.secrets
 **/.secrets
 **/.act
 
