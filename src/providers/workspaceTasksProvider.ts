@@ -14,6 +14,12 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
     super('workspace-task', constants.GLOB_WORKSPACE);
   }
 
+  override getFilePatterns(): string[] {
+    // Only the workspace configuration files pattern; dynamic glob_include patterns
+    // are resolved at runtime and fall back to direct vscode.workspace.findFiles
+    return [this.filePattern!];
+  }
+
   async getTasks(): Promise<TaskItem[]> {
     // Check if workspace task type is enabled
     if (!this.enabled) {

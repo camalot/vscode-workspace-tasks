@@ -15,6 +15,10 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
   protected abstract getScriptsPath(): string[];
   public abstract getCommand(workspaceUri?: vscode.Uri): ExecutableResult;
 
+  override getFilePatterns(): string[] {
+    return this.getGlobPatterns();
+  }
+
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       return [];

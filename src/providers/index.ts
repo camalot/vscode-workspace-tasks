@@ -24,6 +24,7 @@ import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
+import { TaskFilesService } from '../services/taskFilesService';
 
 type TaskProviderConstructor =
   | (new () => BunTaskProvider)
@@ -84,9 +85,11 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     JupyterTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
+  const filesService = TaskFilesService.getInstance();
   for (const ProviderClass of providers) {
     try {
       const providerInstance = new ProviderClass();
+      filesService.registerPatterns(providerInstance.getFilePatterns());
       // Assuming there's a global taskTreeDataProvider instance
       if (taskTreeDataProvider) {
         taskTreeDataProvider.registerProvider(providerInstance);

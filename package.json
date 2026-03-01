@@ -104,6 +104,7 @@
     "changelog:build": "npx git-cliff --bump --output CHANGELOG.md"
   },
   "devDependencies": {
+    "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
     "@types/node": "25.x",
     "@types/vscode": "^1.105.1",
@@ -129,6 +130,7 @@
   "dependencies": {
     "fast-xml-parser": "5.2.5",
     "ignore": "^7.0.5",
+    "micromatch": "^4.0.8",
     "smol-toml": "^1.6.0",
     "yaml": "^2.8.2"
   },

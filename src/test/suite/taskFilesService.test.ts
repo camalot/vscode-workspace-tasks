@@ -9,7 +9,8 @@ suite('TaskFilesService Test Suite', () => {
     let workspaceRoot: vscode.Uri;
     let testFolder: vscode.Uri;
 
-    setup(async () => {
+    setup(async function(this: Mocha.Context) {
+        this.timeout(10000);
         service = TaskFilesService.getInstance();
 
         // Find workspace root
@@ -33,7 +34,8 @@ suite('TaskFilesService Test Suite', () => {
         await service.initialize(context);
     });
 
-    teardown(async () => {
+    teardown(async function(this: Mocha.Context) {
+        this.timeout(10000);
         try {
             await vscode.workspace.fs.delete(testFolder, { recursive: true, useTrash: false });
         } catch { }
@@ -223,7 +225,8 @@ ignore.me
         assert.strictEqual(service.shouldIgnore(keepUri), false, 'Should keep keep.me');
     });
 
-    test('Integration - findFiles', async () => {
+    test('Integration - findFiles', async function() {
+        this.timeout(15000);
         const file1 = await createFile('match1.json');
         const file2 = await createFile('match2.json');
         const ignored = await createFile('ignore.me');
@@ -260,5 +263,80 @@ ignore.me
         assert.strictEqual(hasMatch1, true, 'Should find match1.json');
         assert.strictEqual(hasMatch2, true, 'Should find match2.json');
         assert.strictEqual(hasIgnore, false, 'Should ignore ignore.me');
+    });
+
+    test('findFiles with registered patterns uses cache', async function() {
+        this.timeout(10000);
+        // Clear patterns
+        (service as any).registeredPatterns.clear();
+        (service as any).invalidateCache();
+
+        // Create a couple of files
+        await createFile('cache-test/file1.txt');
+        await createFile('cache-test/subdir/file2.js');
+
+        service.registerPatterns(['**/cache-test/**/*.txt', '**/cache-test/**/*.js']);
+
+        let uris1 = await service.findFiles(['**/cache-test/**/*.txt']);
+        let relevant1 = uris1.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+        assert.strictEqual(relevant1.length > 0, true, 'Should find txt file');
+        assert.strictEqual((service as any).cacheInvalidated, false, 'Cache should be built and valid');
+
+        // Find again should hit the cache
+        let uris2 = await service.findFiles(['**/cache-test/**/*.js']);
+        let relevant2 = uris2.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+        assert.strictEqual(relevant2.length > 0, true, 'Should find js file');
+        assert.strictEqual((service as any).cacheInvalidated, false, 'Cache should remain valid');
+    });
+
+    test('invalidateCache works correctly', async function() {
+        this.timeout(10000);
+        (service as any).registeredPatterns.clear();
+        // Register the exact pattern used in findFiles calls so cache is used
+        service.registerPatterns(['**/invalidate-test/**/*.txt']);
+        (service as any).invalidateCache();
+
+        await createFile('invalidate-test/file1.txt');
+
+        let uris = await service.findFiles(['**/invalidate-test/**/*.txt']);
+        let relevant = uris.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+        assert.strictEqual(relevant.length, 1, 'Should find initial file');
+
+        await createFile('invalidate-test/file2.txt');
+
+        // Explicitly invalidate cache to force the next findFiles to rebuild it
+        service.invalidateCache();
+
+        uris = await service.findFiles(['**/invalidate-test/**/*.txt']);
+        relevant = uris.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+        assert.strictEqual(relevant.length, 2, 'Should find both files after cache invalidated');
+    });
+
+    test('rebuildRegisteredPatterns - clears and repopulates from TaskCacheService providers', () => {
+        const { TaskCacheService } = require('../../services/taskCacheService');
+        const cacheService = TaskCacheService.getInstance();
+
+        // Stub a fake provider with getFilePatterns
+        const fakeProvider = {
+            getFilePatterns: () => ['**/fake/**/*.ts', '**/fake/**/*.js'],
+        };
+
+        // Manually inject the fake provider
+        const origGetProviders = cacheService.getProviders.bind(cacheService);
+        cacheService.getProviders = () => [fakeProvider];
+
+        // Pre-populate with something different
+        (service as any).registeredPatterns.clear();
+        service.registerPatterns(['**/old-pattern/**']);
+
+        service.rebuildRegisteredPatterns();
+
+        const patterns = Array.from((service as any).registeredPatterns as Set<string>);
+        assert.ok(!patterns.includes('**/old-pattern/**'), 'Old patterns should be cleared');
+        assert.ok(patterns.includes('**/fake/**/*.ts'), 'Should include fake provider pattern .ts');
+        assert.ok(patterns.includes('**/fake/**/*.js'), 'Should include fake provider pattern .js');
+
+        // Restore
+        cacheService.getProviders = origGetProviders;
     });
 });

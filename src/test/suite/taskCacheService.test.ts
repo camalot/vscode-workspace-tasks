@@ -10,6 +10,9 @@ class MockTaskProvider implements TaskProvider {
     async getTasks(): Promise<TaskItem[]> {
         return this.tasks;
     }
+    getFilePatterns(): string[] {
+        return [];
+    }
 }
 
 suite('TaskCacheService Test Suite', () => {

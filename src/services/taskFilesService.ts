@@ -2,7 +2,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 // @ts-ignore
 import ignore from 'ignore';
+import micromatch from 'micromatch';
 import { LoggerService } from './loggerService';
+import { TaskCacheService } from './taskCacheService';
 
 interface IgnoreFile {
   folderUri: vscode.Uri;
@@ -17,6 +19,9 @@ export class TaskFilesService {
   private fileWatcher?: vscode.Disposable;
   private context?: vscode.ExtensionContext;
   private logger = LoggerService.getInstance();
+  private registeredPatterns: Set<string> = new Set();
+  private cachedPaths: Set<string> | null = null;
+  private cacheInvalidated = true;
 
   private constructor() {
     this.globalIgnore = ignore();
@@ -29,25 +34,141 @@ export class TaskFilesService {
     return TaskFilesService.instance;
   }
 
-  public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
-    if (this.context) {
-      await this.syncIgnoreFiles();
+  public registerPatterns(patterns: string[]): void {
+    for (const p of patterns) {
+      this.registeredPatterns.add(p);
+    }
+  }
+
+  private async buildCache(): Promise<void> {
+    await this.syncIgnoreFiles();
+
+    const patterns = Array.from(this.registeredPatterns);
+    if (patterns.length === 0) {
+      this.cachedPaths = new Set();
+      return;
     }
 
-    // use vscode.workspace.findFiles with the provided pattern and exclude, then filter using the ignore rules
-    const uris = await vscode.workspace.findFiles(pattern.join(','), exclude ? exclude.join(',') : undefined);
-    const depthFiltered = this.filterByDepth(uris);
-    const filtered: vscode.Uri[] = [];
-    for (const uri of depthFiltered) {
-      if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
-        continue;
-      }
-      if (this.context && await this.isIgnoredByDiskRules(uri)) {
-        continue;
-      }
-      filtered.push(uri);
+    // Expand inside braces so we don't have nested braces like {**/*.{sh,bash},**/package.json}
+    // which vscode.workspace.findFiles might not support
+    let expandedPatterns: string[] = [];
+    for (const p of patterns) {
+        const expanded = micromatch.braces(p, { expand: true });
+        expandedPatterns.push(...expanded);
     }
-    return filtered;
+
+    const combinedPattern = expandedPatterns.length > 1
+        ? `{${expandedPatterns.join(',')}}`
+        : expandedPatterns[0];
+
+    try {
+      const raw = await vscode.workspace.findFiles(combinedPattern);
+      const depthFiltered = this.filterByDepth(raw);
+
+      const result = new Set<string>();
+      for (const uri of depthFiltered) {
+        if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
+          continue;
+        }
+        if (this.context && await this.isIgnoredByDiskRules(uri)) {
+          continue;
+        }
+        result.add(uri.fsPath);
+      }
+
+      this.cachedPaths = result;
+      this.cacheInvalidated = false;
+      this.logger.debug(`[TaskFilesService] Cache built with ${this.cachedPaths.size} files from combined pattern: ${combinedPattern}`);
+    } catch (err) {
+      this.logger.error(`[TaskFilesService] Error building cache: ${err}`);
+      this.cachedPaths = new Set();
+      this.cacheInvalidated = false;
+    }
+  }
+
+  public invalidateCache(): void {
+    this.cachedPaths = null;
+    this.cacheInvalidated = true;
+  }
+
+  public rebuildRegisteredPatterns(): void {
+    const providers = TaskCacheService.getInstance().getProviders();
+    this.registeredPatterns.clear();
+    for (const provider of providers) {
+      if (provider.getFilePatterns) {
+        this.registerPatterns(provider.getFilePatterns());
+      }
+    }
+  }
+
+  public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
+    // Separate pattern list into those covered by the cache and those that are not.
+    // A pattern is "covered" if it was pre-registered (so the cache contains all matching files).
+    const covered: string[] = [];
+    const uncovered: string[] = [];
+    for (const p of pattern) {
+      if (this.registeredPatterns.has(p)) {
+        covered.push(p);
+      } else {
+        uncovered.push(p);
+      }
+    }
+
+    const results: vscode.Uri[] = [];
+
+    // Serve covered patterns from the cache
+    if (covered.length > 0 && this.registeredPatterns.size > 0) {
+      if (this.cacheInvalidated || this.cachedPaths === null) {
+        await this.buildCache();
+      }
+
+      const allPaths = Array.from(this.cachedPaths!);
+
+      // Normalize to forward-slashes for micromatch (Windows-safe)
+      const allPathsNormalized = allPaths.map(p => p.replace(/\\/g, '/'));
+      const pathMap = new Map<string, string>();
+      allPaths.forEach((p, i) => pathMap.set(allPathsNormalized[i], p));
+
+      // Expand brace expressions before matching so micromatch handles them correctly
+      const expandedCovered: string[] = [];
+      for (const p of covered) {
+        expandedCovered.push(...micromatch.braces(p, { expand: true }));
+      }
+
+      const matchedNormalized = micromatch(allPathsNormalized, expandedCovered, { dot: true });
+
+      const excludedNormalized = exclude && exclude.length > 0
+        ? new Set(micromatch(matchedNormalized, exclude, { dot: true }))
+        : new Set<string>();
+
+      for (const p of matchedNormalized) {
+        if (!excludedNormalized.has(p)) {
+          results.push(vscode.Uri.file(pathMap.get(p)!));
+        }
+      }
+    }
+
+    // Direct query for uncovered patterns (not pre-registered / dynamic)
+    if (uncovered.length > 0) {
+      if (this.context) {
+        await this.syncIgnoreFiles();
+      }
+      const combinedPattern = uncovered.length > 1 ? `{${uncovered.join(',')}}` : uncovered[0];
+      const excludeGlob = exclude && exclude.length > 0 ? exclude.join(',') : undefined;
+      const uris = await vscode.workspace.findFiles(combinedPattern, excludeGlob);
+      const depthFiltered = this.filterByDepth(uris);
+      for (const uri of depthFiltered) {
+        if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
+          continue;
+        }
+        if (this.context && await this.isIgnoredByDiskRules(uri)) {
+          continue;
+        }
+        results.push(uri);
+      }
+    }
+
+    return results;
   }
 
   private async syncIgnoreFiles(): Promise<void> {
@@ -219,8 +340,19 @@ export class TaskFilesService {
       this.configWatcher = undefined;
     }
     this.configWatcher = vscode.workspace.onDidChangeConfiguration(async (e) => {
+      let isInvalidated = false;
       if (e.affectsConfiguration('workspaceTasks.exclude')) {
         await this.initialize(this.context!);
+        isInvalidated = true;
+      }
+      if (e.affectsConfiguration('workspaceTasks.shellAdditionalExtensions')) {
+        // dynamic patterns updated, invalidate
+        this.rebuildRegisteredPatterns();
+        this.invalidateCache();
+        isInvalidated = true;
+      }
+      if (!isInvalidated && e.affectsConfiguration('workspaceTasks.taskDiscovery.fetchDepth')) {
+        this.invalidateCache();
       }
     });
 
@@ -230,10 +362,27 @@ export class TaskFilesService {
       this.fileWatcher = undefined;
     }
     const watcher = vscode.workspace.createFileSystemWatcher('**/.tasksignore');
-    watcher.onDidChange((uri) => this.loadIgnoreFile(uri));
-    watcher.onDidCreate((uri) => this.loadIgnoreFile(uri));
-    watcher.onDidDelete((uri) => this.removeIgnoreFile(uri));
+    watcher.onDidChange((uri) => {
+      this.loadIgnoreFile(uri);
+      this.invalidateCache();
+    });
+    watcher.onDidCreate((uri) => {
+      this.loadIgnoreFile(uri);
+      this.invalidateCache();
+    });
+    watcher.onDidDelete((uri) => {
+      this.removeIgnoreFile(uri);
+      this.invalidateCache();
+    });
     this.fileWatcher = watcher;
+
+    context.subscriptions.push(
+      vscode.workspace.onDidCreateFiles(() => this.invalidateCache()),
+      vscode.workspace.onDidDeleteFiles(() => this.invalidateCache()),
+      vscode.workspace.onDidRenameFiles(() => this.invalidateCache()),
+    );
+
+    this.invalidateCache();
   }
 
   private async loadIgnoreFile(uri: vscode.Uri) {

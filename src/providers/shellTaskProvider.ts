@@ -38,6 +38,24 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     super('shell', glob);
   }
 
+  override getFilePatterns(): string[] {
+    const patterns = super.getFilePatterns();
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const enabledTypes = config.get<Record<string, boolean>>('shellEnabledTaskTypes') || {};
+    const additional = config.get<Record<string, string>>('shellAdditionalExtensions') || {};
+
+    if (enabledTypes['other']) {
+      for (const [ext] of Object.entries(additional)) {
+        let extClean = ext;
+        if (extClean.startsWith('.')) {
+          extClean = extClean.slice(1);
+        }
+        patterns.push(`**/*.${extClean}`);
+      }
+    }
+    return patterns;
+  }
+
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       return [];
