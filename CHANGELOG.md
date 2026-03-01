@@ -1,10 +1,20 @@
-## [1.1.15] - 2026-03-01
+## [1.2.0] - 2026-03-01
+
+### 🚀 Features
+
+- Enhanced performance via single find call for tasks
+
 
 ### 🐛 Bug Fixes
 
 - User level tasks are not handled properly #116
 
 - Element with id group:<group_name>:<file>.json is already registered #120
+
+
+### 💼 Other
+
+- V1.1.15 (#124)
 
 
 ### ⚙️ Miscellaneous Tasks
@@ -27,9 +37,15 @@
 
 - Add codecov files to vscodeignore
 
+- Update changelog
+
+- Implement suggestions from copilot.
+
+- Update version info
 
 
-**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.14...v1.1.15
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.1.14...v1.2.0
 
 ## [1.1.14] - 2026-02-19
 
