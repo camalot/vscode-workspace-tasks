@@ -90,6 +90,22 @@ suite('TaskFilesService Test Suite', () => {
     });
 
 
+    /**
+     * Waits until the given glob pattern returns at least `expectedCount` files
+     * via vscode.workspace.findFiles. On Linux CI, newly written files can take
+     * a moment to be picked up by VS Code's internal file watcher/indexer.
+     */
+    async function waitForFilesIndexed(glob: string, expectedCount: number, maxRetries = 30): Promise<void> {
+        for (let i = 0; i < maxRetries; i++) {
+            const uris = await vscode.workspace.findFiles(glob);
+            const relevant = uris.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+            if (relevant.length >= expectedCount) {
+                return;
+            }
+            await new Promise(r => setTimeout(r, 200));
+        }
+    }
+
     async function waitForIgnoreFile(uri: vscode.Uri) {
         // Deterministically load in tests (watchers can be flaky in extension host)
         await (service as any).loadIgnoreFile(uri);
@@ -269,11 +285,15 @@ ignore.me
         this.timeout(10000);
         // Clear patterns
         (service as any).registeredPatterns.clear();
-        (service as any).invalidateCache();
+        service.invalidateCache();
 
         // Create a couple of files
         await createFile('cache-test/file1.txt');
         await createFile('cache-test/subdir/file2.js');
+
+        // Wait until VS Code has indexed the files (Linux CI can be slow to pick up new files)
+        await waitForFilesIndexed('**/cache-test/**/*.txt', 1);
+        await waitForFilesIndexed('**/cache-test/**/*.js', 1);
 
         service.registerPatterns(['**/cache-test/**/*.txt', '**/cache-test/**/*.js']);
 
@@ -294,15 +314,21 @@ ignore.me
         (service as any).registeredPatterns.clear();
         // Register the exact pattern used in findFiles calls so cache is used
         service.registerPatterns(['**/invalidate-test/**/*.txt']);
-        (service as any).invalidateCache();
+        service.invalidateCache();
 
         await createFile('invalidate-test/file1.txt');
+
+        // Wait until VS Code has indexed the first file before building the cache
+        await waitForFilesIndexed('**/invalidate-test/**/*.txt', 1);
 
         let uris = await service.findFiles(['**/invalidate-test/**/*.txt']);
         let relevant = uris.filter(u => u.fsPath.startsWith(testFolder.fsPath));
         assert.strictEqual(relevant.length, 1, 'Should find initial file');
 
         await createFile('invalidate-test/file2.txt');
+
+        // Wait until VS Code has indexed the second file, then invalidate and rebuild
+        await waitForFilesIndexed('**/invalidate-test/**/*.txt', 2);
 
         // Explicitly invalidate cache to force the next findFiles to rebuild it
         service.invalidateCache();
