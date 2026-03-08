@@ -385,6 +385,104 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.ok(wsTask, 'Should still create task item even when file cannot be opened');
       assert.strictEqual(wsTask!.startLine, undefined, 'startLine should be undefined when file is missing');
     });
+
+    // Real-world: VSCode returns user profile tasks with source='Workspace' and a numeric scope.
+    // TaskScope.Global=1 and TaskScope.Workspace=2 are both numeric — neither is a WorkspaceFolder object.
+    test('includes user profile tasks when source is Workspace but scope is TaskScope.Global (numeric)', async () => {
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Global,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      const tasks = await provider.getSystemTasks();
+      assert.ok(tasks.some(t => t.label === 'User Task One'), 'Should include user task with numeric scope Global');
+    });
+
+    test('includes user profile tasks when source is Workspace but scope is TaskScope.Workspace (numeric)', async () => {
+      // In real VSCode, user profile tasks may have scope=TaskScope.Workspace (=2) not Global (=1)
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Workspace,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      const tasks = await provider.getSystemTasks();
+      assert.ok(tasks.some(t => t.label === 'User Task One'), 'Should include user task with numeric scope Workspace');
+    });
+
+    test('user profile task with numeric scope has taskOrigin set to "user"', async () => {
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Global,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      const tasks = await provider.getSystemTasks();
+      const userTask = tasks.find(t => t.label === 'User Task One');
+      assert.ok(userTask, 'Should find user task');
+      assert.strictEqual(userTask!.taskOrigin, 'user', 'taskOrigin should be "user" when scope is numeric (not a WorkspaceFolder)');
+    });
+
+    test('user profile task with scope TaskScope.Workspace (numeric) has taskOrigin set to "user"', async () => {
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Workspace,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      const tasks = await provider.getSystemTasks();
+      const userTask = tasks.find(t => t.label === 'User Task One');
+      assert.ok(userTask, 'Should find user task');
+      assert.strictEqual(userTask!.taskOrigin, 'user', 'taskOrigin should be "user" when scope is TaskScope.Workspace (numeric)');
+    });
+
+    test('user profile task with scope Global points to user tasks.json path', async () => {
+      const userTasksPath = getUserTasksPath();
+      const userTasksUri = vscode.Uri.file(userTasksPath);
+
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Global,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      const mockFs = {
+        ...vscode.workspace.fs,
+        stat: async (uri: vscode.Uri) => {
+          if (uri.fsPath === userTasksUri.fsPath) {
+            return { type: vscode.FileType.File, ctime: 0, mtime: 0, size: 100 };
+          }
+          throw new Error('File not found');
+        },
+        readFile: async (_uri: vscode.Uri) => new Uint8Array(),
+      };
+      Object.defineProperty(vscode.workspace, 'fs', { value: mockFs, writable: true, configurable: true });
+
+      const tasks = await provider.getSystemTasks();
+      const userTask = tasks.find(t => t.label === 'User Task One');
+      assert.ok(userTask, 'Should find user task');
+      assert.strictEqual(
+        userTask!.taskFileUri?.fsPath,
+        userTasksUri.fsPath,
+        'taskFileUri should point to user tasks.json when scope is Global',
+      );
+    });
   });
 
   // ─── getTasks ───────────────────────────────────────────────────────────────
@@ -581,6 +679,128 @@ suite('VscodeTaskProvider Test Suite', () => {
         fileArg.fsPath,
         userTasksUri.fsPath,
         'onOpenActionCommand should reference user tasks.json',
+      );
+    });
+
+    // Regression: user profile tasks must not appear twice when VSCode returns them with
+    // source='Workspace' and scope=TaskScope.Global (the real-world behaviour).
+    test('does not duplicate user tasks when system tasks return them with source Workspace and scope Global', async () => {
+      const userTasksPath = getUserTasksPath();
+      const userTasksUri = vscode.Uri.file(userTasksPath);
+
+      // Simulate the real-world case: source='Workspace', scope=TaskScope.Global
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Global,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      // No workspace .vscode/tasks.json
+      const taskFilesService = TaskFilesService.getInstance();
+      taskFilesService.findFiles = async () => [];
+
+      // user tasks.json exists on disk
+      const mockFs = {
+        ...vscode.workspace.fs,
+        stat: async (uri: vscode.Uri) => {
+          if (uri.fsPath === userTasksUri.fsPath) {
+            return { type: vscode.FileType.File, ctime: 0, mtime: 0, size: 100 };
+          }
+          throw new Error('File not found');
+        },
+        readFile: async (_uri: vscode.Uri) => new Uint8Array(),
+      };
+      Object.defineProperty(vscode.workspace, 'fs', { value: mockFs, writable: true, configurable: true });
+
+      (vscode.workspace as any).openTextDocument = async (_uri: any) => ({ getText: () => userTasksJson });
+
+      const tasks = await provider.getTasks();
+      const count = tasks.filter(t => t.label === 'User Task One').length;
+      assert.strictEqual(count, 1, 'User Task One should appear exactly once, not duplicated');
+    });
+
+    // Regression: real VSCode may also use scope=TaskScope.Workspace (=2) for user profile tasks
+    test('does not duplicate user tasks when system tasks return them with source Workspace and scope TaskScope.Workspace', async () => {
+      const userTasksPath = getUserTasksPath();
+      const userTasksUri = vscode.Uri.file(userTasksPath);
+
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Workspace,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      const taskFilesService = TaskFilesService.getInstance();
+      taskFilesService.findFiles = async () => [];
+
+      const mockFs = {
+        ...vscode.workspace.fs,
+        stat: async (uri: vscode.Uri) => {
+          if (uri.fsPath === userTasksUri.fsPath) {
+            return { type: vscode.FileType.File, ctime: 0, mtime: 0, size: 100 };
+          }
+          throw new Error('File not found');
+        },
+        readFile: async (_uri: vscode.Uri) => new Uint8Array(),
+      };
+      Object.defineProperty(vscode.workspace, 'fs', { value: mockFs, writable: true, configurable: true });
+
+      (vscode.workspace as any).openTextDocument = async (_uri: any) => ({ getText: () => userTasksJson });
+
+      const tasks = await provider.getTasks();
+      const count = tasks.filter(t => t.label === 'User Task One').length;
+      assert.strictEqual(count, 1, 'User Task One should appear exactly once when scope is TaskScope.Workspace (numeric)');
+    });
+
+    test('user task from system API has the user tasks.json path, not .vscode/tasks.json', async () => {
+      const userTasksPath = getUserTasksPath();
+      const userTasksUri = vscode.Uri.file(userTasksPath);
+
+      const mockUserTask = {
+        name: 'User Task One',
+        source: 'Workspace',
+        scope: vscode.TaskScope.Global,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockUserTask];
+
+      const taskFilesService = TaskFilesService.getInstance();
+      taskFilesService.findFiles = async () => [];
+
+      const mockFs = {
+        ...vscode.workspace.fs,
+        stat: async (uri: vscode.Uri) => {
+          if (uri.fsPath === userTasksUri.fsPath) {
+            return { type: vscode.FileType.File, ctime: 0, mtime: 0, size: 100 };
+          }
+          throw new Error('File not found');
+        },
+        readFile: async (_uri: vscode.Uri) => new Uint8Array(),
+      };
+      Object.defineProperty(vscode.workspace, 'fs', { value: mockFs, writable: true, configurable: true });
+
+      (vscode.workspace as any).openTextDocument = async (_uri: any) => ({ getText: () => userTasksJson });
+
+      const tasks = await provider.getTasks();
+      const userTask = tasks.find(t => t.label === 'User Task One');
+      assert.ok(userTask, 'Should find user task');
+      assert.ok(
+        userTask!.taskFileUri?.fsPath !== undefined &&
+        !userTask!.taskFileUri.fsPath.endsWith('.vscode/tasks.json') &&
+        !userTask!.taskFileUri.fsPath.endsWith('.vscode\\tasks.json'),
+        `taskFileUri should NOT be .vscode/tasks.json, got: ${userTask!.taskFileUri?.fsPath}`,
+      );
+      assert.strictEqual(
+        userTask!.taskFileUri?.fsPath,
+        userTasksUri.fsPath,
+        'taskFileUri should point to the user profile tasks.json',
       );
     });
   });
