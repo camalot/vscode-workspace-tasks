@@ -168,7 +168,8 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     // get the system registered tasks
     const allTasks: vscode.Task[] = await vscode.tasks.fetchTasks();
 
-    // Include both workspace tasks and user-level tasks (source === 'User')
+    // Include both workspace tasks and user-level tasks (source 'Workspace' or 'User').
+    // Note: user profile tasks also have source 'Workspace' in real VSCode.
     const vscodeTasks = allTasks.filter((t => t.source === 'Workspace' || t.source === 'User'));
     this.logger.debug(`[VscodeTaskProvider] Fetched ${vscodeTasks.length} system tasks from VSCode.`);
 
@@ -179,26 +180,33 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       this.logger.debug(`[VscodeTaskProvider] - Processing Task: ${vscodeTask.name}, Source: ${vscodeTask.source}`);
       const label = vscodeTask.name || 'Unnamed Task';
 
-      // Determine the correct file URI based on the task's workspace folder scope
+      // Determine the correct file URI based on the task's workspace folder scope.
+      // Workspace-folder tasks have an object scope with a .uri property (vscode.WorkspaceFolder).
+      // User profile tasks have a numeric scope (TaskScope.Global=1 or TaskScope.Workspace=2),
+      // NOT a WorkspaceFolder object. Checking typeof lets us distinguish them reliably without
+      // depending on a specific enum value that may vary across VSCode versions.
+      const rawScope = vscodeTask.scope;
+      const workspaceFolderScope: vscode.WorkspaceFolder | undefined =
+        rawScope !== null &&
+        rawScope !== undefined &&
+        typeof rawScope === 'object' &&
+        (rawScope as vscode.WorkspaceFolder).uri !== undefined
+          ? rawScope as vscode.WorkspaceFolder
+          : undefined;
+      const isUserProfileTask = workspaceFolderScope === undefined || vscodeTask.source === 'User';
+
       let fileUri: vscode.Uri;
-      const taskScope = vscodeTask.scope as vscode.WorkspaceFolder | undefined;
-      if (vscodeTask.source === 'User') {
-        // User-level tasks live in the global user tasks.json
+      if (isUserProfileTask) {
+        // User profile tasks live in the global user tasks.json
         fileUri = userTasksUri ?? vscode.Uri.file(getUserTasksPath());
-      } else if (taskScope && taskScope.uri) {
-        // Task belongs to a specific workspace folder
-        fileUri = vscode.Uri.joinPath(taskScope.uri, '.vscode', 'tasks.json');
       } else if (vscodeTask.definition._source) {
-        // Use the _source property if available
+        // Use the _source property if available (more specific than folder default)
         fileUri = typeof vscodeTask.definition._source === 'string'
           ? vscode.Uri.file(vscodeTask.definition._source)
           : vscodeTask.definition._source;
       } else {
-        // Fallback to first workspace folder
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        fileUri = workspaceFolder
-          ? vscode.Uri.joinPath(workspaceFolder.uri, '.vscode', 'tasks.json')
-          : vscode.Uri.file('.vscode/tasks.json');
+        // Workspace folder task — use the folder's .vscode/tasks.json
+        fileUri = vscode.Uri.joinPath(workspaceFolderScope!.uri, '.vscode', 'tasks.json');
       }
 
       const item = new TaskItem(
@@ -214,7 +222,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       // Store the native vscode.Task so createTaskForItem can use it directly
       // (guarded by instanceof check to avoid treating raw JSON as a vscode.Task)
       item.task = vscodeTask;
-      if (vscodeTask.source === 'User') {
+      if (isUserProfileTask) {
         item.taskOrigin = 'user';
       }
 

@@ -66,8 +66,7 @@ postprocessors = [
 # output = "test.md"
 
 [bump]
-bump_type = "patch"
-features_always_bump_minor = false
+features_always_bump_minor = true
 breaking_always_bump_major = true
 
 [git]

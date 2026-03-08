@@ -8,6 +8,7 @@ export interface TaskProvider {
   getTasks(): Promise<TaskItem[]>;
   filePattern?: string;
   type?: string;
+  getFilePatterns(): string[];
 }
 
 export abstract class BaseTaskProvider implements TaskProvider {
@@ -19,6 +20,10 @@ export abstract class BaseTaskProvider implements TaskProvider {
     this.type = type;
     this.filePattern = filePattern;
     this.context = TaskStateManager.getInstance().getContext();
+  }
+
+  getFilePatterns(): string[] {
+    return this.filePattern ? [this.filePattern] : [];
   }
 
   get enabled(): boolean {

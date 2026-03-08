@@ -8,7 +8,7 @@ const constants: Record<string, any> = {
 
   DEFAULT_TASK_GROUP_SEPARATOR: '',
 
-  GLOB_GLOBAL_EXCLUDE: '**/node_modules/**,**/.git/**',
+  GLOB_GLOBAL_EXCLUDE: '**/node_modules/**,**/.git/**,**/__pycache__/**',
   GLOB_ANT: '**/*.xml',
   GLOB_CARGO_MAKE: '**/{Makefile.toml,*.toml}',
   GLOB_DENO: '**/deno.{json,jsonc}',

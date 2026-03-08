@@ -28,7 +28,7 @@ interface LanguageTaskConfig {
     include?: string[];
     exclude?: string[];
   };
-  iconUri?: string;
+  iconUri?: string | { dark: string; light: string };
   inputs: TaskInput[];
   tasks: FileTaskDefinition[];
 }
@@ -160,6 +160,10 @@ export class WorkspaceTasksService {
       // ignore keys that start with _ and $
       return !key.startsWith('_') && !key.startsWith('$');
     });
+  }
+
+  public getIconUri(languageId: string): string | { dark: string; light: string } | undefined {
+    return this.getLanguageConfig(languageId)?.iconUri;
   }
 
   public getLanguageConfig(languageId: string): LanguageTaskConfig | undefined {

@@ -11,6 +11,7 @@ import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
 import { QueueService } from './services/queueService';
 import { FilteredTaskService } from './services/filteredTaskService';
+import { WorkspaceTasksService } from './services/workspaceTasksService';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private static instance: TaskTreeDataProvider | undefined;
@@ -621,7 +622,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
       for (const [type, tasks] of favTypeMap) {
         const typeId = this.makeId(`fav:${type}`, groupSalt);
-        const typeItem = TaskTypeFactory.create(type, this.getExpandedState(typeId, this.getGroupState('favorites', expandedGroups)));
+        const typeItem = TaskTypeFactory.create(type, this.getExpandedState(typeId, this.getGroupState('favorites', expandedGroups)), WorkspaceTasksService.getInstance().getIconUri(type));
         typeItem.id = typeId;
         typeItem.children = tasks;
         typeItem.parent = favGroup;
@@ -666,7 +667,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
         for (const [type, tasks] of recentTypeMap) {
           const typeId = this.makeId(`recent:${type}`, groupSalt);
-          const typeItem = TaskTypeFactory.create(type, this.getExpandedState(typeId, this.getGroupState('recent', expandedGroups)));
+          const typeItem = TaskTypeFactory.create(type, this.getExpandedState(typeId, this.getGroupState('recent', expandedGroups)), WorkspaceTasksService.getInstance().getIconUri(type));
           typeItem.id = typeId;
           typeItem.children = tasks.map((t: TaskItem) => {
             const iconPath = t.defaultIconPath;
@@ -801,7 +802,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         for (const [taskType, typeTasks] of projectMap) {
           const typeItemId = this.makeId(`type:${taskType}:${workspaceId}`, groupSalt);
           // Use Factory to create typed item
-          const typeItem = TaskTypeFactory.create(taskType, this.getExpandedState(typeItemId, groupState));
+          const typeItem = TaskTypeFactory.create(taskType, this.getExpandedState(typeItemId, groupState), WorkspaceTasksService.getInstance().getIconUri(taskType));
           // Use workspaceId in ID key for robustness
           typeItem.id = typeItemId;
           // Update context value after setting the final ID
@@ -1026,7 +1027,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       let iconUri: vscode.Uri | undefined;
       let iconPath: any | undefined;
       if (groupTasks.length > 0) {
-        const typeItem = TaskTypeFactory.create(groupTasks[0].taskType);
+        const typeItem = TaskTypeFactory.create(groupTasks[0].taskType, undefined, WorkspaceTasksService.getInstance().getIconUri(groupTasks[0].taskType));
         iconUri = typeItem.resourceUri;
         iconPath = typeItem.iconPath;
       }

@@ -222,4 +222,341 @@ suite('TaskIconService Test Suite', () => {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   });
+
+  suite('resolveWorkspaceTaskTypeIcon', () => {
+    test('returns built-in TaskIcon when SVG pair exists for the type', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        writeIconPair(tmpDir, 'npm');
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('node');
+
+        assert.ok(result.TaskIcon, 'TaskIcon should be set for known type');
+        assert.ok(result.TaskIcon!.light.fsPath.endsWith(path.join('light', 'npm.svg')));
+        assert.ok(result.TaskIcon!.dark.fsPath.endsWith(path.join('dark', 'npm.svg')));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns empty when no SVG pair and no iconUri', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz');
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.strictEqual(result.DisplayUri, undefined);
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns TaskIcon for { dark, light } object with valid absolute image paths', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const lightPath = path.join(tmpDir, 'light.svg');
+        const darkPath = path.join(tmpDir, 'dark.svg');
+        fs.writeFileSync(lightPath, '<svg/>', 'utf8');
+        fs.writeFileSync(darkPath, '<svg/>', 'utf8');
+
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', {
+          dark: darkPath,
+          light: lightPath,
+        });
+
+        assert.ok(result.TaskIcon, 'TaskIcon should be set');
+        assert.strictEqual(
+          result.TaskIcon!.dark.fsPath.toLowerCase(),
+          vscode.Uri.file(darkPath).fsPath.toLowerCase(),
+        );
+        assert.strictEqual(
+          result.TaskIcon!.light.fsPath.toLowerCase(),
+          vscode.Uri.file(lightPath).fsPath.toLowerCase(),
+        );
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns empty when { dark, light } paths are invalid', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', {
+          dark: '/nonexistent/dark.svg',
+          light: '/nonexistent/light.svg',
+        });
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.strictEqual(result.DisplayUri, undefined);
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns TaskIcon for absolute image path string', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const iconPath = path.join(tmpDir, 'my-icon.svg');
+        fs.writeFileSync(iconPath, '<svg/>', 'utf8');
+
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', iconPath);
+
+        assert.ok(result.TaskIcon, 'TaskIcon should be set for absolute image path');
+        assert.strictEqual(
+          result.TaskIcon!.light.fsPath.toLowerCase(),
+          vscode.Uri.file(iconPath).fsPath.toLowerCase(),
+        );
+        assert.strictEqual(
+          result.TaskIcon!.dark.fsPath.toLowerCase(),
+          vscode.Uri.file(iconPath).fsPath.toLowerCase(),
+        );
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns DisplayUri with basename for filename iconUri (file-type icon fallback)', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', 'eslint.config.mjs');
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.ok(result.DisplayUri, 'DisplayUri should be set');
+        assert.ok(result.DisplayUri!.fsPath.endsWith('eslint.config.mjs'));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns empty for filename with unrecognised extension (e.g. bad.file)', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', 'bad.file');
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.strictEqual(result.DisplayUri, undefined, 'DisplayUri must not be set for unknown extension');
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns DisplayUri for well-known basename without extension (e.g. Makefile)', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', 'Makefile');
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.ok(result.DisplayUri, 'DisplayUri should be set for Makefile');
+        assert.ok(result.DisplayUri!.fsPath.toLowerCase().endsWith('makefile'));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns DisplayUri for dotfile with known basename (e.g. .gitignore)', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', '.gitignore');
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.ok(result.DisplayUri, 'DisplayUri should be set for .gitignore');
+        assert.ok(result.DisplayUri!.fsPath.endsWith('.gitignore'));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns TaskIcon for relative SVG filename found in res/icons sub-directories', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const lightDir = path.join(tmpDir, 'res', 'icons', 'light');
+        const darkDir = path.join(tmpDir, 'res', 'icons', 'dark');
+        fs.mkdirSync(lightDir, { recursive: true });
+        fs.mkdirSync(darkDir, { recursive: true });
+        fs.writeFileSync(path.join(lightDir, 'myicon.svg'), '<svg/>', 'utf8');
+        fs.writeFileSync(path.join(darkDir, 'myicon.svg'), '<svg/>', 'utf8');
+
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', 'myicon.svg');
+
+        assert.ok(result.TaskIcon, 'TaskIcon should be set');
+        assert.ok(result.TaskIcon!.light.fsPath.endsWith(path.join('light', 'myicon.svg')));
+        assert.ok(result.TaskIcon!.dark.fsPath.endsWith(path.join('dark', 'myicon.svg')));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns TaskIcon for relative image path resolved directly from extension root', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const imgDir = path.join(tmpDir, 'images');
+        fs.mkdirSync(imgDir, { recursive: true });
+        const iconFile = path.join(imgDir, 'myicon.png');
+        fs.writeFileSync(iconFile, '', 'utf8');
+
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', 'images/myicon.png');
+
+        assert.ok(result.TaskIcon, 'TaskIcon should be set');
+        assert.strictEqual(
+          result.TaskIcon!.light.fsPath.toLowerCase(),
+          vscode.Uri.file(iconFile).fsPath.toLowerCase(),
+        );
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns empty when iconUri is an image path that does not exist', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        // Neither absolute nor extension-relative — just a non-existent image name
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', 'nonexistent-icon.svg');
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.strictEqual(result.DisplayUri, undefined, 'DisplayUri must not be set for missing image files');
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns empty when { dark, light } contains empty string paths', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', { dark: '', light: '' });
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.strictEqual(result.DisplayUri, undefined);
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns TaskIcon for { dark, light } object with extension-relative image paths', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const imgDir = path.join(tmpDir, 'icons');
+        fs.mkdirSync(imgDir, { recursive: true });
+        const darkRel = 'icons/dark.svg';
+        const lightRel = 'icons/light.svg';
+        fs.writeFileSync(path.join(tmpDir, darkRel), '<svg/>', 'utf8');
+        fs.writeFileSync(path.join(tmpDir, lightRel), '<svg/>', 'utf8');
+
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', {
+          dark: darkRel,
+          light: lightRel,
+        });
+
+        assert.ok(result.TaskIcon, 'TaskIcon should be set');
+        assert.ok(result.TaskIcon!.dark.fsPath.endsWith('dark.svg'));
+        assert.ok(result.TaskIcon!.light.fsPath.endsWith('light.svg'));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  suite('getDefaultGroupIcon', () => {
+    test('returns task.png light/dark pair when files exist', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const lightDir = path.join(tmpDir, 'res', 'icons', 'light');
+        const darkDir = path.join(tmpDir, 'res', 'icons', 'dark');
+        fs.mkdirSync(lightDir, { recursive: true });
+        fs.mkdirSync(darkDir, { recursive: true });
+        fs.writeFileSync(path.join(lightDir, 'task.png'), '', 'utf8');
+        fs.writeFileSync(path.join(darkDir, 'task.png'), '', 'utf8');
+
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.getDefaultGroupIcon();
+
+        assert.ok(result, 'should return an icon object');
+        assert.ok(result!.light.fsPath.endsWith(path.join('light', 'task.png')));
+        assert.ok(result!.dark.fsPath.endsWith(path.join('dark', 'task.png')));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns undefined when task.png files are missing', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.getDefaultGroupIcon();
+
+        assert.strictEqual(result, undefined);
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns undefined when context is not initialized', () => {
+      (TaskIconService as any).instance = new TaskIconService();
+      const service = TaskIconService.getInstance();
+
+      const result = service.getDefaultGroupIcon();
+
+      assert.strictEqual(result, undefined);
+    });
+  });
 });

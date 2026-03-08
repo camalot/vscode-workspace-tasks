@@ -70,6 +70,164 @@ export class TaskIconService {
     };
   }
 
+  private isImageFile(filePath: string): boolean {
+    const ext = path.extname(filePath).toLowerCase();
+    return ['.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico'].includes(ext);
+  }
+
+  /**
+   * Extensions that popular VS Code file icon themes (Seti, Material, etc.) are
+   * known to have specific icons for. Any filename whose extension is NOT in this
+   * set (e.g. "bad.file", "custom.stuff") would only receive a generic unknown-file
+   * icon, so we fall through to the task.png default instead.
+   */
+  private static readonly KNOWN_FILE_TYPE_EXTENSIONS: ReadonlySet<string> = new Set([
+    // JavaScript / TypeScript
+    '.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts',
+    // JSON / YAML / TOML / XML / INI
+    '.json', '.jsonc', '.yaml', '.yml', '.toml', '.xml', '.ini', '.cfg', '.conf',
+    // CSS ecosystems
+    '.css', '.scss', '.sass', '.less',
+    // HTML / templates
+    '.html', '.htm', '.vue', '.svelte', '.astro', '.njk', '.ejs',
+    // Documentation
+    '.md', '.mdx', '.rst', '.txt',
+    // Compiled / systems languages
+    '.py', '.pyi', '.rb', '.rs', '.go', '.java', '.kt', '.kts', '.swift',
+    '.c', '.cc', '.cpp', '.h', '.hpp', '.cs', '.php', '.lua', '.r', '.scala',
+    // Shell / scripts
+    '.sh', '.bash', '.zsh', '.fish', '.ps1', '.psm1', '.psd1', '.bat', '.cmd',
+    // Data / query / schema formats
+    '.csv', '.tsv', '.sql', '.graphql', '.gql', '.proto', '.prisma',
+    // Build tools
+    '.lock', '.gradle',
+  ]);
+
+  /** Well-known filenames (no extension, or dotfiles) that icon themes recognise. */
+  private static readonly KNOWN_BASENAMES: ReadonlySet<string> = new Set([
+    'makefile', 'dockerfile', 'jenkinsfile', 'vagrantfile', 'procfile', 'brewfile',
+    '.gitignore', '.dockerignore', '.npmignore', '.gitattributes', '.editorconfig', '.env',
+  ]);
+
+  /**
+   * Returns `true` when common VS Code file icon themes are expected to provide a
+   * meaningful icon for the given filename — either by full basename match or by
+   * file extension.
+   */
+  private hasKnownFileTypeIcon(filename: string): boolean {
+    const basename = path.basename(filename).toLowerCase();
+    if (TaskIconService.KNOWN_BASENAMES.has(basename)) {
+      return true;
+    }
+    const ext = path.extname(basename);
+    return ext.length > 0 && TaskIconService.KNOWN_FILE_TYPE_EXTENSIONS.has(ext);
+  }
+
+  private resolveIconPath(iconPath: string): string | undefined {
+    if (!iconPath) {
+      return undefined;
+    }
+    if (path.isAbsolute(iconPath) && this.isImageFile(iconPath) && fs.existsSync(iconPath)) {
+      return iconPath;
+    }
+    if (this.context) {
+      const resolved = path.join(this.context.extensionPath, iconPath);
+      if (this.isImageFile(resolved) && fs.existsSync(resolved)) {
+        return resolved;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Resolves the icon for a workspace-defined task type.
+   *
+   * Priority:
+   * 1. Built-in SVG icon for the type name (from the extension's `res/icons/` folders).
+   * 2. If `iconUri` is a `{ dark, light }` object whose paths resolve to real image files —
+   *    use it as the explicit custom icon.
+   * 3. If `iconUri` is an absolute or extension-relative path to a real image file — use it.
+   * 4. If `iconUri` is a filename whose extension (or full basename) is recognised by common
+   *    VS Code icon themes (e.g. `"tsconfig.json"`, `"Makefile"`) — return it as `DisplayUri`
+   *    so the caller can display the matching file-type icon.  Unrecognised extensions (e.g.
+   *    `"bad.file"`) return empty so the caller falls back to the default `task.png` icon.
+   */
+  public resolveWorkspaceTaskTypeIcon(
+    type: string,
+    iconUri?: string | { dark: string; light: string },
+  ): TaskIconUri {
+    // 1. Try built-in SVG by type name
+    const builtIn = this.getTaskTypeIcon(type);
+    if (builtIn?.TaskIcon) {
+      return builtIn;
+    }
+
+    if (!iconUri) {
+      return { TaskIcon: undefined, DisplayUri: undefined };
+    }
+
+    // 2. Handle { dark, light } object
+    if (typeof iconUri === 'object') {
+      const darkPath = this.resolveIconPath(iconUri.dark);
+      const lightPath = this.resolveIconPath(iconUri.light);
+      if (darkPath && lightPath) {
+        return {
+          TaskIcon: {
+            dark: vscode.Uri.file(darkPath),
+            light: vscode.Uri.file(lightPath),
+          },
+          DisplayUri: vscode.Uri.file(lightPath),
+        };
+      }
+      // Invalid paths — fall through to return empty
+      return { TaskIcon: undefined, DisplayUri: undefined };
+    }
+
+    // 3. Handle string iconUri — check if it resolves to a real image
+    if (path.isAbsolute(iconUri) && this.isImageFile(iconUri) && fs.existsSync(iconUri)) {
+      const uri = vscode.Uri.file(iconUri);
+      return { TaskIcon: { dark: uri, light: uri }, DisplayUri: uri };
+    }
+
+    if (this.context) {
+      // Check light/dark icon subdirectories
+      const lightPath = path.join(this.context.extensionPath, 'res', 'icons', 'light', iconUri);
+      const darkPath = path.join(this.context.extensionPath, 'res', 'icons', 'dark', iconUri);
+      if (this.isImageFile(iconUri) && fs.existsSync(lightPath) && fs.existsSync(darkPath)) {
+        return {
+          TaskIcon: {
+            dark: vscode.Uri.file(darkPath),
+            light: vscode.Uri.file(lightPath),
+          },
+          DisplayUri: vscode.Uri.file(lightPath),
+        };
+      }
+
+      // Check directly relative to the extension root
+      const directPath = path.join(this.context.extensionPath, iconUri);
+      if (this.isImageFile(directPath) && fs.existsSync(directPath)) {
+        const uri = vscode.Uri.file(directPath);
+        return { TaskIcon: { dark: uri, light: uri }, DisplayUri: uri };
+      }
+    }
+
+    // 4. Non-image filenames (e.g. "eslint.config.mjs", "tsconfig.json") — only return a
+    // DisplayUri when the extension is one that VS Code icon themes are known to support.
+    // Unrecognised extensions (e.g. "bad.file") would render as a generic unknown-file icon,
+    // which is less useful than the task.png fallback, so we return empty in that case.
+    if (!this.isImageFile(iconUri)) {
+      if (this.hasKnownFileTypeIcon(iconUri)) {
+        const basename = path.basename(iconUri);
+        return {
+          TaskIcon: undefined,
+          DisplayUri: vscode.Uri.file('/' + basename),
+        };
+      }
+      return { TaskIcon: undefined, DisplayUri: undefined };
+    }
+    return { TaskIcon: undefined, DisplayUri: undefined };
+  }
+
   public getTaskIcon(
     type: string,
     fallback?: vscode.Uri,
@@ -113,5 +271,22 @@ export class TaskIconService {
     // Default 'type' behavior
     const typeIcon = this.getTaskTypeIcon(type, fallback);
     return typeIcon?.TaskIcon;
+  }
+
+  /**
+   * Returns the default task-group icon (`res/icons/light/task.png` and
+   * `res/icons/dark/task.png`) bundled with the extension. Used as the
+   * final fallback when no other icon can be resolved for a task-type group.
+   */
+  public getDefaultGroupIcon(): TaskIcon | undefined {
+    if (!this.context) {
+      return undefined;
+    }
+    const light = vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', 'task.png'));
+    const dark = vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', 'task.png'));
+    if (!fs.existsSync(light.fsPath) || !fs.existsSync(dark.fsPath)) {
+      return undefined;
+    }
+    return { light, dark };
   }
 }
