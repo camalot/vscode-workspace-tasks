@@ -22,6 +22,7 @@ export class TaskFilesService {
   private registeredPatterns: Set<string> = new Set();
   private cachedPaths: Set<string> | null = null;
   private cacheInvalidated = true;
+  private buildCacheInFlight: Promise<void> | null = null;
 
   private constructor() {
     this.globalIgnore = ignore();
@@ -41,6 +42,19 @@ export class TaskFilesService {
   }
 
   private async buildCache(): Promise<void> {
+    // Coalesce concurrent requests: if a build is already in flight, join it rather
+    // than launching a redundant parallel scan (e.g. when all providers fire at startup).
+    if (this.buildCacheInFlight !== null) {
+      return this.buildCacheInFlight;
+    }
+    this.buildCacheInFlight = this._doBuildCache().finally(() => {
+      this.buildCacheInFlight = null;
+    });
+    return this.buildCacheInFlight;
+  }
+
+  private async _doBuildCache(): Promise<void> {
+    const cacheBuildStartMs = Date.now();
     await this.syncIgnoreFiles();
 
     const patterns = Array.from(this.registeredPatterns);
@@ -78,9 +92,13 @@ export class TaskFilesService {
 
       this.cachedPaths = result;
       this.cacheInvalidated = false;
-      this.logger.debug(`[TaskFilesService] Cache built with ${this.cachedPaths.size} files from combined pattern: ${combinedPattern}`);
+      const cacheBuildDurationMs = Date.now() - cacheBuildStartMs;
+      this.logger.debug(
+        `[TaskFilesService] Cache built with ${this.cachedPaths.size} files from combined pattern: ${combinedPattern} in ${cacheBuildDurationMs}ms`,
+      );
     } catch (err) {
-      this.logger.error(`[TaskFilesService] Error building cache: ${err}`);
+      const cacheBuildDurationMs = Date.now() - cacheBuildStartMs;
+      this.logger.error(`[TaskFilesService] Error building cache after ${cacheBuildDurationMs}ms: ${err}`);
       this.cachedPaths = new Set();
       this.cacheInvalidated = false;
     }
@@ -89,6 +107,8 @@ export class TaskFilesService {
   public invalidateCache(): void {
     this.cachedPaths = null;
     this.cacheInvalidated = true;
+    // Drop any in-flight build so the next findFiles() call starts a fresh scan.
+    this.buildCacheInFlight = null;
   }
 
   public rebuildRegisteredPatterns(): void {
@@ -377,9 +397,22 @@ export class TaskFilesService {
     this.fileWatcher = watcher;
 
     context.subscriptions.push(
-      vscode.workspace.onDidCreateFiles(() => this.invalidateCache()),
-      vscode.workspace.onDidDeleteFiles(() => this.invalidateCache()),
-      vscode.workspace.onDidRenameFiles(() => this.invalidateCache()),
+      vscode.workspace.onDidCreateFiles((e) => {
+        if (this.anyFileMatchesRegisteredPatterns(e.files)) {
+          this.invalidateCache();
+        }
+      }),
+      vscode.workspace.onDidDeleteFiles((e) => {
+        if (this.anyFileMatchesRegisteredPatterns(e.files)) {
+          this.invalidateCache();
+        }
+      }),
+      vscode.workspace.onDidRenameFiles((e) => {
+        const uris = e.files.flatMap((f) => [f.oldUri, f.newUri]);
+        if (this.anyFileMatchesRegisteredPatterns(uris)) {
+          this.invalidateCache();
+        }
+      }),
     );
 
     this.invalidateCache();
@@ -419,6 +452,21 @@ export class TaskFilesService {
     this.ignoreFiles = this.ignoreFiles.filter(
       (f) => this.normalizePathForComparison(f.folderUri.fsPath) !== folderPath,
     );
+  }
+
+  /**
+   * Returns true if any of the given URIs matches at least one of the registered task file patterns.
+   * Used to avoid invalidating the cache on unrelated file system changes.
+   */
+  private anyFileMatchesRegisteredPatterns(uris: readonly vscode.Uri[]): boolean {
+    if (this.registeredPatterns.size === 0) {
+      return false;
+    }
+    const patterns = Array.from(this.registeredPatterns);
+    return uris.some((uri) => {
+      const normalized = uri.fsPath.replace(/\\/g, '/');
+      return micromatch.isMatch(normalized, patterns, { dot: true });
+    });
   }
 
   public shouldIgnore(uri: vscode.Uri): boolean {

@@ -67,6 +67,10 @@ function setupFakes(iconServiceReturns: vscode.ThemeIcon | undefined = FAKE_ICON
   (TaskIconService as any).instance = {
     getTaskTypeIcon: (_type: string, _fallback?: vscode.Uri) =>
       makeFakeIconUri(iconServiceReturns),
+    resolveWorkspaceTaskTypeIcon: (_type: string, _iconUri?: any) =>
+      makeFakeIconUri(iconServiceReturns),
+    getDefaultGroupIcon: () =>
+      iconServiceReturns ? undefined : undefined,
   } as unknown as TaskIconService;
 }
 
@@ -199,7 +203,7 @@ suite('TaskTypeItems Test Suite', () => {
     });
 
     test('accepts a custom collapsibleState', () => {
-      const item = new GenericTaskTypeItem('cargo', vscode.TreeItemCollapsibleState.Expanded);
+      const item = new GenericTaskTypeItem('cargo', undefined, vscode.TreeItemCollapsibleState.Expanded);
       assert.strictEqual(item.collapsibleState, vscode.TreeItemCollapsibleState.Expanded);
     });
 
@@ -211,6 +215,69 @@ suite('TaskTypeItems Test Suite', () => {
     test('taskType is "type"', () => {
       const item = new GenericTaskTypeItem('my-custom-type');
       assert.strictEqual(item.taskType, 'type');
+    });
+
+    test('uses DisplayUri from iconUri filename as resourceUri', () => {
+      (TaskIconService as any).instance = {
+        getTaskTypeIcon: () => ({ TaskIcon: undefined }),
+        resolveWorkspaceTaskTypeIcon: (_type: string, _iconUri?: any) => ({
+          TaskIcon: undefined,
+          DisplayUri: vscode.Uri.file('/myconfig.json'),
+        }),
+      } as unknown as TaskIconService;
+
+      const item = new GenericTaskTypeItem('cargo', 'myconfig.json');
+      assert.ok(item.resourceUri, 'resourceUri should be set');
+      // The resourceUri uses the workspace-tasks:// scheme so the decoration provider
+      // still works; the path encodes the icon filename for file-theme matching.
+      assert.strictEqual(item.resourceUri!.scheme, 'workspace-tasks');
+      assert.ok(item.resourceUri!.path.endsWith('myconfig.json'), `path should end with myconfig.json, got: ${item.resourceUri!.path}`);
+      assert.deepStrictEqual(item.iconPath, vscode.ThemeIcon.File);
+    });
+
+    test('uses TaskIcon from iconUri image as iconPath', () => {
+      const fakeIcon = { dark: vscode.Uri.file('/dark.svg'), light: vscode.Uri.file('/light.svg') };
+      (TaskIconService as any).instance = {
+        getTaskTypeIcon: () => ({ TaskIcon: undefined }),
+        resolveWorkspaceTaskTypeIcon: (_type: string, _iconUri?: any) => ({
+          TaskIcon: fakeIcon,
+          DisplayUri: vscode.Uri.file('/light.svg'),
+        }),
+        getDefaultGroupIcon: () => undefined,
+      } as unknown as TaskIconService;
+
+      const item = new GenericTaskTypeItem('cargo', { dark: '/dark.svg', light: '/light.svg' });
+      assert.deepStrictEqual(item.iconPath, fakeIcon);
+    });
+
+    test('falls back to getDefaultGroupIcon() when no icon and no DisplayUri', () => {
+      const defaultIcon = { dark: vscode.Uri.file('/dark/task.png'), light: vscode.Uri.file('/light/task.png') };
+      (TaskIconService as any).instance = {
+        getTaskTypeIcon: () => ({ TaskIcon: undefined }),
+        resolveWorkspaceTaskTypeIcon: (_type: string, _iconUri?: any) => ({
+          TaskIcon: undefined,
+          DisplayUri: undefined,
+        }),
+        getDefaultGroupIcon: () => defaultIcon,
+      } as unknown as TaskIconService;
+
+      const item = new GenericTaskTypeItem('unknown-type');
+      assert.deepStrictEqual(item.iconPath, defaultIcon, 'iconPath should be the default task.png icon');
+    });
+
+    test('uses ThemeIcon.File when getDefaultGroupIcon() returns undefined', () => {
+      (TaskIconService as any).instance = {
+        getTaskTypeIcon: () => ({ TaskIcon: undefined }),
+        resolveWorkspaceTaskTypeIcon: (_type: string, _iconUri?: any) => ({
+          TaskIcon: undefined,
+          DisplayUri: undefined,
+        }),
+        getDefaultGroupIcon: () => undefined,
+      } as unknown as TaskIconService;
+
+      const item = new GenericTaskTypeItem('unknown-type');
+      // Base class sets ThemeIcon.File — no override if default icon unavailable
+      assert.deepStrictEqual(item.iconPath, vscode.ThemeIcon.File);
     });
   });
 

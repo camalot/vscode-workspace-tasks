@@ -11,6 +11,9 @@ export class TaskItem extends vscode.TreeItem {
   public taskSource: string | undefined;
   public taskOrigin: 'user' | 'workspace' | undefined;
   public taskFileUri?: vscode.Uri;
+  /** When set on a group item, its path is embedded in the workspace-tasks:// URI so
+   * VS Code's file icon theme can match the right icon (e.g. "tsconfig.json" → TS config icon). */
+  protected iconDisplayUri?: vscode.Uri;
   private _parent?: TaskItem;
   public get parent(): TaskItem | undefined {
     return this._parent;
@@ -166,7 +169,7 @@ export class TaskItem extends vscode.TreeItem {
       if (this.id) {
         this.resourceUri = vscode.Uri.from({
           scheme: 'workspace-tasks',
-          path: '/group',
+          path: this.iconDisplayUri?.path ?? '/group',
           query: this.id,
           fragment: isFilteredOrParent ? 'dimmed' : '',
         });

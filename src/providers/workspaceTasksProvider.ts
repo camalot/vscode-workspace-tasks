@@ -61,11 +61,15 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
       // the tasks will appear in the tree view but won't be linked to any specific file.
       // the "type" of the task will be the language ID. If the language ID is not recognized, it will default to 'shell'.
       if ((!glob_include || glob_include.length === 0) && taskDefs.length > 0) {
+        // Resolve icon: SVG by type → iconUri image → iconUri filename → fallback
+        const noFileResolved = iconService.resolveWorkspaceTaskTypeIcon(provider, config.iconUri);
+        const noFileIconPath =
+          noFileResolved.TaskIcon ?? iconService.getTaskIcon('task');
+        const noFileDisplayUri = !noFileResolved.TaskIcon ? noFileResolved.DisplayUri : undefined;
+
         for (const taskDef of taskDefs) {
           // Use sourceUri if available (the .workspace-tasks.json file)
           const resourceUri = taskDef.sourceUri;
-
-          const iconPath = iconService.getTaskIcon('task');
 
           const item = new TaskItem(
             taskDef.label,
@@ -73,8 +77,11 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             this.type, // Unique task type
             resourceUri,
             undefined,
-            iconPath,
+            noFileIconPath,
           );
+          if (noFileDisplayUri) {
+            item.resourceUri = noFileDisplayUri;
+          }
           item.taskFileUri = resourceUri;
           item.taskSource = provider;
 
@@ -98,9 +105,16 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
       }
 
       const files = await filesService.findFiles(glob_include, exclude_joined);
+
+      // Resolve the icon for this provider type once, reuse across all matched files
+      const fileResolved = iconService.resolveWorkspaceTaskTypeIcon(langId, config.iconUri);
+      const fileDisplayUri = !fileResolved.TaskIcon ? fileResolved.DisplayUri : undefined;
+
       for (const file of files) {
         this.logger.debug(`[${this.type}TaskProvider] Processing file: ${file.fsPath} for provider: ${provider}`);
-        const iconPath = iconService.getTaskIcon(langId, file);
+        // Prefer the resolved iconUri image; fall back to the standard getTaskIcon path
+        let fileIconPath = fileResolved.TaskIcon ?? iconService.getTaskIcon(langId, file);
+        const fileItemDisplayUri = !fileResolved.TaskIcon ? fileDisplayUri : undefined;
 
         for (const taskDef of taskDefs) {
           const item = new TaskItem(
@@ -109,8 +123,11 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             langId, // Use the language ID as the type
             file,
             undefined,
-            iconPath,
+            fileIconPath,
           );
+          if (fileItemDisplayUri) {
+            item.resourceUri = fileItemDisplayUri;
+          }
           item.taskFileUri = file;
 
           // Mark this item as backed by a workspace-defined task so TaskRunner

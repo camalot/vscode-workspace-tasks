@@ -238,19 +238,42 @@ export class MsBuildTaskTypeItem extends TaskTypeGroupItem {
 }
 
 export class GenericTaskTypeItem extends TaskTypeGroupItem {
-  constructor(type: string, collapsibleState?: vscode.TreeItemCollapsibleState) {
-    super(type, vscode.Uri.file('/file'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+  constructor(
+    type: string,
+    iconUri?: string | { dark: string; light: string },
+    collapsibleState?: vscode.TreeItemCollapsibleState,
+  ) {
+    super(type, undefined, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
 
     const iconService = TaskIconService.getInstance();
-    const iconUri = iconService.getTaskTypeIcon(this.label);
-    if (iconUri?.TaskIcon) {
-      this.iconPath = iconUri.TaskIcon;
+    const resolved = iconService.resolveWorkspaceTaskTypeIcon(type, iconUri);
+    if (resolved?.TaskIcon) {
+      this.iconPath = resolved.TaskIcon;
+      if (resolved.DisplayUri) {
+        this.resourceUri = resolved.DisplayUri;
+      }
+    } else if (resolved?.DisplayUri) {
+      this.iconDisplayUri = resolved.DisplayUri;
+      this.iconPath = vscode.ThemeIcon.File;
+      // Re-run now that iconDisplayUri is set so the workspace-tasks:// URI gets the
+      // correct filename path, allowing VS Code's file icon theme to pick the right icon.
+      this.updateContextValue();
+    } else {
+      // No built-in icon and no valid iconUri — fall back to the extension's own task.png.
+      const defaultIcon = iconService.getDefaultGroupIcon();
+      if (defaultIcon) {
+        this.iconPath = defaultIcon;
+      }
     }
   }
 }
 
 export class TaskTypeFactory {
-  public static create(type: string, collapsibleState?: vscode.TreeItemCollapsibleState): TaskTypeGroupItem {
+  public static create(
+    type: string,
+    collapsibleState?: vscode.TreeItemCollapsibleState,
+    iconUri?: string | { dark: string; light: string },
+  ): TaskTypeGroupItem {
     switch (type) {
       case 'deno':
         return new DenoTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
@@ -289,7 +312,7 @@ export class TaskTypeFactory {
       case 'mise':
         return new MiseTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       default:
-        return new GenericTaskTypeItem(type, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+        return new GenericTaskTypeItem(type, iconUri, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
     }
   }
 }
