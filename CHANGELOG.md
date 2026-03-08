@@ -1,4 +1,4 @@
-## [1.2.0] - 2026-03-01
+## [1.2.0] - 2026-03-08
 
 ### 🚀 Features
 
@@ -11,10 +11,32 @@
 
 - Element with id group:<group_name>:<file>.json is already registered #120
 
+- Add file indexing wait in taskFilesService integration tests
+
+- Updated how the icons are rendered when it is a workspace-task iconUri
+
+- When a user task from a user's profile is loaded, it now shows correctly in the tree
+
 
 ### 💼 Other
 
 - V1.1.15 (#124)
+
+- Add file indexing wait in taskFilesService integration tests
+
+- Add file indexing wait in taskFilesService integration tests
+
+- Add file indexing wait in taskFilesService integration tests
+
+- Add file indexing wait in taskFilesService integration tests
+
+- Add file indexing wait in taskFilesService integration tests
+
+- Add file indexing wait in taskFilesService integration tests
+
+- Add file indexing wait in taskFilesService integration tests
+
+- Add file indexing wait in taskFilesService integration tests
 
 
 ### ⚙️ Miscellaneous Tasks
@@ -42,6 +64,12 @@
 - Implement suggestions from copilot.
 
 - Update version info
+
+- Update changelog
+
+- Markdown-lint fix
+
+- Revert eslint version
 
 
 
