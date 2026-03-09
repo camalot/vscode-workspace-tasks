@@ -91,6 +91,16 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ```bash
 code --install-extension darthminos.workspace-tasks
+
+cursor --install-extension darthminos.workspace-tasks
+
+codium --install-extension darthminos.workspace-tasks
+
+antigravity --install-extension darthminos.workspace-tasks
+
+kiro --install-extension darthminos.workspace-tasks
+
+windsurf --install-extension darthminos.workspace-tasks
 ```
 
 ### ✔️ Requirements

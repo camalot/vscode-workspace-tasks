@@ -250,7 +250,11 @@ export class GenericTaskTypeItem extends TaskTypeGroupItem {
     if (resolved?.TaskIcon) {
       this.iconPath = resolved.TaskIcon;
       if (resolved.DisplayUri) {
-        this.resourceUri = resolved.DisplayUri;
+        // Use iconDisplayUri so updateContextValue() can embed the filename in the
+        // workspace-tasks:// URI for file-icon-theme matching, without clobbering the
+        // workspace-tasks:// resourceUri that decoration providers depend on.
+        this.iconDisplayUri = resolved.DisplayUri;
+        this.updateContextValue();
       }
     } else if (resolved?.DisplayUri) {
       this.iconDisplayUri = resolved.DisplayUri;

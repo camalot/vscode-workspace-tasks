@@ -11,9 +11,11 @@ export class TaskItem extends vscode.TreeItem {
   public taskSource: string | undefined;
   public taskOrigin: 'user' | 'workspace' | undefined;
   public taskFileUri?: vscode.Uri;
-  /** When set on a group item, its path is embedded in the workspace-tasks:// URI so
-   * VS Code's file icon theme can match the right icon (e.g. "tsconfig.json" → TS config icon). */
-  protected iconDisplayUri?: vscode.Uri;
+  /** When set, its path is embedded in the workspace-tasks:// URI so VS Code's file icon
+   * theme can match the right icon (e.g. "tsconfig.json" → TS config icon). Works for both
+   * group items and task leaf items. Prefer setting this over assigning resourceUri directly,
+   * since updateContextValue() rebuilds resourceUri and would clobber a direct assignment. */
+  public iconDisplayUri?: vscode.Uri;
   private _parent?: TaskItem;
   public get parent(): TaskItem | undefined {
     return this._parent;
@@ -189,10 +191,15 @@ export class TaskItem extends vscode.TreeItem {
       const isFiltered = filteredService.isFiltered(id);
       const isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
 
-      // resourceUri includes dimmed fragment if filtered (explicitly or via parent)
+      // resourceUri includes dimmed fragment if filtered (explicitly or via parent).
+      // Use iconDisplayUri.path when present so the file icon theme can match the right
+      // icon for a provider-specific filename (e.g. "package.json" → npm icon) without
+      // interfering with workspace-tasks://-based decorations.  Fall back to taskFileUri
+      // path so that the decoration provider can still dim hidden items.
+      const leafIconPath = this.iconDisplayUri?.path ?? (this.taskFileUri ? this.taskFileUri.path : '/task');
       this.resourceUri = vscode.Uri.from({
         scheme: 'workspace-tasks',
-        path: this.taskFileUri ? this.taskFileUri.path : '/task',
+        path: leafIconPath,
         query: id,
         fragment: isFilteredOrParent ? 'dimmed' : '',
       });

@@ -96,14 +96,19 @@ suite('TaskFilesService Test Suite', () => {
      * a moment to be picked up by VS Code's internal file watcher/indexer.
      */
     async function waitForFilesIndexed(glob: string, expectedCount: number, maxRetries = 30): Promise<void> {
+        let actualCount = 0;
         for (let i = 0; i < maxRetries; i++) {
             const uris = await vscode.workspace.findFiles(glob);
             const relevant = uris.filter(u => u.fsPath.startsWith(testFolder.fsPath));
-            if (relevant.length >= expectedCount) {
+            actualCount = relevant.length;
+            if (actualCount >= expectedCount) {
                 return;
             }
             await new Promise(r => setTimeout(r, 200));
         }
+        throw new Error(
+            `waitForFilesIndexed timed out: glob="${glob}", expected>=${expectedCount}, actual=${actualCount} after ${maxRetries} retries`
+        );
     }
 
     async function waitForIgnoreFile(uri: vscode.Uri) {

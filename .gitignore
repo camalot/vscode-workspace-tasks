@@ -3,6 +3,8 @@ sample/**/tools/**
 tools/
 reports/
 
+.venv/
+
 codecov
 codecov.*
 super-linter-output/

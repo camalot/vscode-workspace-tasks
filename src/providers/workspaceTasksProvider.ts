@@ -80,7 +80,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             noFileIconPath,
           );
           if (noFileDisplayUri) {
-            item.resourceUri = noFileDisplayUri;
+            item.iconDisplayUri = noFileDisplayUri;
           }
           item.taskFileUri = resourceUri;
           item.taskSource = provider;
@@ -126,7 +126,7 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             fileIconPath,
           );
           if (fileItemDisplayUri) {
-            item.resourceUri = fileItemDisplayUri;
+            item.iconDisplayUri = fileItemDisplayUri;
           }
           item.taskFileUri = file;
 
