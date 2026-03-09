@@ -5,7 +5,7 @@
     "globs": {
       "include": ["**/Cargo.toml"]
     },
-    "iconUri": "Cargo.toml",
+    "iconUri": "$(cargo)",
     "inputs": [],
     "tasks": [
       {
@@ -100,7 +100,7 @@
     "globs": {
       "include": ["**/go.mod"]
     },
-    "iconUri": "go.mod",
+    "iconUri": "$(go)",
     "inputs": [
       {
         "id": "PackageName",
@@ -721,7 +721,7 @@
     "globs": {
       "include": ["**/.venv/pyvenv.cfg"]
     },
-    "iconUri": "venv.py",
+    "iconUri": "$(python)",
     "tasks": [
       {
         "label": "venv:create",
@@ -732,7 +732,7 @@
         "presentation": {
           "echo": false,
           "focus": false,
-          "panel": "shared",
+          "panel": "new",
           "reveal": "always",
           "clear": false
         }

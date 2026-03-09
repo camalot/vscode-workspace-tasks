@@ -116,14 +116,28 @@ export class JustfileTaskTypeItem extends TaskTypeGroupItem {
 }
 
 export class VenvTaskTypeItem extends TaskTypeGroupItem {
-  constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
-    // Use a generic name or the specific file name for the icon
-    // We use a fake .py file to get the python icon for the group
+  constructor(
+    iconUri?: string | { dark: string; light: string },
+    collapsibleState?: vscode.TreeItemCollapsibleState,
+  ) {
     super('venv', vscode.Uri.file('/venv.py'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
     const iconService = TaskIconService.getInstance();
-    const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/venv.py'));
-    if (iconUri?.TaskIcon) {
-      this.iconPath = iconUri.TaskIcon;
+    const resolved = iconService.resolveWorkspaceTaskTypeIcon(this.label, iconUri);
+    if (resolved?.TaskIcon) {
+      this.iconPath = resolved.TaskIcon;
+      if (resolved.DisplayUri) {
+        this.iconDisplayUri = resolved.DisplayUri;
+        this.updateContextValue();
+      }
+    } else if (resolved?.DisplayUri) {
+      this.iconDisplayUri = resolved.DisplayUri;
+      this.iconPath = vscode.ThemeIcon.File;
+      this.updateContextValue();
+    } else {
+      const defaultIcon = iconService.getDefaultGroupIcon();
+      if (defaultIcon) {
+        this.iconPath = defaultIcon;
+      }
     }
   }
 }
@@ -298,7 +312,7 @@ export class TaskTypeFactory {
       case 'justfile':
         return new JustfileTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'venv':
-        return new VenvTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+        return new VenvTaskTypeItem(iconUri, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'ant':
         return new AntTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'grunt':

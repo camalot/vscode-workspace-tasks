@@ -45,6 +45,20 @@
             "required": ["id", "type", "description"]
           }
         },
+        "iconUri": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "string", "pattern": "\\$\\([a-zA-Z0-9_-]+\\)" },
+            {
+              "type": "object",
+              "properties": {
+                "light": { "type": "string" },
+                "dark": { "type": "string" }
+              },
+              "required": ["light", "dark"]
+            }
+          ]
+        },
         "tasks": {
           "type": "array",
           "description": "List of tasks to be generated for files matching the language ID",

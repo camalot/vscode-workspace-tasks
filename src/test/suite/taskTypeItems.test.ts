@@ -295,7 +295,7 @@ suite('TaskTypeItems Test Suite', () => {
       { name: 'DockerfileTaskTypeItem', ctor: (s) => new DockerfileTaskTypeItem(s) },
       { name: 'DockerComposeTaskTypeItem', ctor: (s) => new DockerComposeTaskTypeItem(s) },
       { name: 'JustfileTaskTypeItem', ctor: (s) => new JustfileTaskTypeItem(s) },
-      { name: 'VenvTaskTypeItem', ctor: (s) => new VenvTaskTypeItem(s) },
+      { name: 'VenvTaskTypeItem', ctor: (s) => new VenvTaskTypeItem(undefined, s) },
       { name: 'MiseTaskTypeItem', ctor: (s) => new MiseTaskTypeItem(s) },
       { name: 'AntTaskTypeItem', ctor: (s) => new AntTaskTypeItem(s) },
       { name: 'GruntTaskTypeItem', ctor: (s) => new GruntTaskTypeItem(s) },
@@ -353,6 +353,29 @@ suite('TaskTypeItems Test Suite', () => {
       const item = TaskTypeFactory.create('unknown-type');
       assert.ok(item instanceof GenericTaskTypeItem, 'Expected instanceof GenericTaskTypeItem');
       assert.strictEqual(item.label, 'unknown-type');
+    });
+
+    test('create("venv") forwards iconUri to resolver and applies returned icon', () => {
+      const fakeIcon = { dark: vscode.Uri.file('/dark/python.svg'), light: vscode.Uri.file('/light/python.svg') };
+      let capturedType: string | undefined;
+      let capturedIconUri: any;
+
+      (TaskIconService as any).instance = {
+        getTaskTypeIcon: (_type: string, _fallback?: vscode.Uri) => ({ TaskIcon: undefined }),
+        resolveWorkspaceTaskTypeIcon: (type: string, iconUri?: any) => {
+          capturedType = type;
+          capturedIconUri = iconUri;
+          return { TaskIcon: fakeIcon, DisplayUri: vscode.Uri.file('/light/python.svg') };
+        },
+        getDefaultGroupIcon: () => undefined,
+      } as unknown as TaskIconService;
+
+      const item = TaskTypeFactory.create('venv', vscode.TreeItemCollapsibleState.Collapsed, '$(python)');
+
+      assert.ok(item instanceof VenvTaskTypeItem, 'Expected instanceof VenvTaskTypeItem');
+      assert.strictEqual(capturedType, 'venv');
+      assert.strictEqual(capturedIconUri, '$(python)');
+      assert.deepStrictEqual(item.iconPath, fakeIcon);
     });
 
     test('create passes collapsibleState to item', () => {

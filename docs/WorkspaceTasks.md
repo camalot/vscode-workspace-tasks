@@ -60,6 +60,73 @@ Tasks can be associated with file patterns and accept user inputs:
 }
 ```
 
+## Custom Icons (`iconUri`)
+
+Each task type group can display a custom icon in the tree view via the optional `iconUri` field. It accepts three forms:
+
+### 1. Bundled icon — `$(iconName)`
+
+References a light/dark SVG pair shipped with the extension under `res/icons/light/<name>.svg` and `res/icons/dark/<name>.svg`:
+
+```json
+{
+  "venv": {
+    "version": "2.0.0",
+    "iconUri": "$(python)",
+    "tasks": [...]
+  }
+}
+```
+
+If no matching SVG pair exists the icon falls back to the default task group icon.
+
+### 2. Image file path
+
+An absolute path or a path relative to the extension root pointing to a `.svg`, `.png`, or other image file. When the path exists in both a `light/` and `dark/` subdirectory under `res/icons/`, both variants are used automatically:
+
+```json
+{
+  "my-tool": {
+    "version": "2.0.0",
+    "iconUri": "res/icons/light/my-tool.svg",
+    "tasks": [...]
+  }
+}
+```
+
+### 3. Explicit light/dark object
+
+Provide separate paths for light and dark themes:
+
+```json
+{
+  "my-tool": {
+    "version": "2.0.0",
+    "iconUri": {
+      "light": "res/icons/light/my-tool.svg",
+      "dark":  "res/icons/dark/my-tool.svg"
+    },
+    "tasks": [...]
+  }
+}
+```
+
+### 4. Well-known filename (file icon theme)
+
+Pass a filename whose extension (or full name) VS Code file icon themes recognise — e.g. `"tsconfig.json"`, `"Makefile"`, `".gitignore"`. The tree will use the matching file-type icon from the active icon theme:
+
+```json
+{
+  "typescript": {
+    "version": "2.0.0",
+    "iconUri": "tsconfig.json",
+    "tasks": [...]
+  }
+}
+```
+
+Filenames with unrecognised extensions fall back to the default task group icon.
+
 ## Schema Reference
 
 - **Top-level keys** - Task type identifiers (e.g., `dockerfile`, `shell`)
@@ -67,6 +134,11 @@ Tasks can be associated with file patterns and accept user inputs:
 - **globs** (optional) - File pattern matching
   - **include** - Array of glob patterns to match
   - **exclude** - Array of glob patterns to ignore
+- **iconUri** (optional) - Icon for the task type group in the tree view. Accepts:
+  - `"$(iconName)"` — bundled light/dark SVG pair (`res/icons/{light,dark}/<iconName>.svg`)
+  - A string path to an image file (absolute, or relative to the extension root)
+  - `{ "light": "...", "dark": "..." }` — explicit light/dark image paths
+  - A well-known filename (e.g. `"tsconfig.json"`) for file icon theme matching
 - **inputs** - Array of input definitions
   - **id** - Unique input identifier
   - **type** - `promptString` or `pickString`

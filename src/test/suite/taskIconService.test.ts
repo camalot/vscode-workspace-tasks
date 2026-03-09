@@ -425,6 +425,41 @@ suite('TaskIconService Test Suite', () => {
       }
     });
 
+    test('returns TaskIcon for iconUri in $(name) syntax when matching bundled SVGs exist', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        writeIconPair(tmpDir, 'python');
+
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', '$(python)');
+
+        assert.ok(result.TaskIcon, 'TaskIcon should be set for $(name) syntax');
+        assert.ok(result.TaskIcon!.light.fsPath.endsWith(path.join('light', 'python.svg')));
+        assert.ok(result.TaskIcon!.dark.fsPath.endsWith(path.join('dark', 'python.svg')));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('returns empty for iconUri in $(name) syntax when bundled SVGs do not exist', () => {
+      const tmpDir = fs.mkdtempSync(tmpPrefix);
+      try {
+        const service = TaskIconService.getInstance().initialize({
+          extensionPath: tmpDir,
+        } as unknown as vscode.ExtensionContext);
+
+        const result = service.resolveWorkspaceTaskTypeIcon('unknown-type-xyz', '$(missingicon)');
+
+        assert.strictEqual(result.TaskIcon, undefined);
+        assert.strictEqual(result.DisplayUri, undefined);
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
     test('returns TaskIcon for relative image path resolved directly from extension root', () => {
       const tmpDir = fs.mkdtempSync(tmpPrefix);
       try {
