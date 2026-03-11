@@ -57,7 +57,7 @@ GitHub Actions
 
 Configure act in your VS Code `settings.json`:
 
-```jsonc
+{% highlight json %}
 {
   // Path to act executable
   "workspaceTasks.applicationPath.act": "act",
@@ -73,7 +73,7 @@ Configure act in your VS Code `settings.json`:
     "VERSION": "1.0.0"
   }
 }
-```
+{% endhighlight %}
 
 ### `workspaceTasks.applicationPath.act`
 

@@ -48,24 +48,31 @@ For editors that use the Open VSX Registry (e.g., Cursor, VSCodium):
 
 ### From Command Line
 
-Install directly using the command line for your editor:
+Choose the command based on your editor
 
-```bash
-# Visual Studio Code
+{% highlight shell %}
 code --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
-# Cursor
+{% highlight shell %}
 cursor --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
-# VSCodium
+{% highlight shell %}
 codium --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
-# Windsurf
-windsurf --install-extension darthminos.workspace-tasks
+{% highlight shell %}
+antigravity --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
-# Kiro
+{% highlight shell %}
 kiro --install-extension darthminos.workspace-tasks
-```
+{% endhighlight %}
+
+{% highlight shell %}
+windsurf --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
 ---
 
