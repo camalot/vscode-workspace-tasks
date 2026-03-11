@@ -616,7 +616,7 @@ All patterns respect `.gitignore` and `.tasksignore` exclusions.
 
 ### Visual Studio Code Version
 
-- **Minimum:** Visual Studio Code 1.108.1 or later
+- **Minimum:** Visual Studio Code 1.105.1 or later
 
 ### External Tools
 

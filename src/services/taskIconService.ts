@@ -105,7 +105,7 @@ export class TaskIconService {
     '.lock', '.gradle',
   ]);
 
-  /** Well-known filenames (no extension, or dotfiles) that icon themes recognise. */
+  /** Well-known filenames (no extension, or dotfiles) that icon themes recognize. */
   private static readonly KNOWN_BASENAMES: ReadonlySet<string> = new Set([
     'makefile', 'dockerfile', 'jenkinsfile', 'vagrantfile', 'procfile', 'brewfile',
     '.gitignore', '.dockerignore', '.npmignore', '.gitattributes', '.editorconfig', '.env',
