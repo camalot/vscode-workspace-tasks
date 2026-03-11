@@ -95,28 +95,28 @@ See the [Getting Started guide](getting-started) for full installation and setup
 
 Choose the command based on your editor
 
-{% highlight shell %}
+```shell
 code --install-extension darthminos.workspace-tasks
-{% endhighlight %}
+```
 
-{% highlight shell %}
+```shell
 cursor --install-extension darthminos.workspace-tasks
-{% endhighlight %}
+```
 
-{% highlight shell %}
+```shell
 codium --install-extension darthminos.workspace-tasks
-{% endhighlight %}
+```
 
-{% highlight shell %}
+```shell
 antigravity --install-extension darthminos.workspace-tasks
-{% endhighlight %}
+```
 
-{% highlight shell %}
+```shell
 kiro --install-extension darthminos.workspace-tasks
-{% endhighlight %}
+```
 
-{% highlight shell %}
+```shell
 windsurf --install-extension darthminos.workspace-tasks
-{% endhighlight %}
+```
 
 See [Getting Started](getting-started) for more installation options.
