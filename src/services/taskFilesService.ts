@@ -339,6 +339,15 @@ export class TaskFilesService {
     });
   }
 
+  public dispose(): void {
+    this.configWatcher?.dispose();
+    this.configWatcher = undefined;
+    this.fileWatcher?.dispose();
+    this.fileWatcher = undefined;
+    this.fileEventsWatcher?.dispose();
+    this.fileEventsWatcher = undefined;
+  }
+
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.context = context;
     this.globalIgnore = ignore();
