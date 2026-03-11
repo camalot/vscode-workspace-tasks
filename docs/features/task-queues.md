@@ -5,9 +5,11 @@ parent: Features
 nav_order: 2
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Task Queues
 {: .no_toc }
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 

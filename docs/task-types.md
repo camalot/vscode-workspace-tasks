@@ -4,11 +4,13 @@ title: Supported Task Types
 nav_order: 4
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Supported Task Types
 {: .no_toc }
 
 Workspace Tasks automatically discovers and organizes tasks from 20+ file types and build systems.
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
@@ -19,6 +21,7 @@ Workspace Tasks automatically discovers and organizes tasks from 20+ file types 
 
 ## Package Managers & Build Tools
 
+<!-- markdownlint-disable MD033 -->
 <p align="left">
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/npm.png" width="32" alt="npm" title="npm"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/yarn.png" width="32" alt="Yarn" title="Yarn"/>
@@ -32,9 +35,10 @@ Workspace Tasks automatically discovers and organizes tasks from 20+ file types 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/maven.png" width="32" alt="Maven" title="Maven"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/msbuild.png" width="32" alt="MSBuild" title="MSBuild"/>
 </p>
+<!-- markdownlint-enable MD033 -->
 
 | Tool | File Patterns | Notes |
-|---|---|---|
+| --- | --- | --- |
 | **[npm](https://www.npmjs.com/)** | `**/package.json` | Reads `scripts` section |
 | **[Yarn](https://yarnpkg.com/)** | `**/package.json` | Reads `scripts` section |
 | **[pnpm](https://pnpm.io/)** | `**/package.json` | Reads `scripts` section |
@@ -52,6 +56,7 @@ Workspace Tasks automatically discovers and organizes tasks from 20+ file types 
 
 ## Task Runners
 
+<!-- markdownlint-disable MD033 -->
 <p align="left">
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/gulp.png" width="32" alt="Gulp" title="Gulp"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/grunt.png" width="32" alt="Grunt" title="Grunt"/>
@@ -60,9 +65,10 @@ Workspace Tasks automatically discovers and organizes tasks from 20+ file types 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo.png" width="32" alt="cargo" title="cargo"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo-make.png" width="32" alt="cargo-make" title="cargo-make"/>
 </p>
+<!-- markdownlint-enable MD033 -->
 
 | Tool | File Patterns | Notes |
-|---|---|---|
+| --- | --- | --- |
 | **[Gulp](https://gulpjs.com/)** | `**/gulpfile.{js,mjs}` | Exported tasks |
 | **[Grunt](https://gruntjs.com/)** | `**/Gruntfile.js` | Registered tasks |
 | **[Cargo](https://doc.rust-lang.org/cargo/)** | `**/Cargo.toml` | Rust build tasks |
@@ -75,13 +81,15 @@ Workspace Tasks automatically discovers and organizes tasks from 20+ file types 
 
 ## DevOps & Containers
 
+<!-- markdownlint-disable MD033 -->
 <p align="left">
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/docker.png" width="32" alt="Docker" title="Docker"/>
 </p>
+<!-- markdownlint-enable MD033 -->
 
 | Tool | File Patterns | Notes |
-|---|---|---|
+| --- | --- | --- |
 | **[Docker](https://www.docker.com/)** | `**/Dockerfile*` | Container build tasks |
 | **[Docker Compose](https://docs.docker.com/compose/)** | `**/docker-compose.yml` | Service orchestration |
 | **[GitHub Actions](https://github.com/features/actions)** | `**/.github/workflows/*.yml` | CI/CD workflows via [act](https://github.com/nektos/act) |
@@ -92,15 +100,17 @@ See [GitHub Actions Integration](github-actions) for local workflow execution de
 
 ## Scripts & Other
 
+<!-- markdownlint-disable MD033 -->
 <p align="left">
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/shell.png" width="32" alt="Shell Scripts" title="Shell Scripts"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/python.png" width="32" alt="Python" title="Python"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/jupyter.png" width="32" alt="Jupyter Notebook" title="Jupyter Notebook"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/vscode.png" width="32" alt="Visual Studio Code" title="Visual Studio Code"/>
 </p>
+<!-- markdownlint-enable MD033 -->
 
 | Tool | File Patterns | Notes |
-|---|---|---|
+| --- | --- | --- |
 | **Shell Scripts** | `**/*.{sh,bash,zsh,fish,ps1,bat,cmd}` | Executable scripts |
 | **Python Virtual Environments** | `.venv/Scripts/` | Activation scripts |
 | **[Jupyter Notebook](https://jupyter.org/)** | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
@@ -140,7 +150,7 @@ Control how deep the extension searches for tasks using the `workspaceTasks.task
 
 Depth is measured from the workspace folder root:
 
-```
+``` text
 workspace-folder/          (depth 0)
 ├── package.json           ✅ depth 0
 └── src/                   (depth 1)

@@ -4,11 +4,13 @@ title: Custom Workspace Tasks
 nav_order: 8
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Custom Workspace Tasks
 {: .no_toc }
 
 These are similar to `.vscode/tasks.json`, except you can define them as any task type.
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
@@ -128,7 +130,7 @@ Provide separate paths for light and dark themes:
 
 ### 4. Well-known filename (file icon theme)
 
-Pass a filename whose extension (or full name) VS Code file icon themes recognise — e.g. `"tsconfig.json"`, `"Makefile"`, `".gitignore"`. The tree will use the matching file-type icon from the active icon theme:
+Pass a filename whose extension (or full name) VS Code file icon themes recognize — e.g. `"tsconfig.json"`, `"Makefile"`, `".gitignore"`. The tree will use the matching file-type icon from the active icon theme:
 
 ```json
 {
@@ -140,7 +142,7 @@ Pass a filename whose extension (or full name) VS Code file icon themes recognis
 }
 ```
 
-Filenames with unrecognised extensions fall back to the default task group icon.
+Filenames with unrecognized extensions fall back to the default task group icon.
 
 ## Schema Reference
 

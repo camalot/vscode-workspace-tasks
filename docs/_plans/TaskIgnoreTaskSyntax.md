@@ -14,7 +14,7 @@ The `@` character is used as a separator between the file-glob portion and the t
 
 | Rule | Meaning |
 | ------ | --------- |
-| `package.json` | Ignore all tasks from any `package.json` (existing behaviour, unchanged) |
+| `package.json` | Ignore all tasks from any `package.json` (existing behavior, unchanged) |
 | `package.json@release` | Ignore **only** the `release` task from `package.json` |
 | `!package.json@release` | **Re-include** the `release` task from `package.json` (negation; typically used after a file-wide ignore rule) |
 | `scripts/build.sh@*` | Ignore all tasks whose names match `*` (any name) from `scripts/build.sh` (equivalent to the file-only form) |
@@ -57,7 +57,7 @@ scripts/
 | `src/services/taskFilesService.ts` | **Core logic** | Parse `@` rules; new `shouldIgnoreTask()` method |
 | `src/taskTreeDataProvider.ts` | **Filtering** | Apply task-level filter after task items are assembled |
 | `src/services/taskCacheService.ts` | **Cache** | Pass task name through to filter check; invalidate on `.tasksignore` change (already wired) |
-| `res/syntaxes/tasksignore.tmLanguage.json` | **Grammar** | Tokenise `filename@taskname` syntax |
+| `res/syntaxes/tasksignore.tmLanguage.json` | **Grammar** | Tokenize `filename@taskname` syntax |
 | `res/syntaxes/tasksignore-language-configuration.json` | **Language** | No changes required |
 | `docs/TasksIgnore.md` | **Documentation** | Document the new syntax with examples |
 | `src/test/suite/taskFilesService.test.ts` | **Tests** | New test cases for `shouldIgnoreTask()` and parsing |
@@ -227,7 +227,7 @@ public shouldIgnoreTask(fileUri: vscode.Uri, taskName: string): boolean {
 }
 ```
 
-**Last-match-wins semantics**: The loop does not `break` early; every applicable rule is evaluated so that later negation rules override earlier ignore rules. This matches gitignore behaviour.
+**Last-match-wins semantics**: The loop does not `break` early; every applicable rule is evaluated so that later negation rules override earlier ignore rules. This matches gitignore behavior.
 
 ---
 
@@ -252,7 +252,7 @@ const filtered = raw.filter((item) => {
 });
 ```
 
-This keeps filtering **centralised** and requires no changes to individual task providers.
+This keeps filtering **centralized** and requires no changes to individual task providers.
 
 #### Option B — Per-provider filtering
 
@@ -326,7 +326,7 @@ The tasks below are ordered with fewest dependencies first.
 
 ### Phase 3 — Grammar Update
 
-1. **Update `tasksignore.tmLanguage.json`** to tokenise `filepath@taskname` rules.
+1. **Update `tasksignore.tmLanguage.json`** to tokenize `filepath@taskname` rules.
 
 ### Phase 4 — Documentation
 

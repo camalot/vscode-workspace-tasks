@@ -5,9 +5,11 @@ parent: Features
 nav_order: 3
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Hide Tasks & Groups
 {: .no_toc }
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
@@ -57,7 +59,7 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 ## Difference from Task Filtering
 
 | | Hide Tasks | `.tasksignore` / Exclude |
-|---|---|---|
+| --- | --- | --- |
 | **Scope** | Per-task or per-group | File/pattern-based |
 | **Reversibility** | Easily toggle back on | Edit ignore file |
 | **Use case** | Temporary declutter | Permanently exclude task files |

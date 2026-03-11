@@ -4,11 +4,13 @@ title: Contributing
 nav_order: 11
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Contributing
 {: .no_toc }
 
 Contributions are welcome! If you'd like to improve Workspace Tasks, here's how to get involved.
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
@@ -59,7 +61,7 @@ npm run watch
 
 ## Project Structure
 
-```
+``` text
 src/                   TypeScript source code
 ├── commands/          Command implementations
 ├── common/            Shared base classes
@@ -102,9 +104,11 @@ The goal is **90% code coverage** for existing files. New code should achieve **
 
 ## Contributors
 
+<!-- markdownlint-disable MD033 -->
 <a href="https://github.com/camalot/vscode-workspace-tasks/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=camalot/vscode-workspace-tasks" alt="Contributors" />
 </a>
+<!-- markdownlint-enable MD033 -->
 
 Made with [contrib.rocks](https://contrib.rocks).
 

@@ -4,10 +4,13 @@ title: Task History
 parent: Features
 nav_order: 4
 ---
+<!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Task History
 {: .no_toc }
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 

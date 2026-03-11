@@ -4,9 +4,11 @@ title: Getting Started
 nav_order: 2
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Getting Started
 {: .no_toc }
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
@@ -88,7 +90,7 @@ You can view your tasks in two places:
 
 Tasks are organized hierarchically:
 
-```
+``` text
 Workspace Folder
 └── Task Type (e.g., npm, Makefile, Docker)
     └── Task File (e.g., package.json)
@@ -128,7 +130,7 @@ Click the **list icon** next to any task to add it to a queue. Queues let you ru
 ## Next Steps
 
 | | |
-|---|---|
+| --- | --- |
 | [Supported Task Types](task-types) | See all 20+ supported build tools and frameworks |
 | [Favorites & Recent Tasks](features/favorites) | Learn how to pin and track tasks |
 | [Task Queues](features/task-queues) | Build and run workflow sequences |

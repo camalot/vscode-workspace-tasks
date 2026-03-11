@@ -4,6 +4,7 @@ title: Home
 nav_order: 1
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Workspace Tasks
 
 <!-- markdownlint-disable-file MD033 -->
@@ -61,7 +62,7 @@ See the [Getting Started guide](getting-started) for full installation and setup
 ## Documentation
 
 | Section | Description |
-|---|---|
+| --- | --- |
 | [Getting Started](getting-started) | Installation and initial setup |
 | [Supported Task Types](task-types) | All supported build tools and frameworks |
 | [Favorites & Recent Tasks](features/favorites) | Pin and track frequently used tasks |

@@ -25,7 +25,7 @@ These providers cannot simply register a static pattern upfront. The cache must 
 - (b) accept that these providers remain uncached, or
 - (c) allow providers to register a **pattern resolver** (a function) called at cache-build time.
 
-Option (a) is the simplest and safest. For example, `ShellTaskProvider`'s dynamic extensions are already captured by its constructor-built `**/*.{sh,bash,zsh,...}` pattern — the additional user extensions just need their own broad catch-all like `**/*.*` restricted to the configured depth. However, this would result in overfetching. Option (c) is cleaner long-term.
+Option (a) is the simplest and safest. For example, `ShellTaskProvider`'s dynamic extensions are already captured by its constructor-built `**/*.{sh,bash,zsh,...}` pattern — the additional user extensions just need their own broad catch-all like `**/*.*` restricted to the configured depth. However, this would result in over-fetching. Option (c) is cleaner long-term.
 
 ### Complication 3 — Cache invalidation triggers
 
@@ -174,7 +174,7 @@ Replace the existing `findFiles` implementation with one that:
 import micromatch from 'micromatch';
 
 public async findFiles(pattern: string[], exclude?: string[]): Promise<vscode.Uri[]> {
-  // If there are no registered patterns, fall back to the old behaviour
+  // If there are no registered patterns, fall back to the old behavior
   // (handles callers that run before registration is complete).
   if (this.registeredPatterns.size === 0) {
     if (this.context) {
@@ -283,7 +283,7 @@ and calling `rebuildRegisteredPatterns()` — a new helper that iterates all pro
 
 **File:** `docs/TaskFiltering.md`
 
-Document the new caching behaviour: the combined fetch, when the cache is invalidated, and any observable behaviour differences (e.g., a file created while a task discovery is in progress will be found on the next refresh, not the current one — same as before, but now explicit).
+Document the new caching behavior: the combined fetch, when the cache is invalidated, and any observable behaviour differences (e.g., a file created while a task discovery is in progress will be found on the next refresh, not the current one — same as before, but now explicit).
 
 ---
 
@@ -308,4 +308,4 @@ Document the new caching behaviour: the combined fetch, when the cache is invali
 | `micromatch` glob syntax differs from VS Code's internal glob matcher | Validate that all patterns in `constants.ts` produce identical results with both matchers; add unit tests comparing output |
 | Combined pattern string becomes extremely long in large setups | Use a `RelativePattern` array and iterate `vscode.workspace.findFiles` per workspace folder if a string length limit is hit |
 | Cache is stale during long-running task discovery | Cache is built once at the start of a discovery cycle; individual tasks within the cycle read from the same snapshot, which is consistent and predictable |
-| Path normalisation differences between cache keys and `micromatch` input | Normalise all stored paths to forward slashes before storing and before matching |
+| Path normalization differences between cache keys and `micromatch` input | Normalize all stored paths to forward slashes before storing and before matching |

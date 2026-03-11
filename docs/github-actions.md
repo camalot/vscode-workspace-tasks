@@ -4,11 +4,13 @@ title: GitHub Actions Integration
 nav_order: 9
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # GitHub Actions Integration
 {: .no_toc }
 
 Run GitHub Actions workflows locally using [act](https://github.com/nektos/act) to test workflows without pushing to GitHub. Workspace Tasks provides a rich interface for discovering and executing workflows with full input support.
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
@@ -23,7 +25,7 @@ Workspace Tasks automatically discovers all GitHub Actions workflow files in `.g
 
 ### Task Tree Structure
 
-```text
+``` text
 GitHub Actions
 └── Build & Test
     ├── Run Workflow (push)

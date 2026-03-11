@@ -5,9 +5,11 @@ parent: Features
 nav_order: 1
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Favorites & Recent Tasks
 {: .no_toc }
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 

@@ -4,11 +4,13 @@ title: .tasksignore Reference
 nav_order: 7
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # .tasksignore
 {: .no_toc }
 
 The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension.
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 

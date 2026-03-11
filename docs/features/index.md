@@ -5,6 +5,7 @@ nav_order: 3
 has_children: true
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Features
 
 Workspace Tasks provides a rich set of features to help you discover, organize, and execute tasks across your development workflow.
@@ -14,7 +15,7 @@ Workspace Tasks provides a rich set of features to help you discover, organize, 
 ## Overview
 
 | Feature | Description |
-|---|---|
+| --- | --- |
 | [Favorites & Recent Tasks](favorites) | Pin frequently used tasks and track recently run tasks |
 | [Task Queues](task-queues) | Create and run sequences of tasks in order |
 | [Hide Tasks & Groups](hide-tasks) | Declutter your task view by hiding unused tasks |

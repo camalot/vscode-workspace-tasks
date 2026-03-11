@@ -4,11 +4,13 @@ title: Task Filtering
 nav_order: 6
 ---
 
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Task Filtering
 {: .no_toc }
 
 The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension.
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
@@ -221,6 +223,7 @@ If any pattern matches, the file is excluded from task discovery.
 ## Common Use Cases
 
 ### Exclude Test Files
+
 ```ignore
 **/test/**
 **/__tests__/**
@@ -229,6 +232,7 @@ If any pattern matches, the file is excluded from task discovery.
 ```
 
 ### Exclude Build Artifacts
+
 ```ignore
 build/
 dist/
@@ -241,6 +245,7 @@ obj/
 ```
 
 ### Exclude Example/Demo Code
+
 ```ignore
 examples/
 demo/
@@ -249,6 +254,7 @@ playground/
 ```
 
 ### Exclude Generated Code
+
 ```ignore
 **/*.generated.*
 **/generated/**

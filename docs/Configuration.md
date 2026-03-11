@@ -3,12 +3,13 @@ layout: default
 title: Configuration
 nav_order: 5
 ---
-
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Configuration Settings
 {: .no_toc }
 
 This document describes all the configuration settings available in the Workspace Tasks extension.
 
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
