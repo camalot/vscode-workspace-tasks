@@ -10,10 +10,7 @@ on: # yamllint disable-line rule:truthy
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
@@ -24,6 +21,10 @@ concurrency:
 jobs:
   # Build job
   build:
+    permissions:
+      contents: read # for actions/checkout
+      pages: write # to deploy to GitHub Pages
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,10 +40,13 @@ jobs:
           source: ./docs
           destination: ./_site
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
 
   # Deployment job
   deploy:
+    permissions:
+      pages: write # to deploy to GitHub Pages
+      id-token: write # to authenticate with GitHub Pages
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
