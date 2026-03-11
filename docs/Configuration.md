@@ -1,20 +1,19 @@
+---
+layout: default
+title: Configuration
+nav_order: 5
+---
+
 # Configuration Settings
+{: .no_toc }
 
 This document describes all the configuration settings available in the Workspace Tasks extension.
 
 ## Table of Contents
+{: .no_toc .text-delta }
 
-- [General Settings](#general-settings)
-- [Task Display Settings](#task-display-settings)
-- [Task Grouping Settings](#task-grouping-settings)
-- [Task Icon Settings](#task-icon-settings)
-- [Task Action Settings](#task-action-settings)
-- [Task Presentation Options](#task-presentation-options)
-- [Task Type Settings](#task-type-settings)
-- [Shell Script Settings](#shell-script-settings)
-- [Application Path Settings](#application-path-settings)
-- [GitHub Actions Settings (Act)](#github-actions-settings-act)
-- [Ant Settings](#ant-settings)
+1. TOC
+{:toc}
 
 ---
 

@@ -1,6 +1,21 @@
-# Custom Workspace Tasks
+---
+layout: default
+title: Custom Workspace Tasks
+nav_order: 8
+---
 
-These are similar to `.vscode/tasks.json`, except you can define them as any task type. They can be bound to any file glob pattern.
+# Custom Workspace Tasks
+{: .no_toc }
+
+These are similar to `.vscode/tasks.json`, except you can define them as any task type.
+
+## Table of Contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
+
+They can be bound to any file glob pattern.
 
 Create a `.workspace-tasks.json` file in your workspace to define custom reusable tasks with dynamic inputs. This is perfect for tasks that don't fit existing file types or need variable substitution.
 

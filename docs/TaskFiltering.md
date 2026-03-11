@@ -1,6 +1,21 @@
-# Task Filtering
+---
+layout: default
+title: Task Filtering
+nav_order: 6
+---
 
-The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension. This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
+# Task Filtering
+{: .no_toc }
+
+The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension.
+
+## Table of Contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
+
+This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
 
 ## Overview
 
