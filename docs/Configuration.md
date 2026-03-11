@@ -35,7 +35,7 @@ Glob patterns to exclude from tasks. For example, to ignore all tasks in `sample
 }
 ```
 
-![Screenshot - Exclude Patterns](../res/assets/images/docs/configuration/exclude-patterns.png)
+![Screenshot - Exclude Patterns](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/exclude-patterns.png)
 
 ### `workspaceTasks.taskDiscovery.fetchDepth`
 
@@ -52,7 +52,7 @@ Specify the fetch depth when discovering tasks from within the workspace. A valu
 }
 ```
 
-![Screenshot - Task Discovery Fetch Depth](../res/assets/images/docs/configuration/fetch-depth.png)
+![Screenshot - Task Discovery Fetch Depth](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/fetch-depth.png)
 
 ---
 
@@ -79,7 +79,7 @@ Action to perform when a task is single-clicked.
 }
 ```
 
-![Screenshot - Single Click Action](../res/assets/images/docs/configuration/single-click.png)
+![Screenshot - Single Click Action](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/single-click.png)
 
 ### `workspaceTasks.task.doubleClickAction`
 
@@ -102,7 +102,7 @@ Action to perform when a task is double-clicked.
 }
 ```
 
-![Screenshot - Double Click Action](../res/assets/images/docs/configuration/double-click.png)
+![Screenshot - Double Click Action](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/double-click.png)
 
 ### `workspaceTasks.task.statusResetDelay`
 
@@ -119,7 +119,7 @@ The delay in **milliseconds** before resetting the task icon back to its origina
 }
 ```
 
-![Screenshot - Status Reset Delay](../res/assets/images/docs/configuration/status-reset-delay.png)
+![Screenshot - Status Reset Delay](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/status-reset-delay.png)
 
 ---
 
@@ -140,7 +140,7 @@ Group tasks by type, folder, and custom separator. When enabled, tasks will be g
 }
 ```
 
-![Screenshot - Groups Enabled](../res/assets/images/docs/configuration/groups-enabled.png)
+![Screenshot - Groups Enabled](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/groups-enabled.png)
 
 ### `workspaceTasks.groups.useParentFolder`
 
@@ -157,7 +157,7 @@ Group tasks by their parent folder. When enabled, tasks will be grouped based on
 }
 ```
 
-![Screenshot - Use Parent Folder](../res/assets/images/docs/configuration/use-parent-folder.png)
+![Screenshot - Use Parent Folder](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/use-parent-folder.png)
 
 ### `workspaceTasks.groups.taskSeparator`
 
@@ -174,7 +174,7 @@ Separator used to split task name into groups. For example, a task named `build:
 }
 ```
 
-![Screenshot - Task Separator](../res/assets/images/docs/configuration/task-separator.png)
+![Screenshot - Task Separator](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/task-separator.png)
 
 ### `workspaceTasks.groups.recentTasks.enabled`
 
@@ -191,7 +191,7 @@ When enabled, recent tasks will be grouped based on the specified separator and 
 }
 ```
 
-![Screenshot - Recent Tasks Grouping](../res/assets/images/docs/configuration/recent-groups.png)
+![Screenshot - Recent Tasks Grouping](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/recent-groups.png)
 
 ### `workspaceTasks.recentTasks.maxItems`
 
@@ -209,7 +209,7 @@ Maximum number of recent tasks to display in the Recent Tasks group. Once the li
 }
 ```
 
-![Screenshot - Max Recent Tasks](../res/assets/images/docs/configuration/max-recent.png)
+![Screenshot - Max Recent Tasks](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/max-recent.png)
 
 ---
 
@@ -237,7 +237,7 @@ Select the type of icon to display for tasks.
 }
 ```
 
-![Screenshot - Icon Type](../res/assets/images/docs/configuration/icon-type.png)
+![Screenshot - Icon Type](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/icon-type.png)
 
 ### `workspaceTasks.task.iconTypeCustom`
 
@@ -255,7 +255,7 @@ Specify a custom icon for the task. This can be a path to an png or svg file, or
 }
 ```
 
-![Screenshot - Custom Icon Built-In](../res/assets/images/docs/configuration/icon-custom-builtin.png)
+![Screenshot - Custom Icon Built-In](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/icon-custom-builtin.png)
 
 Or with a file path:
 
@@ -266,7 +266,7 @@ Or with a file path:
 }
 ```
 
-![Screenshot - Custom Icon Path](../res/assets/images/docs/configuration/icon-custom-path.png)
+![Screenshot - Custom Icon Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/icon-custom-path.png)
 
 ---
 
@@ -317,7 +317,7 @@ Select which items should be shown in the task action bar for each task. This al
 }
 ```
 
-![Screenshot - Task Action Bar](../res/assets/images/docs/configuration/action-bar.png)
+![Screenshot - Task Action Bar](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/action-bar.png)
 
 ---
 
@@ -388,7 +388,7 @@ Controls if the task panel is used for this task only (dedicated), shared betwee
 }
 ```
 
-![Screenshot - Presentation Options](../res/assets/images/docs/configuration/presentation.png)
+![Screenshot - Presentation Options](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/presentation.png)
 
 ---
 
@@ -471,7 +471,7 @@ Select the types of tasks that the extension should support and display in the t
 }
 ```
 
-![Screenshot - Enabled Task Types](../res/assets/images/docs/configuration/task-types.png)
+![Screenshot - Enabled Task Types](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/task-types.png)
 
 ---
 
@@ -529,7 +529,7 @@ Enable support for specific shell script types. This allows the extension to rec
 }
 ```
 
-![Screenshot - Shell Enabled Task Types](../res/assets/images/docs/configuration/shell-types.png)
+![Screenshot - Shell Enabled Task Types](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/shell-types.png)
 
 ### `workspaceTasks.shellPaths`
 
@@ -565,7 +565,7 @@ Specify custom paths for shell interpreters. Use a key-value format where the ke
 }
 ```
 
-![Screenshot - Shell Paths](../res/assets/images/docs/configuration/shell-paths.png)
+![Screenshot - Shell Paths](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/shell-paths.png)
 
 ### `workspaceTasks.shellAdditionalExtensions`
 
@@ -585,7 +585,7 @@ Add extra file extensions (beyond the default ones) that should be treated as sh
 }
 ```
 
-![Screenshot - Shell Additional Extensions](../res/assets/images/docs/configuration/shell-extensions.png)
+![Screenshot - Shell Additional Extensions](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/shell-extensions.png)
 
 ---
 
@@ -610,7 +610,7 @@ Act allows you to run GitHub Actions locally. Specify the path to the [Act](http
 }
 ```
 
-![Screenshot - Act Path](../res/assets/images/docs/configuration/act-path.png)
+![Screenshot - Act Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-path.png)
 
 ### `workspaceTasks.applicationPath.ant`
 
@@ -627,7 +627,7 @@ Specify the path to the Ant executable. On Windows, if the path ends with `ant`,
 }
 ```
 
-![Screenshot - Ant Path](../res/assets/images/docs/configuration/ant-path.png)
+![Screenshot - Ant Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ant-path.png)
 
 ### `workspaceTasks.applicationPath.ansicon`
 
@@ -644,7 +644,7 @@ Specify the path to the ANSICON executable. This is used to enable colored outpu
 }
 ```
 
-![Screenshot - Ansicon Path](../res/assets/images/docs/configuration/ansicon-path.png)
+![Screenshot - Ansicon Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ansicon-path.png)
 
 ### `workspaceTasks.applicationPath.composer`
 
@@ -661,7 +661,7 @@ Specify the path to the [Composer](https://getcomposer.org/) executable. On Wind
 }
 ```
 
-![Screenshot - Composer Path](../res/assets/images/docs/configuration/composer-path.png)
+![Screenshot - Composer Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/composer-path.png)
 
 ### `workspaceTasks.applicationPath.deno`
 
@@ -678,7 +678,7 @@ Specify the path to the [Deno](https://deno.land/) executable. On Windows, if th
 }
 ```
 
-![Screenshot - Deno Path](../res/assets/images/docs/configuration/deno-path.png)
+![Screenshot - Deno Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/deno-path.png)
 
 ### `workspaceTasks.applicationPath.gradle`
 
@@ -695,7 +695,7 @@ Specify the path to the [Gradle](https://gradle.org/) executable. On Windows, if
 }
 ```
 
-![Screenshot - Gradle Path](../res/assets/images/docs/configuration/gradle-path.png)
+![Screenshot - Gradle Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/gradle-path.png)
 
 ### `workspaceTasks.applicationPath.just`
 
@@ -712,7 +712,7 @@ Specify the path to the [Just](https://just.systems/) executable. On Windows, if
 }
 ```
 
-![Screenshot - Just Path](../res/assets/images/docs/configuration/just-path.png)
+![Screenshot - Just Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/just-path.png)
 
 ### `workspaceTasks.applicationPath.make`
 
@@ -729,7 +729,7 @@ Specify the path to the Make executable. On Windows, if the path ends with `make
 }
 ```
 
-![Screenshot - Make Path](../res/assets/images/docs/configuration/make-path.png)
+![Screenshot - Make Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/make-path.png)
 
 ### `workspaceTasks.applicationPath.maven`
 
@@ -746,7 +746,7 @@ Specify the path to the [Maven](https://maven.apache.org/) executable. On Window
 }
 ```
 
-![Screenshot - Maven Path](../res/assets/images/docs/configuration/maven-path.png)
+![Screenshot - Maven Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/maven-path.png)
 
 ### `workspaceTasks.applicationPath.msbuild`
 
@@ -763,7 +763,7 @@ Specify the path to the MSBuild executable. On Windows, if the path ends with `m
 }
 ```
 
-![Screenshot - MSBuild Path](../res/assets/images/docs/configuration/msbuild-path.png)
+![Screenshot - MSBuild Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/msbuild-path.png)
 
 ### `workspaceTasks.applicationPath.pipenv`
 
@@ -780,7 +780,7 @@ Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. 
 }
 ```
 
-![Screenshot - Pipenv Path](../res/assets/images/docs/configuration/pipenv-path.png)
+![Screenshot - Pipenv Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/pipenv-path.png)
 
 ---
 
@@ -804,7 +804,7 @@ Specify the path to a .env file containing environment variables for Act. This f
 }
 ```
 
-![Screenshot - Act Env File](../res/assets/images/docs/configuration/act-env.png)
+![Screenshot - Act Env File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-env.png)
 
 ### `workspaceTasks.act.variablesFile`
 
@@ -822,7 +822,7 @@ Path to the variables file for `act`. The file format is the same as `.env` file
 }
 ```
 
-![Screenshot - Act Variables File](../res/assets/images/docs/configuration/act-vars-file.png)
+![Screenshot - Act Variables File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-vars-file.png)
 
 ### `workspaceTasks.act.variables`
 
@@ -843,7 +843,7 @@ Variables to pass to 'act'. Each key-value pair represents a variable name and i
 }
 ```
 
-![Screenshot - Act Variables](../res/assets/images/docs/configuration/act-vars.png)
+![Screenshot - Act Variables](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-vars.png)
 
 ### `workspaceTasks.act.secretsFile`
 
@@ -861,7 +861,7 @@ Specify the path to a .env file containing secrets for Act. This file will be us
 }
 ```
 
-![Screenshot - Act Secrets File](../res/assets/images/docs/configuration/act-secrets.png)
+![Screenshot - Act Secrets File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-secrets.png)
 
 ---
 
@@ -882,12 +882,6 @@ When enabled, ANSICON will be used for Ant tasks to provide colored output in th
 }
 ```
 
-![Screenshot - Ansicon Enabled](../res/assets/images/docs/configuration/ansicon-enabled.png)
+![Screenshot - Ansicon Enabled](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ansicon-enabled.png)
 
 ---
-
-## Related Documentation
-
-- [Readme](README.md) - Main documentation
-- [CONTRIBUTING](CONTRIBUTING.md) - Contribution guidelines
-- [CHANGELOG](CHANGELOG.md) - Version history and changes

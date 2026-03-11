@@ -83,30 +83,40 @@ See the [Getting Started guide](getting-started) for full installation and setup
 
 ### From Visual Studio Code Marketplace
 
-1. Open Visual Studio Code
+1. Open Supported Code Editor
 2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
 3. Search for **"Workspace Tasks"**
 4. Click **Install**
 
 [→ Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks){: .btn .btn-primary }
-[→ Open VSX Registry](https://open-vsx.org/extension/darthminos/workspace-tasks){: .btn }
+[→ Open VSX Registry](https://open-vsx.org/extension/darthminos/workspace-tasks){: .btn .btn-secondary }
 
 ### From Command Line
 
 Choose the command based on your editor
 
-```bash
+{% highlight shell %}
 code --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
+{% highlight shell %}
 cursor --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
+{% highlight shell %}
 codium --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
+{% highlight shell %}
 antigravity --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
+{% highlight shell %}
 kiro --install-extension darthminos.workspace-tasks
+{% endhighlight %}
 
+{% highlight shell %}
 windsurf --install-extension darthminos.workspace-tasks
-```
+{% endhighlight %}
 
 See [Getting Started](getting-started) for more installation options.

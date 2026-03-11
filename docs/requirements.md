@@ -20,6 +20,8 @@ nav_order: 10
 ## Visual Studio Code Version
 
 - **Minimum:** Visual Studio Code 1.105.1 or later
+  - Editor must use Visual Studio Code Engine with this minimum version
+  - Editor must support Open VSX, Visual Studio Marketplace, or manual install of VSIX files
 
 ---
 

@@ -13,6 +13,9 @@ github_repo: vscode-workspace-tasks
 plugins:
   - jekyll-remote-theme
   - jekyll-seo-tag
+  - rouge
+
+highlighter: rouge
 
 # Theme configuration
 logo: "https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/icon.png"

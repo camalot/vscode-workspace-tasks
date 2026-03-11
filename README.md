@@ -61,9 +61,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 <a id="documentation"></a>
 
-- [Configuration Guide](docs/Configuration.md)
-- [Task Filtering](docs/TaskFiltering.md)
-- [Workspace Tasks](docs/WorkspaceTasks.md)
+[Full Documentation](https://camalot.github.io/vscode-workspace-tasks/)
 
 ## 📥 Installation
 
@@ -89,17 +87,27 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ### From Command Line
 
-```bash
+```shell
 code --install-extension darthminos.workspace-tasks
+```
 
+```shell
 cursor --install-extension darthminos.workspace-tasks
+```
 
+```shell
 codium --install-extension darthminos.workspace-tasks
+```
 
+```shell
 antigravity --install-extension darthminos.workspace-tasks
+```
 
+```shell
 kiro --install-extension darthminos.workspace-tasks
+```
 
+```shell
 windsurf --install-extension darthminos.workspace-tasks
 ```
 
