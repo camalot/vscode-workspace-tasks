@@ -45,6 +45,8 @@ footer_content: >
 aux_links:
   "Marketplace":
     - "https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks"
+  "Open VSX":
+    - "https://open-vsx.org/extension/darthminos/workspace-tasks"
   "GitHub":
     - "https://github.com/camalot/vscode-workspace-tasks"
 

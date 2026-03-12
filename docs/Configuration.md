@@ -20,7 +20,7 @@ This document describes all the configuration settings available in the Workspac
 
 ## General Settings
 
-### `workspaceTasks.exclude`
+### workspaceTasks.exclude
 
 **Type:** `array` of `string`
 **Default:** `[]`
@@ -37,7 +37,7 @@ Glob patterns to exclude from tasks. For example, to ignore all tasks in `sample
 
 ![Screenshot - Exclude Patterns](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/exclude-patterns.png)
 
-### `workspaceTasks.taskDiscovery.fetchDepth`
+### workspaceTasks.taskDiscovery.fetchDepth
 
 **Type:** `number` or `null`
 **Default:** `null`
@@ -58,7 +58,7 @@ Specify the fetch depth when discovering tasks from within the workspace. A valu
 
 ## Task Display Settings
 
-### `workspaceTasks.task.singleClickAction`
+### workspaceTasks.task.singleClickAction
 
 **Type:** `string`
 **Default:** `"open"`
@@ -81,7 +81,7 @@ Action to perform when a task is single-clicked.
 
 ![Screenshot - Single Click Action](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/single-click.png)
 
-### `workspaceTasks.task.doubleClickAction`
+### workspaceTasks.task.doubleClickAction
 
 **Type:** `string`
 **Default:** `"run"`
@@ -104,7 +104,7 @@ Action to perform when a task is double-clicked.
 
 ![Screenshot - Double Click Action](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/double-click.png)
 
-### `workspaceTasks.task.statusResetDelay`
+### workspaceTasks.task.statusResetDelay
 
 **Type:** `number`
 **Default:** `500`
@@ -125,7 +125,7 @@ The delay in **milliseconds** before resetting the task icon back to its origina
 
 ## Task Grouping Settings
 
-### `workspaceTasks.groups.enabled`
+### workspaceTasks.groups.enabled
 
 **Type:** `boolean`
 **Default:** `true`
@@ -142,7 +142,7 @@ Group tasks by type, folder, and custom separator. When enabled, tasks will be g
 
 ![Screenshot - Groups Enabled](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/groups-enabled.png)
 
-### `workspaceTasks.groups.useParentFolder`
+### workspaceTasks.groups.useParentFolder
 
 **Type:** `boolean`
 **Default:** `false`
@@ -159,7 +159,7 @@ Group tasks by their parent folder. When enabled, tasks will be grouped based on
 
 ![Screenshot - Use Parent Folder](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/use-parent-folder.png)
 
-### `workspaceTasks.groups.taskSeparator`
+### workspaceTasks.groups.taskSeparator
 
 **Type:** `string`
 **Default:** `""`
@@ -176,7 +176,7 @@ Separator used to split task name into groups. For example, a task named `build:
 
 ![Screenshot - Task Separator](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/task-separator.png)
 
-### `workspaceTasks.groups.recentTasks.enabled`
+### workspaceTasks.groups.recentTasks.enabled
 
 **Type:** `boolean`
 **Default:** `false`
@@ -193,7 +193,7 @@ When enabled, recent tasks will be grouped based on the specified separator and 
 
 ![Screenshot - Recent Tasks Grouping](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/recent-groups.png)
 
-### `workspaceTasks.recentTasks.maxItems`
+### workspaceTasks.recentTasks.maxItems
 
 **Type:** `number`
 **Default:** `20`
@@ -215,7 +215,7 @@ Maximum number of recent tasks to display in the Recent Tasks group. Once the li
 
 ## Task Icon Settings
 
-### `workspaceTasks.task.iconType`
+### workspaceTasks.task.iconType
 
 **Type:** `string`
 **Default:** `"type"`
@@ -239,7 +239,7 @@ Select the type of icon to display for tasks.
 
 ![Screenshot - Icon Type](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/icon-type.png)
 
-### `workspaceTasks.task.iconTypeCustom`
+### workspaceTasks.task.iconTypeCustom
 
 **Type:** `string`
 **Default:** `""`
@@ -272,7 +272,7 @@ Or with a file path:
 
 ## Task Action Settings
 
-### `workspaceTasks.task.actionBar`
+### workspaceTasks.task.actionBar
 
 **Type:** `object`
 **Default:**
@@ -323,13 +323,13 @@ Select which items should be shown in the task action bar for each task. This al
 
 ## Task Presentation Options
 
-### `workspaceTasks.task.presentationOptions`
+### workspaceTasks.task.presentationOptions
 
 **Type:** `object`
 
 Configure how tasks are presented when executed.
 
-#### `workspaceTasks.task.presentationOptions.reveal`
+#### workspaceTasks.task.presentationOptions.reveal
 
 **Type:** `string`
 **Default:** `"always"`
@@ -337,35 +337,35 @@ Configure how tasks are presented when executed.
 
 Controls whether the task output is revealed in the user interface.
 
-#### `workspaceTasks.task.presentationOptions.clear`
+#### workspaceTasks.task.presentationOptions.clear
 
 **Type:** `boolean`
 **Default:** `false`
 
 Controls whether the terminal is cleared before executing the task.
 
-#### `workspaceTasks.task.presentationOptions.close`
+#### workspaceTasks.task.presentationOptions.close
 
 **Type:** `boolean`
 **Default:** `false`
 
 Controls whether the terminal is closed after executing the task.
 
-#### `workspaceTasks.task.presentationOptions.echo`
+#### workspaceTasks.task.presentationOptions.echo
 
 **Type:** `boolean`
 **Default:** `true`
 
 Controls whether the command associated with the task is echoed in the user interface.
 
-#### `workspaceTasks.task.presentationOptions.focus`
+#### workspaceTasks.task.presentationOptions.focus
 
 **Type:** `boolean`
 **Default:** `false`
 
 Controls whether the panel showing the task output is taking focus.
 
-#### `workspaceTasks.task.presentationOptions.panel`
+#### workspaceTasks.task.presentationOptions.panel
 
 **Type:** `string`
 **Default:** `"shared"`
@@ -394,7 +394,7 @@ Controls if the task panel is used for this task only (dedicated), shared betwee
 
 ## Task Type Settings
 
-### `workspaceTasks.enabledTaskTypes`
+### workspaceTasks.enabledTaskTypes
 
 **Type:** `object`
 **Default:**
@@ -477,7 +477,7 @@ Select the types of tasks that the extension should support and display in the t
 
 ## Shell Script Settings
 
-### `workspaceTasks.shellEnabledTaskTypes`
+### workspaceTasks.shellEnabledTaskTypes
 
 **Type:** `object`
 **Default:**
@@ -531,7 +531,7 @@ Enable support for specific shell script types. This allows the extension to rec
 
 ![Screenshot - Shell Enabled Task Types](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/shell-types.png)
 
-### `workspaceTasks.shellPaths`
+### workspaceTasks.shellPaths
 
 **Type:** `object`
 **Default:**
@@ -567,7 +567,7 @@ Specify custom paths for shell interpreters. Use a key-value format where the ke
 
 ![Screenshot - Shell Paths](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/shell-paths.png)
 
-### `workspaceTasks.shellAdditionalExtensions`
+### workspaceTasks.shellAdditionalExtensions
 
 **Type:** `object`
 **Default:** `{}`
@@ -593,7 +593,7 @@ Add extra file extensions (beyond the default ones) that should be treated as sh
 
 These settings allow you to specify custom paths for various build tools and task runners.
 
-### `workspaceTasks.applicationPath.act`
+### workspaceTasks.applicationPath.act
 
 **Type:** `string`
 **Default:** `"act"`
@@ -612,7 +612,7 @@ Act allows you to run GitHub Actions locally. Specify the path to the [Act](http
 
 ![Screenshot - Act Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-path.png)
 
-### `workspaceTasks.applicationPath.ant`
+### workspaceTasks.applicationPath.ant
 
 **Type:** `string`
 **Default:** `"ant"`
@@ -629,7 +629,7 @@ Specify the path to the Ant executable. On Windows, if the path ends with `ant`,
 
 ![Screenshot - Ant Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ant-path.png)
 
-### `workspaceTasks.applicationPath.ansicon`
+### workspaceTasks.applicationPath.ansicon
 
 **Type:** `string`
 **Default:** `"ansicon.exe"`
@@ -646,7 +646,7 @@ Specify the path to the ANSICON executable. This is used to enable colored outpu
 
 ![Screenshot - Ansicon Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ansicon-path.png)
 
-### `workspaceTasks.applicationPath.composer`
+### workspaceTasks.applicationPath.composer
 
 **Type:** `string`
 **Default:** `"composer"`
@@ -663,7 +663,7 @@ Specify the path to the [Composer](https://getcomposer.org/) executable. On Wind
 
 ![Screenshot - Composer Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/composer-path.png)
 
-### `workspaceTasks.applicationPath.deno`
+### workspaceTasks.applicationPath.deno
 
 **Type:** `string`
 **Default:** `"~/.deno/bin/deno"`
@@ -680,7 +680,7 @@ Specify the path to the [Deno](https://deno.land/) executable. On Windows, if th
 
 ![Screenshot - Deno Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/deno-path.png)
 
-### `workspaceTasks.applicationPath.gradle`
+### workspaceTasks.applicationPath.gradle
 
 **Type:** `string`
 **Default:** `"gradlew"`
@@ -697,7 +697,7 @@ Specify the path to the [Gradle](https://gradle.org/) executable. On Windows, if
 
 ![Screenshot - Gradle Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/gradle-path.png)
 
-### `workspaceTasks.applicationPath.just`
+### workspaceTasks.applicationPath.just
 
 **Type:** `string`
 **Default:** `"just"`
@@ -714,7 +714,7 @@ Specify the path to the [Just](https://just.systems/) executable. On Windows, if
 
 ![Screenshot - Just Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/just-path.png)
 
-### `workspaceTasks.applicationPath.make`
+### workspaceTasks.applicationPath.make
 
 **Type:** `string`
 **Default:** `"make"`
@@ -731,7 +731,7 @@ Specify the path to the Make executable. On Windows, if the path ends with `make
 
 ![Screenshot - Make Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/make-path.png)
 
-### `workspaceTasks.applicationPath.maven`
+### workspaceTasks.applicationPath.maven
 
 **Type:** `string`
 **Default:** `"mvn"`
@@ -748,7 +748,7 @@ Specify the path to the [Maven](https://maven.apache.org/) executable. On Window
 
 ![Screenshot - Maven Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/maven-path.png)
 
-### `workspaceTasks.applicationPath.msbuild`
+### workspaceTasks.applicationPath.msbuild
 
 **Type:** `string`
 **Default:** `"msbuild"`
@@ -765,7 +765,7 @@ Specify the path to the MSBuild executable. On Windows, if the path ends with `m
 
 ![Screenshot - MSBuild Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/msbuild-path.png)
 
-### `workspaceTasks.applicationPath.pipenv`
+### workspaceTasks.applicationPath.pipenv
 
 **Type:** `string`
 **Default:** `"pipenv"`
@@ -788,7 +788,7 @@ Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. 
 
 These settings configure how the extension runs GitHub Actions locally using Act.
 
-### `workspaceTasks.act.envFile`
+### workspaceTasks.act.envFile
 
 **Type:** `string`
 **Default:** `""`
@@ -806,7 +806,7 @@ Specify the path to a .env file containing environment variables for Act. This f
 
 ![Screenshot - Act Env File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-env.png)
 
-### `workspaceTasks.act.variablesFile`
+### workspaceTasks.act.variablesFile
 
 **Type:** `string`
 **Default:** `""`
@@ -824,7 +824,7 @@ Path to the variables file for `act`. The file format is the same as `.env` file
 
 ![Screenshot - Act Variables File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-vars-file.png)
 
-### `workspaceTasks.act.variables`
+### workspaceTasks.act.variables
 
 **Type:** `object`
 **Default:** `{}`
@@ -845,7 +845,7 @@ Variables to pass to 'act'. Each key-value pair represents a variable name and i
 
 ![Screenshot - Act Variables](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-vars.png)
 
-### `workspaceTasks.act.secretsFile`
+### workspaceTasks.act.secretsFile
 
 **Type:** `string`
 **Default:** `".secrets"`
@@ -867,7 +867,7 @@ Specify the path to a .env file containing secrets for Act. This file will be us
 
 ## Ant Settings
 
-### `workspaceTasks.ant.ansicon.enabled`
+### workspaceTasks.ant.ansicon.enabled
 
 **Type:** `boolean`
 **Default:** `true`
