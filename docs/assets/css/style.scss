@@ -40,6 +40,15 @@ figure.highlight {
   margin: 0.75rem 0;
 }
 
+figure.highlight pre, figure.highlight :not(pre) > code {
+  border: 0;
+}
+
+figure.highlight {
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+
 
 // Inner pre: gutter via CSS gradient (stays fixed even with horizontal scroll)
 // Column 1: #21222c gutter background
