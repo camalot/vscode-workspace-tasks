@@ -27,7 +27,7 @@ search:
 
 nav_sort: case_insensitive
 
-color_scheme: nil
+color_scheme: dracula
 
 # Footer links
 footer_content: >
