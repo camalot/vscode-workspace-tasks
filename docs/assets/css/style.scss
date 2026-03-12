@@ -43,10 +43,14 @@ figure.highlight {
 
 // Inner pre: gutter via CSS gradient (stays fixed even with horizontal scroll)
 // Column 1: #21222c gutter background
-// Column 2: 1px #44475a border separating gutter from code
-// Column 3: #1e1f29 code area
-.highlight,
-pre.highlight {
+// Column 2: 1px $dracula-current-line border separating gutter from code
+// Column 3: $code-background-color code area
+// *only the outermost highlighted block gets the gradient & padding*; nested
+// elements (the ones that cause the “gutter grows with indenting” issue) are
+// reset below.
+
+div.highlighter-rouge > .highlight,
+figure.highlight {
   white-space: pre-wrap;
   word-wrap: break-word;
 
@@ -62,6 +66,15 @@ pre.highlight {
   color: $code-text-color;
   margin: 0;
   padding: 0.75rem 1rem 0.75rem calc(2.5rem + 1rem);
+}
+
+/* nested highlights/pre blocks should not draw another gradient or add
+   their own left padding, otherwise the gutter appears to expand when code
+   lines contain leading whitespace */
+div.highlighter-rouge .highlight > .highlight,
+div.highlighter-rouge pre.highlight {
+  background-image: none !important;
+  padding-left: 0 !important;
 }
 
 // ── Syntax tokens (Dracula palette) ─────────────────────────────────────────
