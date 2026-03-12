@@ -33,7 +33,9 @@ Glob patterns to exclude from tasks. For example, to ignore all tasks in `sample
 {
   "workspaceTasks.exclude": ["**/sample/**", "**/test/**", "**/build/**"]
 }
-```{:.line-numbers}
+```
+
+{:.line-numbers}
 
 ![Screenshot - Exclude Patterns](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/exclude-patterns.png)
 

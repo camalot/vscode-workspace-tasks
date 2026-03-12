@@ -40,12 +40,16 @@ figure.highlight {
   margin: 0.75rem 0;
 }
 
+
 // Inner pre: gutter via CSS gradient (stays fixed even with horizontal scroll)
 // Column 1: #21222c gutter background
 // Column 2: 1px #44475a border separating gutter from code
 // Column 3: #1e1f29 code area
 .highlight,
 pre.highlight {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+
   background-color: $code-background-color;
   background-image: linear-gradient(
     to right,
