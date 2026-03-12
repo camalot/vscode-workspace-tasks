@@ -106,6 +106,7 @@ pre.highlight {
 
 // Class / type / namespace names
 .highlight .nc,
+.highlight .nl,
 .highlight .nn  { color: $dracula-cyan; }
 
 // Decorators / annotations
@@ -137,20 +138,27 @@ pre.highlight {
    Overrides to counteract just-the-docs / Rouge default styles
    - the theme adds its own `div.highlighter-rouge div.highlight` rule
      (border: 1px solid #f8f8f2) which conflicts with the Dracula palette.
+   - many Rouge outputs nest an extra `.highlight` element; reset that
+     inner copy so we don’t get a double border or double gutter.
    - line numbers may not be generated if `rouge.line_numbers` is disabled;
      enable it in _config.yml (see docs/_config.yml where it's already set).
    - the gutter padding must remain constant regardless of indentation.
 */
 
-/* enforce Dracula border/background/colors on the code wrapper */
-div.highlighter-rouge div.highlight,
-div.highlighter-rouge .highlight {
+/* style only the outermost highlight container */
+div.highlighter-rouge > .highlight {
   border: 1px solid $dracula-current-line !important;
   background-color: $code-background-color !important;
   color: $code-text-color !important;
 }
 
-/* keep the gutter area fixed width and avoid extra space for indented lines */
+/* undo any styling on a nested highlight */
+div.highlighter-rouge .highlight > .highlight {
+  border: none !important;
+  padding-left: 0 !important;
+}
+
+/* keep the gutter area fixed width on the outer pre */
 div.highlighter-rouge pre {
   padding-left: calc(2.5rem + 1rem) !important; /* 2.5rem for numbers, 1rem for padding */
 }
