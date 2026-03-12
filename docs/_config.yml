@@ -16,6 +16,8 @@ plugins:
   - rouge
 
 highlighter: rouge
+rouge:
+  line_numbers: true
 
 # Theme configuration
 logo: "https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/icon.png"

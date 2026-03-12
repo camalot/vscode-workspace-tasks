@@ -38,5 +38,7 @@ $base-button-color:           $dracula-current-line;
 $border-color:                $dracula-current-line;
 $table-border-color:          $dracula-current-line;
 
-// Code syntax
+// Code / syntax highlight
 $code-linenumber-color:       $dracula-comment;
+$code-text-color:             $dracula-foreground;
+$code-background-color:       darken($dracula-background, 3%);

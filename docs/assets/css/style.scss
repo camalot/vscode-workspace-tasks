@@ -4,3 +4,125 @@
 a, a:link, a:visited, a:hover, a:active {
   text-decoration: none;
 }
+
+// ── Code block: VS Code-style Dracula window ────────────────────────────────
+// Provide gutter space for rouge line numbers
+
+.figure.highlight,
+div.highlighter-rouge {
+  counter-reset: linenumber;
+}
+
+.figure.highlight pre,
+div.highlighter-rouge pre {
+  position: relative;
+  padding-left: calc(2.5rem + 3rem); /* extra for the line numbers */
+}
+
+// Rouge generates .lineno classes on <span>; style them
+.lineno {
+  position: absolute;
+  left: 0;
+  width: 2.5rem;
+  text-align: right;
+  color: #6272a4;
+  user-select: none;
+}
+
+// Outer container: single-pixel border, rounded corners
+div.highlighter-rouge,
+figure.highlight {
+  border: 1px solid #44475a;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.75rem 0;
+}
+
+// Inner pre: gutter via CSS gradient (stays fixed even with horizontal scroll)
+// Column 1: #21222c gutter background
+// Column 2: 1px #44475a border separating gutter from code
+// Column 3: #1e1f29 code area
+.highlight,
+pre.highlight {
+  background-color: #1e1f29;
+  background-image: linear-gradient(
+    to right,
+    #21222c 2.5rem,
+    #44475a 2.5rem,
+    #44475a calc(2.5rem + 1px),
+    #1e1f29 calc(2.5rem + 1px)
+  );
+  border-radius: 0;
+  color: #f8f8f2;
+  margin: 0;
+  padding: 0.75rem 1rem 0.75rem calc(2.5rem + 1rem);
+}
+
+// ── Syntax tokens (Dracula palette) ─────────────────────────────────────────
+
+// Comments
+.highlight .c,
+.highlight .c1,
+.highlight .cm,
+.highlight .cs,
+.highlight .cp  { color: #6272a4; font-style: italic; }
+
+// Keywords
+.highlight .k,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt  { color: #ff79c6; }
+
+// Boolean / nil constants
+.highlight .kc  { color: #bd93f9; }
+
+// Strings
+.highlight .s,
+.highlight .s1,
+.highlight .s2,
+.highlight .sb,
+.highlight .sc,
+.highlight .sh,
+.highlight .si,
+.highlight .sx  { color: #f1fa8c; }
+
+// String escape sequences
+.highlight .se  { color: #ff79c6; }
+
+// Functions / method names
+.highlight .nf,
+.highlight .fm  { color: #50fa7b; }
+
+// Built-in names
+.highlight .nb  { color: #8be9fd; font-style: italic; }
+
+// Class / type / namespace names
+.highlight .nc,
+.highlight .nn  { color: #8be9fd; }
+
+// Decorators / annotations
+.highlight .nd  { color: #50fa7b; }
+
+// HTML/XML tags
+.highlight .nt  { color: #ff79c6; }
+
+// Numbers
+.highlight .m,
+.highlight .mi,
+.highlight .mf,
+.highlight .mh,
+.highlight .mo  { color: #bd93f9; }
+
+// Operators
+.highlight .o,
+.highlight .ow  { color: #ff79c6; }
+
+// Default text / punctuation
+.highlight .n,
+.highlight .p   { color: #f8f8f2; }
+
+// Line numbers (when enabled in front matter)
+.highlight .gl,
+.highlight .ln  { color: #6272a4; }
