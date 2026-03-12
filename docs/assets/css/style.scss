@@ -1,6 +1,8 @@
 ---
 ---
 
+@import "color_schemes/dracula";
+
 a, a:link, a:visited, a:hover, a:active {
   text-decoration: none;
 }
@@ -25,14 +27,14 @@ div.highlighter-rouge pre {
   left: 0;
   width: 2.5rem;
   text-align: right;
-  color: #6272a4;
+  color: $dracula-comment;
   user-select: none;
 }
 
 // Outer container: single-pixel border, rounded corners
 div.highlighter-rouge,
 figure.highlight {
-  border: 1px solid #44475a;
+  border: 1px solid $dracula-current-line;
   border-radius: 4px;
   overflow: hidden;
   margin: 0.75rem 0;
@@ -44,16 +46,16 @@ figure.highlight {
 // Column 3: #1e1f29 code area
 .highlight,
 pre.highlight {
-  background-color: #1e1f29;
+  background-color: $code-background-color;
   background-image: linear-gradient(
     to right,
-    #21222c 2.5rem,
-    #44475a 2.5rem,
-    #44475a calc(2.5rem + 1px),
-    #1e1f29 calc(2.5rem + 1px)
+    darken($dracula-background, 5%) 2.5rem,
+    $dracula-current-line 2.5rem,
+    $dracula-current-line calc(2.5rem + 1px),
+    $code-background-color calc(2.5rem + 1px)
   );
   border-radius: 0;
-  color: #f8f8f2;
+  color: $code-text-color;
   margin: 0;
   padding: 0.75rem 1rem 0.75rem calc(2.5rem + 1rem);
 }
@@ -65,7 +67,7 @@ pre.highlight {
 .highlight .c1,
 .highlight .cm,
 .highlight .cs,
-.highlight .cp  { color: #6272a4; font-style: italic; }
+.highlight .cp  { color: $dracula-comment; font-style: italic; }
 
 // Keywords
 .highlight .k,
@@ -73,10 +75,10 @@ pre.highlight {
 .highlight .kn,
 .highlight .kp,
 .highlight .kr,
-.highlight .kt  { color: #ff79c6; }
+.highlight .kt  { color: $dracula-pink; }
 
 // Boolean / nil constants
-.highlight .kc  { color: #bd93f9; }
+.highlight .kc  { color: $dracula-purple; }
 
 // Strings
 .highlight .s,
@@ -86,46 +88,46 @@ pre.highlight {
 .highlight .sc,
 .highlight .sh,
 .highlight .si,
-.highlight .sx  { color: #f1fa8c; }
+.highlight .sx  { color: $dracula-yellow; }
 
 // String escape sequences
-.highlight .se  { color: #ff79c6; }
+.highlight .se  { color: $dracula-pink; }
 
 // Functions / method names
 .highlight .nf,
-.highlight .fm  { color: #50fa7b; }
+.highlight .fm  { color: $dracula-green; }
 
 // Built-in names
-.highlight .nb  { color: #8be9fd; font-style: italic; }
+.highlight .nb  { color: $dracula-cyan; font-style: italic; }
 
 // Class / type / namespace names
 .highlight .nc,
-.highlight .nn  { color: #8be9fd; }
+.highlight .nn  { color: $dracula-cyan; }
 
 // Decorators / annotations
-.highlight .nd  { color: #50fa7b; }
+.highlight .nd  { color: $dracula-green; }
 
 // HTML/XML tags
-.highlight .nt  { color: #ff79c6; }
+.highlight .nt  { color: $dracula-pink; }
 
 // Numbers
 .highlight .m,
 .highlight .mi,
 .highlight .mf,
 .highlight .mh,
-.highlight .mo  { color: #bd93f9; }
+.highlight .mo  { color: $dracula-purple; }
 
 // Operators
 .highlight .o,
-.highlight .ow  { color: #ff79c6; }
+.highlight .ow  { color: $dracula-pink; }
 
 // Default text / punctuation
 .highlight .n,
-.highlight .p   { color: #f8f8f2; }
+.highlight .p   { color: $dracula-foreground; }
 
 // Line numbers (when enabled in front matter)
 .highlight .gl,
-.highlight .ln  { color: #6272a4; }
+.highlight .ln  { color: $dracula-comment; }
 
 /* -------------------------------------------------------------------------
    Overrides to counteract just-the-docs / Rouge default styles
@@ -153,4 +155,3 @@ div.highlighter-rouge pre {
 .lineno {
   z-index: 1;
 }
-
