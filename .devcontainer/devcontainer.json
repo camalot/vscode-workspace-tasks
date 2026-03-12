@@ -1,0 +1,22 @@
+{
+  "name": "Workspace Tasks Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "rebornix.ruby",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "darthminos.workspace-tasks"
+      ]
+    }
+  },
+  "postCreateCommand": "gem install bundler && cd docs && bundle install && cd .. && npm install && chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
+  "remoteUser": "vscode"
+}
