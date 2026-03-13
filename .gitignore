@@ -1,5 +1,9 @@
 
 sample/**/tools/**
+sample/sample-workspace-tasks
+
+.devcontainer/mount/.*Marker
+
 tools/
 reports/
 

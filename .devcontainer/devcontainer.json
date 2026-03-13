@@ -41,7 +41,7 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/vscode-workspace-tasks,type=bind,consistency=cached",
   "workspaceFolder": "/workspaces/vscode-workspace-tasks",
   "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/_ssh,type=bind,consistency=cached",
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=cached",
     // if this doesnt exist locally, it creates it as a folder...
     // to combat this, a default is loaded into the container

@@ -74,6 +74,15 @@ RUN apt-get update && \
     apt-get install -y temurin-17-jdk && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install PowerShell
+RUN curl -fsSL "https://github.com/PowerShell/PowerShell/releases/download/v7.4.5/powershell-7.4.5-linux-x64.tar.gz" -o /tmp/powershell.tar.gz && \
+    mkdir -p /opt/microsoft/powershell/7 && \
+    tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 && \
+    chmod +x /opt/microsoft/powershell/7/pwsh && \
+    ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh && \
+    ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/powershell && \
+    rm /tmp/powershell.tar.gz
+
 WORKDIR /workspace
 
 # Add venv to PATH for all users
