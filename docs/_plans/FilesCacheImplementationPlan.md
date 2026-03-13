@@ -281,7 +281,7 @@ and calling `rebuildRegisteredPatterns()` — a new helper that iterates all pro
 
 ### Step 9 — Update documentation
 
-**File:** `docs/TaskFiltering.md`
+**File:** `docs/features/task-filtering.md`
 
 Document the new caching behavior: the combined fetch, when the cache is invalidated, and any observable behaviour differences (e.g., a file created while a task discovery is in progress will be found on the next refresh, not the current one — same as before, but now explicit).
 

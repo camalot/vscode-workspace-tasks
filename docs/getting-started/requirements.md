@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Requirements
-nav_order: 10
+nav_order: 2
+parent: Getting Started
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
@@ -119,12 +120,12 @@ If tools are installed in non-standard locations, configure their paths in `sett
 }
 ```
 
-See the [Configuration Reference](Configuration#application-path-settings) for all available path settings.
+See the [Configuration Reference](../Configuration#application-path-settings) for all available path settings.
 
 ---
 
 ## See Also
 
 - [Getting Started](getting-started) — Installation and initial setup
-- [Configuration Reference](Configuration) — All settings including application paths
-- [Supported Task Types](task-types) — All supported build tools and frameworks
+- [Configuration](../configuration) — All settings including application paths
+- [Supported Task Types](../task-types) — All supported build tools and frameworks

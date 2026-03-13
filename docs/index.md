@@ -69,11 +69,11 @@ See the [Getting Started guide](getting-started) for full installation and setup
 | [Task Queues](features/task-queues) | Create sequences of tasks to run in order |
 | [Hide Tasks & Groups](features/hide-tasks) | Declutter your task view |
 | [Task History](features/task-history) | Track and review all task executions |
-| [GitHub Actions Integration](github-actions) | Run workflows locally with act |
-| [Configuration](Configuration) | Full settings reference |
-| [Task Filtering](TaskFiltering) | Exclude files using `.tasksignore` |
-| [.tasksignore Reference](TasksIgnore) | `.tasksignore` file format and syntax |
-| [Custom Workspace Tasks](WorkspaceTasks) | Define reusable task templates |
+| [GitHub Actions Integration](task-types/github-actions) | Run workflows locally with act |
+| [Configuration](configuration) | Full settings reference |
+| [Task Filtering](features/task-filtering) | Exclude files using `.tasksignore` |
+| [.tasksignore Reference](features/tasksignore) | `.tasksignore` file format and syntax |
+| [Custom Workspace Tasks](features/custom-workspace-tasks) | Define reusable task templates |
 | [Requirements](requirements) | System requirements and tool dependencies |
 | [Contributing](contributing) | How to contribute to the project |
 

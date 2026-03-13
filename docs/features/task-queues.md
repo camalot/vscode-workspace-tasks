@@ -86,4 +86,4 @@ Use the actions in the queue's title bar to:
 ## See Also
 
 - [Favorites & Recent Tasks](favorites) — Pin and track frequently used tasks
-- [Configuration Reference](../Configuration) — Full settings reference
+- [Configuration](../configuration) — Full settings reference

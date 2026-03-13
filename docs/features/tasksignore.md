@@ -1,11 +1,12 @@
 ---
 layout: default
-title: Task Filtering
+title: Ignoring Tasks
 nav_order: 6
+parent: Features
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
-# Task Filtering
+# .tasksignore
 {: .no_toc }
 
 The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension.
@@ -25,12 +26,10 @@ This helps keep your task list focused on relevant tasks by filtering out unwant
 
 ## How It Works
 
-- **Performance with Caching**: The extension drastically speeds up task discovery using an in-memory cache system. Upon the first scan, all supported file patterns are combined into a single file system query. Future task resolutions read purely from memory. This means if new task files are created while a scan is in-progress, they'll be reliably visible on the explicit "Refresh" action.
-The cache invalidates whenever changes to `.tasksignore`, relevant user configurations, or system files are detected.
 - **Per-Directory Control**: Place a `.tasksignore` file in any directory to exclude files from that location and its subdirectories
 - **Hierarchical Application**: Ignore files are evaluated from the workspace root down to the file location
 - **Gitignore Syntax**: Uses standard gitignore pattern matching rules
-- **Automatic Reload**: Changes to `.tasksignore` files are automatically detected and applied along with resetting the underlying cache.
+- **Automatic Reload**: Changes to `.tasksignore` files are automatically detected and applied
 - **Smart Defaults**: The extension always ignores certain directories regardless of `.tasksignore` settings:
   - `**/node_modules/**`
   - `**/.git/**`
@@ -39,7 +38,7 @@ The cache invalidates whenever changes to `.tasksignore`, relevant user configur
 
 ## File Format
 
-The `.tasksignore` file is a plain text file with one pattern per line. The format follows `gitignore` conventions:
+The `.tasksignore` file is a plain text file with one pattern per line. The format follows gitignore conventions:
 
 ### Basic Rules
 
@@ -51,7 +50,7 @@ The `.tasksignore` file is a plain text file with one pattern per line. The form
 ### Pattern Syntax
 
 | Pattern | Description | Example |
-| --- | ---- | --- |
+| --- | --- | --- |
 | `filename` | Matches the filename in any directory | `package.json` |
 | `*.ext` | Matches all files with the extension | `*.test.js` |
 | `dir/` | Matches the directory and all its contents | `build/` |
@@ -292,5 +291,5 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 ## See Also
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
-- [Workspace Tasks Configuration](Configuration.md)
+- [Configuration](../configuration)
 - [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)

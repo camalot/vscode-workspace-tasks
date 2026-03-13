@@ -2,77 +2,23 @@
 layout: default
 title: Getting Started
 nav_order: 2
+has_children: true
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
 # Getting Started
 {: .no_toc }
 
-<!-- markdownlint-disable-next-line MD025 MD022 -->
+Getting started with Workspace Tasks. This will describe how to install, what requirements are needed for iinstalling, and for executing sepecific tasks.
+
+---
+
+<!-- markdownlint-disable-next-line MD022 -->
 ## Table of Contents
 {: .no_toc .text-delta }
 
 1. TOC
 {:toc}
-
----
-
-## Requirements
-
-- **Visual Studio Code** 1.108.1 or later
-- External tools must be installed for task execution (see [Requirements](requirements))
-
----
-
-## Installation
-
-### From Visual Studio Code Marketplace
-
-1. Open Visual Studio Code
-2. Go to the Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-3. Search for **"Workspace Tasks"**
-4. Click **Install**
-
-[→ Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks){: .btn .btn-primary }
-
-### From Open VSX Registry
-
-For editors that use the Open VSX Registry (e.g., Cursor, VSCodium):
-
-1. Open your editor
-2. Go to the Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-3. Search for **"Workspace Tasks"**
-4. Click **Install**
-
-[→ Open VSX Registry](https://open-vsx.org/extension/darthminos/workspace-tasks){: .btn }
-
-### From Command Line
-
-Choose the command based on your editor
-
-{% highlight shell %}
-code --install-extension darthminos.workspace-tasks
-{% endhighlight %}
-
-{% highlight shell %}
-cursor --install-extension darthminos.workspace-tasks
-{% endhighlight %}
-
-{% highlight shell %}
-codium --install-extension darthminos.workspace-tasks
-{% endhighlight %}
-
-{% highlight shell %}
-antigravity --install-extension darthminos.workspace-tasks
-{% endhighlight %}
-
-{% highlight shell %}
-kiro --install-extension darthminos.workspace-tasks
-{% endhighlight %}
-
-{% highlight shell %}
-windsurf --install-extension darthminos.workspace-tasks
-{% endhighlight %}
 
 ---
 
@@ -127,7 +73,7 @@ Click the **list icon** next to any task to add it to a queue. Queues let you ru
   - First click: Collapse task type groups
   - Second click: Collapse workspace folders
   - Third click: Expand everything
-- **Create `.tasksignore` files** to [exclude unwanted tasks](TaskFiltering) from your task list
+- **Create `.tasksignore` files** to [exclude unwanted tasks](features/task-filtering) from your task list
 - **Drag the Explorer view** to any panel location (sidebar, panel, or floating window)
 - **Use Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`) to search and run tasks by name
 - **Configure task discovery depth** with `workspaceTasks.taskDiscovery.fetchDepth` to improve performance in large repos
@@ -141,6 +87,6 @@ Click the **list icon** next to any task to add it to a queue. Queues let you ru
 | [Supported Task Types](task-types) | See all 20+ supported build tools and frameworks |
 | [Favorites & Recent Tasks](features/favorites) | Learn how to pin and track tasks |
 | [Task Queues](features/task-queues) | Build and run workflow sequences |
-| [Configuration](Configuration) | Customize the extension to your needs |
-| [Task Filtering](TaskFiltering) | Exclude unwanted tasks with `.tasksignore` |
+| [Configuration](configuration) | Customize the extension to your needs |
+| [Task Filtering](features/task-filtering) | Exclude unwanted tasks with `.tasksignore` |
 | [Requirements](requirements) | External tool requirements for task execution |

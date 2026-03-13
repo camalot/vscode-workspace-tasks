@@ -65,12 +65,12 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 | **Use case** | Temporary declutter | Permanently exclude task files |
 | **Granularity** | Individual tasks within a type | Entire files or directories |
 
-For permanently excluding files from task discovery, use [Task Filtering](../TaskFiltering) with `.tasksignore`.
+For permanently excluding files from task discovery, use [Task Filtering](task-filtering) with `.tasksignore`.
 
 ---
 
 ## See Also
 
-- [Task Filtering](../TaskFiltering) — Exclude files using `.tasksignore`
-- [.tasksignore Reference](../TasksIgnore) — `.tasksignore` syntax and examples
-- [Configuration Reference](../Configuration) — Full settings reference
+- [Task Filtering](task-filtering) — Exclude files using `.tasksignore`
+- [.tasksignore Reference](tasksignore) — `.tasksignore` syntax and examples
+- [Configuration](../configuration) — Full settings reference

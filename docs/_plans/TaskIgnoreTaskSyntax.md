@@ -59,7 +59,7 @@ scripts/
 | `src/services/taskCacheService.ts` | **Cache** | Pass task name through to filter check; invalidate on `.tasksignore` change (already wired) |
 | `res/syntaxes/tasksignore.tmLanguage.json` | **Grammar** | Tokenize `filename@taskname` syntax |
 | `res/syntaxes/tasksignore-language-configuration.json` | **Language** | No changes required |
-| `docs/TasksIgnore.md` | **Documentation** | Document the new syntax with examples |
+| `docs/features/tasksignore.md` | **Documentation** | Document the new syntax with examples |
 | `src/test/suite/taskFilesService.test.ts` | **Tests** | New test cases for `shouldIgnoreTask()` and parsing |
 
 ---
@@ -292,7 +292,7 @@ The new rule must be listed **before** the fallback pattern-line rule so it take
 
 ---
 
-### 6. Documentation — `docs/TasksIgnore.md`
+### 6. Documentation — `docs/features/tasksignore.md`
 
 A new section titled **"Task-Level Filtering"** should be added immediately after the existing "Pattern Syntax" table.
 
@@ -330,7 +330,7 @@ The tasks below are ordered with fewest dependencies first.
 
 ### Phase 4 — Documentation
 
-1. **Update `docs/TasksIgnore.md`** with the "Task-Level Filtering" section.
+1. **Update `docs/features/tasksignore.md`** with the "Task-Level Filtering" section.
 
 ### Phase 5 — Tests
 
@@ -372,6 +372,6 @@ The tasks below are ordered with fewest dependencies first.
 
 ## Related Documents
 
-- [TasksIgnore.md](TasksIgnore.md) — User-facing documentation for `.tasksignore`
-- [TaskFiltering.md](TaskFiltering.md) — Documentation for the runtime "Hide Task" feature
+- [TasksIgnore](features/tasksignore) — User-facing documentation for `.tasksignore`
+- [Task Filtering](features/task-filtering) — Documentation for the runtime "Hide Task" feature
 - [FilesCacheImplementationPlan.md](FilesCacheImplementationPlan.md) — Background on the `TaskFilesService` cache design

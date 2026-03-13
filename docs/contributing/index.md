@@ -62,6 +62,8 @@ npm run watch
 
 ## Project Structure
 
+{: .tree}
+
 ``` text
 src/                   TypeScript source code
 ├── commands/          Command implementations

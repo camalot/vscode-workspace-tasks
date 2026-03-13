@@ -27,6 +27,12 @@ div.highlighter-rouge pre {
   padding-left: calc(2.5rem + 3rem); /* extra for the line numbers */
 }
 
+.figure.highlight.tree code,
+div.highlighter-rouge.tree code {
+  font-size: 1rem !important;
+  line-height: 1rem !important;
+}
+
 // Rouge generates .lineno classes on <span>; style them
 .lineno {
   position: absolute;
