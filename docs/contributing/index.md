@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Contributing
-nav_order: 11
+nav_order: 100
+has_children: true
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
