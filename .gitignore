@@ -4,6 +4,8 @@ tools/
 reports/
 
 _site/
+docs/vendor/
+.jekyll-cache
 
 .venv/
 

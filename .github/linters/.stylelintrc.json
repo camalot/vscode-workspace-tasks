@@ -1,0 +1,11 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "overrides": [
+    {
+      "extends": ["stylelint-config-recommended-scss"],
+      "files": ["*.scss", "**/*.scss"],
+      "customSyntax": "postcss-scss"
+    }
+  ],
+  "ignoreFiles": ["node_modules/**", "docs/assets/css/**", "docs/_sass/**"]
+}

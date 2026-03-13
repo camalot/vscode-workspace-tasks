@@ -75,7 +75,7 @@ Configure act in your VS Code `settings.json`:
 }
 ```
 
-### `workspaceTasks.applicationPath.act`
+### workspaceTasks.applicationPath.act
 
 **Type:** `string`
 **Default:** `"act"`
@@ -90,28 +90,28 @@ Path to the act executable. On Windows, if the path ends with `act`, `.exe` will
 }
 ```
 
-### `workspaceTasks.act.envFile`
+### workspaceTasks.act.envFile
 
 **Type:** `string`
 **Default:** `""`
 
 Path to a `.env` file containing environment variables for act. See the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure) for file format details.
 
-### `workspaceTasks.act.secretsFile`
+### workspaceTasks.act.secretsFile
 
 **Type:** `string`
 **Default:** `""`
 
 Path to a secrets file for act. Secrets are used to provide sensitive values to workflows without exposing them in configuration.
 
-### `workspaceTasks.act.variablesFile`
+### workspaceTasks.act.variablesFile
 
 **Type:** `string`
 **Default:** `""`
 
 Path to a variables file for act.
 
-### `workspaceTasks.act.variables`
+### workspaceTasks.act.variables
 
 **Type:** `object`
 **Default:** `{}`

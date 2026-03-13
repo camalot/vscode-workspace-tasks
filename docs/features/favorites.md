@@ -53,7 +53,7 @@ As you run tasks, they are tracked in a dedicated **Recent Tasks** section at th
 
 ### Configuration
 
-#### `workspaceTasks.recentTasks.maxItems`
+#### workspaceTasks.recentTasks.maxItems
 
 **Type:** `number`
 **Default:** `20`
@@ -69,7 +69,7 @@ The maximum number of task items to track in the Recent Tasks group. Once the li
 
 ![Recent Tasks - Max Items](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/settings-recenttasks-maxitems.png)
 
-#### `workspaceTasks.groups.recentTasks.enabled`
+#### workspaceTasks.groups.recentTasks.enabled
 
 **Type:** `boolean`
 **Default:** `false`

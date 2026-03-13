@@ -17,14 +17,9 @@ plugins:
 
 highlighter: rouge
 
-kramdown:
-  input: GFM
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    block:
-      line_numbers: true
-    span:
-      line_numbers: false
+# kramdown:
+#   input: GFM
+#   syntax_highlighter: rouge
 
 # Theme configuration
 logo: "https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/icon.png"

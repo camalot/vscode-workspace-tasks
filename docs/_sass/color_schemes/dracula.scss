@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Dracula color palette
 $dracula-background:    #282a36;
 $dracula-current-line:  #44475a;
@@ -9,16 +11,16 @@ $dracula-green:         #50fa7b;
 $dracula-orange:        #ffb86c;
 $dracula-pink:          #ff79c6;
 $dracula-purple:        #bd93f9;
-$dracula-red:           #ff5555;
+$dracula-red:           #f55;
 $dracula-yellow:        #f1fa8c;
 
 // Backgrounds
 $body-background-color:       $dracula-background;
-$sidebar-color:               darken($dracula-background, 3%);
+$sidebar-color:               color.adjust($dracula-background, $lightness: -3%);
 $search-background-color:     $dracula-current-line;
 $table-background-color:      $dracula-background;
 $code-background-color:       $dracula-current-line;
-$feedback-color:              darken($dracula-background, 5%);
+$feedback-color:              color.adjust($dracula-background, $lightness: -5%);
 
 // Text
 $body-text-color:             $dracula-foreground;
@@ -41,4 +43,4 @@ $table-border-color:          $dracula-current-line;
 // Code / syntax highlight
 $code-linenumber-color:       $dracula-comment;
 $code-text-color:             $dracula-foreground;
-$code-background-color:       darken($dracula-background, 3%);
+$code-background-color:       color.adjust($dracula-background, $lightness: -3%);

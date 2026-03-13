@@ -1,9 +1,15 @@
 ---
 ---
 
-@import "color_schemes/dracula";
+@use 'sass:color';
 
-a, a:link, a:visited, a:hover, a:active {
+@import 'color_schemes/dracula';
+
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
   text-decoration: none;
 }
 
@@ -40,15 +46,10 @@ figure.highlight {
   margin: 0.75rem 0;
 }
 
-figure.highlight pre, figure.highlight :not(pre) > code {
+figure.highlight pre,
+figure.highlight :not(pre) > code {
   border: 0;
 }
-
-figure.highlight {
-  margin-bottom: 0.75rem;
-  margin-top: 0.75rem;
-}
-
 
 // Inner pre: gutter via CSS gradient (stays fixed even with horizontal scroll)
 // Column 1: #21222c gutter background
@@ -66,24 +67,27 @@ figure.highlight {
   background-color: $code-background-color;
   background-image: linear-gradient(
     to right,
-    darken($dracula-background, 5%) 2.5rem,
+    color.adjust($dracula-background, $lightness: -5%) 2.5rem,
     $dracula-current-line 2.5rem,
     $dracula-current-line calc(2.5rem + 1px),
     $code-background-color calc(2.5rem + 1px)
   );
   border-radius: 0;
   color: $code-text-color;
-  margin: 0;
+  margin: 0.75rem 0 0.75rem 0;
   padding: 0.75rem 1rem 0.75rem calc(2.5rem + 1rem);
 }
 
-/* nested highlights/pre blocks should not draw another gradient or add
-   their own left padding, otherwise the gutter appears to expand when code
-   lines contain leading whitespace */
+/*
+  nested highlights/pre blocks should not draw another gradient or add
+  their own left padding, otherwise the gutter appears to expand when code
+  lines contain leading whitespace
+*/
 div.highlighter-rouge .highlight > .highlight,
 div.highlighter-rouge pre.highlight {
   background-image: none !important;
   padding-left: 0 !important;
+  margin-left: 2.5rem !important;
 }
 
 // ── Syntax tokens (Dracula palette) ─────────────────────────────────────────
@@ -93,7 +97,10 @@ div.highlighter-rouge pre.highlight {
 .highlight .c1,
 .highlight .cm,
 .highlight .cs,
-.highlight .cp  { color: $dracula-comment; font-style: italic; }
+.highlight .cp {
+  color: $dracula-comment;
+  font-style: italic;
+}
 
 // Keywords
 .highlight .k,
@@ -101,10 +108,14 @@ div.highlighter-rouge pre.highlight {
 .highlight .kn,
 .highlight .kp,
 .highlight .kr,
-.highlight .kt  { color: $dracula-pink; }
+.highlight .kt {
+  color: $dracula-pink;
+}
 
 // Boolean / nil constants
-.highlight .kc  { color: $dracula-purple; }
+.highlight .kc {
+  color: $dracula-purple;
+}
 
 // Strings
 .highlight .s,
@@ -114,57 +125,80 @@ div.highlighter-rouge pre.highlight {
 .highlight .sc,
 .highlight .sh,
 .highlight .si,
-.highlight .sx  { color: $dracula-yellow; }
+.highlight .sx {
+  color: $dracula-yellow;
+}
 
 // String escape sequences
-.highlight .se  { color: $dracula-pink; }
+.highlight .se {
+  color: $dracula-pink;
+}
 
 // Functions / method names
 .highlight .nf,
-.highlight .fm  { color: $dracula-green; }
+.highlight .fm {
+  color: $dracula-green;
+}
 
 // Built-in names
-.highlight .nb  { color: $dracula-cyan; font-style: italic; }
+.highlight .nb {
+  color: $dracula-cyan;
+  font-style: italic;
+}
 
 // Class / type / namespace names
 .highlight .nc,
 .highlight .nl,
-.highlight .nn  { color: $dracula-cyan; }
+.highlight .nn {
+  color: $dracula-cyan;
+}
 
 // Decorators / annotations
-.highlight .nd  { color: $dracula-green; }
+.highlight .nd {
+  color: $dracula-green;
+}
 
 // HTML/XML tags
-.highlight .nt  { color: $dracula-pink; }
+.highlight .nt {
+  color: $dracula-pink;
+}
 
 // Numbers
 .highlight .m,
 .highlight .mi,
 .highlight .mf,
 .highlight .mh,
-.highlight .mo  { color: $dracula-purple; }
+.highlight .mo {
+  color: $dracula-purple;
+}
 
 // Operators
 .highlight .o,
-.highlight .ow  { color: $dracula-pink; }
+.highlight .ow {
+  color: $dracula-pink;
+}
 
 // Default text / punctuation
 .highlight .n,
-.highlight .p   { color: $dracula-foreground; }
+.highlight .p {
+  color: $dracula-foreground;
+}
 
 // Line numbers (when enabled in front matter)
 .highlight .gl,
-.highlight .ln  { color: $dracula-comment; }
+.highlight .ln {
+  color: $dracula-comment;
+}
 
 /* -------------------------------------------------------------------------
-   Overrides to counteract just-the-docs / Rouge default styles
-   - the theme adds its own `div.highlighter-rouge div.highlight` rule
-     (border: 1px solid #f8f8f2) which conflicts with the Dracula palette.
-   - many Rouge outputs nest an extra `.highlight` element; reset that
-     inner copy so we don’t get a double border or double gutter.
-   - line numbers may not be generated if `rouge.line_numbers` is disabled;
-     enable it in _config.yml (see docs/_config.yml where it's already set).
-   - the gutter padding must remain constant regardless of indentation.
+  Overrides to counteract just-the-docs / Rouge default styles
+  - the theme adds its own `div.highlighter-rouge div.highlight` rule
+    (border: 1px solid #f8f8f2) which conflicts with the Dracula palette.
+  - many Rouge outputs nest an extra `.highlight` element; reset that
+    inner copy so we don’t get a double border or double gutter.
+  - line numbers may not be generated if `rouge.line_numbers` is disabled;
+    enable it in _config.yml (see docs/_config.yml where it's already set).
+  - the gutter padding must remain constant regardless of indentation.
 */
 
 /* style only the outermost highlight container */
@@ -182,7 +216,13 @@ div.highlighter-rouge .highlight > .highlight {
 
 /* keep the gutter area fixed width on the outer pre */
 div.highlighter-rouge pre {
-  padding-left: calc(2.5rem + 1rem) !important; /* 2.5rem for numbers, 1rem for padding */
+  margin-left: 2.5rem !important;
+  padding-left: 1rem !important;
+}
+
+.highlight,
+pre.highlight {
+  color: $code-text-color !important;
 }
 
 /* ensure line numbers sit on top and are always visible */
