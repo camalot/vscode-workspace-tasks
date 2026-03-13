@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 function build() {
   local WATCH=$1
   # save the current working directory
@@ -32,24 +31,23 @@ function serve() {
   cd "$OLDPWD" || exit
 }
 
-
 # loop over all args passed and run the corresponding commands
 for arg in "$@"; do
   case $arg in
-    --build)
-      build
-      ;;
-    --buildw)
-      build "--watch"
-      ;;
-    --serve)
-      serve
-      ;;
-    --servew)
-      serve "--watch"
-      ;;
-    *)
-      build
-      ;;
+  --build)
+    build
+    ;;
+  --buildw)
+    build "--watch"
+    ;;
+  --serve)
+    serve
+    ;;
+  --servew)
+    serve "--watch"
+    ;;
+  *)
+    build
+    ;;
   esac
 done
