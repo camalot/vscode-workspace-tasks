@@ -151,10 +151,23 @@ function install_antigen_bundles() {
   if [ -f "$HOME/.antigen/antigen.zsh" ]; then
     # Run zsh non-interactively but source .zshrc to trigger antigen downloads.
     # TERM must be set for some plugins; redirect stderr to suppress p10k noise.
-    TERM=xterm-256color zsh -i -c "antigen update 2>&1; antigen apply 2>&1" 2>/dev/null || true
+    # ANTIGEN_CACHE=false prevents generating a broken zcache (which stores
+    # directory paths in _ZCACHE_BUNDLE_SOURCE, leaving BUNDLES section empty).
+    ANTIGEN_CACHE=false TERM=xterm-256color zsh -i -c "antigen update 2>&1; antigen apply 2>&1" 2>/dev/null || true
     echo -e "${COLOR_GREEN}Antigen bundle cache pre-warmed successfully.${COLOR_RESET}"
   else
     echo -e "${COLOR_RED}antigen.zsh not found – skipping bundle pre-warm.${COLOR_RESET}"
+  fi
+
+  # --- gh completions -------------------------------------------------------
+  # Pre-generate the _gh completion file so the oh-my-zsh gh plugin never hits
+  # a "no such file or directory" error on the first shell open.  The target
+  # path must match ZSH_CACHE_DIR set in .zshrc ($HOME/.cache/oh-my-zsh).
+  local gh_cache_dir="$HOME/.cache/oh-my-zsh/completions"
+  mkdir -p "$gh_cache_dir"
+  if command -v gh &>/dev/null; then
+    gh completion -s zsh > "$gh_cache_dir/_gh" 2>/dev/null || true
+    echo -e "${COLOR_GREEN}gh completions pre-generated at $gh_cache_dir/_gh.${COLOR_RESET}"
   fi
 
   echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"

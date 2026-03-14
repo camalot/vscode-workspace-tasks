@@ -1,7 +1,7 @@
 ---
 layout: default
-title: DevOps & Containers
-parent: Supported Task Types
+title: 🚦 DevOps & Containers
+parent: 📱 Supported Task Types
 nav_order: 3
 ---
 
@@ -35,10 +35,10 @@ See [GitHub Actions Integration](github-actions) for local workflow execution de
 
 ---
 
-## See Also
+## Next Steps
 
 - [Package Managers & Build Tools](package-managers) — npm, Yarn, pnpm, Bun, Composer, and more
 - [Task Runners](task-runners) — Gulp, Grunt, Cargo, Just, Make, mise
 - [GitHub Actions Integration](github-actions) — Run workflows locally with act
 - [Configuration Reference](../configuration) — Full settings reference including task type toggles
-- [Enabling / Disabling Task Types](..) — Control which task types are active
+- [Enabling / Disabling Task Types](../configuration/task-type) — Control which task types are active

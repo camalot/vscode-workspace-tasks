@@ -1,7 +1,7 @@
 ---
 layout: default
-title: GitHub Actions Integration
-parent: Supported Task Types
+title: 🧑‍💻 GitHub Actions
+parent: 📱 Supported Task Types
 nav_order: 5
 ---
 
@@ -169,10 +169,11 @@ When you run **"Run Workflow (workflow_dispatch)"**, Workspace Tasks will prompt
 
 ---
 
-## See Also
+## Next Steps
 
 - [Supported Task Types](..) — All supported task types
 - [DevOps & Containers](devops) — Docker, Docker Compose, and GitHub Actions overview
 - [Configuration Reference](../configuration) — Full settings reference
 - [GitHub Actions Settings (Act)](../configuration/github-actions) — Detailed act configuration reference
 - [act Documentation](https://nektosact.com/) — Official act documentation
+- [Enabling / Disabling Task Types](../configuration/task-type) — Control which task types are active

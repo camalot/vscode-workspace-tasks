@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Scripts & Other
-parent: Supported Task Types
+title: 📜 Scripts & Other
+parent: 📱 Supported Task Types
 nav_order: 4
 ---
 
@@ -47,10 +47,11 @@ nav_order: 4
 
 ---
 
-## See Also
+## Next Steps
 
 - [Package Managers & Build Tools](package-managers) — npm, Yarn, pnpm, Bun, Composer, and more
 - [Task Runners](task-runners) — Gulp, Grunt, Cargo, Just, Make, mise
 - [DevOps & Containers](devops) — Docker, Docker Compose, GitHub Actions
 - [Custom Workspace Tasks](../features/custom-workspace-tasks) — Define your own reusable task templates
 - [Configuration Reference](../configuration) — Full settings reference including task type toggles
+- [Enabling / Disabling Task Types](../configuration/task-type) — Control which task types are active

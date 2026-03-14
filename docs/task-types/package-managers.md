@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Package Managers & Build Tools
-parent: Supported Task Types
+title: 📦 Packages & Build Tools
+parent: 📱 Supported Task Types
 nav_order: 1
 ---
 
@@ -51,10 +51,10 @@ nav_order: 1
 
 ---
 
-## See Also
+## Next Steps
 
 - [Task Runners](task-runners) — Gulp, Grunt, Cargo, Just, Make, mise
 - [DevOps & Containers](devops) — Docker, Docker Compose, GitHub Actions
 - [Scripts & Other](scripts) — Shell scripts, Python, Jupyter Notebooks
 - [Configuration Reference](../configuration) — Full settings reference including task type toggles
-- [Enabling / Disabling Task Types](..) — Control which task types are active
+- [Enabling / Disabling Task Types](../configuration/task-type) — Control which task types are active

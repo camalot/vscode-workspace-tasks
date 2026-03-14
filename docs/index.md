@@ -46,6 +46,14 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ---
 
+## Installation
+
+{% include _installation.md %}
+
+See [Getting Started](getting-started) for more installation options.
+
+---
+
 ## Quick Start
 
 1. **Open a workspace** with supported task files (e.g., `package.json`, `Makefile`, shell scripts)
@@ -76,47 +84,3 @@ See the [Getting Started guide](getting-started) for full installation and setup
 | [Custom Workspace Tasks](features/custom-workspace-tasks) | Define reusable task templates |
 | [Requirements](getting-started/requirements) | System requirements and tool dependencies |
 | [Contributing](contributing) | How to contribute to the project |
-
----
-
-## Installation
-
-### From Visual Studio Code Marketplace
-
-1. Open Supported Code Editor
-2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-3. Search for **"Workspace Tasks"**
-4. Click **Install**
-
-[→ Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks){: .btn .btn-primary }
-[→ Open VSX Registry](https://open-vsx.org/extension/darthminos/workspace-tasks){: .btn .btn-secondary }
-
-### From Command Line
-
-Choose the command based on your editor
-
-```shell
-code --install-extension darthminos.workspace-tasks
-```
-
-```shell
-cursor --install-extension darthminos.workspace-tasks
-```
-
-```shell
-codium --install-extension darthminos.workspace-tasks
-```
-
-```shell
-antigravity --install-extension darthminos.workspace-tasks
-```
-
-```shell
-kiro --install-extension darthminos.workspace-tasks
-```
-
-```shell
-windsurf --install-extension darthminos.workspace-tasks
-```
-
-See [Getting Started](getting-started) for more installation options.

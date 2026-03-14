@@ -89,7 +89,7 @@ See the [Configuration Reference](../configuration) for the full list of availab
 
 ---
 
-## See Also
+## Next Steps
 
 - [Configuration Reference](../configuration) — Full settings reference including task type toggles
 - [Task Filtering](../features/task-filtering) — Exclude specific files from task discovery

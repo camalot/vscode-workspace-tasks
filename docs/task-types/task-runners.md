@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Runners
-parent: Supported Task Types
+title: ▶️ Task Runners
+parent: 📱 Supported Task Types
 nav_order: 2
 ---
 
@@ -41,10 +41,10 @@ nav_order: 2
 
 ---
 
-## See Also
+## Next Steps
 
 - [Package Managers & Build Tools](package-managers) — npm, Yarn, pnpm, Bun, Composer, and more
 - [DevOps & Containers](devops) — Docker, Docker Compose, GitHub Actions
 - [Scripts & Other](scripts) — Shell scripts, Python, Jupyter Notebooks
 - [Configuration Reference](../configuration) — Full settings reference including task type toggles
-- [Enabling / Disabling Task Types](..) — Control which task types are active
+- [Enabling / Disabling Task Types](../configuration/task-type) — Control which task types are active

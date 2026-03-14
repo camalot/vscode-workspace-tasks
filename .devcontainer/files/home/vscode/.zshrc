@@ -6,7 +6,19 @@ if [[ -f $HOME/.devcontainer/.env ]]; then
   source $HOME/.devcontainer/.env
 fi
 
+# Disable antigen's zcache: it records directory paths (not file paths) in
+# _ZCACHE_BUNDLE_SOURCE, causing an empty BUNDLES section and no plugins loaded.
+# Plugins are already downloaded, so sourcing without the cache is negligible.
+ANTIGEN_CACHE=false
+
 source $HOME/.antigen/antigen.zsh
+
+# Set a stable cache dir BEFORE antigen initializes oh-my-zsh.
+# Without this, antigen's ZSH bundle path (which can have a trailing slash)
+# causes oh-my-zsh to set ZSH_CACHE_DIR with a trailing slash, producing
+# "cache//completions" double-slash paths that break the gh plugin at startup.
+export ZSH_CACHE_DIR="${HOME}/.cache/oh-my-zsh"
+mkdir -p "${ZSH_CACHE_DIR}/completions"
 
 antigen use oh-my-zsh
 
@@ -26,17 +38,15 @@ export PATH=$HOME/.local/bin/:$HOME/bin:$PATH
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
-HISTFILE=$HOME/.zsh/.zsh_history
+# History file lives in a named Docker volume so it persists across rebuilds.
+HISTFILE=$HOME/.zsh-history/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+setopt HIST_IGNORE_DUPS HIST_IGNORE_SPACE SHARE_HISTORY APPEND_HISTORY
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="powerlevel10k/powerlevel10k"
-
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -58,7 +68,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # DISABLE_MAGIC_FUNCTIONS="true"
 
 # Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COL ~ORS="true"
+# DISABLE_LS_COLORS="true"
 
 # Uncomment the following line to disable auto-setting terminal title.
 # DISABLE_AUTO_TITLE="true"
@@ -134,6 +144,8 @@ antigen bundle nvm
 antigen bundle ruby
 antigen bundle uv
 
+
+autoload -Uz compinit && compinit
 antigen apply
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

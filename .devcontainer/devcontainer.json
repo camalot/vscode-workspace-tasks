@@ -48,6 +48,8 @@
     // if this doesnt exist locally, it creates it as a folder...
     // to combat this, a default is loaded into the container
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
-    "source=${localWorkspaceFolder}/.devcontainer/mount,target=/home/vscode/.devcontainer,type=bind,consistency=cached"
+    "source=${localWorkspaceFolder}/.devcontainer/mount,target=/home/vscode/.devcontainer,type=bind,consistency=cached",
+    // Named volume so shell history (zsh + bash) persists across container rebuilds.
+    "source=vscode-workspace-tasks-zsh-history,target=/home/vscode/.zsh-history,type=volume"
   ]
 }

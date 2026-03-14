@@ -17,7 +17,7 @@ RUN if id -u "${USERNAME}" >/dev/null 2>&1; then \
   else \
     useradd -m -s /bin/zsh "${USERNAME}"; \
   fi \
-  && mkdir -p /home/${USERNAME}/bin/ /home/${USERNAME}/.zsh/ /home/${USERNAME}/.ssh \
+  && mkdir -p /home/${USERNAME}/bin/ /home/${USERNAME}/.zsh/ /home/${USERNAME}/.zsh-history/ /home/${USERNAME}/.ssh \
   && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
 
 
@@ -100,6 +100,7 @@ WORKDIR /workspace
 ENV PATH="/opt/venv/bin:$PATH"
 RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/bin/ \
   && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.zsh/ \
+  && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.zsh-history/ \
   && find /home/${USERNAME}/bin -maxdepth 1 -type f -exec chmod +x {} +
 
 USER ${USERNAME}
