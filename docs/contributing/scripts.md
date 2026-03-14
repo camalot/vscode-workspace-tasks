@@ -27,7 +27,7 @@ npm run <script-name>
 ## Building
 
 | Script | Command | Description |
-|--------|---------|-------------|
+| ------- | ------- | ----------- |
 | `compile` | `npm run compile` | Alias for `compile:webpack`. Compiles the extension using webpack. |
 | `compile:webpack` | `npm run compile:webpack` | Bundles the extension source via webpack (development mode). |
 | `compile:prod` | `npm run compile:prod` | Production-quality compile: runs type-checking, linting, then webpack. |
@@ -44,7 +44,7 @@ npm run <script-name>
 ## Testing
 
 | Script | Command | Description |
-|--------|---------|-------------|
+| ------- | ------- | ----------- |
 | `test` | `npm test` | Runs `pretest` then `vscode:test`. This is the standard test command. |
 | `test:coverage` | `npm run test:coverage` | Runs `pretest` then `vscode:test:coverage`. Generates a coverage report. |
 | `test:ui` | `npm run test:ui` | Compiles tests then launches UI/integration tests via `vscode-extension-tester`. |
@@ -64,7 +64,7 @@ The project targets **90% code coverage** for existing files. New code should ac
 ## Linting & Formatting
 
 | Script | Command | Description |
-|--------|---------|-------------|
+| ------- | ------- | ----------- |
 | `lint` | `npm run lint` | Runs ESLint against the `src/` directory. |
 | `format` | `npm run format` | Runs Prettier with `--write` to auto-format all files. |
 | `check` | `npm run check` | Runs both `check:types` and `check:format` together. |
@@ -76,7 +76,7 @@ The project targets **90% code coverage** for existing files. New code should ac
 ## Packaging
 
 | Script | Command | Description |
-|--------|---------|-------------|
+| ------- | ------- | ----------- |
 | `package` | `npm run package` | Alias for `package:vsix`. Packages the extension into a `.vsix` file. |
 | `package:webpack` | `npm run package:webpack` | Bundles the extension in production mode with hidden source maps. |
 | `package:vsix` | `npm run package:vsix` | Creates a `.vsix` package using `@vscode/vsce`. |
@@ -91,7 +91,7 @@ The project targets **90% code coverage** for existing files. New code should ac
 The docs scripts use the `~/bin/build-docs` helper installed in the dev container. They run `bundle exec jekyll` from the `docs/` directory and output the built site to `_site/`.
 
 | Script | Command | Description |
-|--------|---------|-------------|
+| ------- | ------- | ----------- |
 | `docs:build` | `npm run docs:build` | Builds the Jekyll documentation site to `_site/`. |
 | `docs:serve` | `npm run docs:serve` | Starts a local Jekyll server for previewing the documentation. Uses `_config.yml` and `_config-local.yml`. |
 | `docs:serve:watch` | `npm run docs:serve:watch` | Same as `docs:serve`. |
@@ -104,7 +104,7 @@ Open `http://localhost:4000` (or the port shown in the terminal) to preview the 
 ## Changelog
 
 | Script | Command | Description |
-|--------|---------|-------------|
+| ------ | ------- | ----------- |
 | `changelog:build` | `npm run changelog:build` | Runs `git-cliff --bump` to regenerate `CHANGELOG.md` from Conventional Commits. |
 
 > **Note:** Do not edit `CHANGELOG.md` manually. It is generated automatically by this script.
@@ -136,7 +136,7 @@ Reads a `.secrets` file from the repository root and sets its key-value pairs as
 **Parameters:**
 
 | Parameter | Default | Description |
-|-----------|---------|-------------|
+| --------- | ------- | ----------- |
 | `-SecretsFile` | `.secrets` (repo root) | Path to the secrets file to load. |
 | `-Scope` | `Process` | `Process` — sets variables for the current session only. `User` — sets variables permanently for the current user. |
 
@@ -166,7 +166,7 @@ Trims excess padding from SVG icon files by recalculating the `viewBox`, `width`
 **Arguments:**
 
 | Argument | Required | Description |
-|----------|----------|-------------|
+| -------- | -------- | ----------- |
 | `icon-name` | Yes | The base name of the icon (without `.svg` extension). |
 | `padding-px` | No | Optional padding in pixels to add around the bounding box. Defaults to 2% of the icon's largest dimension. |
 
@@ -197,7 +197,7 @@ Converts SVG icon files to PNG using ImageMagick. Iterates over all `.svg` files
 **Parameters:**
 
 | Parameter | Default | Description |
-|-----------|---------|-------------|
+| --------- | ------- | ----------- |
 | `-Width` | `128` | Output image width in pixels. Height scales proportionally. |
 | `-pattern` | `../res/icons/**/*.svg` | Glob pattern used to find SVG source files. |
 | `-overwrite` | `$false` | If `$true`, existing PNG files are re-generated. |

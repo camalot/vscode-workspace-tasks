@@ -72,11 +72,12 @@ The following tools are installed via `apt`:
 | `zsh` | Default shell |
 | `pwsh` | Available Shell with Oh-My-Posh |
 | `bash` | Available Shell with Oh-My-Posh |
+| `copilot cli` | GitHub Copilot CLI |
 
 ### Runtimes & Package Managers
 
 | Tool | Version | Purpose |
-|------|---------|---------|
+| ---- | ------- | -------- |
 | Node.js | 25.x | Extension build & test toolchain |
 | npm | 11.x | Node package manager |
 | pnpm | latest | Alternative Node package manager |
@@ -100,7 +101,7 @@ Custom aliases are loaded from `~/.zsh/custom/aliases/default.zsh`.
 The following extensions are automatically installed inside the container:
 
 | Extension | Purpose |
-|-----------|---------|
+| --------- | ------- |
 | `shopify.ruby-lsp` | Ruby language support |
 | `dbaeumer.vscode-eslint` | ESLint integration |
 | `esbenp.prettier-vscode` | Code formatting |
@@ -136,7 +137,7 @@ After the container is created, the `postCreateCommand` in `devcontainer.json` r
 ## Volume Mounts
 
 | Source | Container Path | Purpose |
-|--------|---------------|---------|
+| ------ | ------------- | ------- |
 | `${localWorkspaceFolder}` | `/workspaces/vscode-workspace-tasks` | Workspace files |
 | `~/.ssh` (host) | `/home/vscode/_ssh` | SSH keys (permissions are fixed by `install-tools.sh`) |
 | `/var/run/docker.sock` | `/var/run/docker.sock` | Docker-outside-of-Docker |
@@ -183,6 +184,8 @@ The integrated terminal defaults to `zsh`. The shell is configured with:
             │       ├── Microsoft.PowerShell_profile.ps1
             │       ├── profile.ps1
             │       └── darthminos.omp.json
+            ├── .workspace-tasks/
+            │   └── logo.txt
             └── .zsh/
                 └── custom/
                     └── aliases/

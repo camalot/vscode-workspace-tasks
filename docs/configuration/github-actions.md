@@ -32,7 +32,7 @@ Specify the path to a .env file containing environment variables for Act. This f
 
 ```json
 {
-	"workspaceTasks.act.envFile": ".env.act"
+  "workspaceTasks.act.envFile": ".env.act"
 }
 ```
 
@@ -50,7 +50,7 @@ Path to the variables file for `act`. The file format is the same as `.env` file
 
 ```json
 {
-	"workspaceTasks.act.variablesFile": ".vars"
+  "workspaceTasks.act.variablesFile": ".vars"
 }
 ```
 
@@ -68,10 +68,10 @@ Variables to pass to 'act'. Each key-value pair represents a variable name and i
 
 ```json
 {
-	"workspaceTasks.act.variables": {
-		"MY_VAR": "value",
-		"BUILD_ENV": "development"
-	}
+  "workspaceTasks.act.variables": {
+    "MY_VAR": "value",
+    "BUILD_ENV": "development"
+  }
 }
 ```
 
@@ -89,7 +89,7 @@ Specify the path to a .env file containing secrets for Act. This file will be us
 
 ```json
 {
-	"workspaceTasks.act.secretsFile": ".secrets"
+  "workspaceTasks.act.secretsFile": ".secrets"
 }
 ```
 

@@ -32,8 +32,8 @@ Act allows you to run GitHub Actions locally. Specify the path to the [Act](http
 
 ```jsonc
 {
-	// this will look for the executable within the project
-	"workspaceTasks.applicationPath.act": "tools\\act\\act.exe",
+  // this will look for the executable within the project
+  "workspaceTasks.applicationPath.act": "tools\\act\\act.exe",
 }
 ```
 
@@ -50,7 +50,7 @@ Specify the path to the Ant executable. On Windows, if the path ends with `ant`,
 
 ```json
 {
-	"workspaceTasks.applicationPath.ant": "ant"
+  "workspaceTasks.applicationPath.ant": "ant"
 }
 ```
 
@@ -67,7 +67,7 @@ Specify the path to the ANSICON executable. This is used to enable colored outpu
 
 ```json
 {
-	"workspaceTasks.applicationPath.ansicon": "ansicon.exe"
+  "workspaceTasks.applicationPath.ansicon": "ansicon.exe"
 }
 ```
 
@@ -84,7 +84,7 @@ Specify the path to the [Composer](https://getcomposer.org/) executable. On Wind
 
 ```json
 {
-	"workspaceTasks.applicationPath.composer": "composer"
+  "workspaceTasks.applicationPath.composer": "composer"
 }
 ```
 
@@ -101,7 +101,7 @@ Specify the path to the [Deno](https://deno.land/) executable. On Windows, if th
 
 ```json
 {
-	"workspaceTasks.applicationPath.deno": "~/.deno/bin/deno"
+  "workspaceTasks.applicationPath.deno": "~/.deno/bin/deno"
 }
 ```
 
@@ -118,7 +118,7 @@ Specify the path to the [Gradle](https://gradle.org/) executable. On Windows, if
 
 ```json
 {
-	"workspaceTasks.applicationPath.gradle": "gradlew"
+  "workspaceTasks.applicationPath.gradle": "gradlew"
 }
 ```
 
@@ -135,7 +135,7 @@ Specify the path to the [Just](https://just.systems/) executable. On Windows, if
 
 ```json
 {
-	"workspaceTasks.applicationPath.just": "just"
+  "workspaceTasks.applicationPath.just": "just"
 }
 ```
 
@@ -152,7 +152,7 @@ Specify the path to the Make executable. On Windows, if the path ends with `make
 
 ```json
 {
-	"workspaceTasks.applicationPath.make": "make"
+  "workspaceTasks.applicationPath.make": "make"
 }
 ```
 
@@ -169,7 +169,7 @@ Specify the path to the [Maven](https://maven.apache.org/) executable. On Window
 
 ```json
 {
-	"workspaceTasks.applicationPath.maven": "mvn"
+  "workspaceTasks.applicationPath.maven": "mvn"
 }
 ```
 
@@ -186,7 +186,7 @@ Specify the path to the MSBuild executable. On Windows, if the path ends with `m
 
 ```json
 {
-	"workspaceTasks.applicationPath.msbuild": "msbuild"
+  "workspaceTasks.applicationPath.msbuild": "msbuild"
 }
 ```
 
@@ -203,7 +203,7 @@ Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. 
 
 ```json
 {
-	"workspaceTasks.applicationPath.pipenv": "pipenv"
+  "workspaceTasks.applicationPath.pipenv": "pipenv"
 }
 ```
 

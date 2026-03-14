@@ -8,6 +8,25 @@ set -euo pipefail
 COLOR_RESET="\033[0m"
 COLOR_GREEN="\033[32m"
 COLOR_BLUE="\033[34m"
+COLOR_RED="\033[31m"
+
+function draw_logo() {
+  local logo_file
+  logo_file="$HOME/.workspace-tasks/logo.txt"
+
+  if [ -f "$logo_file" ]; then
+    # draw each line of the logo in red
+    while IFS= read -r line; do
+      echo -e "${COLOR_RED}${line}${COLOR_RESET}"
+    done <"$logo_file"
+  fi
+
+  echo ""
+  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+  echo -e "${COLOR_BLUE}Welcome to the VS Code Workspace Tasks Dev Container!${COLOR_RESET}"
+  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+  echo ""
+}
 
 function fix_ssh_permissions() {
   echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
@@ -79,6 +98,7 @@ function install_sample_tasks() {
     echo -e "${COLOR_GREEN}Sample workspace tasks already present at $SAMPLE_WORKSPACE_TASKS_DIR${COLOR_RESET}"
   fi
   echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
+  echo ""
 }
 
 function install_ohmyposh() {
@@ -98,6 +118,8 @@ function install_ohmyposh() {
   echo ""
 }
 
+draw_logo
+
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
 echo -e "${COLOR_GREEN}Running post-create setup script...${COLOR_RESET}"
 echo -e "${COLOR_GREEN}Installing additional tools...${COLOR_RESET}"
@@ -109,7 +131,7 @@ install_act
 install_ohmyposh
 install_sample_tasks
 
-
+echo ""
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
 echo -e "${COLOR_GREEN}Post-create setup script completed successfully!${COLOR_RESET}"
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"

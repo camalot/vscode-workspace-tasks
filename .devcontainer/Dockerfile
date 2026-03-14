@@ -81,7 +81,8 @@ RUN curl -fsSL "https://github.com/PowerShell/PowerShell/releases/download/v7.4.
     chmod +x /opt/microsoft/powershell/7/pwsh && \
     ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh && \
     ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/powershell && \
-    rm /tmp/powershell.tar.gz
+    rm /tmp/powershell.tar.gz && \
+    curl -fsSL https://gh.io/copilot-install | bash
 
 WORKDIR /workspace
 

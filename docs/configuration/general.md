@@ -29,7 +29,7 @@ Glob patterns to exclude from tasks. For example, to ignore all tasks in `sample
 
 ```json
 {
-	"workspaceTasks.exclude": ["**/sample/**", "**/test/**", "**/build/**"]
+  "workspaceTasks.exclude": ["**/sample/**", "**/test/**", "**/build/**"]
 }
 ```
 
@@ -48,7 +48,7 @@ Specify the fetch depth when discovering tasks from within the workspace. A valu
 
 ```json
 {
-	"workspaceTasks.taskDiscovery.fetchDepth": 3
+  "workspaceTasks.taskDiscovery.fetchDepth": 3
 }
 ```
 

@@ -29,7 +29,7 @@ When enabled, ANSICON will be used for Ant tasks to provide colored output in th
 
 ```json
 {
-	"workspaceTasks.ant.ansicon.enabled": true
+  "workspaceTasks.ant.ansicon.enabled": true
 }
 ```
 

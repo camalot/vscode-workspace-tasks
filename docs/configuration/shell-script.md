@@ -59,14 +59,14 @@ Enable support for specific shell script types. This allows the extension to rec
 
 ```json
 {
-	"workspaceTasks.shellEnabledTaskTypes": {
-		"bash": true,
-		"pwsh": true,
-		"batch": true,
-		"python": false,
-		"ruby": false,
-		"perl": false
-	}
+  "workspaceTasks.shellEnabledTaskTypes": {
+    "bash": true,
+    "pwsh": true,
+    "batch": true,
+    "python": false,
+    "ruby": false,
+    "perl": false
+  }
 }
 ```
 
@@ -79,16 +79,16 @@ Enable support for specific shell script types. This allows the extension to rec
 
 ```json
 {
-	"bash": "bash",
-	"batch": "cmd.exe",
-	"fish": "fish",
-	"nushell": "nu",
-	"perl": "perl",
-	"pwsh": "pwsh",
-	"python": "python",
-	"ruby": "ruby",
-	"sh": "sh",
-	"zsh": "zsh"
+  "bash": "bash",
+  "batch": "cmd.exe",
+  "fish": "fish",
+  "nushell": "nu",
+  "perl": "perl",
+  "pwsh": "pwsh",
+  "python": "python",
+  "ruby": "ruby",
+  "sh": "sh",
+  "zsh": "zsh"
 }
 ```
 
@@ -98,11 +98,11 @@ Specify custom paths for shell interpreters. Use a key-value format where the ke
 
 ```json
 {
-	"workspaceTasks.shellPaths": {
-		"bash": "/usr/local/bin/bash",
-		"pwsh": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
-		"python": "C:\\Python39\\python.exe"
-	}
+  "workspaceTasks.shellPaths": {
+    "bash": "/usr/local/bin/bash",
+    "pwsh": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    "python": "C:\\Python39\\python.exe"
+  }
 }
 ```
 
@@ -119,10 +119,10 @@ Add extra file extensions (beyond the default ones) that should be treated as sh
 
 ```json
 {
-	"workspaceTasks.shellAdditionalExtensions": {
-		"myext": "/usr/local/bin/myshell",
-		"tool": "python"
-	}
+  "workspaceTasks.shellAdditionalExtensions": {
+    "myext": "/usr/local/bin/myshell",
+    "tool": "python"
+  }
 }
 ```
 

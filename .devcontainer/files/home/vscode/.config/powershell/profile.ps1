@@ -1,19 +1,19 @@
 $env:VIRTUAL_ENV_DISABLE_PROMPT = 1;
 
 if (!(Get-Module -ListAvailable -Name PSReadLine)) {
-	Install-Module -Name PSReadLine -AllowPrerelease -Scope CurrentUser -Force -SkipPublisherCheck;
+  Install-Module -Name PSReadLine -AllowPrerelease -Scope CurrentUser -Force -SkipPublisherCheck;
 }
 
 
 $modules = @("posh-git");
 $modules | ForEach-Object {
-	if ( !(Get-Module -ListAvailable -Name "$_") ) {
-		Install-Module $_ -Scope CurrentUser -Force;
-	}
+  if ( !(Get-Module -ListAvailable -Name "$_") ) {
+    Install-Module $_ -Scope CurrentUser -Force;
+  }
 };
 
 $modules | ForEach-Object {
-	Import-Module -Name $_;
+  Import-Module -Name $_;
 }
 
 $host.privatedata.ErrorForegroundColor = 'Magenta';
