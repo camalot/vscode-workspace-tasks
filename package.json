@@ -92,6 +92,8 @@
     "watch:tests": "tsc -p . -w --outDir out",
     "watch:webpack": "webpack --watch",
     "vscode:prepublish": "npm run compile:prod && npm run package:webpack",
+    "vscode:headless:test": "xvfb-run -a vscode-test",
+    "vscode:headless:test:coverage": "xvfb-run -a vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
     "vscode:test": "vscode-test",
     "vscode:test:coverage": "vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
     "package": "npm run package:vsix",

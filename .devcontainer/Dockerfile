@@ -32,6 +32,11 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg \
   && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide \
   && apt-get install -y --no-install-recommends nano vim zsh \
+  && apt-get install -y --no-install-recommends \
+    xvfb libnspr4 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
+    libasound2 libpango-1.0-0 libpangocairo-1.0-0 libgtk-3-0 \
+    libgdk-pixbuf-xlib-2.0-0 libx11-6 libxss1 libxtst6 libdbus-1-3 \
   && curl -X GET -Ls "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/bin/yq \
   && chmod +x /usr/bin/yq \
   && apt-get autoremove -y \
