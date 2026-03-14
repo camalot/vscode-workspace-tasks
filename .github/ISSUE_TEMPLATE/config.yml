@@ -2,8 +2,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: 📚 Documentation
-    url: https://github.com/camalot/vscode-workspace-tasks/blob/develop/README.md
-    about: Check the README for usage instructions and examples
+    url: https://camalot.github.io/vscode-workspace-tasks/
+    about: Check the Documentation for usage instructions and examples
   - name: 💬 Discussions
     url: https://github.com/camalot/vscode-workspace-tasks/discussions
     about: Ask questions, share ideas, and discuss with the community
