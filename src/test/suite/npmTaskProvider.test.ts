@@ -124,7 +124,7 @@ suite('NpmTaskProvider Test Suite', () => {
 
       const filesService = TaskFilesService.getInstance();
       filesService.shouldIgnore = (uri: vscode.Uri) => {
-        return uri.fsPath.includes('/workspace/sample/');
+        return uri.fsPath.includes('/workspace/sample/') || uri.fsPath.includes('\\workspace\\sample\\') || uri.fsPath.includes('\\sample\\');
       };
 
       const tasks = await provider.getSystemTasks();
@@ -172,6 +172,7 @@ suite('BunTaskProvider Test Suite', () => {
 
   setup(() => {
     provider = new BunTaskProvider();
+    Object.defineProperty(provider, 'enabled', { value: true, configurable: true });
 
     originalFetchTasks = vscode.tasks.fetchTasks;
     originalOpenTextDocument = vscode.workspace.openTextDocument;

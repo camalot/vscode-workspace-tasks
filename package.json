@@ -101,7 +101,7 @@
     "package:webpack": "webpack --mode production --devtool hidden-source-map",
     "package:vsix": "npx @vscode/vsce package",
     "package:vsix:prerelease": "npx @vscode/vsce package --pre-release",
-    "test": "npm run pretest && npm run vscode:test",
+    "test": "npm run vscode:test",
     "test:coverage": "npm run pretest && npm run vscode:test:coverage",
     "test:ui": "npm run compile:tests && node .vscode-uitest.mjs",
     "format": "prettier --write .",

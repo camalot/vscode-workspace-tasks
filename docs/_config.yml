@@ -82,10 +82,10 @@ callouts:
     color: purple
   tip:
     title: Tip
-    color: cyan
+    color: blue
   warning:
     title: Warning
-    color: orange
+    color: yellow
   caution:
     title: Caution
     color: red
