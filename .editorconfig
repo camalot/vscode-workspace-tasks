@@ -22,3 +22,8 @@ indent_style = space
 
 [*.{jinja,jinja2}]
 indent_style = space
+
+[*.txt]
+indent_size = unset
+indent_style = unset
+charset = unset
