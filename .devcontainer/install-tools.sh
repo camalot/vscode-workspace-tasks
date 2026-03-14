@@ -101,6 +101,66 @@ function install_sample_tasks() {
   echo ""
 }
 
+function jekyll_bundle_prep() {
+  local current_dir
+  current_dir=$(pwd)
+
+  docs_dir="$current_dir/docs"
+  if [ -d "$docs_dir" ]; then
+    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+    echo -e "${COLOR_BLUE}Installing Jekyll dependencies for documentation...${COLOR_RESET}"
+    cd "$docs_dir"
+    bundle config set --local path vendor/bundle
+    bundle install
+    echo -e "${COLOR_GREEN}Jekyll dependencies installed successfully.${COLOR_RESET}"
+    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+    echo ""
+  else
+    echo -e "${COLOR_BLUE}No docs directory found at $docs_dir. Skipping Jekyll bundle prep.${COLOR_RESET}"
+  fi
+  cd "$current_dir"
+
+}
+
+function npm_install() {
+  local current_dir
+  current_dir=$(pwd)
+
+  if [ -f "package.json" ]; then
+    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+    echo -e "${COLOR_BLUE}Installing npm dependencies...${COLOR_RESET}"
+    npm install
+    echo -e "${COLOR_GREEN}npm dependencies installed successfully.${COLOR_RESET}"
+    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+    echo ""
+  else
+    echo -e "${COLOR_BLUE}No package.json found in $current_dir. Skipping npm install.${COLOR_RESET}"
+  fi
+
+  cd "$current_dir"
+}
+
+function install_antigen_bundles() {
+  # --- antigen / oh-my-zsh --------------------------------------------------
+  # Pre-warm the antigen bundle cache so that the first zsh session is fully
+  # configured without needing to re-download plugins from GitHub.
+
+  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+  echo -e "${COLOR_BLUE}Pre-warming antigen bundle cache (oh-my-zsh + plugins)...${COLOR_RESET}"
+
+  if [ -f "$HOME/.antigen/antigen.zsh" ]; then
+    # Run zsh non-interactively but source .zshrc to trigger antigen downloads.
+    # TERM must be set for some plugins; redirect stderr to suppress p10k noise.
+    TERM=xterm-256color zsh -i -c "antigen update 2>&1; antigen apply 2>&1" 2>/dev/null || true
+    echo -e "${COLOR_GREEN}Antigen bundle cache pre-warmed successfully.${COLOR_RESET}"
+  else
+    echo -e "${COLOR_RED}antigen.zsh not found – skipping bundle pre-warm.${COLOR_RESET}"
+  fi
+
+  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+  echo ""
+}
+
 function install_ohmyposh() {
   # --- oh-my-posh ----------------------------------------------------------
   # Install the oh-my-posh for a better terminal experience.
@@ -118,6 +178,15 @@ function install_ohmyposh() {
   echo ""
 }
 
+function update_packages() {
+  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+  echo -e "${COLOR_BLUE}Updating package lists and upgrading installed packages...${COLOR_RESET}"
+  sudo apt-get update && sudo apt-get upgrade -y
+  echo -e "${COLOR_GREEN}Packages updated successfully.${COLOR_RESET}"
+  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
+  echo ""
+}
+
 draw_logo
 
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
@@ -127,9 +196,13 @@ echo -e "${COLOR_GREEN}=========================================================
 echo ""
 
 fix_ssh_permissions
+npm_install
 install_act
+jekyll_bundle_prep
+install_antigen_bundles
 install_ohmyposh
 install_sample_tasks
+update_packages
 
 echo ""
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
