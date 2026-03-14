@@ -111,20 +111,32 @@ antigen theme romkatv/powerlevel10k
 antigen bundle git
 antigen bundle vscode
 antigen bundle docker
-antigen bundle helm
 antigen bundle zsh-users/zsh-syntax-highlighting
 antigen bundle zsh-users/zsh-autosuggestions
-antigen bundle zsh-users/history-substring-search
+antigen bundle zsh-users/zsh-history-substring-search
 antigen bundle rupa/z
-antigen bundle zsh-users/common-aliases
 antigen bundle b4b4r07/emoji-cli
-antigen bundle ohmyzsh/plugins/sudo
-
-source $ZSH/oh-my-zsh.sh
-
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+antigen bundle sudo
+antigen bundle aliases
+antigen bundle ant
+# antigen bundle autoenv
+antigen bundle command-not-found
+antigen bundle colorize
+antigen bundle common-aliases
+antigen bundle debian
+antigen bundle dotenv
+antigen bundle emoji
+antigen bundle fzf
+antigen bundle gh
+antigen bundle history
+antigen bundle npm
+antigen bundle nvm
+antigen bundle ruby
+antigen bundle uv
 
 antigen apply
+
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 __sources=("aliases" "exports" "functions", "sources")
 

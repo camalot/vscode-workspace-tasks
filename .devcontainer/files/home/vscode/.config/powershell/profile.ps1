@@ -27,4 +27,7 @@ $host.privatedata.VerboseBackgroundColor = 'Black';
 $host.privatedata.ProgressForegroundColor = 'DarkBlue';
 $host.privatedata.ProgressBackgroundColor = 'DarkCyan';
 
+# add ~/bin to the path
+$env:PATH += ";$Env:HOME\bin;$Env:HOME\.local\bin";
+
 oh-my-posh init pwsh --config $Env:HOME/.config/powershell/darthminos.omp.json | Invoke-Expression;

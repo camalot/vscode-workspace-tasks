@@ -27,11 +27,21 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     /usr/share/keyrings/yarnkey.gpg \
     /etc/apt/keyrings/yarn*.gpg 2>/dev/null || true
 
+RUN (type -p curl >/dev/null || (apt update && apt install curl -y)) \
+	&& mkdir -p -m 755 /etc/apt/keyrings \
+	&& out=$(mktemp) && curl -fsSL -o $out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+	&& cat $out | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+	&& chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+	&& mkdir -p -m 755 /etc/apt/sources.list.d \
+	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+	&& apt update \
+	&& apt install gh -y
+
 RUN apt-get update \
   && apt-get install -y --no-install-recommends apt-utils 2>&1 \
   && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg \
   && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide \
-  && apt-get install -y --no-install-recommends nano vim zsh \
+  && apt-get install -y --no-install-recommends nano vim zsh gh \
   && curl -X GET -Ls "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/bin/yq \
   && chmod +x /usr/bin/yq \
   && apt-get autoremove -y \

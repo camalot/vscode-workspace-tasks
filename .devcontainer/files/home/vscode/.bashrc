@@ -156,4 +156,6 @@ if [[ "$TERM" == "xterm" ]]; then
     PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }precmd"
 fi
 
+export PATH=$PATH:/home/vscode/bin
+
 eval "$(oh-my-posh init bash --config ~/.config/powershell/darthminos.omp.json)"
