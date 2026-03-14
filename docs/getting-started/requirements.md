@@ -124,7 +124,7 @@ See the [Configuration Reference](../Configuration#application-path-settings) fo
 
 ---
 
-## See Also
+## Next Steps
 
 - [Getting Started](getting-started) — Installation and initial setup
 - [Configuration](../configuration) — All settings including application paths

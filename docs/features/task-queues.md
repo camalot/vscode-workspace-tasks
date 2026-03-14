@@ -83,7 +83,7 @@ Use the actions in the queue's title bar to:
 
 ---
 
-## See Also
+## Next Steps
 
 - [Favorites & Recent Tasks](favorites) — Pin and track frequently used tasks
 - [Configuration](../configuration) — Full settings reference

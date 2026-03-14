@@ -80,8 +80,14 @@ callouts:
   note:
     title: Note
     color: purple
+  tip:
+    title: Tip
+    color: cyan
   warning:
     title: Warning
+    color: orange
+  caution:
+    title: Caution
     color: red
 
 # Exclude from build

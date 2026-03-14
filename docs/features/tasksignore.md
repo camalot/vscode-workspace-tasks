@@ -288,7 +288,7 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 !important.js
 ```
 
-## See Also
+## Next Steps
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
 - [Configuration](../configuration)

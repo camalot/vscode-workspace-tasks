@@ -1,0 +1,130 @@
+// ── Callout styles (Dracula dark-theme) ──────────────────────────────────────
+//
+// Just The Docs' auto-generated callout CSS uses dark-on-light colour pairs
+// that are invisible on Dracula's dark background (#282a36). These rules fully
+// own all callout styling using Dracula palette variables.
+//
+// Selectors cover div, p, and blockquote so the styles apply regardless of
+// which element the kramdown attribute list is applied to.
+
+// ── Shared mixin ──────────────────────────────────────────────────────────────
+
+@mixin callout-base($color, $alpha: 0.08) {
+  border: 1px $color solid;
+  border-left: 4px solid $color;
+  border-radius: 4px;
+  background-color: rgba($color, $alpha);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+  padding: 0.8rem;
+  color: $dracula-foreground;
+
+  // Ensure nested paragraphs inside blockquote callouts are readable
+  > p {
+    color: $dracula-foreground;
+    margin-bottom: 0;
+  }
+}
+
+@mixin callout-label($color, $label) {
+  color: $color;
+  content: $label;
+  display: block;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75em;
+  padding-bottom: 0.125rem;
+}
+
+// ── Note (purple) ─────────────────────────────────────────────────────────────
+
+div.note,
+p.note,
+blockquote.note {
+  @include callout-base($dracula-purple);
+}
+
+div.note::before,
+p.note::before,
+blockquote.note::before {
+  @include callout-label($dracula-purple, 'Note');
+}
+
+// ── Highlight (yellow) ────────────────────────────────────────────────────────
+// Note: .highlight is also used by Rouge for code blocks (div.highlight wraps
+// pre elements). Only p and blockquote are targeted here to avoid styling
+// code fences as callout boxes.
+
+p.highlight,
+blockquote.highlight {
+  @include callout-base($dracula-yellow);
+}
+
+// ── Important (cyan) ──────────────────────────────────────────────────────────
+
+div.important,
+p.important,
+blockquote.important {
+  @include callout-base($dracula-cyan);
+}
+
+div.important::before,
+p.important::before,
+blockquote.important::before {
+  @include callout-label($dracula-cyan, 'Important');
+}
+
+// ── Tip (pink) ────────────────────────────────────────────────────────────────
+
+div.tip,
+p.tip,
+blockquote.tip {
+  @include callout-base($dracula-pink);
+}
+
+div.tip::before,
+p.tip::before,
+blockquote.tip::before {
+  @include callout-label($dracula-pink, 'Tip');
+}
+
+// ── Warning (orange) ──────────────────────────────────────────────────────────
+
+div.warning,
+p.warning,
+blockquote.warning {
+  @include callout-base($dracula-orange);
+}
+
+div.warning::before,
+p.warning::before,
+blockquote.warning::before {
+  @include callout-label($dracula-orange, 'Warning');
+}
+
+// ── Caution (red) ─────────────────────────────────────────────────────────────
+
+div.caution,
+p.caution,
+blockquote.caution {
+  @include callout-base($dracula-red);
+}
+
+div.caution::before,
+p.caution::before,
+blockquote.caution::before {
+  @include callout-label($dracula-red, 'Caution');
+}
+
+// ── New (green) ───────────────────────────────────────────────────────────────
+
+div.new,
+p.new,
+blockquote.new {
+  @include callout-base($dracula-green);
+}
+
+div.new::before,
+p.new::before,
+blockquote.new::before {
+  @include callout-label($dracula-green, 'New');
+}

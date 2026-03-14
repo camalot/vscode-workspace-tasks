@@ -85,7 +85,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 ---
 
-## See Also
+## Next Steps
 
 - [Task Queues](task-queues) — Run sequences of tasks
 - [Configuration](../configuration) — Full settings reference

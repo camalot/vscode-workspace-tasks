@@ -4,6 +4,7 @@ title: 🐳 Dev Container
 parent: ✏️ Contributing
 nav_order: 1
 ---
+<!-- markdownlint-disable MD033 -->
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
 # Dev Container
@@ -44,6 +45,7 @@ The repository ships with a fully configured [dev container](https://containers.
 
 3. When prompted, click **Reopen in Container**, or run the command palette action **Dev Containers: Reopen in Container**.
 
+{: .note }
 VS Code will build the Docker image and start the container. The `postCreateCommand` runs automatically to install all dependencies.
 
 ---
@@ -92,7 +94,7 @@ The following tools are installed via `apt`:
 - **Default shell:** `zsh`
 - **Prompt theme:** [Powerlevel10k](https://github.com/romkatv/powerlevel10k) (configured via `.p10k.zsh`)
 - **Plugin manager:** [Antigen](https://github.com/zsh-users/antigen)
-- **Prompt renderer (pwsh|bash):** [oh-my-posh](https://ohmyposh.dev/) (installed by `install-tools.sh`)
+- **Prompt renderer (pwsh & bash):** [oh-my-posh](https://ohmyposh.dev/) (installed by `install-tools.sh`)
 
 Custom aliases are loaded from `~/.zsh/custom/aliases/default.zsh`.
 
@@ -144,7 +146,8 @@ After the container is created, the `postCreateCommand` in `devcontainer.json` r
 | `~/.gitconfig` (host) | `/home/vscode/.gitconfig` | Git configuration |
 | `.devcontainer/mount` | `/home/vscode/.devcontainer` | Container-local configuration overrides |
 
-> **Note:** SSH keys are mounted to `~/_ssh` rather than `~/.ssh` because some host setups (e.g., WSL with a Windows-mounted drive) have permission attributes that Docker cannot preserve. The `install-tools.sh` script copies the files to `~/.ssh` and applies correct permissions.
+{: .note }
+SSH keys are mounted to `~/_ssh` rather than `~/.ssh` because some host setups (e.g., WSL with a Windows-mounted drive) have permission attributes that Docker cannot preserve. The `install-tools.sh` script copies the files to `~/.ssh` and applies correct permissions.
 
 ### Docker-outside-of-Docker
 
@@ -159,6 +162,51 @@ The integrated terminal defaults to `zsh`. The shell is configured with:
 - Powerlevel10k theme (`~/.p10k.zsh`)
 - Custom aliases in `~/.zsh/custom/aliases/default.zsh`
 - A `build-docs` helper script in `~/bin/` for serving the Jekyll documentation site locally
+
+---
+
+## Zsh Configuration
+
+The Zsh configuration is located in `~/.zshrc` and includes:
+
+- Sourcing the Powerlevel10k theme (`~/.p10k.zsh`)
+- Loading custom aliases from `~/.zsh/custom/aliases/default.zsh`
+- Setting up the `build-docs` helper script in `~/bin/` for serving the Jekyll documentation site locally
+
+### Powerlevel10k Theme
+
+The Powerlevel10k theme is configured in `~/.p10k.zsh` and provides a highly customizable prompt for Zsh. It is designed to be fast and informative, displaying information such as the current Git branch, command execution time, and more.
+
+### Plugins
+
+The Zsh configuration uses [Antigen](https://github.com/zsh-users/antigen) to manage plugins. The following plugins and theme are loaded:
+
+| Plugin | Description |
+| ------ | ----------- |
+| `romkatv/powerlevel10k` (theme) | Highly customizable Zsh prompt with Git status, execution time, and more |
+| `git` | Git aliases and helpers |
+| `vscode` | VS Code integration helpers |
+| `docker` | Docker aliases and completions |
+| [zsh-users/zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting) | Syntax highlighting for the command line |
+| [zsh-users/zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) | Command suggestions based on history |
+| [zsh-users/zsh-history-substring-search](https://github.com/zsh-users/zsh-history-substring-search) | History search by substring (up/down arrow) |
+| [rupa/z](https://github.com/rupa/z) | Jump to frequently used directories |
+| [b4b4r07/emoji-cli](https://github.com/b4b4r07/emoji-cli) | Emoji picker for the command line |
+| `sudo` | Press <kbd>Esc</kbd> twice to prefix the previous command with `sudo` |
+| `aliases` | Lists defined aliases with `als` |
+| `ant` | Apache Ant completions |
+| `command-not-found` | Suggests packages when a command is not found |
+| `colorize` | Syntax-highlighted `cat` via `ccat` |
+| `common-aliases` | Useful common shell aliases |
+| `debian` | Apt/dpkg aliases for Debian-based systems |
+| `dotenv` | Automatically loads `.env` files in directories |
+| `emoji` | Emoji helper utilities |
+| `fzf` | Fuzzy finder key bindings and completions |
+| `gh` | GitHub CLI completions |
+| `history` | History aliases (`h`, `hsi`, etc.) |
+| `npm` | npm aliases and completions |
+| `nvm` | nvm (Node Version Manager) integration |
+| `ruby` | Ruby and Bundler aliases |
 
 ---
 

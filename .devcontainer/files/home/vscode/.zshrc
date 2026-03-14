@@ -129,7 +129,6 @@ antigen bundle b4b4r07/emoji-cli
 antigen bundle sudo
 antigen bundle aliases
 antigen bundle ant
-# antigen bundle autoenv
 antigen bundle command-not-found
 antigen bundle colorize
 antigen bundle common-aliases
@@ -142,7 +141,6 @@ antigen bundle history
 antigen bundle npm
 antigen bundle nvm
 antigen bundle ruby
-antigen bundle uv
 
 
 autoload -Uz compinit && compinit

@@ -69,7 +69,7 @@ For permanently excluding files from task discovery, use [Task Filtering](task-f
 
 ---
 
-## See Also
+## Next Steps
 
 - [Task Filtering](task-filtering) — Exclude files using `.tasksignore`
 - [.tasksignore Reference](tasksignore) — `.tasksignore` syntax and examples
