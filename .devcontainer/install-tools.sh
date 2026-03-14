@@ -166,7 +166,7 @@ function install_antigen_bundles() {
   local gh_cache_dir="$HOME/.cache/oh-my-zsh/completions"
   mkdir -p "$gh_cache_dir"
   if command -v gh &>/dev/null; then
-    gh completion -s zsh > "$gh_cache_dir/_gh" 2>/dev/null || true
+    gh completion -s zsh >"$gh_cache_dir/_gh" 2>/dev/null || true
     echo -e "${COLOR_GREEN}gh completions pre-generated at $gh_cache_dir/_gh.${COLOR_RESET}"
   fi
 

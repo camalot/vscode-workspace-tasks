@@ -7,7 +7,9 @@ failure-threshold: warning
 
 ignored:
   - DL3008 # pin versions in apt
+  - DL3015
   - DL3016 # pin versions in npm
   - DL3018 # pin versions in pip
   - DL3028 # pin version in gem
   - DL4006 # Set the SHELL option -o pipefail
+  - SC2174

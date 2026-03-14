@@ -6,6 +6,7 @@ import { PackageYamlTaskProvider } from './packageYamlTaskProvider';
 import { TaskItem } from '../taskItem';
 import { TaskIconService } from '../services/taskIconService';
 import { TaskStateManager } from '../taskStateManager';
+import { TaskFilesService } from '../services/taskFilesService';
 
 export class NpmTaskProvider extends PackageJsonTaskProvider {
   private readonly iconService = TaskIconService.getInstance();
@@ -29,6 +30,7 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
     }
     this.logger.debug(`[NpmTaskProvider] Fetched ${systemTasks.length} system tasks.`);
 
+    const filesService = TaskFilesService.getInstance();
     const documentsCache: Map<string, vscode.TextDocument> = new Map();
     const contentCache: Map<string, string> = new Map();
     const jsonCache: Map<string, any> = new Map();
@@ -50,6 +52,12 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
 
       if (!fileUri && taskScope && taskScope.uri) {
         fileUri = vscode.Uri.joinPath(taskScope.uri, 'package.json');
+      }
+
+      // Skip tasks from files excluded by .tasksignore
+      if (fileUri && filesService.shouldIgnore(fileUri)) {
+        this.logger.debug(`[NpmTaskProvider] Skipping ignored task file: ${fileUri.fsPath}`);
+        continue;
       }
 
       // Load and cache document content
@@ -228,6 +236,7 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
     }
     this.logger.debug(`[BunTaskProvider] Fetched ${systemTasks.length} system tasks.`);
 
+    const filesService = TaskFilesService.getInstance();
     const documentsCache: Map<string, vscode.TextDocument> = new Map();
     const contentCache: Map<string, string> = new Map();
     const jsonCache: Map<string, any> = new Map();
@@ -249,6 +258,12 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
 
       if (!fileUri && taskScope && taskScope.uri) {
         fileUri = vscode.Uri.joinPath(taskScope.uri, 'package.json');
+      }
+
+      // Skip tasks from files excluded by .tasksignore
+      if (fileUri && filesService.shouldIgnore(fileUri)) {
+        this.logger.debug(`[BunTaskProvider] Skipping ignored task file: ${fileUri.fsPath}`);
+        continue;
       }
 
       // Load and cache document content

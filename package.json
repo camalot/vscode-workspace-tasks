@@ -11,6 +11,7 @@
     "name": "darthminos",
     "email": "camalot@gmail.com"
   },
+  "documentation": "https://camalot.github.io/vscode-workspace-tasks/",
   "homepage": "https://github.com/camalot/vscode-workspace-tasks",
   "repository": {
     "type": "git",
