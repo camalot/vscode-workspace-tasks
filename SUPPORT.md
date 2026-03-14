@@ -77,4 +77,4 @@ Interested in contributing code, documentation, or other improvements? Check out
 - ✨ [Request a Feature](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=feature_request.yml)
 - 🔧 [Request Task Support](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=task_support.yml)
 - 💬 [Join Discussions](https://github.com/camalot/vscode-workspace-tasks/discussions)
-- 📚 [Read Documentation](https://github.com/camalot/vscode-workspace-tasks/blob/develop/README.md)
+- 📚 [Read Documentation](https://camalot.github.io/vscode-workspace-tasks/)
