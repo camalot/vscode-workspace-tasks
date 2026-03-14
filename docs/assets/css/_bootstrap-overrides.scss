@@ -1,0 +1,141 @@
+// ── Bootstrap CSS variable overrides — Dracula theme ─────────────────────────
+//
+// Bootstrap 5 uses CSS custom properties on :root for all colours and surfaces.
+// Overriding them here replaces the default light-mode values with the Dracula
+// palette so Bootstrap components (FAB, badges, etc.) stay on-theme without the
+// need to import a full Bootstrap dark-mode build.
+//
+// To add a hex value to a `*-rgb` var, split it as R, G, B integers.
+// e.g. #282a36 → 40, 42, 54  |  #f8f8f2 → 248, 248, 242
+
+:root {
+  // ── Dracula brand colours ──────────────────────────────────────────────────
+  --bs-blue:        #{$dracula-cyan};
+  --bs-indigo:      #{$dracula-comment};
+  --bs-purple:      #{$dracula-purple};
+  --bs-pink:        #{$dracula-pink};
+  --bs-red:         #{$dracula-red};
+  --bs-orange:      #{$dracula-orange};
+  --bs-yellow:      #{$dracula-yellow};
+  --bs-green:       #{$dracula-green};
+  --bs-teal:        #{$dracula-cyan};
+  --bs-cyan:        #{$dracula-cyan};
+  --bs-black:       #000;
+  --bs-white:       #{$dracula-foreground};
+
+  // ── Grey scale mapped to Dracula shades ────────────────────────────────────
+  --bs-gray-100:    #{color.adjust($dracula-background, $lightness: 40%)};
+  --bs-gray-200:    #{color.adjust($dracula-background, $lightness: 30%)};
+  --bs-gray-300:    #{color.adjust($dracula-background, $lightness: 20%)};
+  --bs-gray-400:    #{color.adjust($dracula-background, $lightness: 15%)};
+  --bs-gray-500:    #{$dracula-comment};
+  --bs-gray-600:    #{color.adjust($dracula-comment, $lightness: -10%)};
+  --bs-gray-700:    #{$dracula-current-line};
+  --bs-gray-800:    #{color.adjust($dracula-background, $lightness: 5%)};
+  --bs-gray-900:    #{$dracula-background};
+  --bs-gray:        #{$dracula-comment};
+  --bs-gray-dark:   #{$dracula-current-line};
+
+  // ── Semantic role colours ──────────────────────────────────────────────────
+  --bs-primary:             #{$dracula-cyan};
+  --bs-secondary:           #{$dracula-comment};
+  --bs-success:             #{$dracula-green};
+  --bs-info:                #{$dracula-purple};
+  --bs-warning:             #{$dracula-yellow};
+  --bs-danger:              #{$dracula-red};
+  --bs-light:               #{$dracula-current-line};
+  --bs-dark:                #{$dracula-background};
+
+  --bs-primary-rgb:         139, 233, 253;   // #8be9fd
+  --bs-secondary-rgb:       98, 114, 164;    // #6272a4
+  --bs-success-rgb:         80, 250, 123;    // #50fa7b
+  --bs-info-rgb:            189, 147, 249;   // #bd93f9
+  --bs-warning-rgb:         241, 250, 140;   // #f1fa8c
+  --bs-danger-rgb:          255, 85, 85;     // #f55
+  --bs-light-rgb:           68, 71, 90;      // #44475a
+  --bs-dark-rgb:            40, 42, 54;      // #282a36
+
+  // ── Emphasis / subtle shades ───────────────────────────────────────────────
+  --bs-primary-text-emphasis:   #{$dracula-cyan};
+  --bs-secondary-text-emphasis: #{$dracula-foreground};
+  --bs-success-text-emphasis:   #{$dracula-green};
+  --bs-info-text-emphasis:      #{$dracula-purple};
+  --bs-warning-text-emphasis:   #{$dracula-yellow};
+  --bs-danger-text-emphasis:    #{$dracula-red};
+  --bs-light-text-emphasis:     #{$dracula-foreground};
+  --bs-dark-text-emphasis:      #{$dracula-foreground};
+
+  --bs-primary-bg-subtle:       #{color.adjust($dracula-background, $lightness: 5%)};
+  --bs-secondary-bg-subtle:     #{color.adjust($dracula-background, $lightness: 3%)};
+  --bs-success-bg-subtle:       #{color.adjust($dracula-background, $lightness: 5%)};
+  --bs-info-bg-subtle:          #{color.adjust($dracula-background, $lightness: 5%)};
+  --bs-warning-bg-subtle:       #{color.adjust($dracula-background, $lightness: 5%)};
+  --bs-danger-bg-subtle:        #{color.adjust($dracula-background, $lightness: 5%)};
+  --bs-light-bg-subtle:         #{$dracula-current-line};
+  --bs-dark-bg-subtle:          #{$dracula-background};
+
+  --bs-primary-border-subtle:   #{$dracula-current-line};
+  --bs-secondary-border-subtle: #{$dracula-current-line};
+  --bs-success-border-subtle:   #{$dracula-current-line};
+  --bs-info-border-subtle:      #{$dracula-current-line};
+  --bs-warning-border-subtle:   #{$dracula-current-line};
+  --bs-danger-border-subtle:    #{$dracula-current-line};
+  --bs-light-border-subtle:     #{$dracula-current-line};
+  --bs-dark-border-subtle:      #{$dracula-current-line};
+
+  // ── RGB component pairs ────────────────────────────────────────────────────
+  --bs-white-rgb:   248, 248, 242;  // #f8f8f2
+  --bs-black-rgb:   0, 0, 0;
+
+  // ── Body / surface ─────────────────────────────────────────────────────────
+  --bs-body-color:          #{$dracula-foreground};
+  --bs-body-color-rgb:      248, 248, 242;
+  --bs-body-bg:             #{$dracula-background};
+  --bs-body-bg-rgb:         40, 42, 54;
+
+  --bs-emphasis-color:      #{$dracula-foreground};
+  --bs-emphasis-color-rgb:  248, 248, 242;
+
+  --bs-secondary-color:       rgba(248, 248, 242, 0.75);
+  --bs-secondary-color-rgb:   248, 248, 242;
+  --bs-secondary-bg:          #{$dracula-current-line};
+  --bs-secondary-bg-rgb:      68, 71, 90;
+
+  --bs-tertiary-color:        rgba(248, 248, 242, 0.5);
+  --bs-tertiary-color-rgb:    248, 248, 242;
+  --bs-tertiary-bg:           #{color.adjust($dracula-background, $lightness: 5%)};
+  --bs-tertiary-bg-rgb:       48, 50, 64;
+
+  // ── Typography ─────────────────────────────────────────────────────────────
+  --bs-heading-color:         #{$body-heading-color};
+
+  // ── Links ──────────────────────────────────────────────────────────────────
+  --bs-link-color:            #{$link-color};
+  --bs-link-color-rgb:        139, 233, 253;
+  --bs-link-decoration:       none;
+  --bs-link-hover-color:      #{$dracula-purple};
+  --bs-link-hover-color-rgb:  189, 147, 249;
+
+  // ── Code ───────────────────────────────────────────────────────────────────
+  --bs-code-color:            #{$dracula-pink};
+  --bs-highlight-color:       #{$dracula-foreground};
+  --bs-highlight-bg:          #{$dracula-current-line};
+
+  // ── Borders ────────────────────────────────────────────────────────────────
+  --bs-border-color:              #{$dracula-current-line};
+  --bs-border-color-translucent:  rgba(248, 248, 242, 0.175);
+
+  // ── Focus ring ─────────────────────────────────────────────────────────────
+  --bs-focus-ring-color:      rgba(139, 233, 253, 0.25);
+
+  // ── Shadows ────────────────────────────────────────────────────────────────
+  --bs-box-shadow:            0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  --bs-box-shadow-sm:         0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+  --bs-box-shadow-lg:         0 1rem 3rem rgba(0, 0, 0, 0.6);
+
+  // ── Form validation ────────────────────────────────────────────────────────
+  --bs-form-valid-color:          #{$dracula-green};
+  --bs-form-valid-border-color:   #{$dracula-green};
+  --bs-form-invalid-color:        #{$dracula-red};
+  --bs-form-invalid-border-color: #{$dracula-red};
+}

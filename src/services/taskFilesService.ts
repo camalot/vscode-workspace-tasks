@@ -17,12 +17,14 @@ export class TaskFilesService {
   private ignoreFiles: IgnoreFile[] = [];
   private configWatcher?: vscode.Disposable;
   private fileWatcher?: vscode.Disposable;
+  private fileEventsWatcher?: vscode.Disposable;
   private context?: vscode.ExtensionContext;
   private logger = LoggerService.getInstance();
   private registeredPatterns: Set<string> = new Set();
   private cachedPaths: Set<string> | null = null;
   private cacheInvalidated = true;
   private buildCacheInFlight: Promise<void> | null = null;
+  private cacheGeneration = 0;
 
   private constructor() {
     this.globalIgnore = ignore();
@@ -55,11 +57,15 @@ export class TaskFilesService {
 
   private async _doBuildCache(): Promise<void> {
     const cacheBuildStartMs = Date.now();
+    const generation = this.cacheGeneration;
     await this.syncIgnoreFiles();
 
     const patterns = Array.from(this.registeredPatterns);
     if (patterns.length === 0) {
+      if (generation !== this.cacheGeneration) { return; }
       this.cachedPaths = new Set();
+      this.cacheInvalidated = false;
+      this.logger.debug('[TaskFilesService] No registered patterns; cache marked valid (empty).');
       return;
     }
 
@@ -90,6 +96,7 @@ export class TaskFilesService {
         result.add(uri.fsPath);
       }
 
+      if (generation !== this.cacheGeneration) { return; }
       this.cachedPaths = result;
       this.cacheInvalidated = false;
       const cacheBuildDurationMs = Date.now() - cacheBuildStartMs;
@@ -99,6 +106,7 @@ export class TaskFilesService {
     } catch (err) {
       const cacheBuildDurationMs = Date.now() - cacheBuildStartMs;
       this.logger.error(`[TaskFilesService] Error building cache after ${cacheBuildDurationMs}ms: ${err}`);
+      if (generation !== this.cacheGeneration) { return; }
       this.cachedPaths = new Set();
       this.cacheInvalidated = false;
     }
@@ -107,7 +115,10 @@ export class TaskFilesService {
   public invalidateCache(): void {
     this.cachedPaths = null;
     this.cacheInvalidated = true;
+    this.cacheGeneration++;
     // Drop any in-flight build so the next findFiles() call starts a fresh scan.
+    // The generation increment ensures that if the old build still completes it
+    // will detect the mismatch and discard its results.
     this.buildCacheInFlight = null;
   }
 
@@ -328,6 +339,15 @@ export class TaskFilesService {
     });
   }
 
+  public dispose(): void {
+    this.configWatcher?.dispose();
+    this.configWatcher = undefined;
+    this.fileWatcher?.dispose();
+    this.fileWatcher = undefined;
+    this.fileEventsWatcher?.dispose();
+    this.fileEventsWatcher = undefined;
+  }
+
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.context = context;
     this.globalIgnore = ignore();
@@ -396,7 +416,11 @@ export class TaskFilesService {
     });
     this.fileWatcher = watcher;
 
-    context.subscriptions.push(
+    if (this.fileEventsWatcher) {
+      this.fileEventsWatcher.dispose();
+      this.fileEventsWatcher = undefined;
+    }
+    this.fileEventsWatcher = vscode.Disposable.from(
       vscode.workspace.onDidCreateFiles((e) => {
         if (this.anyFileMatchesRegisteredPatterns(e.files)) {
           this.invalidateCache();

@@ -1,0 +1,55 @@
+{
+  "name": "Workspace Tasks Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      },
+      "extensions": [
+        "shopify.ruby-lsp",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "darthminos.workspace-tasks",
+        "DavidAnson.vscode-markdownlint",
+        "EditorConfig.EditorConfig",
+        "GitHub.vscode-github-actions",
+        "github.copilot-chat",
+        "mads-hartmann.bash-ide-vscode",
+        "mkhl.shfmt",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.makefile-tools",
+        "timonwong.shellcheck",
+        "mikestead.dotenv",
+        "bierner.github-markdown-preview",
+        "editorconfig.editorconfig",
+        "igorsbitnev.error-gutters",
+        "timonwong.shellcheck",
+        "shopify.theme-check-vscode"
+      ]
+    }
+  },
+  "postCreateCommand": "chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
+  "remoteUser": "vscode",
+
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/vscode-workspace-tasks,type=bind,consistency=cached",
+  "workspaceFolder": "/workspaces/vscode-workspace-tasks",
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/_ssh,type=bind,consistency=cached",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=cached",
+    // if this doesnt exist locally, it creates it as a folder...
+    // to combat this, a default is loaded into the container
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/mount,target=/home/vscode/.devcontainer,type=bind,consistency=cached",
+    // Named volume so shell history (zsh + bash) persists across container rebuilds.
+    "source=vscode-workspace-tasks-zsh-history,target=/home/vscode/.zsh-history,type=volume"
+  ]
+}

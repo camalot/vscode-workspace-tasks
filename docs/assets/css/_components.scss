@@ -1,0 +1,56 @@
+// ── Site header: logo + title side by side ────────────────────────────────────
+
+.site-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// Override just-the-docs' width/height: 100% which can collapse the logo to 0
+// inside a flex container when the sibling ::after text can't shrink further.
+.site-logo {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.site-title::after {
+  content: "Workspace Tasks";
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: $body-heading-color;
+  white-space: nowrap;
+}
+
+// ── Back-to-top FAB ───────────────────────────────────────────────────────────
+
+#back-to-top-fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: none;
+  background-color: $link-color;
+  color: $body-background-color;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease, background-color 0.2s ease;
+  z-index: 1000;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $dracula-purple;
+  }
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+}

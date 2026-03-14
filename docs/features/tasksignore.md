@@ -1,8 +1,26 @@
+---
+layout: default
+title: 🚫 Ignoring Tasks
+nav_order: 6
+parent: 🚀 Features
+---
+
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # .tasksignore
+{: .no_toc }
 
-The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension. This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
+The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension.
 
-## Overview
+<!-- markdownlint-disable-next-line MD022 -->
+## Table of Contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
+
+This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
+
+## Overview}
 
 `.tasksignore` works similarly to `.gitignore`, using the same pattern syntax to specify which files and directories should be excluded from task scanning. When the extension searches for task files (like `package.json`, `Makefile`, `build.gradle`, etc.), it will skip any files that match patterns in `.tasksignore` files.
 
@@ -270,8 +288,8 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 !important.js
 ```
 
-## See Also
+## Next Steps
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
-- [Workspace Tasks Configuration](../CONFIGURATION.md)
+- [Configuration](../configuration)
 - [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)

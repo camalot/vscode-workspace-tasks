@@ -1,6 +1,24 @@
-# Task Filtering
+---
+layout: default
+title: 🪄 Task Filtering
+nav_order: 6
+parent: 🚀 Features
+---
 
-The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension. This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
+<!-- markdownlint-disable-next-line MD025 MD022 -->
+# Task Filtering
+{: .no_toc }
+
+The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension.
+
+<!-- markdownlint-disable-next-line MD022 -->
+## Table of Contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
+
+This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
 
 ## Overview
 
@@ -206,6 +224,7 @@ If any pattern matches, the file is excluded from task discovery.
 ## Common Use Cases
 
 ### Exclude Test Files
+
 ```ignore
 **/test/**
 **/__tests__/**
@@ -214,6 +233,7 @@ If any pattern matches, the file is excluded from task discovery.
 ```
 
 ### Exclude Build Artifacts
+
 ```ignore
 build/
 dist/
@@ -226,6 +246,7 @@ obj/
 ```
 
 ### Exclude Example/Demo Code
+
 ```ignore
 examples/
 demo/
@@ -234,6 +255,7 @@ playground/
 ```
 
 ### Exclude Generated Code
+
 ```ignore
 **/*.generated.*
 **/generated/**
@@ -268,8 +290,8 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 !important.js
 ```
 
-## See Also
+## Next Steps
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
-- [Workspace Tasks Configuration](Configuration.md)
+- [Configuration](../configuration)
 - [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)

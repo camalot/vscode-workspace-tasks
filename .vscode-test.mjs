@@ -8,6 +8,8 @@ export default defineConfig({
   files: 'out/test/**/*.test.js',
   workspaceFolder: '.',
   version: '1.105.1',
+  // userDataDir: '/tmp/vscode-test-user-data',
+  // , '--user-data-dir=/tmp/vscode-test-user-data'
   launchArgs: ['--disable-updates', '--no-sandbox', '--disable-gpu'],
   mocha: {
     reporter: 'mocha-junit-reporter',

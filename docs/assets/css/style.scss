@@ -1,0 +1,32 @@
+---
+---
+
+@use 'sass:color';
+
+@import 'color_schemes/dracula';
+
+// Signal to browsers and Dark Reader that this site already provides a dark
+// colour scheme — prevents Dark Reader from rewriting CSS background-image
+// URLs (e.g. the site logo) with blob overrides.
+:root {
+  color-scheme: dark;
+}
+
+// ── Global link styles ────────────────────────────────────────────────────────
+
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
+  text-decoration: none;
+}
+
+// ── Partials ──────────────────────────────────────────────────────────────────
+
+@import 'bootstrap-overrides';
+@import 'code';
+@import 'syntax';
+@import 'layout';
+@import 'components';
+@import 'callouts';

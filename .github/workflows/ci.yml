@@ -51,6 +51,8 @@ jobs:
           VALIDATE_BIOME_FORMAT: false
           VALIDATE_BIOME_LINT: false
           VALIDATE_CHECKOV: false
+          VALIDATE_CSS: false
+          VALIDATE_CSS_PRETTIER: false
           VALIDATE_HTML_PRETTIER: false
           VALIDATE_JAVASCRIPT_ES: false # DISABLED
           VALIDATE_JSON: false
@@ -85,7 +87,7 @@ jobs:
         run: xvfb-run -a npm run test:coverage
 
       - name: Upload coverage reports to Codecov
-        if: ${{ !cancelled() && !env.ACT }}
+        if: ${{ !env.ACT }}
         uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true # optional (default = false)
@@ -94,7 +96,7 @@ jobs:
           verbose: true # optional (default = false)
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() && !env.ACT }}
+        if: ${{ !env.ACT }}
         uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true

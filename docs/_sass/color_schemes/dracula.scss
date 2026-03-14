@@ -1,0 +1,46 @@
+@use "sass:color";
+
+// Dracula color palette
+$dracula-background:    #282a36;
+$dracula-current-line:  #44475a;
+$dracula-selection:     #44475a;
+$dracula-foreground:    #f8f8f2;
+$dracula-comment:       #6272a4;
+$dracula-cyan:          #8be9fd;
+$dracula-green:         #50fa7b;
+$dracula-orange:        #ffb86c;
+$dracula-pink:          #ff79c6;
+$dracula-purple:        #bd93f9;
+$dracula-red:           #f55;
+$dracula-yellow:        #f1fa8c;
+
+// Backgrounds
+$body-background-color:       $dracula-background;
+$sidebar-color:               color.adjust($dracula-background, $lightness: -3%);
+$search-background-color:     $dracula-current-line;
+$table-background-color:      $dracula-background;
+$code-background-color:       $dracula-current-line;
+$feedback-color:              color.adjust($dracula-background, $lightness: -5%);
+
+// Text
+$body-text-color:             $dracula-foreground;
+$body-heading-color:          $dracula-purple;
+$search-result-preview-color: $dracula-comment;
+$nav-child-link-color:        $dracula-foreground;
+$search-result-rel-url-color: $dracula-comment;
+
+// Links
+$link-color:                  $dracula-cyan;
+
+// Buttons
+$btn-primary-color:           $dracula-purple;
+$base-button-color:           $dracula-current-line;
+
+// Borders
+$border-color:                $dracula-current-line;
+$table-border-color:          $dracula-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $dracula-comment;
+$code-text-color:             $dracula-foreground;
+$code-background-color:       color.adjust($dracula-background, $lightness: -3%);

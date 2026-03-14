@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { LoggerService } from './loggerService';
 
 export interface TaskIcon {
   light: vscode.Uri;
@@ -18,8 +19,9 @@ export interface TaskIconUri {
 export class TaskIconService {
   private static instance: TaskIconService;
   private context?: vscode.ExtensionContext;
+  private readonly logger = LoggerService.getInstance();
 
-  constructor() {}
+  constructor() { }
 
   public static getInstance(): TaskIconService {
     if (!TaskIconService.instance) {
@@ -103,7 +105,7 @@ export class TaskIconService {
     '.lock', '.gradle',
   ]);
 
-  /** Well-known filenames (no extension, or dotfiles) that icon themes recognise. */
+  /** Well-known filenames (no extension, or dotfiles) that icon themes recognize. */
   private static readonly KNOWN_BASENAMES: ReadonlySet<string> = new Set([
     'makefile', 'dockerfile', 'jenkinsfile', 'vagrantfile', 'procfile', 'brewfile',
     '.gitignore', '.dockerignore', '.npmignore', '.gitattributes', '.editorconfig', '.env',
@@ -147,9 +149,11 @@ export class TaskIconService {
    * 2. If `iconUri` is a `{ dark, light }` object whose paths resolve to real image files —
    *    use it as the explicit custom icon.
    * 3. If `iconUri` is an absolute or extension-relative path to a real image file — use it.
-   * 4. If `iconUri` is a filename whose extension (or full basename) is recognised by common
+   * 4. If `iconUri` is a codicon reference of the form `$(name)` — resolve and use that
+   *    symbolic icon before falling back to file-name based detection.
+   * 5. If `iconUri` is a filename whose extension (or full basename) is recognized by common
    *    VS Code icon themes (e.g. `"tsconfig.json"`, `"Makefile"`) — return it as `DisplayUri`
-   *    so the caller can display the matching file-type icon.  Unrecognised extensions (e.g.
+   *    so the caller can display the matching file-type icon.  Unrecognized extensions (e.g.
    *    `"bad.file"`) return empty so the caller falls back to the default `task.png` icon.
    */
   public resolveWorkspaceTaskTypeIcon(
@@ -159,10 +163,17 @@ export class TaskIconService {
     // 1. Try built-in SVG by type name
     const builtIn = this.getTaskTypeIcon(type);
     if (builtIn?.TaskIcon) {
+      this.logger.debug(`[TaskIconService] ${type} resolved using built-in type icon`, {
+        type,
+        iconUri,
+        light: builtIn.TaskIcon.light.fsPath,
+        dark: builtIn.TaskIcon.dark.fsPath,
+      });
       return builtIn;
     }
 
     if (!iconUri) {
+      this.logger.debug(`[TaskIconService] ${type} icon resolution returned empty: no iconUri provided`);
       return { TaskIcon: undefined, DisplayUri: undefined };
     }
 
@@ -171,21 +182,73 @@ export class TaskIconService {
       const darkPath = this.resolveIconPath(iconUri.dark);
       const lightPath = this.resolveIconPath(iconUri.light);
       if (darkPath && lightPath) {
-        return {
+        const result = {
           TaskIcon: {
             dark: vscode.Uri.file(darkPath),
             light: vscode.Uri.file(lightPath),
           },
           DisplayUri: vscode.Uri.file(lightPath),
         };
+        this.logger.debug(`[TaskIconService] ${type} resolved using iconUri object`, {
+          type,
+          iconUri,
+          light: lightPath,
+          dark: darkPath,
+        });
+        return result;
       }
       // Invalid paths — fall through to return empty
+      this.logger.debug(`[TaskIconService] ${type} iconUri object did not resolve to existing files`, {
+        type,
+        iconUri,
+        context: this.context?.extensionPath,
+      });
       return { TaskIcon: undefined, DisplayUri: undefined };
     }
 
-    // 3. Handle string iconUri — check if it resolves to a real image
+    // 3. Handle codicon-like syntax "$(name)" by resolving to bundled SVG pair.
+    const iconNameMatch = iconUri.match(/^\$\(([a-zA-Z0-9_-]+)\)$/);
+    if (iconNameMatch && this.context) {
+      const iconName = iconNameMatch[1];
+      const lightPath = path.join(this.context.extensionPath, 'res', 'icons', 'light', `${iconName}.svg`);
+      const darkPath = path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${iconName}.svg`);
+      if (fs.existsSync(lightPath) && fs.existsSync(darkPath)) {
+        const result = {
+          TaskIcon: {
+            dark: vscode.Uri.file(darkPath),
+            light: vscode.Uri.file(lightPath),
+          },
+          DisplayUri: vscode.Uri.file(lightPath),
+        };
+
+        this.logger.debug(`[TaskIconService] ${type} resolved from $(iconName) syntax`, {
+          type,
+          iconUri,
+          iconName,
+          light: lightPath,
+          dark: darkPath,
+        });
+        return result;
+      }
+
+      this.logger.debug(`[TaskIconService] ${type} $(iconName) syntax matched but files are missing`, {
+        type,
+        iconUri,
+        iconName,
+        light: lightPath,
+        dark: darkPath,
+        extensionPath: this.context.extensionPath,
+      });
+    }
+
+    // 4. Handle string iconUri — check if it resolves to a real image
     if (path.isAbsolute(iconUri) && this.isImageFile(iconUri) && fs.existsSync(iconUri)) {
       const uri = vscode.Uri.file(iconUri);
+      this.logger.debug(`[TaskIconService] ${type} resolved from absolute image path`, {
+        type,
+        iconUri,
+        path: uri.fsPath,
+      });
       return { TaskIcon: { dark: uri, light: uri }, DisplayUri: uri };
     }
 
@@ -194,37 +257,63 @@ export class TaskIconService {
       const lightPath = path.join(this.context.extensionPath, 'res', 'icons', 'light', iconUri);
       const darkPath = path.join(this.context.extensionPath, 'res', 'icons', 'dark', iconUri);
       if (this.isImageFile(iconUri) && fs.existsSync(lightPath) && fs.existsSync(darkPath)) {
-        return {
+        const result = {
           TaskIcon: {
             dark: vscode.Uri.file(darkPath),
             light: vscode.Uri.file(lightPath),
           },
           DisplayUri: vscode.Uri.file(lightPath),
         };
+        this.logger.debug(`[TaskIconService] ${type} resolved from res/icons/{light,dark} relative image path`, {
+          type,
+          iconUri,
+          light: lightPath,
+          dark: darkPath,
+        });
+        return result;
       }
 
       // Check directly relative to the extension root
       const directPath = path.join(this.context.extensionPath, iconUri);
       if (this.isImageFile(directPath) && fs.existsSync(directPath)) {
         const uri = vscode.Uri.file(directPath);
+        this.logger.debug(`[TaskIconService] ${type} resolved from extension-relative image path`, {
+          type,
+          iconUri,
+          path: uri.fsPath,
+        });
         return { TaskIcon: { dark: uri, light: uri }, DisplayUri: uri };
       }
     }
 
-    // 4. Non-image filenames (e.g. "eslint.config.mjs", "tsconfig.json") — only return a
+    // 5. Non-image filenames (e.g. "eslint.config.mjs", "tsconfig.json") — only return a
     // DisplayUri when the extension is one that VS Code icon themes are known to support.
-    // Unrecognised extensions (e.g. "bad.file") would render as a generic unknown-file icon,
+    // Unrecognized extensions (e.g. "bad.file") would render as a generic unknown-file icon,
     // which is less useful than the task.png fallback, so we return empty in that case.
     if (!this.isImageFile(iconUri)) {
       if (this.hasKnownFileTypeIcon(iconUri)) {
         const basename = path.basename(iconUri);
+        this.logger.debug(`[TaskIconService] ${type} fell back to file-type DisplayUri`, {
+          type,
+          iconUri,
+          basename,
+        });
         return {
           TaskIcon: undefined,
           DisplayUri: vscode.Uri.file('/' + basename),
         };
       }
+      this.logger.debug(`[TaskIconService] ${type} returned empty: unknown non-image iconUri extension`, {
+        type,
+        iconUri,
+      });
       return { TaskIcon: undefined, DisplayUri: undefined };
     }
+    this.logger.debug(`[TaskIconService] ${type} returned empty: image iconUri could not be resolved`, {
+      type,
+      iconUri,
+      extensionPath: this.context?.extensionPath,
+    });
     return { TaskIcon: undefined, DisplayUri: undefined };
   }
 

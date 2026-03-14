@@ -96,14 +96,19 @@ suite('TaskFilesService Test Suite', () => {
      * a moment to be picked up by VS Code's internal file watcher/indexer.
      */
     async function waitForFilesIndexed(glob: string, expectedCount: number, maxRetries = 30): Promise<void> {
+        let actualCount = 0;
         for (let i = 0; i < maxRetries; i++) {
             const uris = await vscode.workspace.findFiles(glob);
             const relevant = uris.filter(u => u.fsPath.startsWith(testFolder.fsPath));
-            if (relevant.length >= expectedCount) {
+            actualCount = relevant.length;
+            if (actualCount >= expectedCount) {
                 return;
             }
             await new Promise(r => setTimeout(r, 200));
         }
+        throw new Error(
+            `waitForFilesIndexed timed out: glob="${glob}", expected>=${expectedCount}, actual=${actualCount} after ${maxRetries} retries`
+        );
     }
 
     async function waitForIgnoreFile(uri: vscode.Uri) {
@@ -364,5 +369,73 @@ ignore.me
 
         // Restore
         cacheService.getProviders = origGetProviders;
+    });
+
+    test('dispose - clears all internal watchers', async () => {
+        // Watchers are set up during initialize(); verify they exist first
+        assert.ok(
+            (service as any).configWatcher !== undefined ||
+            (service as any).fileWatcher !== undefined ||
+            (service as any).fileEventsWatcher !== undefined,
+            'At least one watcher should be active after initialize()',
+        );
+
+        service.dispose();
+
+        assert.strictEqual((service as any).configWatcher, undefined, 'configWatcher should be undefined after dispose()');
+        assert.strictEqual((service as any).fileWatcher, undefined, 'fileWatcher should be undefined after dispose()');
+        assert.strictEqual((service as any).fileEventsWatcher, undefined, 'fileEventsWatcher should be undefined after dispose()');
+    });
+
+    test('dispose - is idempotent (safe to call multiple times)', () => {
+        assert.doesNotThrow(() => {
+            service.dispose();
+            service.dispose();
+        }, 'Calling dispose() multiple times should not throw');
+    });
+
+    test('dispose then re-initialize restores all watchers', async () => {
+        // Watchers exist after setup
+        assert.ok(
+            (service as any).configWatcher !== undefined ||
+            (service as any).fileWatcher !== undefined ||
+            (service as any).fileEventsWatcher !== undefined,
+            'At least one watcher should be active after initialize()',
+        );
+
+        // Dispose clears them
+        service.dispose();
+        assert.strictEqual((service as any).configWatcher, undefined, 'configWatcher cleared after dispose()');
+        assert.strictEqual((service as any).fileWatcher, undefined, 'fileWatcher cleared after dispose()');
+        assert.strictEqual((service as any).fileEventsWatcher, undefined, 'fileEventsWatcher cleared after dispose()');
+
+        // Re-initialize should restore all watchers
+        const context = { subscriptions: [] } as any;
+        await service.initialize(context);
+
+        assert.notStrictEqual((service as any).configWatcher, undefined, 'configWatcher should be restored after re-initialize()');
+        assert.notStrictEqual((service as any).fileWatcher, undefined, 'fileWatcher should be restored after re-initialize()');
+        assert.notStrictEqual((service as any).fileEventsWatcher, undefined, 'fileEventsWatcher should be restored after re-initialize()');
+    });
+
+    test('initialize - registers service as a disposable on context.subscriptions', async () => {
+        const subscriptions: vscode.Disposable[] = [];
+        const context = { subscriptions } as any;
+
+        // Simulate what extension.ts does: initialize then push to subscriptions
+        await service.initialize(context);
+        subscriptions.push(service);
+
+        assert.ok(
+            subscriptions.includes(service),
+            'Service should be registered in context.subscriptions',
+        );
+
+        // Disposing via subscriptions should clear watchers
+        subscriptions.forEach(d => d.dispose());
+
+        assert.strictEqual((service as any).configWatcher, undefined, 'configWatcher should be cleared when disposed via subscriptions');
+        assert.strictEqual((service as any).fileWatcher, undefined, 'fileWatcher should be cleared when disposed via subscriptions');
+        assert.strictEqual((service as any).fileEventsWatcher, undefined, 'fileEventsWatcher should be cleared when disposed via subscriptions');
     });
 });

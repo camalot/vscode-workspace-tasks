@@ -23,9 +23,9 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [🙈 Hide Tasks & Groups](#hide-tasks--groups)
 - [🕰️ Task History](#task-history)
 - [⚙️ Configuration](#configuration)
-  - [Custom Workspace Tasks](docs/WorkspaceTasks.md)
+  - [Custom Workspace Tasks](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks)
   - [GitHub Actions Integration](#github-actions-integration)
-  - [Task Ignore Patterns](docs/TaskFiltering.md)
+  - [Task Ignore Patterns](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering)
 - [🔧 Advanced Features](#advanced-features)
 - [✔️ Requirements](#requirements)
 - [🤝 Contributing](#contributing)
@@ -61,9 +61,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 <a id="documentation"></a>
 
-- [Configuration Guide](docs/Configuration.md)
-- [Task Filtering](docs/TaskFiltering.md)
-- [Workspace Tasks](docs/WorkspaceTasks.md)
+[Full Documentation](https://camalot.github.io/vscode-workspace-tasks/)
 
 ## 📥 Installation
 
@@ -89,8 +87,28 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ### From Command Line
 
-```bash
+```shell
 code --install-extension darthminos.workspace-tasks
+```
+
+```shell
+cursor --install-extension darthminos.workspace-tasks
+```
+
+```shell
+codium --install-extension darthminos.workspace-tasks
+```
+
+```shell
+antigravity --install-extension darthminos.workspace-tasks
+```
+
+```shell
+kiro --install-extension darthminos.workspace-tasks
+```
+
+```shell
+windsurf --install-extension darthminos.workspace-tasks
 ```
 
 ### ✔️ Requirements
@@ -606,7 +624,7 @@ All patterns respect `.gitignore` and `.tasksignore` exclusions.
 
 ### Visual Studio Code Version
 
-- **Minimum:** Visual Studio Code 1.108.1 or later
+- **Minimum:** Visual Studio Code 1.105.1 or later
 
 ### External Tools
 
