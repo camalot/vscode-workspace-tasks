@@ -5,6 +5,7 @@ title: Workspace Tasks
 description: A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace.
 url: "https://camalot.github.io"
 baseurl: "/vscode-workspace-tasks"
+logo: /assets/images/icon.svg
 
 github_username: camalot
 github_repo: vscode-workspace-tasks
@@ -22,7 +23,6 @@ highlighter: rouge
 #   syntax_highlighter: rouge
 
 # Theme configuration
-logo: "https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/icon.png"
 
 search_enabled: true
 search:
@@ -56,9 +56,8 @@ aux_links:
 
 aux_links_new_tab: true
 
-# Back to top link
-back_to_top: true
-back_to_top_text: "Back to top"
+# Back to top link — replaced by custom FAB button (see _includes/footer_custom.html)
+back_to_top: false
 
 # Callouts
 callouts_level: quiet

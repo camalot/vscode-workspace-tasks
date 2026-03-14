@@ -1,0 +1,27 @@
+<!-- Back-to-top FAB -->
+<button id="back-to-top-fab" aria-label="Back to top" title="Back to top">
+  <i class="bi bi-arrow-up"></i>
+</button>
+
+<!-- Bootstrap JS bundle (includes Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmADQaM/oBKxBJO/WqPXvIuF/Uf" crossorigin="anonymous"></script>
+
+<script>
+  (function () {
+    'use strict';
+    var fab = document.getElementById('back-to-top-fab');
+    if (!fab) { return; }
+
+    window.addEventListener('scroll', function () {
+      if (window.scrollY > 300) {
+        fab.classList.add('visible');
+      } else {
+        fab.classList.remove('visible');
+      }
+    }, { passive: true });
+
+    fab.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  })();
+</script>

@@ -21,9 +21,9 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ## Screenshots
 
-![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png)
-![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
-![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif)
+![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png){: .vat }
+![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png){: .vat }
+![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif){: .vat }
 
 ---
 
@@ -74,7 +74,7 @@ See the [Getting Started guide](getting-started) for full installation and setup
 | [Task Filtering](features/task-filtering) | Exclude files using `.tasksignore` |
 | [.tasksignore Reference](features/tasksignore) | `.tasksignore` file format and syntax |
 | [Custom Workspace Tasks](features/custom-workspace-tasks) | Define reusable task templates |
-| [Requirements](requirements) | System requirements and tool dependencies |
+| [Requirements](getting-started/requirements) | System requirements and tool dependencies |
 | [Contributing](contributing) | How to contribute to the project |
 
 ---

@@ -1,0 +1,99 @@
+// ── Syntax highlighting tokens (Dracula palette) ─────────────────────────────
+
+// Comments
+.highlight .c,
+.highlight .c1,
+.highlight .cm,
+.highlight .cs,
+.highlight .cp {
+  color: $dracula-comment;
+  font-style: italic;
+}
+
+// Keywords
+.highlight .k,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt {
+  color: $dracula-pink;
+}
+
+// Boolean / nil constants
+.highlight .kc {
+  color: $dracula-purple;
+}
+
+// Strings
+.highlight .s,
+.highlight .s1,
+.highlight .s2,
+.highlight .sb,
+.highlight .sc,
+.highlight .sh,
+.highlight .si,
+.highlight .sx {
+  color: $dracula-yellow;
+}
+
+// String escape sequences
+.highlight .se {
+  color: $dracula-pink;
+}
+
+// Functions / method names
+.highlight .nf,
+.highlight .fm {
+  color: $dracula-green;
+}
+
+// Built-in names
+.highlight .nb {
+  color: $dracula-cyan;
+  font-style: italic;
+}
+
+// Class / type / namespace names
+.highlight .nc,
+.highlight .nl,
+.highlight .nn {
+  color: $dracula-cyan;
+}
+
+// Decorators / annotations
+.highlight .nd {
+  color: $dracula-green;
+}
+
+// HTML/XML tags
+.highlight .nt {
+  color: $dracula-pink;
+}
+
+// Numbers
+.highlight .m,
+.highlight .mi,
+.highlight .mf,
+.highlight .mh,
+.highlight .mo {
+  color: $dracula-purple;
+}
+
+// Operators
+.highlight .o,
+.highlight .ow {
+  color: $dracula-pink;
+}
+
+// Default text / punctuation
+.highlight .n,
+.highlight .p {
+  color: $dracula-foreground;
+}
+
+// Line numbers
+.highlight .gl,
+.highlight .ln {
+  color: $dracula-comment;
+}
