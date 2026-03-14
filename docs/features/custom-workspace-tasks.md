@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Custom Workspace Tasks
+title: 🛃 Custom Workspace Tasks
 nav_order: 7
-parent: Features
+parent: 🚀 Features
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

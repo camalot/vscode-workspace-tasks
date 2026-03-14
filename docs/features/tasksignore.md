@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Ignoring Tasks
+title: 🚫 Ignoring Tasks
 nav_order: 6
-parent: Features
+parent: 🚀 Features
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
@@ -20,7 +20,7 @@ The `.tasksignore` file allows you to control which files are excluded from task
 
 This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
 
-## Overview
+## Overview}
 
 `.tasksignore` works similarly to `.gitignore`, using the same pattern syntax to specify which files and directories should be excluded from task scanning. When the extension searches for task files (like `package.json`, `Makefile`, `build.gradle`, etc.), it will skip any files that match patterns in `.tasksignore` files.
 

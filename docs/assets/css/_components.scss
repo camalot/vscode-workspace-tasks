@@ -6,6 +6,14 @@
   gap: 0.5rem;
 }
 
+// Override just-the-docs' width/height: 100% which can collapse the logo to 0
+// inside a flex container when the sibling ::after text can't shrink further.
+.site-logo {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
 .site-title::after {
   content: "Workspace Tasks";
   font-size: 1.125rem;

@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Requirements
+title: 📃 Requirements
 nav_order: 2
-parent: Getting Started
+parent: 📦 Getting Started
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

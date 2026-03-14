@@ -1,7 +1,7 @@
 ---
 layout: default
-title: GitHub Actions Settings (Act)
-parent: Configuration
+title: ⚙️ GitHub Actions
+parent: ⚙️ Configuration
 nav_order: 10
 ---
 

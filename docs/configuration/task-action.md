@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Action Settings
-parent: Configuration
+title: ⚙️ Task Action
+parent: ⚙️ Configuration
 nav_order: 5
 ---
 
@@ -25,13 +25,13 @@ nav_order: 5
 
 ```json
 {
-	"run": true,
-	"runWithArgs": true,
-	"openFile": true,
-	"favorite": true,
-	"queue": true,
-	"hide:": false,
-	"unhide": true
+  "run": true,
+  "runWithArgs": true,
+  "openFile": true,
+  "favorite": true,
+  "queue": true,
+  "hide:": false,
+  "unhide": true
 }
 ```
 
@@ -51,15 +51,15 @@ Select which items should be shown in the task action bar for each task. This al
 
 ```json
 {
-	"workspaceTasks.task.actionBar": {
-		"run": true,
-		"runWithArgs": false,
-		"openFile": true,
-		"favorite": true,
-		"queue": false,
-		"hide": false,
-		"unhide": true
-	}
+  "workspaceTasks.task.actionBar": {
+    "run": true,
+    "runWithArgs": false,
+    "openFile": true,
+    "favorite": true,
+    "queue": false,
+    "hide": false,
+    "unhide": true
+  }
 }
 ```
 

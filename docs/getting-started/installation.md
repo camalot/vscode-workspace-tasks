@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Installation
+title: ⬇️ Installation
 nav_order: 1
-parent: Getting Started
+parent: 📦 Getting Started
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

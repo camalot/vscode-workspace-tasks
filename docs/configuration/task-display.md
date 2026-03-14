@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Display Settings
-parent: Configuration
+title: ⚙️ Task Display
+parent: ⚙️ Configuration
 nav_order: 2
 ---
 
@@ -35,7 +35,7 @@ Action to perform when a task is single-clicked.
 
 ```json
 {
-	"workspaceTasks.task.singleClickAction": "open"
+  "workspaceTasks.task.singleClickAction": "open"
 }
 ```
 
@@ -58,7 +58,7 @@ Action to perform when a task is double-clicked.
 
 ```json
 {
-	"workspaceTasks.task.doubleClickAction": "run"
+  "workspaceTasks.task.doubleClickAction": "run"
 }
 ```
 
@@ -75,7 +75,7 @@ The delay in **milliseconds** before resetting the task icon back to its origina
 
 ```json
 {
-	"workspaceTasks.task.statusResetDelay": 1000
+  "workspaceTasks.task.statusResetDelay": 1000
 }
 ```
 

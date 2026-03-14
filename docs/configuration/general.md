@@ -1,7 +1,7 @@
 ---
 layout: default
-title: General Settings
-parent: Configuration
+title: ⚙️ General
+parent: ⚙️ Configuration
 nav_order: 1
 ---
 

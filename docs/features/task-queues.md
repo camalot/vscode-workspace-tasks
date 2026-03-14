@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Queues
-parent: Features
+title: 📊 Task Queues
+parent: 🚀 Features
 nav_order: 2
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Application Path Settings
-parent: Configuration
+title: ⚙️ Application Path
+parent: ⚙️ Configuration
 nav_order: 9
 ---
 

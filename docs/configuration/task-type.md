@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Type Settings
-parent: Configuration
+title: ⚙️ Task Type Settings
+parent: ⚙️ Configuration
 nav_order: 7
 ---
 
@@ -25,28 +25,28 @@ nav_order: 7
 
 ```json
 {
-	"ant": true,
-	"deno": true,
-	"shell": true,
-	"composer": true,
-	"docker": true,
-	"github-actions": true,
-	"gradle": true,
-	"grunt": true,
-	"gulp": true,
-	"just": true,
-	"make": true,
-	"maven": true,
-	"msbuild": true,
-	"npm": true,
-	"pipenv": true,
-	"jupyter": true,
-	"tsc": true,
-	"yarn": false,
-	"pnpm": false,
-	"venv": true,
-	"vscode": true,
-	"workspace": true
+  "ant": true,
+  "deno": true,
+  "shell": true,
+  "composer": true,
+  "docker": true,
+  "github-actions": true,
+  "gradle": true,
+  "grunt": true,
+  "gulp": true,
+  "just": true,
+  "make": true,
+  "maven": true,
+  "msbuild": true,
+  "npm": true,
+  "pipenv": true,
+  "jupyter": true,
+  "tsc": true,
+  "yarn": false,
+  "pnpm": false,
+  "venv": true,
+  "vscode": true,
+  "workspace": true
 }
 ```
 
@@ -81,17 +81,17 @@ Select the types of tasks that the extension should support and display in the t
 
 ```json
 {
-	"workspaceTasks.enabledTaskTypes": {
-		"npm": true,
-		"gulp": true,
-		"grunt": true,
-		"ant": false,
-		"gradle": false,
-		"maven": false,
-		"shell": true,
-		"vscode": true,
-		"workspace": true
-	}
+  "workspaceTasks.enabledTaskTypes": {
+    "npm": true,
+    "gulp": true,
+    "grunt": true,
+    "ant": false,
+    "gradle": false,
+    "maven": false,
+    "shell": true,
+    "vscode": true,
+    "workspace": true
+  }
 }
 ```
 

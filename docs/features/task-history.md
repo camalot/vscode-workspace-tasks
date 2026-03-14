@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task History
-parent: Features
+title: 📚 Task History
+parent: 🚀 Features
 nav_order: 4
 ---
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->

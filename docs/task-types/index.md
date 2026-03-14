@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Supported Task Types
+title: 📱 Supported Task Types
 nav_order: 4
 has_children: true
 ---

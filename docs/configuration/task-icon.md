@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Icon Settings
-parent: Configuration
+title: ⚙️ Task Icon
+parent: ⚙️ Configuration
 nav_order: 4
 ---
 
@@ -36,7 +36,7 @@ Select the type of icon to display for tasks.
 
 ```json
 {
-	"workspaceTasks.task.iconType": "run"
+  "workspaceTasks.task.iconType": "run"
 }
 ```
 
@@ -53,8 +53,8 @@ Specify a custom icon for the task. This can be a path to an png or svg file, or
 
 ```json
 {
-	"workspaceTasks.task.iconType": "custom",
-	"workspaceTasks.task.iconTypeCustom": "$(rocket)"
+  "workspaceTasks.task.iconType": "custom",
+  "workspaceTasks.task.iconTypeCustom": "$(rocket)"
 }
 ```
 
@@ -64,8 +64,8 @@ Or with a file path:
 
 ```json
 {
-	"workspaceTasks.task.iconType": "custom",
-	"workspaceTasks.task.iconTypeCustom": ".vscode/icons/task-icon.svg"
+  "workspaceTasks.task.iconType": "custom",
+  "workspaceTasks.task.iconTypeCustom": ".vscode/icons/task-icon.svg"
 }
 ```
 

@@ -59,6 +59,13 @@ aux_links_new_tab: true
 # Back to top link — replaced by custom FAB button (see _includes/footer_custom.html)
 back_to_top: false
 
+# Suppress Sass deprecation warnings from just-the-docs theme (darken/lighten, @import, etc.)
+sass:
+  silence_deprecations:
+    - color-functions
+    - import
+    - global-builtin
+
 # Callouts
 callouts_level: quiet
 callouts:

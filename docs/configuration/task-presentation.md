@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Presentation Options
-parent: Configuration
+title: ⚙️ Task Presentation
+parent: ⚙️ Configuration
 nav_order: 6
 ---
 
@@ -72,14 +72,14 @@ Controls if the task panel is used for this task only (dedicated), shared betwee
 
 ```json
 {
-	"workspaceTasks.task.presentationOptions": {
-		"reveal": "always",
-		"clear": false,
-		"close": false,
-		"echo": true,
-		"focus": false,
-		"panel": "shared"
-	}
+  "workspaceTasks.task.presentationOptions": {
+    "reveal": "always",
+    "clear": false,
+    "close": false,
+    "echo": true,
+    "focus": false,
+    "panel": "shared"
+  }
 }
 ```
 

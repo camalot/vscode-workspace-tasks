@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Scripts
-parent: Contributing
+title: 📝 Scripts
+parent: ✏️ Contributing
 nav_order: 2
 ---
 

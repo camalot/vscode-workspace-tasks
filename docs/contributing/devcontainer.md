@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Dev Container
-parent: Contributing
+title: 🐳 Dev Container
+parent: ✏️ Contributing
 nav_order: 1
 ---
 

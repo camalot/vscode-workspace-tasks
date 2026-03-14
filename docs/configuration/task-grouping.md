@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Task Grouping Settings
-parent: Configuration
+title: ⚙️ Task Grouping
+parent: ⚙️ ⚙️ Configuration
 nav_order: 3
 ---
 
@@ -29,7 +29,7 @@ Group tasks by type, folder, and custom separator. When enabled, tasks will be g
 
 ```json
 {
-	"workspaceTasks.groups.enabled": true
+  "workspaceTasks.groups.enabled": true
 }
 ```
 
@@ -46,7 +46,7 @@ Group tasks by their parent folder. When enabled, tasks will be grouped based on
 
 ```json
 {
-	"workspaceTasks.groups.useParentFolder": true
+  "workspaceTasks.groups.useParentFolder": true
 }
 ```
 
@@ -63,7 +63,7 @@ Separator used to split task name into groups. For example, a task named `build:
 
 ```json
 {
-	"workspaceTasks.groups.taskSeparator": ":"
+  "workspaceTasks.groups.taskSeparator": ":"
 }
 ```
 
@@ -80,7 +80,7 @@ When enabled, recent tasks will be grouped based on the specified separator and 
 
 ```json
 {
-	"workspaceTasks.groups.recentTasks.enabled": true
+  "workspaceTasks.groups.recentTasks.enabled": true
 }
 ```
 
@@ -98,7 +98,7 @@ Maximum number of recent tasks to display in the Recent Tasks group. Once the li
 
 ```json
 {
-	"workspaceTasks.recentTasks.maxItems": 20
+  "workspaceTasks.recentTasks.maxItems": 20
 }
 ```
 

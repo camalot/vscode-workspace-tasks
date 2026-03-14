@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Shell Script Settings
-parent: Configuration
+title: ⚙️ Shell Script
+parent: ⚙️ Configuration
 nav_order: 8
 ---
 
@@ -25,17 +25,17 @@ nav_order: 8
 
 ```json
 {
-	"bash": true,
-	"batch": true,
-	"sh": true,
-	"zsh": true,
-	"fish": true,
-	"nushell": true,
-	"perl": true,
-	"pwsh": true,
-	"python": true,
-	"ruby": true,
-	"other": true
+  "bash": true,
+  "batch": true,
+  "sh": true,
+  "zsh": true,
+  "fish": true,
+  "nushell": true,
+  "perl": true,
+  "pwsh": true,
+  "python": true,
+  "ruby": true,
+  "other": true
 }
 ```
 

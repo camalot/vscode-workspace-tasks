@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Task Filtering
+title: 🪄 Task Filtering
 nav_order: 6
-parent: Features
+parent: 🚀 Features
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

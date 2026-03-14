@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Hide Tasks & Groups
-parent: Features
+title: 🙈 Hide Tasks & Groups
+parent: 🚀 Features
 nav_order: 3
 ---
 

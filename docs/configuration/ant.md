@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Ant Settings
-parent: Configuration
+title: ⚙️ Ant
+parent: ⚙️ Configuration
 nav_order: 11
 ---
 
