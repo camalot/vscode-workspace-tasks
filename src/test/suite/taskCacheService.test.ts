@@ -135,12 +135,19 @@ suite('TaskCacheService Test Suite', () => {
             }
             return undefined;
         };
+        const originalAsRelativePath = vscode.workspace.asRelativePath;
+        vscode.workspace.asRelativePath = () => {
+            return 'file.txt';
+        };
 
         const item = createTaskItem('Test', 't', fileUri);
         mockTasks.push(item);
         await service.refreshProvider('mockType');
 
         const tasks = service.getAllTasks();
+
+        vscode.workspace.asRelativePath = originalAsRelativePath;
+
         const id = tasks[0].id!;
         // ID format: ${workspaceName}:${relativePath}:${task.label}
         assert.ok(id.includes('ws-name'), 'ID should contain workspace name');

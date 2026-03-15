@@ -438,4 +438,119 @@ ignore.me
         assert.strictEqual((service as any).fileWatcher, undefined, 'fileWatcher should be cleared when disposed via subscriptions');
         assert.strictEqual((service as any).fileEventsWatcher, undefined, 'fileEventsWatcher should be cleared when disposed via subscriptions');
     });
+
+    suite('shouldIgnoreTask ($filepath@taskname)', () => {
+        test('Special characters in task names', async () => {
+            const taskNames = [
+                'docs:build:serve',
+                'docs/build/serve',
+                'docs@build',
+                'build docs',
+                'docs-build-serve',
+                'docs_build_serve',
+                'docs!build',
+                'build (dev)',
+                'test[unit]',
+                'build 🏗️',
+                'task+name',
+                'foo$bar',
+                'hello.world'
+            ];
+
+            const content = taskNames.map(name => `package.json@${name}`).join('\n');
+            const ignoreFile = await createFile('task-ignore-special-chars/.tasksignore', content);
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore-special-chars/package.json');
+
+            for (const name of taskNames) {
+                assert.strictEqual(service.shouldIgnoreTask(fileUri, name), true, `Should ignore task "${name}"`);
+            }
+        });
+
+        test('Case sensitivity in task names', async () => {
+            const content = `package.json
+!package.json@docs:build`;
+            const ignoreFile = await createFile('task-ignore-case/.tasksignore', content);
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore-case/package.json');
+
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'docs:build'), false, 'Exact case match should be un-ignored');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'Docs:Build'), true, 'Different case should remain implicitly ignored by file rule');
+        });
+
+        test('Rule matches file and task name -> true', async () => {
+            const ignoreFile = await createFile('task-ignore/.tasksignore', 'package.json@build');
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore/package.json');
+
+            assert.strictEqual(service.shouldIgnore(fileUri), false, 'Should not ignore file itself');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'build'), true, 'Should ignore task "build"');
+        });
+
+        test('Rule matches file but not task name -> false', async () => {
+            const ignoreFile = await createFile('task-ignore-nomatch/.tasksignore', 'package.json@build');
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore-nomatch/package.json');
+
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'test'), false, 'Should allow task "test"');
+        });
+
+        test('Rule does not match file -> false', async () => {
+            const ignoreFile = await createFile('task-ignore-wrongfile/.tasksignore', 'package.json@build');
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore-wrongfile/other.json');
+
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'build'), false, 'Should allow task "build" on different file');
+        });
+
+        test('Negation re-includes after file-level ignore -> false', async () => {
+            const content = `package.json
+!package.json@test`;
+            const ignoreFile = await createFile('task-ignore-negation/.tasksignore', content);
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore-negation/package.json');
+
+            assert.strictEqual(service.shouldIgnore(fileUri), false, 'File should be rescued by negated task rule');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'build'), true, 'Task "build" should be implicitly ignored');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'test'), false, 'Task "test" should be re-included');
+        });
+
+        test('Last-match-wins', async () => {
+            const content = `package.json@build
+!package.json@build`;
+            const ignoreFile1 = await createFile('task-ignore-lastmatch1/.tasksignore', content);
+            await waitForIgnoreFile(ignoreFile1);
+
+            const fileUri1 = vscode.Uri.joinPath(testFolder, 'task-ignore-lastmatch1/package.json');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri1, 'build'), false, 'Last rule (negated) wins');
+
+            const content2 = `!package.json@build
+package.json@build`;
+            const ignoreFile2 = await createFile('task-ignore-lastmatch2/.tasksignore', content2);
+            await waitForIgnoreFile(ignoreFile2);
+
+            const fileUri2 = vscode.Uri.joinPath(testFolder, 'task-ignore-lastmatch2/package.json');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri2, 'build'), true, 'Last rule (positive) wins');
+        });
+
+        test('Nested .tasksignore files (deeper rule overrides shallower)', async () => {
+            const rootIgnore = await createFile('nested-tasks/.tasksignore', 'package.json@build');
+            await waitForIgnoreFile(rootIgnore);
+
+            const nestedIgnore = await createFile('nested-tasks/sub/.tasksignore', '!package.json@build');
+            await waitForIgnoreFile(nestedIgnore);
+
+            const fileRoot = vscode.Uri.joinPath(testFolder, 'nested-tasks/package.json');
+            const fileNested = vscode.Uri.joinPath(testFolder, 'nested-tasks/sub/package.json');
+
+            assert.strictEqual(service.shouldIgnoreTask(fileRoot, 'build'), true, 'Root file should ignore build');
+            assert.strictEqual(service.shouldIgnoreTask(fileNested, 'build'), false, 'Nested file should allow build due to negation');
+        });
+    });
 });
