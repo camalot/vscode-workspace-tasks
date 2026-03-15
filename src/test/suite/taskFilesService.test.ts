@@ -286,6 +286,80 @@ ignore.me
         assert.strictEqual(hasIgnore, false, 'Should ignore ignore.me');
     });
 
+    test('Integration - findFiles includes file rescued by task-level negation from glob pattern', async function() {
+        this.timeout(15000);
+
+        // rescued: ignored by glob but has a specific task-level negation → must appear in findFiles
+        // ignored: no negation → must NOT appear
+        await createFile('task-rescue/apps/sub/package.json', '{"scripts":{"build":"echo build"}}');
+        await createFile('task-rescue/apps/sub/other.json', '{}');
+
+        const ignoreFile = await createFile('task-rescue/.tasksignore', `apps/sub/**\n!apps/sub/package.json@build`);
+        await waitForIgnoreFile(ignoreFile);
+
+        const relativeFolder = vscode.workspace.asRelativePath(testFolder, false);
+        const glob = `${relativeFolder}/task-rescue/**/*.json`.replace(/\\/g, '/');
+
+        service.registerPatterns([glob]);
+        service.invalidateCache();
+
+        await waitForFilesIndexed('**/task-rescue/**/*.json', 2);
+
+        let found: vscode.Uri[] = [];
+        for (let i = 0; i < 30; i++) {
+            const result = await service.findFiles([glob]);
+            const relevant = result.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+            if (relevant.length > 0) {
+                found = relevant;
+                break;
+            }
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        const hasRescued = found.some(u => u.fsPath.endsWith('package.json'));
+        const hasIgnored = found.some(u => u.fsPath.endsWith('other.json'));
+
+        assert.strictEqual(hasRescued, true, 'package.json should appear because task-level negation rescues it');
+        assert.strictEqual(hasIgnored, false, 'other.json should remain excluded by the glob pattern');
+    });
+
+    test('Integration - findFiles includes file rescued by file-level negation from glob pattern', async function() {
+        this.timeout(15000);
+
+        // rescued: ignored by glob but has a specific file-level negation → must appear in findFiles
+        // ignored: no negation → must NOT appear
+        await createFile('file-rescue/apps/sub/script.sh', '#!/bin/bash\necho hello');
+        await createFile('file-rescue/apps/sub/other.sh', '#!/bin/bash\necho other');
+
+        const ignoreFile = await createFile('file-rescue/.tasksignore', `apps/sub/**\n!apps/sub/script.sh`);
+        await waitForIgnoreFile(ignoreFile);
+
+        const relativeFolder = vscode.workspace.asRelativePath(testFolder, false);
+        const glob = `${relativeFolder}/file-rescue/**/*.sh`.replace(/\\/g, '/');
+
+        service.registerPatterns([glob]);
+        service.invalidateCache();
+
+        await waitForFilesIndexed('**/file-rescue/**/*.sh', 2);
+
+        let found: vscode.Uri[] = [];
+        for (let i = 0; i < 30; i++) {
+            const result = await service.findFiles([glob]);
+            const relevant = result.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+            if (relevant.length > 0) {
+                found = relevant;
+                break;
+            }
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        const hasRescued = found.some(u => u.fsPath.endsWith('script.sh'));
+        const hasIgnored = found.some(u => u.fsPath.endsWith('other.sh'));
+
+        assert.strictEqual(hasRescued, true, 'script.sh should appear because file-level negation rescues it');
+        assert.strictEqual(hasIgnored, false, 'other.sh should remain excluded by the glob pattern');
+    });
+
     test('findFiles with registered patterns uses cache', async function() {
         this.timeout(10000);
         // Clear patterns
@@ -552,5 +626,134 @@ package.json@build`;
             assert.strictEqual(service.shouldIgnoreTask(fileRoot, 'build'), true, 'Root file should ignore build');
             assert.strictEqual(service.shouldIgnoreTask(fileNested, 'build'), false, 'Nested file should allow build due to negation');
         });
+    });
+
+    // ---------------------------------------------------------------------------
+    // Regression tests: task-level negation (@) must not be overridden by a
+    // secondary disk-check that only examines file rules (issue: "isIgnoredByDiskRules
+    // overrides shouldIgnore's correct rescue decision").
+    // ---------------------------------------------------------------------------
+
+    test('shouldIgnore - task-level negation rescues file from glob-level ignore', async () => {
+        // Reproduce: apps/sub/** (ignore all) + !apps/sub/package.json@build (task negation)
+        // shouldIgnore must return false for package.json so it remains discoverable.
+        const ignoreFile = await createFile('rescue-task-only/.tasksignore',
+            `apps/sub/**\n!apps/sub/package.json@build`);
+        await waitForIgnoreFile(ignoreFile);
+
+        const rescued = vscode.Uri.joinPath(testFolder, 'rescue-task-only/apps/sub/package.json');
+        const ignored  = vscode.Uri.joinPath(testFolder, 'rescue-task-only/apps/sub/other.json');
+
+        assert.strictEqual(service.shouldIgnore(rescued), false, 'package.json must be rescued by task-level negation');
+        assert.strictEqual(service.shouldIgnore(ignored),  true,  'other.json has no negation and must remain ignored');
+    });
+
+    test('shouldIgnore - file-level negation rescues script from glob-level ignore', async () => {
+        // Reproduce: apps/sub/** (ignore all) + !apps/sub/script.sh (file negation)
+        // shouldIgnore must return false for script.sh so it remains discoverable.
+        const ignoreFile = await createFile('rescue-file-only/.tasksignore',
+            `apps/sub/**\n!apps/sub/script.sh`);
+        await waitForIgnoreFile(ignoreFile);
+
+        const rescued = vscode.Uri.joinPath(testFolder, 'rescue-file-only/apps/sub/script.sh');
+        const ignored  = vscode.Uri.joinPath(testFolder, 'rescue-file-only/apps/sub/other.sh');
+
+        assert.strictEqual(service.shouldIgnore(rescued), false, 'script.sh must be rescued by file-level negation');
+        assert.strictEqual(service.shouldIgnore(ignored),  true,  'other.sh has no negation and must remain ignored');
+    });
+
+    test('shouldIgnore - combined task-level and file-level negations in one .tasksignore', async () => {
+        // Reproduces the user-reported scenario (using lowercase paths to match
+        // normalizePathForComparison which lowercases for cross-platform consistency):
+        //   apps/appa/**                        ← ignore everything
+        //   !apps/appa/project.json@build       ← task-level rescue (file must surface for provider)
+        //   !apps/appa/script1.sh               ← file-level rescue
+        const ignoreFile = await createFile('rescue-combined/.tasksignore',
+            `apps/appa/**\n!apps/appa/project.json@build\n!apps/appa/script1.sh`);
+        await waitForIgnoreFile(ignoreFile);
+
+        const rescuedJson = vscode.Uri.joinPath(testFolder, 'rescue-combined/apps/appa/project.json');
+        const rescuedSh   = vscode.Uri.joinPath(testFolder, 'rescue-combined/apps/appa/script1.sh');
+        const ignoredJson = vscode.Uri.joinPath(testFolder, 'rescue-combined/apps/appa/other.json');
+        const ignoredSh   = vscode.Uri.joinPath(testFolder, 'rescue-combined/apps/appa/other.sh');
+
+        assert.strictEqual(service.shouldIgnore(rescuedJson), false, 'project.json rescued by task-level negation');
+        assert.strictEqual(service.shouldIgnore(rescuedSh),   false, 'script1.sh rescued by file-level negation');
+        assert.strictEqual(service.shouldIgnore(ignoredJson),  true, 'other.json must remain ignored');
+        assert.strictEqual(service.shouldIgnore(ignoredSh),    true, 'other.sh must remain ignored');
+    });
+
+    test('Integration - findFiles rescues files via combined task-level and file-level negations (cache path)', async function() {
+        this.timeout(15000);
+
+        // Mirrors user-reported bug: both project.json (task negation) and script1.sh (file negation)
+        // must appear in findFiles results even though apps/appa/** blocks them at the glob level.
+        // Uses lowercase directory name to match normalizePathForComparison behavior.
+        await createFile('combined-rescue/apps/appa/project.json', '{"scripts":{"build":"echo build"}}');
+        await createFile('combined-rescue/apps/appa/script1.sh',   '#!/bin/bash\necho hello');
+        await createFile('combined-rescue/apps/appa/other.json',   '{}');
+        await createFile('combined-rescue/apps/appa/other.sh',     '#!/bin/bash\necho other');
+
+        const ignoreFile = await createFile('combined-rescue/.tasksignore',
+            `apps/appa/**\n!apps/appa/project.json@build\n!apps/appa/script1.sh`);
+        await waitForIgnoreFile(ignoreFile);
+
+        const relativeFolder = vscode.workspace.asRelativePath(testFolder, false);
+        const jsonGlob = `${relativeFolder}/combined-rescue/**/*.json`.replace(/\\/g, '/');
+        const shGlob   = `${relativeFolder}/combined-rescue/**/*.sh`.replace(/\\/g, '/');
+
+        service.registerPatterns([jsonGlob, shGlob]);
+        service.invalidateCache();
+
+        await waitForFilesIndexed('**/combined-rescue/**/*.json', 2);
+        await waitForFilesIndexed('**/combined-rescue/**/*.sh',   2);
+
+        let found: vscode.Uri[] = [];
+        for (let i = 0; i < 30; i++) {
+            const result = await service.findFiles([jsonGlob, shGlob]);
+            const relevant = result.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+            if (relevant.length >= 2) {
+                found = relevant;
+                break;
+            }
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        assert.strictEqual(found.some(u => u.fsPath.endsWith('project.json')), true,
+            'project.json must appear — rescued by task-level negation !apps/appa/project.json@build');
+        assert.strictEqual(found.some(u => u.fsPath.endsWith('script1.sh')),   true,
+            'script1.sh must appear — rescued by file-level negation !apps/appa/script1.sh');
+        assert.strictEqual(found.some(u => u.fsPath.endsWith('other.json')),   false,
+            'other.json must remain excluded');
+        assert.strictEqual(found.some(u => u.fsPath.endsWith('other.sh')),     false,
+            'other.sh must remain excluded');
+    });
+
+    test('Integration - findFiles rescues files via task-level negation (uncovered/dynamic pattern path)', async function() {
+        this.timeout(15000);
+
+        // Same rescue scenario but through the uncovered-pattern code path
+        // (pattern NOT pre-registered, so findFiles queries VS Code directly).
+        await createFile('uncovered-rescue/apps/sub/package.json', '{"scripts":{"build":"echo build"}}');
+        await createFile('uncovered-rescue/apps/sub/other.json',   '{}');
+
+        const ignoreFile = await createFile('uncovered-rescue/.tasksignore',
+            `apps/sub/**\n!apps/sub/package.json@build`);
+        await waitForIgnoreFile(ignoreFile);
+
+        const relativeFolder = vscode.workspace.asRelativePath(testFolder, false);
+        // Deliberately do NOT register this pattern so it goes through the uncovered path.
+        const glob = `${relativeFolder}/uncovered-rescue/**/*.json`.replace(/\\/g, '/');
+        (service as any).registeredPatterns.delete(glob);
+
+        await waitForFilesIndexed('**/uncovered-rescue/**/*.json', 2);
+
+        const result = await service.findFiles([glob]);
+        const relevant = result.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+
+        assert.strictEqual(relevant.some(u => u.fsPath.endsWith('package.json')), true,
+            'package.json must appear via uncovered path — task-level negation must rescue it');
+        assert.strictEqual(relevant.some(u => u.fsPath.endsWith('other.json')),   false,
+            'other.json must remain excluded via uncovered path');
     });
 });

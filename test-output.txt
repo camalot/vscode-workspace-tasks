@@ -1,0 +1,59 @@
+
+> workspace-tasks@1.2.1 pretest
+> npm run compile:tests && npm run compile:webpack && npm run lint
+
+
+> workspace-tasks@1.2.1 compile:tests
+> tsc -p . --outDir out
+
+
+> workspace-tasks@1.2.1 compile:webpack
+> webpack
+
+    [webpack-cli] Compiler starting... 
+    [webpack-cli] Compiler is using config: 'D:\Development\projects\vscode-workspace-tasks\webpack.config.js'
+    [webpack-cli] Compiler finished
+asset [1m[32mextension.js[39m[22m 1010 KiB [1m[33m[compared for emit][39m[22m (name: main) 1 related asset
+cacheable modules 997 KiB
+  modules by path [1m./node_modules/[39m[22m 450 KiB 92 modules
+  modules by path [1m./src/[39m[22m 547 KiB 88 modules
+[1mexternal "vscode"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+[1mexternal "path"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+[1mexternal "fs"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+[1mexternal "util"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+[1mexternal "os"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+[1mexternal "child_process"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+[1mexternal "process"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+[1mexternal "buffer"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+webpack 5.105.2 compiled [1m[32msuccessfully[39m[22m in 4411 ms
+
+> workspace-tasks@1.2.1 lint
+> eslint src
+
+
+> workspace-tasks@1.2.1 test
+> npm run vscode:test
+
+
+> workspace-tasks@1.2.1 vscode:test
+> vscode-test
+
+- Resolving version...
+Γ£ö Validated version: 1.105.1
+Γ£ö Found existing install in D:\Development\projects\vscode-workspace-tasks\.vscode-test\vscode-win32-x64-archive-1.105.1
+(node:63856) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[main 2026-03-15T05:14:56.201Z] update#setState disabled
+[main 2026-03-15T05:14:56.202Z] update#ctor - updates are disabled by the environment
+[main 2026-03-15T05:14:56.229Z] Error: Error mutex already exists
+    at Mu.S (file:///D:/Development/projects/vscode-workspace-tasks/.vscode-test/vscode-win32-x64-archive-1.105.1/resources/app/out/main.js:128:18399)
+ChatSessionStore: Migrating 0 chat sessions from storage service to file system
+Started local extension host with pid 54980.
+Loading development extension at d:\Development\projects\vscode-workspace-tasks
+MCP Registry configured: https://api.mcp.github.com/2025-09-15
+Settings Sync: Account status changed from uninitialized to unavailable
+Unable to log remote console arguments Output omitted for a large object that exceeds the limits
+12 tests failed.
+[main 2026-03-15T05:15:49.735Z] Extension host with pid 54980 exited with code: 0, signal: unknown.
+Exit code:   1
