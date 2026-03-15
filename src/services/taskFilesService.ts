@@ -39,18 +39,21 @@ function parseIgnoreLines(lines: string[]): {
 
     const atIndex = body.indexOf('@');
     if (atIndex === -1) {
-      // Standard file-level rule — pass to the `ignore` package unchanged
-      fileRules.push(line);
+      // Standard file-level rule — lowercase to align with normalizePathForComparison so that
+      // micromatch comparisons are case-insensitive on all platforms (mirrors Windows behaviour).
+      fileRules.push(negated ? '!' + body.toLowerCase() : body.toLowerCase());
     } else {
       // Task-level rule: split on the first `@`
-      const filePattern = body.slice(0, atIndex);
+      // Lowercase the file-path portion to match normalizePathForComparison.
+      // taskName (after '@') is NOT lowercased — script names are case-sensitive.
+      const filePattern = body.slice(0, atIndex).toLowerCase();
       const taskName = body.slice(atIndex + 1);
       if (filePattern && taskName) {
         taskRules.push({ filePattern, taskName, negated });
       } else {
         // Malformed rule (e.g. "@taskname" or "file@") — treat as a file-level rule
         // so the user gets visible feedback via gitignore matching failure rather than silence.
-        fileRules.push(line);
+        fileRules.push(negated ? '!' + body.toLowerCase() : body.toLowerCase());
       }
     }
   }
@@ -61,6 +64,7 @@ function parseIgnoreLines(lines: string[]): {
 export class TaskFilesService {
   private static instance: TaskFilesService;
   private globalIgnore: ignore.Ignore;
+  private lastExcludes: string[] = []; // tracks last-applied exclude list to suppress no-op config events
   private ignoreFiles: IgnoreFile[] = [];
   private configWatcher?: vscode.Disposable;
   private fileWatcher?: vscode.Disposable;
@@ -349,6 +353,7 @@ export class TaskFilesService {
       if (Array.isArray(excludes) && excludes.length > 0) {
         this.globalIgnore.add(excludes);
       }
+      this.lastExcludes = Array.isArray(excludes) ? [...excludes] : [];
     } catch (e) {
       this.logger.error('[TaskFilesService] Failed to read workspaceTasks.exclude', e);
     }
@@ -367,8 +372,16 @@ export class TaskFilesService {
     this.configWatcher = vscode.workspace.onDidChangeConfiguration(async (e) => {
       let isInvalidated = false;
       if (e.affectsConfiguration('workspaceTasks.exclude')) {
-        await this.initialize(this.context!);
-        isInvalidated = true;
+        // Only reinitialize if the exclude list actually changed to avoid
+        // spurious initialize() calls (e.g. from test teardowns that reset
+        // the setting to its current value).
+        const newExcludes = vscode.workspace.getConfiguration('workspaceTasks').get<string[]>('exclude', []);
+        const newKey = JSON.stringify([...(newExcludes ?? [])].sort());
+        const oldKey = JSON.stringify([...this.lastExcludes].sort());
+        if (newKey !== oldKey) {
+          await this.initialize(this.context!);
+          isInvalidated = true;
+        }
       }
       if (e.affectsConfiguration('workspaceTasks.shellAdditionalExtensions')) {
         // dynamic patterns updated, invalidate
@@ -429,8 +442,11 @@ export class TaskFilesService {
 
   private async loadIgnoreFile(uri: vscode.Uri) {
     try {
-      const document = await vscode.workspace.openTextDocument(uri);
-      const content = document.getText();
+      // Use vscode.workspace.fs.readFile to read directly from disk, bypassing
+      // VS Code's text document cache which can return stale/empty content for
+      // recently written files (leading to empty ignore rules).
+      const rawBytes = await vscode.workspace.fs.readFile(uri);
+      const content = Buffer.from(rawBytes).toString('utf-8');
       const lines = content.split(/\r?\n/);
       const { fileRules, taskRules } = parseIgnoreLines(lines);
 
