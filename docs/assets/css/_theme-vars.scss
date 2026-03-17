@@ -42,11 +42,58 @@ $theme-bootstrap-dark: $body-background-color !default;
 $theme-bootstrap-body-color: $body-text-color !default;
 $theme-bootstrap-body-bg: $body-background-color !default;
 $theme-bootstrap-heading-color: $body-heading-color !default;
+$theme-bootstrap-emphasis-color: $theme-bootstrap-body-color !default;
+$theme-bootstrap-secondary-color: rgba($theme-bootstrap-body-color, 0.75) !default;
+$theme-bootstrap-secondary-bg: $theme-bootstrap-light !default;
+$theme-bootstrap-tertiary-color: rgba($theme-bootstrap-body-color, 0.5) !default;
+$theme-bootstrap-tertiary-bg: color.adjust($theme-bootstrap-body-bg, $lightness: 5%) !default;
+
+$theme-bootstrap-primary-text-emphasis: $theme-bootstrap-primary !default;
+$theme-bootstrap-secondary-text-emphasis: $theme-bootstrap-body-color !default;
+$theme-bootstrap-success-text-emphasis: $theme-bootstrap-success !default;
+$theme-bootstrap-info-text-emphasis: $theme-bootstrap-info !default;
+$theme-bootstrap-warning-text-emphasis: $theme-bootstrap-warning !default;
+$theme-bootstrap-danger-text-emphasis: $theme-bootstrap-danger !default;
+$theme-bootstrap-light-text-emphasis: $theme-bootstrap-body-color !default;
+$theme-bootstrap-dark-text-emphasis: $theme-bootstrap-body-color !default;
+
+$theme-bootstrap-primary-bg-subtle: color.mix($theme-bootstrap-primary, $theme-bootstrap-body-bg, 18%) !default;
+$theme-bootstrap-secondary-bg-subtle: color.mix($theme-bootstrap-secondary, $theme-bootstrap-body-bg, 18%) !default;
+$theme-bootstrap-success-bg-subtle: color.mix($theme-bootstrap-success, $theme-bootstrap-body-bg, 18%) !default;
+$theme-bootstrap-info-bg-subtle: color.mix($theme-bootstrap-info, $theme-bootstrap-body-bg, 18%) !default;
+$theme-bootstrap-warning-bg-subtle: color.mix($theme-bootstrap-warning, $theme-bootstrap-body-bg, 18%) !default;
+$theme-bootstrap-danger-bg-subtle: color.mix($theme-bootstrap-danger, $theme-bootstrap-body-bg, 18%) !default;
+$theme-bootstrap-light-bg-subtle: $theme-bootstrap-light !default;
+$theme-bootstrap-dark-bg-subtle: $theme-bootstrap-dark !default;
+
+$theme-bootstrap-primary-border-subtle: color.mix($theme-bootstrap-primary, $theme-bootstrap-body-bg, 35%) !default;
+$theme-bootstrap-secondary-border-subtle: color.mix($theme-bootstrap-secondary, $theme-bootstrap-body-bg, 35%) !default;
+$theme-bootstrap-success-border-subtle: color.mix($theme-bootstrap-success, $theme-bootstrap-body-bg, 35%) !default;
+$theme-bootstrap-info-border-subtle: color.mix($theme-bootstrap-info, $theme-bootstrap-body-bg, 35%) !default;
+$theme-bootstrap-warning-border-subtle: color.mix($theme-bootstrap-warning, $theme-bootstrap-body-bg, 35%) !default;
+$theme-bootstrap-danger-border-subtle: color.mix($theme-bootstrap-danger, $theme-bootstrap-body-bg, 35%) !default;
+$theme-bootstrap-light-border-subtle: $theme-bootstrap-light !default;
+$theme-bootstrap-dark-border-subtle: color.mix($theme-bootstrap-dark, $theme-bootstrap-body-color, 20%) !default;
+
 $theme-bootstrap-border-color: $theme-code-border-color !default;
+$theme-bootstrap-border-color-translucent: rgba($theme-bootstrap-body-color, 0.175) !default;
+$theme-bootstrap-table-color: $theme-bootstrap-body-color !default;
+$theme-bootstrap-table-bg: $theme-bootstrap-body-bg !default;
+$theme-bootstrap-table-border-color: $theme-bootstrap-border-color !default;
+$theme-bootstrap-table-accent-bg: transparent !default;
+$theme-bootstrap-table-striped-color: $theme-bootstrap-body-color !default;
+$theme-bootstrap-table-striped-bg: color.mix($theme-bootstrap-body-color, $theme-bootstrap-body-bg, 8%) !default;
+$theme-bootstrap-table-active-color: $theme-bootstrap-body-color !default;
+$theme-bootstrap-table-active-bg: color.mix($theme-bootstrap-body-color, $theme-bootstrap-body-bg, 14%) !default;
+$theme-bootstrap-table-hover-color: $theme-bootstrap-body-color !default;
+$theme-bootstrap-table-hover-bg: color.mix($theme-bootstrap-body-color, $theme-bootstrap-body-bg, 10%) !default;
 $theme-bootstrap-link-color: $link-color !default;
 $theme-bootstrap-link-hover-color: $theme-nav-link-active-color !default;
 $theme-bootstrap-code-color: $theme-code-inline-color !default;
+$theme-bootstrap-highlight-color: $theme-bootstrap-body-color !default;
 $theme-bootstrap-highlight-bg: $search-background-color !default;
+$theme-bootstrap-form-valid-color: $theme-bootstrap-success !default;
+$theme-bootstrap-form-invalid-color: $theme-bootstrap-danger !default;
 
 // Code block + syntax theme tokens.
 $theme-code-border-color: $border-color !default;

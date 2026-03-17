@@ -157,32 +157,32 @@
   --bs-dark-rgb: #{rgb-channels($theme-bootstrap-dark)};
 
   // ── Emphasis / subtle shades ───────────────────────────────────────────────
-  --bs-primary-text-emphasis: #{$theme-bootstrap-primary};
-  --bs-secondary-text-emphasis: #{$theme-bootstrap-body-color};
-  --bs-success-text-emphasis: #{$theme-bootstrap-success};
-  --bs-info-text-emphasis: #{$theme-bootstrap-info};
-  --bs-warning-text-emphasis: #{$theme-bootstrap-warning};
-  --bs-danger-text-emphasis: #{$theme-bootstrap-danger};
-  --bs-light-text-emphasis: #{$theme-bootstrap-body-color};
-  --bs-dark-text-emphasis: #{$theme-bootstrap-body-color};
+  --bs-primary-text-emphasis: #{$theme-bootstrap-primary-text-emphasis};
+  --bs-secondary-text-emphasis: #{$theme-bootstrap-secondary-text-emphasis};
+  --bs-success-text-emphasis: #{$theme-bootstrap-success-text-emphasis};
+  --bs-info-text-emphasis: #{$theme-bootstrap-info-text-emphasis};
+  --bs-warning-text-emphasis: #{$theme-bootstrap-warning-text-emphasis};
+  --bs-danger-text-emphasis: #{$theme-bootstrap-danger-text-emphasis};
+  --bs-light-text-emphasis: #{$theme-bootstrap-light-text-emphasis};
+  --bs-dark-text-emphasis: #{$theme-bootstrap-dark-text-emphasis};
 
-  --bs-primary-bg-subtle: #{color.mix($theme-bootstrap-primary, $theme-bootstrap-body-bg, 18%)};
-  --bs-secondary-bg-subtle: #{color.mix($theme-bootstrap-secondary, $theme-bootstrap-body-bg, 18%)};
-  --bs-success-bg-subtle: #{color.mix($theme-bootstrap-success, $theme-bootstrap-body-bg, 18%)};
-  --bs-info-bg-subtle: #{color.mix($theme-bootstrap-info, $theme-bootstrap-body-bg, 18%)};
-  --bs-warning-bg-subtle: #{color.mix($theme-bootstrap-warning, $theme-bootstrap-body-bg, 18%)};
-  --bs-danger-bg-subtle: #{color.mix($theme-bootstrap-danger, $theme-bootstrap-body-bg, 18%)};
-  --bs-light-bg-subtle: #{$theme-bootstrap-light};
-  --bs-dark-bg-subtle: #{$theme-bootstrap-dark};
+  --bs-primary-bg-subtle: #{$theme-bootstrap-primary-bg-subtle};
+  --bs-secondary-bg-subtle: #{$theme-bootstrap-secondary-bg-subtle};
+  --bs-success-bg-subtle: #{$theme-bootstrap-success-bg-subtle};
+  --bs-info-bg-subtle: #{$theme-bootstrap-info-bg-subtle};
+  --bs-warning-bg-subtle: #{$theme-bootstrap-warning-bg-subtle};
+  --bs-danger-bg-subtle: #{$theme-bootstrap-danger-bg-subtle};
+  --bs-light-bg-subtle: #{$theme-bootstrap-light-bg-subtle};
+  --bs-dark-bg-subtle: #{$theme-bootstrap-dark-bg-subtle};
 
-  --bs-primary-border-subtle: #{color.mix($theme-bootstrap-primary, $theme-bootstrap-body-bg, 35%)};
-  --bs-secondary-border-subtle: #{color.mix($theme-bootstrap-secondary, $theme-bootstrap-body-bg, 35%)};
-  --bs-success-border-subtle: #{color.mix($theme-bootstrap-success, $theme-bootstrap-body-bg, 35%)};
-  --bs-info-border-subtle: #{color.mix($theme-bootstrap-info, $theme-bootstrap-body-bg, 35%)};
-  --bs-warning-border-subtle: #{color.mix($theme-bootstrap-warning, $theme-bootstrap-body-bg, 35%)};
-  --bs-danger-border-subtle: #{color.mix($theme-bootstrap-danger, $theme-bootstrap-body-bg, 35%)};
-  --bs-light-border-subtle: #{$theme-bootstrap-light};
-  --bs-dark-border-subtle: #{color.mix($theme-bootstrap-dark, $theme-bootstrap-body-color, 20%)};
+  --bs-primary-border-subtle: #{$theme-bootstrap-primary-border-subtle};
+  --bs-secondary-border-subtle: #{$theme-bootstrap-secondary-border-subtle};
+  --bs-success-border-subtle: #{$theme-bootstrap-success-border-subtle};
+  --bs-info-border-subtle: #{$theme-bootstrap-info-border-subtle};
+  --bs-warning-border-subtle: #{$theme-bootstrap-warning-border-subtle};
+  --bs-danger-border-subtle: #{$theme-bootstrap-danger-border-subtle};
+  --bs-light-border-subtle: #{$theme-bootstrap-light-border-subtle};
+  --bs-dark-border-subtle: #{$theme-bootstrap-dark-border-subtle};
 
   // ── RGB component pairs ────────────────────────────────────────────────────
   --bs-white-rgb: #{rgb-channels($theme-bootstrap-body-color)};
@@ -194,18 +194,18 @@
   --bs-body-bg: #{$theme-bootstrap-body-bg};
   --bs-body-bg-rgb: #{rgb-channels($theme-bootstrap-body-bg)};
 
-  --bs-emphasis-color: #{$theme-bootstrap-body-color};
-  --bs-emphasis-color-rgb: #{rgb-channels($theme-bootstrap-body-color)};
+  --bs-emphasis-color: #{$theme-bootstrap-emphasis-color};
+  --bs-emphasis-color-rgb: #{rgb-channels($theme-bootstrap-emphasis-color)};
 
-  --bs-secondary-color: #{rgba($theme-bootstrap-body-color, 0.75)};
-  --bs-secondary-color-rgb: #{rgb-channels($theme-bootstrap-body-color)};
-  --bs-secondary-bg: #{$theme-bootstrap-light};
-  --bs-secondary-bg-rgb: #{rgb-channels($theme-bootstrap-light)};
+  --bs-secondary-color: #{$theme-bootstrap-secondary-color};
+  --bs-secondary-color-rgb: #{rgb-channels($theme-bootstrap-secondary-color)};
+  --bs-secondary-bg: #{$theme-bootstrap-secondary-bg};
+  --bs-secondary-bg-rgb: #{rgb-channels($theme-bootstrap-secondary-bg)};
 
-  --bs-tertiary-color: #{rgba($theme-bootstrap-body-color, 0.5)};
-  --bs-tertiary-color-rgb: #{rgb-channels($theme-bootstrap-body-color)};
-  --bs-tertiary-bg: #{color.adjust($theme-bootstrap-body-bg, $lightness: 5%)};
-  --bs-tertiary-bg-rgb: #{rgb-channels(color.adjust($theme-bootstrap-body-bg, $lightness: 5%))};
+  --bs-tertiary-color: #{$theme-bootstrap-tertiary-color};
+  --bs-tertiary-color-rgb: #{rgb-channels($theme-bootstrap-tertiary-color)};
+  --bs-tertiary-bg: #{$theme-bootstrap-tertiary-bg};
+  --bs-tertiary-bg-rgb: #{rgb-channels($theme-bootstrap-tertiary-bg)};
 
   // ── Typography ─────────────────────────────────────────────────────────────
   --bs-heading-color: #{$theme-bootstrap-heading-color};
@@ -219,12 +219,28 @@
 
   // ── Code ───────────────────────────────────────────────────────────────────
   --bs-code-color: #{$theme-bootstrap-code-color};
-  --bs-highlight-color: #{$theme-bootstrap-body-color};
+  --bs-highlight-color: #{$theme-bootstrap-highlight-color};
   --bs-highlight-bg: #{$theme-bootstrap-highlight-bg};
 
   // ── Borders ────────────────────────────────────────────────────────────────
   --bs-border-color: #{$theme-bootstrap-border-color};
-  --bs-border-color-translucent: #{rgba($theme-bootstrap-body-color, 0.175)};
+  --bs-border-color-translucent: #{$theme-bootstrap-border-color-translucent};
+
+  // ── Tables ─────────────────────────────────────────────────────────────────
+  --bs-table-color-type: initial;
+  --bs-table-bg-type: initial;
+  --bs-table-color-state: initial;
+  --bs-table-bg-state: initial;
+  --bs-table-color: #{$theme-bootstrap-table-color};
+  --bs-table-bg: #{$theme-bootstrap-table-bg};
+  --bs-table-border-color: #{$theme-bootstrap-table-border-color};
+  --bs-table-accent-bg: #{$theme-bootstrap-table-accent-bg};
+  --bs-table-striped-color: #{$theme-bootstrap-table-striped-color};
+  --bs-table-striped-bg: #{$theme-bootstrap-table-striped-bg};
+  --bs-table-active-color: #{$theme-bootstrap-table-active-color};
+  --bs-table-active-bg: #{$theme-bootstrap-table-active-bg};
+  --bs-table-hover-color: #{$theme-bootstrap-table-hover-color};
+  --bs-table-hover-bg: #{$theme-bootstrap-table-hover-bg};
 
   // ── Focus ring ─────────────────────────────────────────────────────────────
   --bs-focus-ring-color: #{rgba($theme-bootstrap-primary, 0.25)};
@@ -235,10 +251,10 @@
   --bs-box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.6);
 
   // ── Form validation ────────────────────────────────────────────────────────
-  --bs-form-valid-color: #{$theme-bootstrap-success};
-  --bs-form-valid-border-color: #{$theme-bootstrap-success};
-  --bs-form-invalid-color: #{$theme-bootstrap-danger};
-  --bs-form-invalid-border-color: #{$theme-bootstrap-danger};
+  --bs-form-valid-color: #{$theme-bootstrap-form-valid-color};
+  --bs-form-valid-border-color: #{$theme-bootstrap-form-valid-color};
+  --bs-form-invalid-color: #{$theme-bootstrap-form-invalid-color};
+  --bs-form-invalid-border-color: #{$theme-bootstrap-form-invalid-color};
 }
 
 .btn.btn-primary {
@@ -396,4 +412,19 @@
   &.disabled {
     color: rgba(grayscale-tone($theme-bootstrap-link-color), 0.45);
   }
+}
+
+// Just-the-Docs applies direct th/td backgrounds. Force theme-driven table cells.
+.main-content .table > :not(caption) > * > * {
+  color: var(--bs-table-color-state, var(--bs-table-color-type, var(--bs-table-color)));
+  background-color: var(--bs-table-bg) !important;
+  border-color: var(--bs-table-border-color);
+  box-shadow: inset 0 0 0 9999px var(--bs-table-bg-state, var(--bs-table-bg-type, var(--bs-table-accent-bg)));
+}
+
+.main-content table:not(.table) th,
+.main-content table:not(.table) td {
+  color: var(--bs-table-color);
+  background-color: var(--bs-table-bg) !important;
+  border-color: var(--bs-table-border-color);
 }
