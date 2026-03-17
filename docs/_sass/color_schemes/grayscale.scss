@@ -1,0 +1,87 @@
+@use "sass:color";
+
+// Grayscale color palette
+$grayscale-background: #1f1f1f;
+$grayscale-surface:    #2b2b2b;
+$grayscale-foreground: #e6e6e6;
+$grayscale-muted:      #a9a9a9;
+$grayscale-accent:     #8f8f8f;
+$grayscale-border:     #4f4f4f;
+$grayscale-highlight:  #cfcfcf;
+
+$grayscale-current-line:  $grayscale-surface;
+$grayscale-selection:     color.adjust($grayscale-surface, $lightness: 6%);
+$grayscale-comment:       $grayscale-muted;
+$grayscale-cyan:          $grayscale-highlight;
+$grayscale-green:         color.adjust($grayscale-highlight, $lightness: -10%);
+$grayscale-orange:        color.adjust($grayscale-highlight, $lightness: -18%);
+$grayscale-pink:          color.adjust($grayscale-highlight, $lightness: -4%);
+$grayscale-purple:        $grayscale-accent;
+$grayscale-red:           color.adjust($grayscale-accent, $lightness: -18%);
+$grayscale-yellow:        color.adjust($grayscale-highlight, $lightness: 8%);
+
+// Backgrounds
+$body-background-color:       $grayscale-background;
+$sidebar-color:               color.adjust($grayscale-background, $lightness: 2%);
+$search-background-color:     $grayscale-surface;
+$table-background-color:      $grayscale-background;
+$code-background-color:       color.adjust($grayscale-surface, $lightness: -3%);
+$feedback-color:              color.adjust($grayscale-background, $lightness: 5%);
+
+// Text
+$body-text-color:             $grayscale-foreground;
+$body-heading-color:          $grayscale-highlight;
+$search-result-preview-color: $grayscale-muted;
+$nav-child-link-color:        $grayscale-foreground;
+$search-result-rel-url-color: $grayscale-muted;
+
+// Links
+$link-color:                  $grayscale-highlight;
+
+// Buttons
+$btn-primary-color:           $grayscale-accent;
+$base-button-color:           $grayscale-surface;
+
+// Borders
+$border-color:                $grayscale-border;
+$table-border-color:          $grayscale-border;
+
+// Code / syntax highlight
+$code-linenumber-color:       $grayscale-muted;
+$code-text-color:             $grayscale-foreground;
+$code-background-color:       color.adjust($grayscale-background, $lightness: 2%);
+
+// Navigation + overlays
+$nav-list-link-color:         $grayscale-foreground;
+$nav-list-link-color-hover:   $grayscale-highlight;
+$nav-list-link-color-active:  $grayscale-highlight;
+$theme-header-background:     color.adjust($grayscale-background, $lightness: 4%);
+$theme-header-border-color:   $grayscale-border;
+$theme-nav-link-color:        $grayscale-foreground;
+$theme-nav-link-hover-color:  $grayscale-highlight;
+$theme-nav-link-active-color: $grayscale-highlight;
+$theme-nav-link-hover-bg:     rgba($grayscale-highlight, 0.12);
+$theme-nav-link-active-bg:    rgba($grayscale-highlight, 0.2);
+$theme-nav-expander-color:    $grayscale-muted;
+$theme-overlay-background:    color.adjust($grayscale-background, $lightness: 1%);
+$theme-overlay-hover-background: rgba($grayscale-surface, 0.85);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $grayscale-border;
+$theme-code-gutter-color:     color.adjust($grayscale-background, $lightness: -4%);
+$theme-code-gutter-divider:   color.adjust($grayscale-border, $lightness: 8%);
+$theme-code-inline-color:     $grayscale-highlight;
+$syntax-comment-color:        $grayscale-muted;
+$syntax-keyword-color:        $grayscale-highlight;
+$syntax-constant-color:       color.adjust($grayscale-highlight, $lightness: -8%);
+$syntax-string-color:         color.adjust($grayscale-highlight, $lightness: 6%);
+$syntax-escape-color:         $grayscale-foreground;
+$syntax-function-color:       $grayscale-foreground;
+$syntax-builtin-color:        color.adjust($grayscale-highlight, $lightness: -2%);
+$syntax-type-color:           $grayscale-highlight;
+$syntax-annotation-color:     color.adjust($grayscale-muted, $lightness: 14%);
+$syntax-tag-color:            $grayscale-highlight;
+$syntax-number-color:         color.adjust($grayscale-highlight, $lightness: -10%);
+$syntax-operator-color:       $grayscale-foreground;
+$syntax-text-color:           $grayscale-foreground;
+$syntax-linenumber-color:     $grayscale-muted;

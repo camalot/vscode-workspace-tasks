@@ -215,7 +215,7 @@ jekyll_bundle_prep
 install_antigen_bundles
 install_ohmyposh
 install_sample_tasks
-update_packages
+# update_packages
 
 echo ""
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"

@@ -140,7 +140,7 @@ After the container is created, the `postCreateCommand` in `devcontainer.json` r
 
 | Source | Container Path | Purpose |
 | ------ | ------------- | ------- |
-| `${localWorkspaceFolder}` | `/workspaces/vscode-workspace-tasks` | Workspace files |
+| `${localWorkspaceFolder}` | `/workspace` | Workspace files |
 | `~/.ssh` (host) | `/home/vscode/_ssh` | SSH keys (permissions are fixed by `install-tools.sh`) |
 | `/var/run/docker.sock` | `/var/run/docker.sock` | Docker-outside-of-Docker |
 | `~/.gitconfig` (host) | `/home/vscode/.gitconfig` | Git configuration |

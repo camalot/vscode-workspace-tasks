@@ -1,0 +1,77 @@
+@use 'sass:color';
+
+$docs-theme-color-scheme: dark !default;
+
+// Backward-compatible palette aliases used across existing partials.
+$dracula-background: $body-background-color !default;
+$dracula-current-line: $search-background-color !default;
+$dracula-selection: color.adjust($dracula-current-line, $lightness: 4%) !default;
+$dracula-foreground: $body-text-color !default;
+$dracula-comment: $search-result-preview-color !default;
+$dracula-cyan: color.mix($link-color, #00bcd4, 70%) !default;
+$dracula-green: color.mix($link-color, #00c853, 55%) !default;
+$dracula-orange: color.mix($body-heading-color, #ff8a00, 70%) !default;
+$dracula-pink: color.mix($body-heading-color, #ff4fa3, 80%) !default;
+$dracula-purple: color.mix($body-heading-color, $link-color, 60%) !default;
+$dracula-red: color.mix($body-heading-color, #ff4d4f, 65%) !default;
+$dracula-yellow: color.mix($body-heading-color, #ffd54f, 55%) !default;
+
+// Shared surfaces and controls.
+$theme-header-background: color.adjust($sidebar-color, $lightness: 2%) !default;
+$theme-header-border-color: $border-color !default;
+$theme-nav-link-color: $body-text-color !default;
+$theme-nav-link-hover-color: $link-color !default;
+$theme-nav-link-active-color: $body-heading-color !default;
+$theme-nav-link-hover-bg: rgba($link-color, 0.12) !default;
+$theme-nav-link-active-bg: rgba($link-color, 0.2) !default;
+$theme-nav-expander-color: $search-result-preview-color !default;
+$theme-overlay-background: $body-background-color !default;
+$theme-overlay-hover-background: rgba($search-background-color, 0.8) !default;
+$theme-search-focus-border-color: $link-color !default;
+
+// Bootstrap semantic color tokens.
+$theme-bootstrap-primary: $link-color !default;
+$theme-bootstrap-secondary: $search-result-preview-color !default;
+$theme-bootstrap-success: color.mix($link-color, #00c853, 55%) !default;
+$theme-bootstrap-info: color.mix($body-heading-color, $link-color, 60%) !default;
+$theme-bootstrap-warning: color.mix($body-heading-color, #ffd54f, 55%) !default;
+$theme-bootstrap-danger: color.mix($body-heading-color, #ff4d4f, 65%) !default;
+$theme-bootstrap-light: $search-background-color !default;
+$theme-bootstrap-dark: $body-background-color !default;
+
+$theme-bootstrap-body-color: $body-text-color !default;
+$theme-bootstrap-body-bg: $body-background-color !default;
+$theme-bootstrap-heading-color: $body-heading-color !default;
+$theme-bootstrap-border-color: $theme-code-border-color !default;
+$theme-bootstrap-link-color: $link-color !default;
+$theme-bootstrap-link-hover-color: $theme-nav-link-active-color !default;
+$theme-bootstrap-code-color: $theme-code-inline-color !default;
+$theme-bootstrap-highlight-bg: $search-background-color !default;
+
+// Code block + syntax theme tokens.
+$theme-code-border-color: $border-color !default;
+$theme-code-gutter-color: color.adjust($code-background-color, $lightness: -5%) !default;
+$theme-code-gutter-divider: color.adjust($border-color, $lightness: 5%) !default;
+$theme-code-inline-color: $dracula-pink !default;
+
+$syntax-comment-color: $dracula-comment !default;
+$syntax-keyword-color: $dracula-pink !default;
+$syntax-constant-color: $dracula-purple !default;
+$syntax-string-color: $dracula-yellow !default;
+$syntax-escape-color: $dracula-pink !default;
+$syntax-function-color: $dracula-green !default;
+$syntax-builtin-color: $dracula-cyan !default;
+$syntax-type-color: $dracula-cyan !default;
+$syntax-annotation-color: $dracula-green !default;
+$syntax-tag-color: $dracula-pink !default;
+$syntax-number-color: $dracula-purple !default;
+$syntax-operator-color: $dracula-pink !default;
+$syntax-text-color: $code-text-color !default;
+$syntax-linenumber-color: $code-linenumber-color !default;
+
+// Override upstream theme's hardcoded main-header background to use theme variable
+@media (min-width: 50rem) {
+  .side-bar + .main .main-header {
+    background-color: $theme-header-background;
+  }
+}
