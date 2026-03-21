@@ -17,3 +17,15 @@ updates:
       semver-major-days: 14
       semver-minor-days: 7
       semver-patch-days: 3
+  - package-ecosystem: devcontainers
+    directory: '.devcontainer/'
+    schedule:
+      interval: 'daily'
+    cooldown:
+      default-days: 7
+  - package-ecosystem: "bundler"
+    directory: "docs/"
+    schedule:
+      interval: "daily"
+    cooldown:
+      default-days: 7
