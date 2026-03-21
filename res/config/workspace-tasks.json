@@ -1,21 +1,19 @@
 {
   "$schema": "../schemas/workspace-tasks.schema.json",
-  "rake": {
+  "ruby": {
     "version": "2.0.0",
     "globs": {
       "include": [
-        "[gG]em[Ff]ile"
+        "**/[gG]em[Ff]ile"
       ]
     },
+    "iconUri": "$(rake)",
+    "inputs": [],
     "tasks": [
       {
         "label": "bundle:install",
-        "type": "process",
-        "command": "bundle",
-        "args": [
-          "install"
-        ],
-        "iconUri": "$(rake)",
+        "type": "shell",
+        "command": "bundle install",
         "group": "ruby",
         "hide": true,
         "presentation": {
@@ -28,13 +26,9 @@
       },
       {
         "label": "bundle:update",
-        "type": "process",
-        "command": "bundle",
-        "args": [
-          "update"
-        ],
-        "iconUri": "$(rake)",
-        "group": "rake",
+        "type": "shell",
+        "command": "bundle update",
+        "group": "ruby",
         "hide": true,
         "presentation": {
           "echo": false,
@@ -49,18 +43,17 @@
   "cargo": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/Cargo.toml"]
+      "include": [
+        "**/Cargo.toml"
+      ]
     },
     "iconUri": "$(cargo)",
     "inputs": [],
     "tasks": [
       {
         "label": "cargo:build",
-        "type": "process",
-        "command": "cargo",
-        "args": [
-          "build"
-        ],
+        "type": "shell",
+        "command": "cargo build --manifest-path {{ .FileName }}",
         "group": "cargo",
         "hide": false,
         "presentation": {
@@ -73,11 +66,8 @@
       },
       {
         "label": "cargo:clean",
-        "type": "process",
-        "command": "cargo",
-        "args": [
-          "clean"
-        ],
+        "type": "shell",
+        "command": "cargo clean --manifest-path {{ .FileName }}",
         "group": "cargo",
         "hide": false,
         "presentation": {
@@ -90,11 +80,8 @@
       },
       {
         "label": "cargo:fmt",
-        "type": "process",
-        "command": "cargo",
-        "args": [
-          "fmt"
-        ],
+        "type": "shell",
+        "command": "cargo fmt --manifest-path {{ .FileName }}",
         "group": "cargo",
         "hide": false,
         "presentation": {
@@ -107,11 +94,8 @@
       },
       {
         "label": "cargo:test",
-        "type": "process",
-        "command": "cargo",
-        "args": [
-          "test"
-        ],
+        "type": "shell",
+        "command": "cargo test --manifest-path {{ .FileName }}",
         "group": "cargo",
         "hide": false,
         "presentation": {
@@ -124,11 +108,8 @@
       },
       {
         "label": "cargo:run",
-        "type": "process",
-        "command": "cargo",
-        "args": [
-          "run"
-        ],
+        "type": "shell",
+        "command": "cargo run --manifest-path {{ .FileName }}",
         "group": "cargo",
         "hide": false,
         "presentation": {
@@ -144,7 +125,9 @@
   "go": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/go.mod"]
+      "include": [
+        "**/go.mod"
+      ]
     },
     "iconUri": "$(go)",
     "inputs": [
@@ -273,7 +256,9 @@
   "poetry": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/pyproject.toml"]
+      "include": [
+        "**/pyproject.toml"
+      ]
     },
     "iconUri": "pyproject.toml",
     "inputs": [
@@ -388,7 +373,9 @@
   "pipenv": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/[pP]ip[fF]ile"]
+      "include": [
+        "**/[pP]ip[fF]ile"
+      ]
     },
     "iconUri": "Pipfile",
     "tasks": [
@@ -439,7 +426,9 @@
   "docker-compose": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/docker-compose.yml"]
+      "include": [
+        "**/docker-compose.yml"
+      ]
     },
     "iconUri": "docker-compose.yml",
     "tasks": [
@@ -476,7 +465,9 @@
   "dockerfile": {
     "version": "2.0.0",
     "globs": {
-      "include": ["{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"]
+      "include": [
+        "{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"
+      ]
     },
     "iconUri": "dockerfile",
     "inputs": [
@@ -513,7 +504,9 @@
   "typescript": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/tsconfig.json"]
+      "include": [
+        "**/tsconfig.json"
+      ]
     },
     "iconUri": "tsconfig.json",
     "tasks": [
@@ -602,7 +595,9 @@
   "npm": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/package.json"]
+      "include": [
+        "**/package.json"
+      ]
     },
     "inputs": [
       {
@@ -675,7 +670,9 @@
   "pnpm": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/package.json"]
+      "include": [
+        "**/package.json"
+      ]
     },
     "inputs": [
       {
@@ -720,7 +717,9 @@
   "yarn": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/package.json"]
+      "include": [
+        "**/package.json"
+      ]
     },
     "inputs": [
       {
@@ -765,7 +764,9 @@
   "venv": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/.venv/pyvenv.cfg"]
+      "include": [
+        "**/.venv/pyvenv.cfg"
+      ]
     },
     "iconUri": "$(python)",
     "tasks": [
@@ -946,12 +947,13 @@
         }
       }
     ]
-
   },
   "webpack": {
     "version": "2.0.0",
     "globs": {
-      "include": ["**/webpack.config.{js,mjs,cjs,ts,mts,cts}"]
+      "include": [
+        "**/webpack.config.{js,mjs,cjs,ts,mts,cts}"
+      ]
     },
     "iconUri": "webpack.config.js",
     "tasks": [

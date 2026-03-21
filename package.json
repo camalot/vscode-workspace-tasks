@@ -981,6 +981,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.rake%"
             },
+            "ruby": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.ruby%"
+            },
             "tsc": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.tsc%"
