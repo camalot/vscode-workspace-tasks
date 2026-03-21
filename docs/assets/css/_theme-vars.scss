@@ -3,23 +3,24 @@
 $docs-theme-color-scheme: dark !default;
 
 // Backward-compatible palette aliases used across existing partials.
-$dracula-background: $body-background-color !default;
-$dracula-current-line: $search-background-color !default;
-$dracula-selection: color.adjust($dracula-current-line, $lightness: 4%) !default;
-$dracula-foreground: $body-text-color !default;
-$dracula-comment: $search-result-preview-color !default;
-$dracula-cyan: color.mix($link-color, #00bcd4, 70%) !default;
-$dracula-green: color.mix($link-color, #00c853, 55%) !default;
-$dracula-orange: color.mix($body-heading-color, #ff8a00, 70%) !default;
-$dracula-pink: color.mix($body-heading-color, #ff4fa3, 80%) !default;
-$dracula-purple: color.mix($body-heading-color, $link-color, 60%) !default;
-$dracula-red: color.mix($body-heading-color, #ff4d4f, 65%) !default;
-$dracula-yellow: color.mix($body-heading-color, #ffd54f, 55%) !default;
+$theme-background: $body-background-color !default;
+$theme-current-line: $search-background-color !default;
+$theme-selection: color.adjust($theme-current-line, $lightness: 4%) !default;
+$theme-foreground: $body-text-color !default;
+$theme-comment: $search-result-preview-color !default;
+$theme-cyan: color.mix($link-color, #00bcd4, 70%) !default;
+$theme-green: color.mix($link-color, #00c853, 55%) !default;
+$theme-orange: color.mix($body-heading-color, #ff8a00, 70%) !default;
+$theme-pink: color.mix($body-heading-color, #ff4fa3, 80%) !default;
+$theme-purple: color.mix($body-heading-color, $link-color, 60%) !default;
+$theme-red: color.mix($body-heading-color, #ff4d4f, 65%) !default;
+$theme-yellow: color.mix($body-heading-color, #ffd54f, 55%) !default;
 
 // Shared surfaces and controls.
 $theme-header-background: color.adjust($sidebar-color, $lightness: 2%) !default;
 $theme-header-border-color: $border-color !default;
 $theme-nav-link-color: $body-text-color !default;
+$theme-nav-child-link-color: $nav-child-link-color !default;
 $theme-nav-link-hover-color: $link-color !default;
 $theme-nav-link-active-color: $body-heading-color !default;
 $theme-nav-link-hover-bg: rgba($link-color, 0.12) !default;
@@ -28,6 +29,7 @@ $theme-nav-expander-color: $search-result-preview-color !default;
 $theme-overlay-background: $body-background-color !default;
 $theme-overlay-hover-background: rgba($search-background-color, 0.8) !default;
 $theme-search-focus-border-color: $link-color !default;
+$theme-trigger-label-color: $search-result-preview-color !default;
 
 // Bootstrap semantic color tokens.
 $theme-bootstrap-primary: $link-color !default;
@@ -99,20 +101,20 @@ $theme-bootstrap-form-invalid-color: $theme-bootstrap-danger !default;
 $theme-code-border-color: $border-color !default;
 $theme-code-gutter-color: color.adjust($code-background-color, $lightness: -5%) !default;
 $theme-code-gutter-divider: color.adjust($border-color, $lightness: 5%) !default;
-$theme-code-inline-color: $dracula-pink !default;
+$theme-code-inline-color: $theme-pink !default;
 
-$syntax-comment-color: $dracula-comment !default;
-$syntax-keyword-color: $dracula-pink !default;
-$syntax-constant-color: $dracula-purple !default;
-$syntax-string-color: $dracula-yellow !default;
-$syntax-escape-color: $dracula-pink !default;
-$syntax-function-color: $dracula-green !default;
-$syntax-builtin-color: $dracula-cyan !default;
-$syntax-type-color: $dracula-cyan !default;
-$syntax-annotation-color: $dracula-green !default;
-$syntax-tag-color: $dracula-pink !default;
-$syntax-number-color: $dracula-purple !default;
-$syntax-operator-color: $dracula-pink !default;
+$syntax-comment-color: $theme-comment !default;
+$syntax-keyword-color: $theme-pink !default;
+$syntax-constant-color: $theme-purple !default;
+$syntax-string-color: $theme-yellow !default;
+$syntax-escape-color: $theme-pink !default;
+$syntax-function-color: $theme-green !default;
+$syntax-builtin-color: $theme-cyan !default;
+$syntax-type-color: $theme-cyan !default;
+$syntax-annotation-color: $theme-green !default;
+$syntax-tag-color: $theme-pink !default;
+$syntax-number-color: $theme-purple !default;
+$syntax-operator-color: $theme-pink !default;
 $syntax-text-color: $code-text-color !default;
 $syntax-linenumber-color: $code-linenumber-color !default;
 

@@ -16,24 +16,27 @@
       },
       "extensions": [
         "shopify.ruby-lsp",
+        "shopify.theme-check-vscode",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
+        "iliazeus.vscode-ansi",
+        "samuelcolvin.jinjahtml",
+        "streetsidesoftware.code-spell-checker",
+        "jasonnutter.vscode-codeowners",
+        "mikestead.dotenv",
+        "dotenv.dotenv-vscode",
         "darthminos.workspace-tasks",
         "DavidAnson.vscode-markdownlint",
-        "EditorConfig.EditorConfig",
         "GitHub.vscode-github-actions",
         "github.copilot-chat",
         "mads-hartmann.bash-ide-vscode",
         "mkhl.shfmt",
         "ms-azuretools.vscode-docker",
         "ms-vscode.makefile-tools",
-        "timonwong.shellcheck",
-        "mikestead.dotenv",
         "bierner.github-markdown-preview",
         "editorconfig.editorconfig",
         "igorsbitnev.error-gutters",
-        "timonwong.shellcheck",
-        "shopify.theme-check-vscode"
+        "timonwong.shellcheck"
       ]
     }
   },

@@ -11,8 +11,11 @@
 </footer>
 
 <!-- Bootstrap JS bundle (includes Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"
+></script>
 
 <script>
   (function () {
@@ -50,24 +53,24 @@
       /* Fallback to main header */
       if (!themeMount) {
         navHost = document.querySelector('.main-header') ||
-          document.querySelector('header') ||
-          document.querySelector('[role="banner"]');
+                   document.querySelector('header') ||
+                   document.querySelector('[role="banner"]');
         if (navHost) {
           themeMount = document.createElement('div');
           themeMount.className = 'mbr-docs-theme-nav-item';
           navHost.appendChild(themeMount);
+          }
         }
-      }
 
-      if (themeMount) {
-        var themeEntries = Object.keys(themeConfig.themes);
+        if (themeMount) {
+          var themeEntries = Object.keys(themeConfig.themes);
         var menuId = 'mbr-docs-theme-menu';
 
         var dropdownHTML = [
           '<div class="dropdown">',
           '  <button class="btn btn-sm btn-outline-secondary dropdown-toggle mbr-docs-theme-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="' +
-          menuId +
-          '" title="Select theme">',
+            menuId +
+            '" title="Select theme">',
           '    <span class="mbr-docs-theme-trigger-label">Theme</span>',
           '    <span class="mbr-docs-theme-trigger-value"></span>',
           '  </button>',
