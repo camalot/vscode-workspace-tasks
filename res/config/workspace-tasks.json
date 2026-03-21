@@ -1,5 +1,51 @@
 {
   "$schema": "../schemas/workspace-tasks.schema.json",
+  "rake": {
+    "version": "2.0.0",
+    "globs": {
+      "include": [
+        "[gG]em[Ff]ile"
+      ]
+    },
+    "tasks": [
+      {
+        "label": "bundle:install",
+        "type": "process",
+        "command": "bundle",
+        "args": [
+          "install"
+        ],
+        "iconUri": "$(rake)",
+        "group": "ruby",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      },
+      {
+        "label": "bundle:update",
+        "type": "process",
+        "command": "bundle",
+        "args": [
+          "update"
+        ],
+        "iconUri": "$(rake)",
+        "group": "rake",
+        "hide": true,
+        "presentation": {
+          "echo": false,
+          "focus": false,
+          "panel": "shared",
+          "reveal": "always",
+          "clear": false
+        }
+      }
+    ]
+  },
   "cargo": {
     "version": "2.0.0",
     "globs": {
