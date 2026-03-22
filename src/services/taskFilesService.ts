@@ -270,7 +270,7 @@ export class TaskFilesService {
     try {
       files = await vscode.workspace.findFiles('**/.tasksignore', '{**/node_modules/**,**/.git/**,**/.vscode-test/**}');
     } catch {
-      
+
     }
 
     const folders = new Set(files.map((f) => this.normalizePathForComparison(path.dirname(f.fsPath))));
