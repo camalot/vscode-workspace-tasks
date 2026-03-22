@@ -1,94 +1,138 @@
-## [1.2.1] - 2026-03-14
+## [1.3.0] - 2026-03-22
+
+### 🚀 Features
+
+- Ability to hide individual tasks from .tasksignore #45
+
+- Support for Gemfile bundle install/update
+
+
+### 🐛 Bug Fixes
+
+- Typo in the site name copied from other project
+
+- Cargo tasks dont actually execute their task #129
+
+- User level tasks from multiple profiles are not handled properly #134
+
 
 ### ⚙️ Miscellaneous Tasks
 
-- Implement some copilot suggestions
+- Update the issue template link for documentation by @camalot
 
-- Implement more robust iconUri for custom tasks
+- Update documentation link in SUPPORT document. by @camalot
 
-- Plan for .taskignore improvements
+- Remove 'test' files
 
-- Setup jekyll docs
+- Working on tests for new functionality
 
-- Remove timer script. not used
+- Remove unused file
 
-- Resolve markdownlint
+- Tests for .taskignore and fix failure cases
 
-- Resolve zizmor failure
+- Updates to the docs to support themes
 
-- Resolve markdownlint error
+- Update to themes for docs
 
-- Implement improvements suggested by copilot
+- Update dependabot
 
-- Implement improvements suggested by copilot
+- Dependency package updates
 
-- Allow pushing to v* branches to ensure it is running correctly
+- Remove test files
 
-- Try ruby version of jekyll
+- Ignore docs/ for superlinter
 
-- Try ruby version of jekyll
+- Added more test coverage
 
-- Use rouge for highlighting doc code blocks
+- Editorconfig lint error fix
 
-- Update a block to preview highlight
 
-- Use tick syntax
 
-- Remove code block from TOC items
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.2.1...v1.3.0
 
-- Get custom styles working
+## [1.2.1] - 2026-03-14
 
-- Custom color theme
+### 💼 Other
 
-- More documentation site configuration
+- V1.2.1 (#127) by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- More documentation site configuration
+- * chore: implement some copilot suggestions by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- More documentation site configuration
+- * chore: implement more robust iconUri for custom tasks by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Style changes for documents
+- * chore: plan for .taskignore improvements by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Style changes for documents
+- * chore: setup jekyll docs by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Style changes for documents
+- * chore: remove timer script. not used by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Start setup of dev container
+- * chore: resolve markdownlint by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Docs pages styling changes
+- * chore: resolve zizmor failure by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Implemented a devcontainer for being able to haave all necessary tools for development
+- * chore: resolve markdownlint error by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Lint errors fixed
+- * chore: implement improvements suggested by copilot by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Added pwsh and oh-my-posh to devcontainer
+- * chore: allow pushing to v* branches to ensure it is running correctly by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Added documentation around the devcontainer and development scripts
+- * chore: try ruby version of jekyll by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- More documentation refactoring
+- * chore: use rouge for highlighting doc code blocks by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- More design changes for documentation.
+- * chore: update a block to preview highlight by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- More documentation
+- * chore: use tick syntax by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Linters resolutions
+- * chore: remove code block from TOC items by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Editorconfig update for linter errors
+- * chore: get custom styles working by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Some dev container tweaks
+- * chore: custom color theme by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Updates to dev container
+- * chore: more documentation site configuration by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Update documenation layout
+- * chore: style changes for documents by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Update to devcontainer built-in tools
+- * chore: start setup of dev container by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Improve and update for documentation callouts
+- * chore: docs pages styling changes by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Changes to npm/bun to exclude tasks when they are ignored
+- * chore: implemented a devcontainer for being able to haave all necessary tools for development by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Some tweaks to launch tests
+- * chore: lint errors fixed by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- Update failing tests to mock to be enabled
+- * chore: added pwsh and oh-my-posh to devcontainer by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: added documentation around the devcontainer and development scripts by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: more documentation refactoring by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: more design changes for documentation. by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: more documentation by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: linters resolutions by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: editorconfig update for linter errors by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: some dev container tweaks by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: updates to dev container by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: update documenation layout by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: update to devcontainer built-in tools by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: improve and update for documentation callouts by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: changes to npm/bun to exclude tasks when they are ignored by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: some tweaks to launch tests by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: update failing tests to mock to be enabled by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+
+- * chore: update changelog by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
 
 

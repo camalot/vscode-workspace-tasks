@@ -1,4 +1,6 @@
-// ── Code blocks: VS Code-style Dracula window ─────────────────────────────────
+@use 'sass:color';
+
+// ── Code blocks: themed window with syntax-friendly gutter ───────────────────
 
 .figure.highlight,
 div.highlighter-rouge {
@@ -23,7 +25,7 @@ div.highlighter-rouge.tree code {
   left: 0;
   width: 2.5rem;
   text-align: right;
-  color: $dracula-comment;
+  color: $code-linenumber-color;
   user-select: none;
   z-index: 1;
 }
@@ -31,7 +33,7 @@ div.highlighter-rouge.tree code {
 // Outer container: single-pixel border, rounded corners
 div.highlighter-rouge,
 figure.highlight {
-  border: 1px solid $dracula-current-line;
+  border: 1px solid $theme-code-border-color;
   border-radius: 4px;
   overflow: hidden;
   margin: 0.75rem 0;
@@ -50,9 +52,9 @@ figure.highlight {
   background-color: $code-background-color;
   background-image: linear-gradient(
     to right,
-    color.adjust($dracula-background, $lightness: -5%) 2.5rem,
-    $dracula-current-line 2.5rem,
-    $dracula-current-line calc(2.5rem + 1px),
+    $theme-code-gutter-color 2.5rem,
+    $theme-code-gutter-divider 2.5rem,
+    $theme-code-gutter-divider calc(2.5rem + 1px),
     $code-background-color calc(2.5rem + 1px)
   );
   border-radius: 0;
@@ -71,7 +73,7 @@ div.highlighter-rouge pre.highlight {
 
 // Overrides against just-the-docs defaults
 div.highlighter-rouge > .highlight {
-  border: 1px solid $dracula-current-line !important;
+  border: 1px solid $theme-code-border-color !important;
   background-color: $code-background-color !important;
   color: $code-text-color !important;
 }
@@ -89,4 +91,14 @@ div.highlighter-rouge pre {
 .highlight,
 pre.highlight {
   color: $code-text-color !important;
+}
+
+.highlight pre {
+  background-color: transparent !important;
+}
+
+// Inline code: override upstream hardcoded background
+:not(pre, figure) > code {
+  background-color: $code-background-color !important;
+  border-color: $theme-code-border-color !important;
 }

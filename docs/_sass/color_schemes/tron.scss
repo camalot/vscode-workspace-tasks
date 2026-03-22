@@ -1,0 +1,93 @@
+@use "sass:color";
+
+// Tron color palette
+$tron-deep-teal:   #193f4a;
+$tron-amber:       #f4af2d;
+$tron-ice:         #fffffe;
+$tron-neon-cyan:   #2f8ca3;
+$tron-black:       #030504;
+
+// Derived shades for UI hierarchy
+$tron-background:  color.adjust($tron-black, $lightness: 3%);
+$tron-surface:     color.adjust($tron-deep-teal, $lightness: -2%);
+$tron-foreground:  $tron-ice;
+$tron-muted:       color.adjust($tron-neon-cyan, $lightness: -12%);
+$tron-accent:      $tron-amber;
+$tron-border:      color.adjust($tron-deep-teal, $lightness: 8%);
+
+$tron-current-line:  $tron-surface;
+$tron-selection:     color.adjust($tron-surface, $lightness: 8%);
+$tron-comment:       $tron-muted;
+$tron-cyan:          $tron-neon-cyan;
+$tron-green:         color.mix($tron-neon-cyan, $tron-deep-teal, 70%);
+$tron-orange:        $tron-amber;
+$tron-pink:          color.mix($tron-amber, $tron-ice, 42%);
+$tron-purple:        color.mix($tron-neon-cyan, $tron-amber, 55%);
+$tron-red:           color.adjust($tron-amber, $lightness: -14%);
+$tron-yellow:        color.adjust($tron-amber, $lightness: 8%);
+
+// Backgrounds
+$body-background-color:       $tron-background;
+$sidebar-color:               color.adjust($tron-background, $lightness: 2%);
+$search-background-color:     $tron-surface;
+$table-background-color:      $tron-background;
+$code-background-color:       color.adjust($tron-surface, $lightness: -2%);
+$feedback-color:              color.adjust($tron-background, $lightness: 6%);
+
+// Text
+$body-text-color:             $tron-foreground;
+$body-heading-color:          $tron-accent;
+$search-result-preview-color: $tron-muted;
+$nav-child-link-color:        $tron-foreground;
+$search-result-rel-url-color: $tron-muted;
+
+// Links
+$link-color:                  $tron-neon-cyan;
+
+// Buttons
+$btn-primary-color:           $tron-accent;
+$base-button-color:           $tron-surface;
+
+// Borders
+$border-color:                $tron-border;
+$table-border-color:          $tron-border;
+
+// Code / syntax highlight
+$code-linenumber-color:       $tron-muted;
+$code-text-color:             $tron-foreground;
+$code-background-color:       color.adjust($tron-background, $lightness: 1%);
+
+// Navigation + overlays
+$nav-list-link-color:         $tron-foreground;
+$nav-list-link-color-hover:   $tron-neon-cyan;
+$nav-list-link-color-active:  $tron-amber;
+$theme-header-background:     color.adjust($tron-background, $lightness: 5%);
+$theme-header-border-color:   $tron-border;
+$theme-nav-link-color:        $tron-foreground;
+$theme-nav-link-hover-color:  $tron-neon-cyan;
+$theme-nav-link-active-color: $tron-amber;
+$theme-nav-link-hover-bg:     rgba($tron-neon-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($tron-amber, 0.22);
+$theme-nav-expander-color:    $tron-muted;
+$theme-overlay-background:    color.adjust($tron-background, $lightness: 2%);
+$theme-overlay-hover-background: rgba($tron-surface, 0.86);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $tron-border;
+$theme-code-gutter-color:     color.adjust($tron-background, $lightness: -4%);
+$theme-code-gutter-divider:   color.adjust($tron-border, $lightness: 5%);
+$theme-code-inline-color:     $tron-amber;
+$syntax-comment-color:        $tron-muted;
+$syntax-keyword-color:        $tron-amber;
+$syntax-constant-color:       color.adjust($tron-amber, $lightness: 8%);
+$syntax-string-color:         color.adjust($tron-neon-cyan, $lightness: 15%);
+$syntax-escape-color:         $tron-neon-cyan;
+$syntax-function-color:       $tron-neon-cyan;
+$syntax-builtin-color:        color.adjust($tron-neon-cyan, $lightness: 10%);
+$syntax-type-color:           $tron-amber;
+$syntax-annotation-color:     color.adjust($tron-neon-cyan, $lightness: 6%);
+$syntax-tag-color:            $tron-amber;
+$syntax-number-color:         color.adjust($tron-amber, $lightness: -5%);
+$syntax-operator-color:       $tron-neon-cyan;
+$syntax-text-color:           $tron-foreground;
+$syntax-linenumber-color:     $tron-muted;

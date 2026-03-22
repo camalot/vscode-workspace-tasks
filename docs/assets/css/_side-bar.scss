@@ -1,0 +1,126 @@
+.side-bar {
+  background-color: $sidebar-color;
+  border-right: 1px solid $border-color;
+}
+
+.site-header,
+.site-footer {
+  background-color: $theme-header-background;
+  border-color: $theme-header-border-color;
+}
+
+.site-title,
+.site-button {
+  color: $theme-nav-link-color;
+}
+
+.site-button:hover,
+.site-button:focus {
+  background-image: linear-gradient(90deg, $theme-nav-link-hover-bg 0%, rgba($link-color, 0.05) 100%);
+}
+
+.site-title:hover,
+.site-title:focus {
+  background-image: linear-gradient(90deg, $theme-nav-link-hover-bg 0%, rgba($link-color, 0.05) 100%);
+}
+
+.site-nav {
+  padding-top: 0;
+}
+
+.site-nav .nav-list .nav-list-item .nav-list-link {
+  color: $theme-nav-link-color;
+}
+
+// Keep nested sidebar links theme-aware (Just-the-Docs sets these directly).
+.site-nav .nav-list .nav-list-item > .nav-list .nav-list-item .nav-list-link {
+  color: $theme-nav-child-link-color;
+}
+
+.site-nav .nav-list .nav-list-item .nav-list-link:hover,
+.site-nav .nav-list .nav-list-item .nav-list-link:focus {
+  color: $theme-nav-link-hover-color;
+  background-image: linear-gradient(90deg, $theme-nav-link-hover-bg 0%, rgba($link-color, 0.04) 100%);
+}
+
+.site-nav .nav-list .nav-list-item > .nav-list .nav-list-item .nav-list-link:hover,
+.site-nav .nav-list .nav-list-item > .nav-list .nav-list-item .nav-list-link:focus {
+  color: $theme-nav-link-hover-color;
+}
+
+.site-nav .nav-list .nav-list-item .nav-list-link.active {
+  color: $theme-nav-link-active-color;
+  background-image: linear-gradient(90deg, $theme-nav-link-active-bg 0%, rgba($link-color, 0.03) 100%);
+  border-left-color: $theme-nav-link-active-color;
+}
+
+.site-nav .nav-list .nav-list-item > .nav-list .nav-list-item .nav-list-link.active {
+  color: $theme-nav-link-active-color;
+}
+
+.site-nav .nav-list .nav-list-item .nav-list-expander {
+  color: $theme-nav-expander-color !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.site-nav .nav-list .nav-list-item .nav-list-expander:hover,
+.site-nav .nav-list .nav-list-item .nav-list-expander:focus {
+  color: $theme-nav-link-hover-color !important;
+  background-color: $theme-nav-link-hover-bg !important;
+  background-image: none !important;
+}
+
+.site-nav .nav-list .nav-list-item .nav-list-expander:focus-visible {
+  color: $theme-nav-link-hover-color !important;
+  background-color: $theme-nav-link-hover-bg !important;
+  outline: 2px solid $theme-search-focus-border-color;
+  outline-offset: -1px;
+}
+
+.main-header,
+.aux-nav {
+  background-color: $theme-header-background;
+  border-bottom: 1px solid $theme-header-border-color;
+}
+
+.aux-nav .aux-nav-list-item a {
+  color: $theme-nav-link-color;
+}
+
+.aux-nav .aux-nav-list-item a:hover,
+.aux-nav .aux-nav-list-item a:focus {
+  color: $theme-nav-link-hover-color;
+}
+
+.search-input {
+  color: $body-text-color;
+  background-color: $search-background-color;
+  border-color: $border-color;
+}
+
+.search-input:focus,
+.search-input:focus-visible {
+  border-color: $theme-search-focus-border-color !important;
+  outline: 2px solid $theme-search-focus-border-color !important;
+  outline-offset: -1px;
+  box-shadow: none;
+}
+
+.search-results {
+  background-color: $theme-overlay-background;
+  border: 1px solid $border-color;
+}
+
+.search-results .search-result {
+  border-bottom-color: $border-color;
+}
+
+.search-results .search-result-title,
+.search-results .search-result-doc .search-result-previews {
+  color: $body-text-color;
+}
+
+.search-results .search-result-doc .search-result-rel-url {
+  color: $search-result-rel-url-color;
+}

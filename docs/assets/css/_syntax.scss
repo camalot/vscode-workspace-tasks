@@ -1,4 +1,4 @@
-// ── Syntax highlighting tokens (Dracula palette) ─────────────────────────────
+// ── Syntax highlighting tokens (theme-aware palette) ─────────────────────────
 
 // Comments
 .highlight .c,
@@ -6,7 +6,7 @@
 .highlight .cm,
 .highlight .cs,
 .highlight .cp {
-  color: $dracula-comment;
+  color: $syntax-comment-color;
   font-style: italic;
 }
 
@@ -17,12 +17,12 @@
 .highlight .kp,
 .highlight .kr,
 .highlight .kt {
-  color: $dracula-pink;
+  color: $syntax-keyword-color;
 }
 
 // Boolean / nil constants
 .highlight .kc {
-  color: $dracula-purple;
+  color: $syntax-constant-color;
 }
 
 // Strings
@@ -34,23 +34,23 @@
 .highlight .sh,
 .highlight .si,
 .highlight .sx {
-  color: $dracula-yellow;
+  color: $syntax-string-color;
 }
 
 // String escape sequences
 .highlight .se {
-  color: $dracula-pink;
+  color: $syntax-escape-color;
 }
 
 // Functions / method names
 .highlight .nf,
 .highlight .fm {
-  color: $dracula-green;
+  color: $syntax-function-color;
 }
 
 // Built-in names
 .highlight .nb {
-  color: $dracula-cyan;
+  color: $syntax-builtin-color;
   font-style: italic;
 }
 
@@ -58,17 +58,17 @@
 .highlight .nc,
 .highlight .nl,
 .highlight .nn {
-  color: $dracula-cyan;
+  color: $syntax-type-color;
 }
 
 // Decorators / annotations
 .highlight .nd {
-  color: $dracula-green;
+  color: $syntax-annotation-color;
 }
 
 // HTML/XML tags
 .highlight .nt {
-  color: $dracula-pink;
+  color: $syntax-tag-color;
 }
 
 // Numbers
@@ -77,23 +77,23 @@
 .highlight .mf,
 .highlight .mh,
 .highlight .mo {
-  color: $dracula-purple;
+  color: $syntax-number-color;
 }
 
 // Operators
 .highlight .o,
 .highlight .ow {
-  color: $dracula-pink;
+  color: $syntax-operator-color;
 }
 
 // Default text / punctuation
 .highlight .n,
 .highlight .p {
-  color: $dracula-foreground;
+  color: $syntax-text-color;
 }
 
 // Line numbers
 .highlight .gl,
 .highlight .ln {
-  color: $dracula-comment;
+  color: $syntax-linenumber-color;
 }

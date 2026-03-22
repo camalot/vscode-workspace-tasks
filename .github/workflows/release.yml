@@ -80,13 +80,6 @@ jobs:
       - name: Build
         run: npm run compile
 
-      - name: Package VSIX
-        run: |
-          mkdir -p dist
-          npm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
-        env:
-          VERSION: ${{ steps.tag.outputs.version }}
-
       - name: Generate Changelog
         run: |
           npm version "${VERSION}" --no-git-tag-version
@@ -95,6 +88,13 @@ jobs:
         env:
           VERSION: ${{ steps.tag.outputs.version }}
           TAG: ${{ steps.tag.outputs.tag }}
+
+      - name: Package VSIX
+        run: |
+          mkdir -p dist
+          npm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
 
       # COMMIT VERSION AND CHANGELOG
       - name: Commit Version and Changelog

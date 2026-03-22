@@ -1,0 +1,91 @@
+@use "sass:color";
+
+// Cyberpunk 2077 color palette
+$cyberpunk2077-foreground: #fdfeff;
+$cyberpunk2077-muted: #4d8bee;
+$cyberpunk2077-background: #030d22;
+$cyberpunk2077-accent: #ff2592;
+$cyberpunk2077-button-secondary: #47a1fa;
+$cyberpunk2077-border: #171033;
+$cyberpunk2077-favorite: #ffd400;
+$cyberpunk2077-progress: #fa0dea;
+
+$cyberpunk2077-current-line:  color.adjust($cyberpunk2077-background, $lightness: 5%);
+$cyberpunk2077-selection:     color.mix($cyberpunk2077-accent, $cyberpunk2077-background, 24%);
+$cyberpunk2077-comment:       $cyberpunk2077-muted;
+$cyberpunk2077-cyan:          $cyberpunk2077-button-secondary;
+$cyberpunk2077-green:         color.mix($cyberpunk2077-button-secondary, $cyberpunk2077-favorite, 55%);
+$cyberpunk2077-orange:        color.mix($cyberpunk2077-favorite, $cyberpunk2077-accent, 70%);
+$cyberpunk2077-pink:          $cyberpunk2077-accent;
+$cyberpunk2077-purple:        color.mix($cyberpunk2077-accent, $cyberpunk2077-button-secondary, 65%);
+$cyberpunk2077-red:           color.mix($cyberpunk2077-accent, $cyberpunk2077-background, 78%);
+$cyberpunk2077-yellow:        $cyberpunk2077-favorite;
+
+// Derived shades for UI hierarchy
+$cyberpunk2077-surface: color.adjust($cyberpunk2077-background, $lightness: 5%);
+
+// Backgrounds
+$body-background-color:       $cyberpunk2077-background;
+$sidebar-color:               color.adjust($cyberpunk2077-background, $lightness: 3%);
+$search-background-color:     $cyberpunk2077-surface;
+$table-background-color:      $cyberpunk2077-background;
+$code-background-color:       color.adjust($cyberpunk2077-surface, $lightness: -2%);
+$feedback-color:              color.adjust($cyberpunk2077-background, $lightness: 7%);
+
+// Text
+$body-text-color:             $cyberpunk2077-foreground;
+$body-heading-color:          $cyberpunk2077-accent;
+$search-result-preview-color: $cyberpunk2077-muted;
+$nav-child-link-color:        $cyberpunk2077-foreground;
+$search-result-rel-url-color: $cyberpunk2077-muted;
+
+// Links
+$link-color:                  $cyberpunk2077-button-secondary;
+
+// Buttons
+$btn-primary-color:           $cyberpunk2077-accent;
+$base-button-color:           $cyberpunk2077-surface;
+
+// Borders
+$border-color:                $cyberpunk2077-border;
+$table-border-color:          $cyberpunk2077-border;
+
+// Code / syntax highlight
+$code-linenumber-color:       $cyberpunk2077-muted;
+$code-text-color:             $cyberpunk2077-foreground;
+$code-background-color:       color.adjust($cyberpunk2077-background, $lightness: 2%);
+
+// Navigation + overlays
+$nav-list-link-color:         $cyberpunk2077-foreground;
+$nav-list-link-color-hover:   $cyberpunk2077-button-secondary;
+$nav-list-link-color-active:  $cyberpunk2077-accent;
+$theme-header-background:     color.adjust($cyberpunk2077-background, $lightness: 6%);
+$theme-header-border-color:   $cyberpunk2077-border;
+$theme-nav-link-color:        $cyberpunk2077-foreground;
+$theme-nav-link-hover-color:  $cyberpunk2077-button-secondary;
+$theme-nav-link-active-color: $cyberpunk2077-accent;
+$theme-nav-link-hover-bg:     rgba($cyberpunk2077-button-secondary, 0.14);
+$theme-nav-link-active-bg:    rgba($cyberpunk2077-accent, 0.2);
+$theme-nav-expander-color:    $cyberpunk2077-muted;
+$theme-overlay-background:    color.adjust($cyberpunk2077-background, $lightness: 2%);
+$theme-overlay-hover-background: rgba($cyberpunk2077-surface, 0.88);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $cyberpunk2077-border;
+$theme-code-gutter-color:     color.adjust($cyberpunk2077-background, $lightness: -3%);
+$theme-code-gutter-divider:   color.adjust($cyberpunk2077-border, $lightness: 8%);
+$theme-code-inline-color:     $cyberpunk2077-accent;
+$syntax-comment-color:        $cyberpunk2077-muted;
+$syntax-keyword-color:        $cyberpunk2077-accent;
+$syntax-constant-color:       color.adjust($cyberpunk2077-accent, $lightness: 12%);
+$syntax-string-color:         $cyberpunk2077-favorite;
+$syntax-escape-color:         $cyberpunk2077-button-secondary;
+$syntax-function-color:       $cyberpunk2077-button-secondary;
+$syntax-builtin-color:        color.adjust($cyberpunk2077-button-secondary, $lightness: 12%);
+$syntax-type-color:           $cyberpunk2077-favorite;
+$syntax-annotation-color:     $cyberpunk2077-progress;
+$syntax-tag-color:            $cyberpunk2077-accent;
+$syntax-number-color:         $cyberpunk2077-progress;
+$syntax-operator-color:       $cyberpunk2077-button-secondary;
+$syntax-text-color:           $cyberpunk2077-foreground;
+$syntax-linenumber-color:     $cyberpunk2077-muted;

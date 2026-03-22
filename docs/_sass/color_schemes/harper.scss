@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Harper palette
+$harper-background:    #010101;
+$harper-current-line:  color.adjust($harper-background, $lightness: 6%);
+$harper-selection:     color.adjust($harper-background, $lightness: 8%);
+$harper-foreground:    #fefbea;
+$harper-comment:       #726e6a;
+$harper-cyan:          #7fb5e1;
+$harper-green:         #489e48;
+$harper-orange:        #f8b63f;
+$harper-pink:          #f5bfd7;
+$harper-purple:        #b296c6;
+$harper-red:           #f8b63f;
+$harper-yellow:        #d6da25;
+
+// Backgrounds
+$body-background-color:       $harper-background;
+$sidebar-color:               color.adjust($harper-background, $lightness: -4%);
+$search-background-color:     $harper-current-line;
+$table-background-color:      $harper-background;
+$code-background-color:       $harper-current-line;
+$feedback-color:              color.adjust($harper-background, $lightness: -7%);
+
+// Text
+$body-text-color:             $harper-foreground;
+$body-heading-color:          $harper-orange;
+$search-result-preview-color: $harper-comment;
+$nav-child-link-color:        $harper-foreground;
+$search-result-rel-url-color: $harper-comment;
+
+// Links
+$link-color:                  $harper-cyan;
+
+// Buttons
+$btn-primary-color:           $harper-orange;
+$base-button-color:           $harper-current-line;
+
+// Borders
+$border-color:                $harper-current-line;
+$table-border-color:          $harper-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $harper-comment;
+$code-text-color:             $harper-foreground;
+$code-background-color:       color.adjust($harper-background, $lightness: -3%);
+
+// Navigation + overlays
+$nav-list-link-color:         $harper-foreground;
+$nav-list-link-color-hover:   $harper-cyan;
+$nav-list-link-color-active:  $harper-orange;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   $harper-current-line;
+$theme-nav-link-color:        $harper-foreground;
+$theme-nav-link-hover-color:  $harper-cyan;
+$theme-nav-link-active-color: $harper-orange;
+$theme-nav-link-hover-bg:     rgba($harper-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($harper-orange, 0.22);
+$theme-nav-expander-color:    $harper-comment;
+$theme-overlay-background:    $harper-background;
+$theme-overlay-hover-background: rgba($harper-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $harper-current-line;
+$theme-code-gutter-color:     color.adjust($harper-background, $lightness: -5%);
+$theme-code-gutter-divider:   $harper-current-line;
+$theme-code-inline-color:     $harper-pink;
+$syntax-comment-color:        $harper-comment;
+$syntax-keyword-color:        $harper-orange;
+$syntax-constant-color:       $harper-yellow;
+$syntax-string-color:         $harper-green;
+$syntax-escape-color:         $harper-purple;
+$syntax-function-color:       $harper-cyan;
+$syntax-builtin-color:        $harper-pink;
+$syntax-type-color:           $harper-cyan;
+$syntax-annotation-color:     $harper-green;
+$syntax-tag-color:            $harper-yellow;
+$syntax-number-color:         $harper-yellow;
+$syntax-operator-color:       $harper-orange;
+$syntax-text-color:           $harper-foreground;
+$syntax-linenumber-color:     $harper-comment;

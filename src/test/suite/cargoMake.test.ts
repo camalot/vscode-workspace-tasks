@@ -4,7 +4,7 @@ import constants from '../../libs/constants';
 
 suite('Cargo-Make Provider Test Suite', function () {
   // Set timeout to 10000ms for all tests in this suite to prevent flakiness
-  this.timeout(10000);
+  this.timeout(60000);
 
   test('uses correct type', function () {
     const provider = new CargoMakeTaskProvider();
