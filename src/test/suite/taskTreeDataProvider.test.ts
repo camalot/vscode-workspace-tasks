@@ -882,29 +882,56 @@ suite('TaskTreeDataProvider Test Suite', () => {
       // Intercept the setTimeout call to capture the callback and invoke it directly
       const originalSetTimeout = global.setTimeout;
       let capturedFn: ((...args: any[]) => void) | undefined;
-      (global as any).setTimeout = (fn: (...args: any[]) => void, _delay: number, ...args: any[]) => {
-        capturedFn = fn;
-        // Schedule with a very long delay so it doesn't fire on its own
-        return originalSetTimeout(fn, 60000, ...args);
-      };
+      let capturedTimeoutId: NodeJS.Timeout | undefined;
 
-      (provider as any).handleFileChange(mockProvider);
-      (global as any).setTimeout = originalSetTimeout;
+      try {
+        (global as any).setTimeout = (fn: (...args: any[]) => void, _delay: number, ...args: any[]) => {
+          capturedFn = fn;
+          // Schedule with a very long delay so it doesn't fire on its own
+          capturedTimeoutId = originalSetTimeout(fn, 60000, ...args) as any;
+          return capturedTimeoutId;
+        };
 
-      // Manually invoke the captured callback
-      if (capturedFn) {
-        Promise.resolve(capturedFn()).then(() => {
-          assert.ok(refreshCalled, 'cache should have been refreshed');
-          assert.ok(treeDataFired, 'tree data change should have fired');
-          sub.dispose();
-          (cacheService as any).refreshProvider = originalRefreshProvider;
-          clearTimeout((provider as any).refreshTimeouts.get('fireType'));
-          done();
-        });
-      } else {
+        (provider as any).handleFileChange(mockProvider);
+        (global as any).setTimeout = originalSetTimeout;
+
+        // Manually invoke the captured callback
+        if (capturedFn) {
+          Promise.resolve(capturedFn()).then(() => {
+            assert.ok(refreshCalled, 'cache should have been refreshed');
+            assert.ok(treeDataFired, 'tree data change should have fired');
+            done();
+          }).catch((err) => {
+            done(err);
+          }).finally(() => {
+            (global as any).setTimeout = originalSetTimeout;
+            sub.dispose();
+            (cacheService as any).refreshProvider = originalRefreshProvider;
+            if (capturedTimeoutId) clearTimeout(capturedTimeoutId);
+            const timeouts = (provider as any).refreshTimeouts as Map<string, NodeJS.Timeout>;
+            if (timeouts && timeouts.has('fireType')) {
+                clearTimeout(timeouts.get('fireType'));
+                timeouts.delete('fireType');
+            }
+          });
+        } else {
+          try {
+            throw new Error('No callback was captured');
+          } catch (e) {
+            done(e);
+          } finally {
+            (global as any).setTimeout = originalSetTimeout;
+            sub.dispose();
+            (cacheService as any).refreshProvider = originalRefreshProvider;
+            if (capturedTimeoutId) clearTimeout(capturedTimeoutId);
+          }
+        }
+      } catch (err) {
+        done(err);
+        (global as any).setTimeout = originalSetTimeout;
         sub.dispose();
         (cacheService as any).refreshProvider = originalRefreshProvider;
-        done(new Error('No callback was captured'));
+        if (capturedTimeoutId) clearTimeout(capturedTimeoutId);
       }
     });
   });

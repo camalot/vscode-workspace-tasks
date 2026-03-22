@@ -64,6 +64,7 @@ function parseIgnoreLines(lines: string[]): {
 export class TaskFilesService {
   private static instance: TaskFilesService;
   private globalIgnore: ignore.Ignore;
+  private ignoreList: string[] = [];
   private lastExcludes: string[] = []; // tracks last-applied exclude list to suppress no-op config events
   private ignoreFiles: IgnoreFile[] = [];
   private configWatcher?: vscode.Disposable;
@@ -273,7 +274,6 @@ export class TaskFilesService {
 
     }
 
-    const folders = new Set(files.map((f) => this.normalizePathForComparison(path.dirname(f.fsPath))));
     // Do NOT prune ignoreFiles here: a freshly-created .tasksignore may not be
     // indexed by VS Code yet, so findFiles would miss it and the filter would
     // delete an entry that was correctly loaded by the file watcher or
@@ -347,11 +347,16 @@ export class TaskFilesService {
       const config = vscode.workspace.getConfiguration('workspaceTasks');
       const excludes = config.get<string[]>('exclude', []);
       this.globalIgnore.add('**/node_modules/**'); // Always ignore node_modules
+      this.ignoreList.push('**/node_modules/**');
       this.globalIgnore.add('**/.git/**'); // Always ignore .git
+      this.ignoreList.push('**/.git/**');
       this.globalIgnore.add('**/__pycache__/**'); // Always ignore __pycache__
+      this.ignoreList.push('**/__pycache__/**');
       this.globalIgnore.add('**/.vscode-test/**');
+      this.ignoreList.push('**/.vscode-test/**');
       if (Array.isArray(excludes) && excludes.length > 0) {
         this.globalIgnore.add(excludes);
+        this.ignoreList.push(...excludes);
       }
       this.lastExcludes = Array.isArray(excludes) ? [...excludes] : [];
     } catch (e) {
@@ -359,7 +364,7 @@ export class TaskFilesService {
     }
 
     // Find all .tasksignore files in the workspace
-      const files = await vscode.workspace.findFiles('**/.tasksignore');
+      const files = await vscode.workspace.findFiles('**/.tasksignore', this.ignoreList.join(','));
     for (const file of files) {
       await this.loadIgnoreFile(file);
     }
