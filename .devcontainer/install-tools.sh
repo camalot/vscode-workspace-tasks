@@ -191,6 +191,7 @@ function install_ohmyposh() {
   echo ""
 }
 
+# shellcheck disable=SC2329
 function update_packages() {
   echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
   echo -e "${COLOR_BLUE}Updating package lists and upgrading installed packages...${COLOR_RESET}"
