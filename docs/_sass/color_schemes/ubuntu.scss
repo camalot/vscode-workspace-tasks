@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Ubuntu-inspired terminal palette
+$ubuntu-background: #300a24;
+$ubuntu-current-line: #2E3436;
+$ubuntu-selection: #3465A4;
+$ubuntu-foreground: #EEEEEC;
+$ubuntu-comment:       color.mix($ubuntu-foreground, $ubuntu-background, 60%);
+$ubuntu-cyan: #34E2E2;
+$ubuntu-green: #8AE234;
+$ubuntu-orange: #C4A000;
+$ubuntu-pink: #AD7FA8;
+$ubuntu-purple: #75507B;
+$ubuntu-red: #EF2929;
+$ubuntu-yellow: #FCE94F;
+
+// Backgrounds
+$body-background-color:       $ubuntu-background;
+$sidebar-color:               color.adjust($ubuntu-background, $lightness: -4%);
+$search-background-color:     color.adjust($ubuntu-background, $lightness: 6%);
+$table-background-color:      $ubuntu-background;
+$code-background-color:       color.adjust($ubuntu-background, $lightness: 4%);
+$feedback-color:              color.adjust($ubuntu-background, $lightness: -6%);
+
+// Text
+$body-text-color:             $ubuntu-foreground;
+$body-heading-color:          $ubuntu-yellow;
+$search-result-preview-color: $ubuntu-comment;
+$nav-child-link-color:        $ubuntu-foreground;
+$search-result-rel-url-color: $ubuntu-comment;
+
+// Links
+$link-color:                  $ubuntu-cyan;
+
+// Buttons
+$btn-primary-color:           $ubuntu-purple;
+$base-button-color:           $ubuntu-current-line;
+
+// Borders
+$border-color:                color.adjust($ubuntu-current-line, $lightness: 8%);
+$table-border-color:          color.adjust($ubuntu-current-line, $lightness: 8%);
+
+// Code / syntax highlight
+$code-linenumber-color:       $ubuntu-comment;
+$code-text-color:             $ubuntu-foreground;
+$code-background-color:       color.adjust($ubuntu-background, $lightness: 3%);
+
+// Navigation + overlays
+$nav-list-link-color:         $ubuntu-foreground;
+$nav-list-link-color-hover:   $ubuntu-cyan;
+$nav-list-link-color-active:  $ubuntu-yellow;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   color.adjust($ubuntu-current-line, $lightness: 8%);
+$theme-nav-link-color:        $ubuntu-foreground;
+$theme-nav-link-hover-color:  $ubuntu-cyan;
+$theme-nav-link-active-color: $ubuntu-yellow;
+$theme-nav-link-hover-bg:     rgba($ubuntu-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($ubuntu-yellow, 0.24);
+$theme-nav-expander-color:    $ubuntu-comment;
+$theme-overlay-background:    color.adjust($ubuntu-background, $lightness: 2%);
+$theme-overlay-hover-background: rgba($ubuntu-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     color.adjust($ubuntu-current-line, $lightness: 8%);
+$theme-code-gutter-color:     color.adjust($ubuntu-background, $lightness: -4%);
+$theme-code-gutter-divider:   color.adjust($ubuntu-current-line, $lightness: 8%);
+$theme-code-inline-color:     $ubuntu-pink;
+$syntax-comment-color:        $ubuntu-comment;
+$syntax-keyword-color:        $ubuntu-pink;
+$syntax-constant-color:       $ubuntu-purple;
+$syntax-string-color:         $ubuntu-yellow;
+$syntax-escape-color:         $ubuntu-red;
+$syntax-function-color:       $ubuntu-green;
+$syntax-builtin-color:        $ubuntu-cyan;
+$syntax-type-color:           $ubuntu-cyan;
+$syntax-annotation-color:     $ubuntu-green;
+$syntax-tag-color:            $ubuntu-red;
+$syntax-number-color:         $ubuntu-orange;
+$syntax-operator-color:       $ubuntu-red;
+$syntax-text-color:           $ubuntu-foreground;
+$syntax-linenumber-color:     $ubuntu-comment;

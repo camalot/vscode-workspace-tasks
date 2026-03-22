@@ -160,4 +160,6 @@ fi
 
 export PATH=$PATH:/home/vscode/bin
 
+. "$HOME/.cargo/env"
+
 eval "$(oh-my-posh init bash --config ~/.config/powershell/darthminos.omp.json)"

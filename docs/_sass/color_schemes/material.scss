@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Material palette
+$material-background:    #002b36;
+$material-current-line:  color.adjust($material-background, $lightness: 6%);
+$material-selection:     color.adjust($material-background, $lightness: 8%);
+$material-foreground:    #ffffff;
+$material-comment:       color.mix($material-foreground, $material-background, 60%);
+$material-cyan:          #80cbc3;
+$material-green:         #c3e88d;
+$material-orange:        #f7eb95;
+$material-pink:          #ff2490;
+$material-purple:        #6c71c3;
+$material-red:           #eb606b;
+$material-yellow:        #f7eb95;
+
+// Backgrounds
+$body-background-color:       $material-background;
+$sidebar-color:               color.adjust($material-background, $lightness: -6%);
+$search-background-color:     $material-current-line;
+$table-background-color:      $material-background;
+$code-background-color:       $material-current-line;
+$feedback-color:              color.adjust($material-background, $lightness: -7%);
+
+// Text
+$body-text-color:             $material-foreground;
+$body-heading-color:          $material-green;
+$search-result-preview-color: $material-comment;
+$nav-child-link-color:        $material-foreground;
+$search-result-rel-url-color: $material-comment;
+
+// Links
+$link-color:                  $material-cyan;
+
+// Buttons
+$btn-primary-color:           $material-red;
+$base-button-color:           $material-current-line;
+
+// Borders
+$border-color:                $material-current-line;
+$table-border-color:          $material-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $material-comment;
+$code-text-color:             $material-foreground;
+$code-background-color:       color.adjust($material-background, $lightness: -4%);
+
+// Navigation + overlays
+$nav-list-link-color:         $material-foreground;
+$nav-list-link-color-hover:   $material-cyan;
+$nav-list-link-color-active:  $material-green;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   $material-current-line;
+$theme-nav-link-color:        $material-foreground;
+$theme-nav-link-hover-color:  $material-cyan;
+$theme-nav-link-active-color: $material-green;
+$theme-nav-link-hover-bg:     rgba($material-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($material-green, 0.22);
+$theme-nav-expander-color:    $material-comment;
+$theme-overlay-background:    $material-background;
+$theme-overlay-hover-background: rgba($material-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $material-current-line;
+$theme-code-gutter-color:     color.adjust($material-background, $lightness: -10%);
+$theme-code-gutter-divider:   $material-current-line;
+$theme-code-inline-color:     $material-pink;
+$syntax-comment-color:        $material-comment;
+$syntax-keyword-color:        $material-red;
+$syntax-constant-color:       $material-yellow;
+$syntax-string-color:         $material-green;
+$syntax-escape-color:         $material-orange;
+$syntax-function-color:       $material-cyan;
+$syntax-builtin-color:        $material-purple;
+$syntax-type-color:           $material-cyan;
+$syntax-annotation-color:     $material-green;
+$syntax-tag-color:            $material-purple;
+$syntax-number-color:         $material-orange;
+$syntax-operator-color:       $material-pink;
+$syntax-text-color:           $material-foreground;
+$syntax-linenumber-color:     $material-comment;

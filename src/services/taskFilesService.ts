@@ -6,14 +6,66 @@ import micromatch from 'micromatch';
 import { LoggerService } from './loggerService';
 import { TaskCacheService } from './taskCacheService';
 
+interface TaskIgnoreRule {
+  /** The file-path glob portion (the part before `@`). */
+  filePattern: string;
+  /** The exact task name (the part after `@`). */
+  taskName: string;
+  /** True when the original line started with `!`. */
+  negated: boolean;
+}
+
 interface IgnoreFile {
   folderUri: vscode.Uri;
   ig: ignore.Ignore; // ignore instance
+  taskRules: TaskIgnoreRule[];
+}
+
+function parseIgnoreLines(lines: string[]): {
+  fileRules: string[];
+  taskRules: TaskIgnoreRule[];
+} {
+  const fileRules: string[] = [];
+  const taskRules: TaskIgnoreRule[] = [];
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#') || line.startsWith('//')) {
+      continue;
+    }
+
+    const negated = line.startsWith('!');
+    const body = negated ? line.slice(1) : line;
+
+    const atIndex = body.indexOf('@');
+    if (atIndex === -1) {
+      // Standard file-level rule — lowercase to align with normalizePathForComparison so that
+      // micromatch comparisons are case-insensitive on all platforms (mirrors Windows behaviour).
+      fileRules.push(negated ? '!' + body.toLowerCase() : body.toLowerCase());
+    } else {
+      // Task-level rule: split on the first `@`
+      // Lowercase the file-path portion to match normalizePathForComparison.
+      // taskName (after '@') is NOT lowercased — script names are case-sensitive.
+      const filePattern = body.slice(0, atIndex).toLowerCase();
+      const taskName = body.slice(atIndex + 1);
+      if (filePattern && taskName) {
+        taskRules.push({ filePattern, taskName, negated });
+      } else {
+        // Malformed rule (e.g. "@taskname" or "file@") — treat as a file-level rule
+        // so the user gets visible feedback via gitignore matching failure rather than silence.
+        fileRules.push(negated ? '!' + body.toLowerCase() : body.toLowerCase());
+      }
+    }
+  }
+
+  return { fileRules, taskRules };
 }
 
 export class TaskFilesService {
   private static instance: TaskFilesService;
   private globalIgnore: ignore.Ignore;
+  private ignoreList: string[] = [];
+  private lastExcludes: string[] = []; // tracks last-applied exclude list to suppress no-op config events
   private ignoreFiles: IgnoreFile[] = [];
   private configWatcher?: vscode.Disposable;
   private fileWatcher?: vscode.Disposable;
@@ -35,6 +87,17 @@ export class TaskFilesService {
       TaskFilesService.instance = new TaskFilesService();
     }
     return TaskFilesService.instance;
+  }
+
+  private getRelativePathIfInside(parentNormalized: string, childNormalized: string): string | undefined {
+    if (parentNormalized === childNormalized) {
+      return '';
+    }
+    const prefix = parentNormalized.endsWith('/') ? parentNormalized : parentNormalized + '/';
+    if (childNormalized.startsWith(prefix)) {
+      return childNormalized.slice(prefix.length);
+    }
+    return undefined;
   }
 
   public registerPatterns(patterns: string[]): void {
@@ -87,10 +150,7 @@ export class TaskFilesService {
 
       const result = new Set<string>();
       for (const uri of depthFiltered) {
-        if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
-          continue;
-        }
-        if (this.context && await this.isIgnoredByDiskRules(uri)) {
+        if (this.shouldIgnore(uri)) {
           continue;
         }
         result.add(uri.fsPath);
@@ -120,6 +180,9 @@ export class TaskFilesService {
     // The generation increment ensures that if the old build still completes it
     // will detect the mismatch and discard its results.
     this.buildCacheInFlight = null;
+
+    // Refresh the task cache to discover or hide tasks based on new ignore rules
+    TaskCacheService.getInstance().refresh();
   }
 
   public rebuildRegisteredPatterns(): void {
@@ -189,10 +252,7 @@ export class TaskFilesService {
       const uris = await vscode.workspace.findFiles(combinedPattern, excludeGlob);
       const depthFiltered = this.filterByDepth(uris);
       for (const uri of depthFiltered) {
-        if (this.shouldIgnore(uri) || this.isIgnoredByLoadedRules(uri)) {
-          continue;
-        }
-        if (this.context && await this.isIgnoredByDiskRules(uri)) {
+        if (this.shouldIgnore(uri)) {
           continue;
         }
         results.push(uri);
@@ -209,13 +269,17 @@ export class TaskFilesService {
 
     let files: vscode.Uri[] = [];
     try {
-      files = await vscode.workspace.findFiles('**/.tasksignore', '**/node_modules/**,**/.git/**');
+      files = await vscode.workspace.findFiles('**/.tasksignore', '{**/node_modules/**,**/.git/**,**/.vscode-test/**}');
     } catch {
-      return;
+
     }
 
-    const folders = new Set(files.map((f) => this.normalizePathForComparison(path.dirname(f.fsPath))));
-    this.ignoreFiles = this.ignoreFiles.filter((f) => folders.has(this.normalizePathForComparison(f.folderUri.fsPath)));
+    // Do NOT prune ignoreFiles here: a freshly-created .tasksignore may not be
+    // indexed by VS Code yet, so findFiles would miss it and the filter would
+    // delete an entry that was correctly loaded by the file watcher or
+    // waitForIgnoreFile in tests.  Actual deletions are handled by the
+    // onDidDelete watcher handler (removeIgnoreFile), so this filter is
+    // redundant and causes a timing race.
 
     for (const file of files) {
       const folder = this.normalizePathForComparison(path.dirname(file.fsPath));
@@ -228,60 +292,6 @@ export class TaskFilesService {
     }
   }
 
-  private async isIgnoredByDiskRules(uri: vscode.Uri): Promise<boolean> {
-    if (uri.scheme !== 'file') {
-      return false;
-    }
-
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-    const workspaceRoot = workspaceFolder
-      ? this.normalizePathForComparison(workspaceFolder.uri.fsPath)
-      : undefined;
-
-    let currentDir = path.dirname(uri.fsPath);
-    const targetPath = this.normalizePathForComparison(uri.fsPath);
-
-    while (true) {
-      const currentNormalized = this.normalizePathForComparison(currentDir);
-
-      const ignoreFile = vscode.Uri.file(path.join(currentDir, '.tasksignore'));
-      try {
-        const bytes = await vscode.workspace.fs.readFile(ignoreFile);
-        const content = new TextDecoder().decode(bytes);
-        const rules = content
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
-
-        if (rules.length > 0) {
-          const ig = ignore();
-          ig.add(rules);
-          if (targetPath.startsWith(`${currentNormalized}${path.sep}`)) {
-            const rel = targetPath.slice(currentNormalized.length + 1).replace(/\\/g, '/');
-            if (rel && ig.ignores(rel)) {
-              return true;
-            }
-          }
-        }
-      } catch {
-        // Ignore file not present/readable at this level
-      }
-
-      const parentDir = path.dirname(currentDir);
-      if (parentDir === currentDir) {
-        break;
-      }
-
-      if (workspaceRoot && !currentNormalized.startsWith(workspaceRoot)) {
-        break;
-      }
-
-      currentDir = parentDir;
-    }
-
-    return false;
-  }
-
   private normalizePathForComparison(inputPath: string): string {
     let normalized = path.normalize(inputPath);
     // Normalize Windows long-path prefixes (e.g. "\\?\D:\\repo\\file")
@@ -290,29 +300,8 @@ export class TaskFilesService {
     // VS Code URIs on Windows can sometimes yield paths like "\\d:\\repo\\file"
     // while other APIs return "d:\\repo\\file". Normalize both to the same shape.
     normalized = normalized.replace(/^[/\\]+(?=[a-zA-Z]:[/\\])/, '');
-    return normalized.toLowerCase();
-  }
-
-  private isIgnoredByLoadedRules(uri: vscode.Uri): boolean {
-    const targetPath = this.normalizePathForComparison(uri.fsPath);
-
-    for (const ignoreFile of this.ignoreFiles) {
-      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
-      if (targetPath === ignoreFolder || !targetPath.startsWith(`${ignoreFolder}${path.sep}`)) {
-        continue;
-      }
-
-      const relativePath = targetPath.slice(ignoreFolder.length + 1).replace(/\\/g, '/');
-      if (!relativePath) {
-        continue;
-      }
-
-      if (ignoreFile.ig.ignores(relativePath)) {
-        return true;
-      }
-    }
-
-    return false;
+    // Use forward slashes consistently so getRelativePathIfInside works on all platforms.
+    return normalized.toLowerCase().replace(/\\/g, '/');
   }
 
   private filterByDepth(uris: vscode.Uri[]): vscode.Uri[] {
@@ -358,18 +347,24 @@ export class TaskFilesService {
       const config = vscode.workspace.getConfiguration('workspaceTasks');
       const excludes = config.get<string[]>('exclude', []);
       this.globalIgnore.add('**/node_modules/**'); // Always ignore node_modules
+      this.ignoreList.push('**/node_modules/**');
       this.globalIgnore.add('**/.git/**'); // Always ignore .git
+      this.ignoreList.push('**/.git/**');
       this.globalIgnore.add('**/__pycache__/**'); // Always ignore __pycache__
+      this.ignoreList.push('**/__pycache__/**');
       this.globalIgnore.add('**/.vscode-test/**');
+      this.ignoreList.push('**/.vscode-test/**');
       if (Array.isArray(excludes) && excludes.length > 0) {
         this.globalIgnore.add(excludes);
+        this.ignoreList.push(...excludes);
       }
+      this.lastExcludes = Array.isArray(excludes) ? [...excludes] : [];
     } catch (e) {
       this.logger.error('[TaskFilesService] Failed to read workspaceTasks.exclude', e);
     }
 
     // Find all .tasksignore files in the workspace
-    const files = await vscode.workspace.findFiles('**/.tasksignore', '**/node_modules/**,**/.git/**');
+      const files = await vscode.workspace.findFiles('**/.tasksignore', this.ignoreList.join(','));
     for (const file of files) {
       await this.loadIgnoreFile(file);
     }
@@ -382,8 +377,16 @@ export class TaskFilesService {
     this.configWatcher = vscode.workspace.onDidChangeConfiguration(async (e) => {
       let isInvalidated = false;
       if (e.affectsConfiguration('workspaceTasks.exclude')) {
-        await this.initialize(this.context!);
-        isInvalidated = true;
+        // Only reinitialize if the exclude list actually changed to avoid
+        // spurious initialize() calls (e.g. from test teardowns that reset
+        // the setting to its current value).
+        const newExcludes = vscode.workspace.getConfiguration('workspaceTasks').get<string[]>('exclude', []);
+        const newKey = JSON.stringify([...(newExcludes ?? [])].sort());
+        const oldKey = JSON.stringify([...this.lastExcludes].sort());
+        if (newKey !== oldKey) {
+          await this.initialize(this.context!);
+          isInvalidated = true;
+        }
       }
       if (e.affectsConfiguration('workspaceTasks.shellAdditionalExtensions')) {
         // dynamic patterns updated, invalidate
@@ -444,28 +447,27 @@ export class TaskFilesService {
 
   private async loadIgnoreFile(uri: vscode.Uri) {
     try {
-      const document = await vscode.workspace.openTextDocument(uri);
-      const content = document.getText();
-      const rules = content
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
+      // Use vscode.workspace.fs.readFile to read directly from disk, bypassing
+      // VS Code's text document cache which can return stale/empty content for
+      // recently written files (leading to empty ignore rules).
+      const rawBytes = await vscode.workspace.fs.readFile(uri);
+      const content = Buffer.from(rawBytes).toString('utf-8');
+      const lines = content.split(/\r?\n/);
+      const { fileRules, taskRules } = parseIgnoreLines(lines);
 
-      if (rules.length > 0) {
-        const ig = ignore();
-        ig.add(rules);
+      // Remove existing if any (reload)
+      this.removeIgnoreFile(uri);
 
-        // Remove existing if any (reload)
-        this.removeIgnoreFile(uri);
-
-        this.ignoreFiles.push({
-          folderUri: vscode.Uri.file(path.dirname(uri.fsPath)),
-          ig: ig,
-        });
-        // Sort by path length descending so we check deepest nested ignore files first?
-        // Actually we just want to find the one that applies.
-        // Gitignore logic: check from file up to root.
+      const ig = ignore();
+      if (fileRules.length > 0) {
+        ig.add(fileRules);
       }
+
+      this.ignoreFiles.push({
+        folderUri: vscode.Uri.file(path.dirname(uri.fsPath)),
+        ig: ig,
+        taskRules: taskRules,
+      });
     } catch (e) {
       this.logger.error(`[TaskFilesService] Failed to load .tasksignore at ${uri.fsPath}`, e);
     }
@@ -494,6 +496,43 @@ export class TaskFilesService {
   }
 
   public shouldIgnore(uri: vscode.Uri): boolean {
+    if (!this.isFileIgnoredByFileRules(uri)) {
+      return false;
+    }
+
+    const uriPath = this.normalizePathForComparison(uri.fsPath);
+    const applicableIgnores = this.ignoreFiles.filter((ig) => {
+      const ignoreFolder = this.normalizePathForComparison(ig.folderUri.fsPath);
+      const relRaw = this.getRelativePathIfInside(ignoreFolder, uriPath);
+      return relRaw !== undefined && relRaw !== '';
+    });
+
+    for (const ignoreFile of applicableIgnores) {
+      if (!ignoreFile.taskRules || ignoreFile.taskRules.length === 0) {
+        continue;
+      }
+
+      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
+      const relRaw = this.getRelativePathIfInside(ignoreFolder, uriPath);
+      if (relRaw === undefined || relRaw === '') {
+        continue;
+      }
+      const relativePath = relRaw.replace(/\\/g, '/');
+
+      for (let i = ignoreFile.taskRules.length - 1; i >= 0; i--) {
+        const rule = ignoreFile.taskRules[i];
+        if (rule.negated) {
+          if (micromatch.isMatch(relativePath, rule.filePattern, { dot: true })) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private isFileIgnoredByFileRules(uri: vscode.Uri): boolean {
     // 1. Check Global Ignore (absolute/workspace relative check)
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
     if (!workspaceFolder) {
@@ -514,12 +553,8 @@ export class TaskFilesService {
     const uriPath = this.normalizePathForComparison(uri.fsPath);
     const applicableIgnores = this.ignoreFiles.filter((ig) => {
       const ignoreFolder = this.normalizePathForComparison(ig.folderUri.fsPath);
-
-      if (uriPath === ignoreFolder) {
-        return false;
-      }
-
-      return uriPath.startsWith(`${ignoreFolder}${path.sep}`);
+      const relRaw = this.getRelativePathIfInside(ignoreFolder, uriPath);
+      return relRaw !== undefined && relRaw !== '';
     });
 
     // Sort by longest path (closest to file)
@@ -529,12 +564,12 @@ export class TaskFilesService {
       const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
       const filePath = this.normalizePathForComparison(uri.fsPath);
 
-      if (!filePath.startsWith(`${ignoreFolder}${path.sep}`)) {
+      const relRaw = this.getRelativePathIfInside(ignoreFolder, filePath);
+      if (relRaw === undefined || relRaw === '') {
         continue;
       }
 
-      const relativePath = filePath.slice(ignoreFolder.length + 1);
-      const normalizedPath = relativePath.replace(/\\/g, '/');
+      const normalizedPath = relRaw.replace(/\\/g, '/');
 
       // Check if ignored (skip empty paths)
       if (normalizedPath && ignoreFile.ig.ignores(normalizedPath)) {
@@ -543,5 +578,52 @@ export class TaskFilesService {
     }
 
     return false;
+  }
+
+  /**
+   * Returns true if the named task from the given file URI should be excluded
+   * based on `.tasksignore` task-level rules.
+   *
+   * Evaluation order mirrors rule declaration order (last match wins), consistent
+   * with gitignore semantics.
+   *
+   * @param fileUri  The URI of the file that contains the task.
+   * @param taskName The exact task name as it appears in the source file.
+   */
+  public shouldIgnoreTask(fileUri: vscode.Uri, taskName: string): boolean {
+    const targetPath = this.normalizePathForComparison(fileUri.fsPath);
+
+    // Collect applicable ignore files (same ancestor logic as shouldIgnore())
+    const applicableIgnores = this.ignoreFiles.filter((ig) => {
+      const ignoreFolder = this.normalizePathForComparison(ig.folderUri.fsPath);
+      return this.getRelativePathIfInside(ignoreFolder, targetPath) !== undefined;
+    });
+
+    applicableIgnores.sort((a, b) => b.folderUri.fsPath.length - a.folderUri.fsPath.length);
+
+    for (const ignoreFile of applicableIgnores) {
+      if (!ignoreFile.taskRules || ignoreFile.taskRules.length === 0) {
+        continue;
+      }
+
+      const ignoreFolder = this.normalizePathForComparison(ignoreFile.folderUri.fsPath);
+      const relRaw = this.getRelativePathIfInside(ignoreFolder, targetPath);
+      if (relRaw === undefined || relRaw === '') {
+        continue;
+      }
+      const relativePath = relRaw.replace(/\\/g, '/');
+
+      // Check rules in reverse definition order (last match wins)
+      for (let i = ignoreFile.taskRules.length - 1; i >= 0; i--) {
+        const rule = ignoreFile.taskRules[i];
+        if (rule.taskName === taskName || rule.taskName === '*') {
+          if (micromatch.isMatch(relativePath, rule.filePattern, { dot: true })) {
+            return !rule.negated;
+          }
+        }
+      }
+    }
+
+    return this.isFileIgnoredByFileRules(fileUri);
   }
 }

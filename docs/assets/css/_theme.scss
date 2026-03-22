@@ -1,0 +1,21 @@
+// Signal to browsers and Dark Reader that this site already provides its own
+// colour schemes, preventing image URL rewrites and mismatched form controls.
+:root {
+  color-scheme: $docs-theme-color-scheme;
+}
+
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
+  text-decoration: none;
+}
+
+@import 'bootstrap-overrides';
+@import 'code';
+@import 'syntax';
+@import 'layout';
+@import 'components';
+@import 'callouts';
+@import 'side-bar';
