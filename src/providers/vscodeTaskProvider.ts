@@ -1,30 +1,10 @@
 import * as vscode from 'vscode';
-import * as os from 'os';
-import * as path from 'path';
 import { TaskProvider, BaseTaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { FilteredTaskService } from '../services/filteredTaskService';
-
-/**
- * Returns the path to the VS Code user-level tasks.json file for the current platform.
- * - Windows: %APPDATA%\Code\User\tasks.json
- * - macOS:   ~/Library/Application Support/Code/User/tasks.json
- * - Linux:   ~/.config/Code/User/tasks.json
- */
-export function getUserTasksPath(): string {
-  const platform = process.platform;
-  if (platform === 'win32') {
-    const appData = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming');
-    return path.join(appData, 'Code', 'User', 'tasks.json');
-  } else if (platform === 'darwin') {
-    return path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'tasks.json');
-  } else {
-    return path.join(os.homedir(), '.config', 'Code', 'User', 'tasks.json');
-  }
-}
 
 export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider {
   private readonly addedTasks: Set<string> = new Set<string>();
@@ -36,20 +16,6 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     super('vscode', constants.GLOB_VSCODE);
   }
 
-  /**
-   * Returns a vscode.Uri for the user-level tasks.json if it exists, otherwise undefined.
-   */
-  async getUserTasksUri(): Promise<vscode.Uri | undefined> {
-    const userTasksPath = getUserTasksPath();
-    const userTasksUri = vscode.Uri.file(userTasksPath);
-    try {
-      await vscode.workspace.fs.stat(userTasksUri);
-      return userTasksUri;
-    } catch {
-      return undefined;
-    }
-  }
-
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       return [];
@@ -58,16 +24,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     const tasks: TaskItem[] = await this.getSystemTasks();
     const workspaceFiles = await this.filesService.findFiles([constants.GLOB_VSCODE]);
 
-    // Also include the user-level tasks.json if it exists and is not already in workspace files
-    const userTasksUri = await this.getUserTasksUri();
     const files: vscode.Uri[] = [...workspaceFiles];
-    if (userTasksUri) {
-      const userPath = userTasksUri.fsPath;
-      const alreadyIncluded = workspaceFiles.some(f => f.fsPath === userPath);
-      if (!alreadyIncluded) {
-        files.push(userTasksUri);
-      }
-    }
 
     for (const file of files) {
       this.logger.debug(`[VscodeTaskProvider] Processing tasks file: ${file.fsPath}`);
@@ -110,10 +67,6 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
             );
             item.taskFileUri = file;
             item.description = vscode.workspace.asRelativePath(file);
-            // Mark whether this task comes from the global user tasks.json
-            if (userTasksUri && file.fsPath === userTasksUri.fsPath) {
-              item.taskOrigin = 'user';
-            }
             // We do NOT set defaultIconPath, so it uses resourceUri (iconUri)
 
             // Find line number (approximate)
@@ -173,9 +126,6 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     const vscodeTasks = allTasks.filter((t => t.source === 'Workspace' || t.source === 'User'));
     this.logger.debug(`[VscodeTaskProvider] Fetched ${vscodeTasks.length} system tasks from VSCode.`);
 
-    // Fetch user tasks URI once for reuse
-    const userTasksUri = await this.getUserTasksUri();
-
     for (const vscodeTask of vscodeTasks) {
       this.logger.debug(`[VscodeTaskProvider] - Processing Task: ${vscodeTask.name}, Source: ${vscodeTask.source}`);
       const label = vscodeTask.name || 'Unnamed Task';
@@ -195,10 +145,11 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
           : undefined;
       const isUserProfileTask = workspaceFolderScope === undefined || vscodeTask.source === 'User';
 
-      let fileUri: vscode.Uri;
+      let fileUri: vscode.Uri | undefined;
       if (isUserProfileTask) {
-        // User profile tasks live in the global user tasks.json
-        fileUri = userTasksUri ?? vscode.Uri.file(getUserTasksPath());
+        // User profile tasks might not be in the default user tasks.json
+        // We use undefined to indicate it's a user task without a known direct path.
+        fileUri = undefined;
       } else if (vscodeTask.definition._source) {
         // Use the _source property if available (more specific than folder default)
         fileUri = typeof vscodeTask.definition._source === 'string'
@@ -218,7 +169,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
         this.iconService.getTaskIcon(this.type),
       );
       item.taskFileUri = fileUri;
-      item.description = fileUri ? vscode.workspace.asRelativePath(fileUri) : vscodeTask.source;
+      item.description = isUserProfileTask ? 'User Tasks' : (fileUri ? vscode.workspace.asRelativePath(fileUri) : vscodeTask.source);
       // Store the native vscode.Task so createTaskForItem can use it directly
       // (guarded by instanceof check to avoid treating raw JSON as a vscode.Task)
       item.task = vscodeTask;
@@ -228,12 +179,14 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
 
 
       let text = '';
-      try {
-        const document = await vscode.workspace.openTextDocument(fileUri);
-        text = document.getText();
-      } catch {
-        // File may not exist (e.g. user tasks.json on a machine that has none)
-        this.logger.debug(`[VscodeTaskProvider] - Could not open file: ${fileUri.fsPath}`);
+      if (fileUri) {
+        try {
+          const document = await vscode.workspace.openTextDocument(fileUri);
+          text = document.getText();
+        } catch {
+          // File may not exist (e.g. user tasks.json on a machine that has none)
+          this.logger.debug(`[VscodeTaskProvider] - Could not open file: ${fileUri.fsPath}`);
+        }
       }
 
       const lines = text.split('\n');
@@ -244,11 +197,19 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
         }
       }
 
-      item.onOpenActionCommand = {
-        command: 'workspaceTasks.openFileAtLine',
-        title: 'Open File',
-        arguments: [fileUri, item.startLine || 0],
-      };
+      if (isUserProfileTask) {
+        item.onOpenActionCommand = {
+          command: 'workbench.action.tasks.openUserTasks',
+          title: 'Open User Tasks',
+          arguments: [],
+        };
+      } else {
+        item.onOpenActionCommand = {
+          command: 'workspaceTasks.openFileAtLine',
+          title: 'Open File',
+          arguments: [fileUri, item.startLine || 0],
+        };
+      }
 
       if (this.isHiddenTask(vscodeTask)) {
         if (!this.filteredTaskService.isUnhidden(item.id!) && !this.filteredTaskService.isFiltered(item.id!)) {

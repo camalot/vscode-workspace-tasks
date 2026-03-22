@@ -11,6 +11,9 @@ codecov.*
 super-linter-output/
 .secrets
 .secrets/
+
+*.log
+
 _site/
 
 cliff.toml

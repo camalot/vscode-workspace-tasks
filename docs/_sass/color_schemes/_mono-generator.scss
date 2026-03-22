@@ -1,0 +1,68 @@
+@use "sass:color";
+
+$mono-bg: #000000 !default;
+$mono-fg: #ffffff !default;
+
+// Backgrounds
+$body-background-color:       $mono-bg;
+$sidebar-color:               color.adjust($mono-bg, $lightness: 2%);
+$search-background-color:     color.adjust($mono-bg, $lightness: 4%);
+$table-background-color:      $mono-bg;
+$code-background-color:       color.adjust($mono-bg, $lightness: 2%);
+$feedback-color:              color.adjust($mono-bg, $lightness: 3%);
+
+// Text
+$body-text-color:             $mono-fg;
+$body-heading-color:          $mono-fg;
+$search-result-preview-color: color.mix($mono-fg, $mono-bg, 60%);
+$nav-child-link-color:        $mono-fg;
+$search-result-rel-url-color: color.adjust($mono-fg, $lightness: -20%);
+
+// Links & Buttons
+$link-color:                  $mono-fg;
+$btn-primary-color:           $mono-fg;
+$base-button-color:           color.adjust($mono-bg, $lightness: 5%);
+
+// Borders
+$border-color:                color.adjust($mono-bg, $lightness: 10%);
+$table-border-color:          color.adjust($mono-bg, $lightness: 10%);
+
+// Code
+$code-linenumber-color:       color.adjust($mono-fg, $lightness: -30%);
+$code-text-color:             $mono-fg;
+
+// Nav
+$nav-list-link-color:         $mono-fg;
+$nav-list-link-color-hover:   $mono-fg;
+$nav-list-link-color-active:  $mono-fg;
+
+$theme-header-background:     color.adjust($mono-bg, $lightness: 1%);
+$theme-header-border-color:   color.adjust($mono-bg, $lightness: 10%);
+$theme-nav-link-color:        $mono-fg;
+$theme-nav-link-hover-color:  $mono-fg;
+$theme-nav-link-active-color: $mono-fg;
+$theme-nav-link-hover-bg:     rgba($mono-fg, 0.1);
+$theme-nav-link-active-bg:    rgba($mono-fg, 0.2);
+$theme-nav-expander-color:    color.adjust($mono-fg, $lightness: -20%);
+
+// Code layout
+$theme-code-border-color:     color.adjust($mono-bg, $lightness: 10%);
+$theme-code-gutter-color:     color.adjust($mono-bg, $lightness: 1%);
+$theme-code-gutter-divider:   color.adjust($mono-bg, $lightness: 10%);
+$theme-code-inline-color:     $mono-fg;
+
+// Syntax highlighting
+$syntax-comment-color:        color.adjust($mono-fg, $lightness: -30%);
+$syntax-keyword-color:        $mono-fg;
+$syntax-constant-color:       $mono-fg;
+$syntax-string-color:         $mono-fg;
+$syntax-escape-color:         $mono-fg;
+$syntax-function-color:       $mono-fg;
+$syntax-builtin-color:        $mono-fg;
+$syntax-type-color:           $mono-fg;
+$syntax-annotation-color:     $mono-fg;
+$syntax-tag-color:            $mono-fg;
+$syntax-number-color:         $mono-fg;
+$syntax-operator-color:       $mono-fg;
+$syntax-text-color:           $mono-fg;
+$syntax-linenumber-color:     color.adjust($mono-fg, $lightness: -30%);

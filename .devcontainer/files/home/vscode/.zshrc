@@ -171,3 +171,5 @@ for source in $__sources; do
     fi
   fi
 done
+
+. "$HOME/.cargo/env"

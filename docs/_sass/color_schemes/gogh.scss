@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Gogh-inspired dark palette
+$gogh-background: #292D3E;
+$gogh-current-line: #676E95;
+$gogh-selection: #75A1FF;
+$gogh-foreground: #FFFEFE;
+$gogh-comment: #959DCB;
+$gogh-cyan: #60BAEC;
+$gogh-green: #62DE84;
+$gogh-orange: #FFCB6B;
+$gogh-pink: #F580FF;
+$gogh-purple: #82AAFF;
+$gogh-red: #F07178;
+$gogh-yellow: #FF5572;
+
+// Backgrounds
+$body-background-color:       $gogh-background;
+$sidebar-color:               color.adjust($gogh-background, $lightness: -4%);
+$search-background-color:     color.adjust($gogh-background, $lightness: 8%);
+$table-background-color:      $gogh-background;
+$code-background-color:       color.adjust($gogh-background, $lightness: 5%);
+$feedback-color:              color.adjust($gogh-background, $lightness: -7%);
+
+// Text
+$body-text-color:             $gogh-foreground;
+$body-heading-color:          $gogh-orange;
+$search-result-preview-color: $gogh-comment;
+$nav-child-link-color:        $gogh-foreground;
+$search-result-rel-url-color: $gogh-comment;
+
+// Links
+$link-color:                  $gogh-cyan;
+
+// Buttons
+$btn-primary-color:           $gogh-purple;
+$base-button-color:           $gogh-current-line;
+
+// Borders
+$border-color:                color.adjust($gogh-current-line, $lightness: 6%);
+$table-border-color:          color.adjust($gogh-current-line, $lightness: 6%);
+
+// Code / syntax highlight
+$code-linenumber-color:       $gogh-comment;
+$code-text-color:             $gogh-foreground;
+$code-background-color:       color.adjust($gogh-background, $lightness: 4%);
+
+// Navigation + overlays
+$nav-list-link-color:         $gogh-foreground;
+$nav-list-link-color-hover:   $gogh-cyan;
+$nav-list-link-color-active:  $gogh-orange;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   color.adjust($gogh-current-line, $lightness: 6%);
+$theme-nav-link-color:        $gogh-foreground;
+$theme-nav-link-hover-color:  $gogh-cyan;
+$theme-nav-link-active-color: $gogh-orange;
+$theme-nav-link-hover-bg:     rgba($gogh-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($gogh-orange, 0.2);
+$theme-nav-expander-color:    $gogh-comment;
+$theme-overlay-background:    color.adjust($gogh-background, $lightness: 1%);
+$theme-overlay-hover-background: rgba($gogh-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     color.adjust($gogh-current-line, $lightness: 6%);
+$theme-code-gutter-color:     color.adjust($gogh-background, $lightness: -4%);
+$theme-code-gutter-divider:   color.adjust($gogh-current-line, $lightness: 6%);
+$theme-code-inline-color:     $gogh-pink;
+$syntax-comment-color:        $gogh-comment;
+$syntax-keyword-color:        $gogh-pink;
+$syntax-constant-color:       $gogh-purple;
+$syntax-string-color:         $gogh-orange;
+$syntax-escape-color:         $gogh-red;
+$syntax-function-color:       #C3E88D;
+$syntax-builtin-color:        $gogh-cyan;
+$syntax-type-color:           $gogh-purple;
+$syntax-annotation-color:     #C3E88D;
+$syntax-tag-color:            $gogh-red;
+$syntax-number-color:         $gogh-orange;
+$syntax-operator-color:       $gogh-yellow;
+$syntax-text-color:           $gogh-foreground;
+$syntax-linenumber-color:     $gogh-comment;

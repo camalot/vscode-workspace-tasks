@@ -1,0 +1,91 @@
+@use "sass:color";
+
+// Matrix color palette
+$matrix-green-bright: #00ff41;
+$matrix-green:        #008f11;
+$matrix-green-dark:   #003b00;
+$matrix-black:        #0d0208;
+
+// Derived shades for UI hierarchy
+$matrix-background:   $matrix-black;
+$matrix-surface:      color.adjust($matrix-black, $lightness: 4%);
+$matrix-foreground:   $matrix-green-bright;
+$matrix-muted:        color.adjust($matrix-green, $lightness: 6%);
+$matrix-accent:       color.adjust($matrix-green-bright, $lightness: -4%);
+$matrix-border:       color.adjust($matrix-green-dark, $lightness: 10%);
+
+$matrix-current-line:  $matrix-surface;
+$matrix-selection:     color.adjust($matrix-surface, $lightness: 8%);
+$matrix-comment:       $matrix-muted;
+$matrix-cyan:          color.adjust($matrix-green-bright, $lightness: 4%);
+$matrix-orange:        color.adjust($matrix-green-bright, $lightness: -18%);
+$matrix-pink:          color.adjust($matrix-green-bright, $lightness: -8%);
+$matrix-purple:        color.adjust($matrix-green, $lightness: 18%);
+$matrix-red:           color.adjust($matrix-green-dark, $lightness: 12%);
+$matrix-yellow:        color.adjust($matrix-green-bright, $lightness: 12%);
+
+// Backgrounds
+$body-background-color:       $matrix-background;
+$sidebar-color:               color.adjust($matrix-background, $lightness: 3%);
+$search-background-color:     $matrix-surface;
+$table-background-color:      $matrix-background;
+$code-background-color:       color.adjust($matrix-surface, $lightness: -2%);
+$feedback-color:              color.adjust($matrix-background, $lightness: 7%);
+
+// Text
+$body-text-color:             $matrix-foreground;
+$body-heading-color:          $matrix-green-bright;
+$search-result-preview-color: $matrix-muted;
+$nav-child-link-color:        $matrix-foreground;
+$search-result-rel-url-color: $matrix-muted;
+
+// Links
+$link-color:                  $matrix-green-bright;
+
+// Buttons
+$btn-primary-color:           $matrix-green;
+$base-button-color:           $matrix-surface;
+
+// Borders
+$border-color:                $matrix-border;
+$table-border-color:          $matrix-border;
+
+// Code / syntax highlight
+$code-linenumber-color:       $matrix-muted;
+$code-text-color:             $matrix-foreground;
+$code-background-color:       color.adjust($matrix-background, $lightness: 2%);
+
+// Navigation + overlays
+$nav-list-link-color:         $matrix-foreground;
+$nav-list-link-color-hover:   $matrix-green-bright;
+$nav-list-link-color-active:  $matrix-green-bright;
+$theme-header-background:     color.adjust($matrix-background, $lightness: 6%);
+$theme-header-border-color:   $matrix-border;
+$theme-nav-link-color:        $matrix-foreground;
+$theme-nav-link-hover-color:  $matrix-green-bright;
+$theme-nav-link-active-color: $matrix-green-bright;
+$theme-nav-link-hover-bg:     rgba($matrix-green-bright, 0.12);
+$theme-nav-link-active-bg:    rgba($matrix-green-bright, 0.2);
+$theme-nav-expander-color:    $matrix-muted;
+$theme-overlay-background:    color.adjust($matrix-background, $lightness: 2%);
+$theme-overlay-hover-background: rgba($matrix-surface, 0.88);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $matrix-border;
+$theme-code-gutter-color:     color.adjust($matrix-background, $lightness: -6%);
+$theme-code-gutter-divider:   color.adjust($matrix-border, $lightness: 7%);
+$theme-code-inline-color:     $matrix-green-bright;
+$syntax-comment-color:        $matrix-muted;
+$syntax-keyword-color:        color.adjust($matrix-green-bright, $lightness: -8%);
+$syntax-constant-color:       $matrix-green-bright;
+$syntax-string-color:         color.adjust($matrix-green-bright, $lightness: 10%);
+$syntax-escape-color:         color.adjust($matrix-green-bright, $lightness: -2%);
+$syntax-function-color:       color.adjust($matrix-green-bright, $lightness: 6%);
+$syntax-builtin-color:        $matrix-green;
+$syntax-type-color:           $matrix-green-bright;
+$syntax-annotation-color:     color.adjust($matrix-green, $lightness: 12%);
+$syntax-tag-color:            $matrix-green-bright;
+$syntax-number-color:         color.adjust($matrix-green-bright, $lightness: -12%);
+$syntax-operator-color:       $matrix-green;
+$syntax-text-color:           $matrix-foreground;
+$syntax-linenumber-color:     $matrix-muted;

@@ -6,8 +6,8 @@ function build() {
   local OLDPWD
   OLDPWD=$(pwd)
 
-  # set the working directory to /workspaces/vscode-workspace-tasks/docs
-  cd /workspaces/vscode-workspace-tasks/docs || exit
+  # set the working directory to /workspace/docs
+  cd /workspace/docs || exit
 
   bundle install
 
@@ -26,7 +26,7 @@ function serve() {
   local OLDPWD
   OLDPWD=$(pwd)
 
-  cd /workspaces/vscode-workspace-tasks/docs || exit
+  cd /workspace/docs || exit
   bundle exec jekyll serve --destination ../_site --config _config.yml,_config-local.yml --skip-initial-build "$WATCH"
   cd "$OLDPWD" || exit
 }

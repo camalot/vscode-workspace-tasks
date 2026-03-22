@@ -58,6 +58,56 @@ The `.tasksignore` file is a plain text file with one pattern per line. The form
 | `dir/*.ext` | Matches files in specific directory | `scripts/*.sh` |
 | `!pattern` | Negates a previous pattern (re-includes) | `!important.js` |
 
+### Task-Level Filtering
+
+You can also ignore specific tasks within a file using the `@` symbol. This allows you to hide individual tasks from your task list without ignoring the entire file.
+
+The syntax for task-level filtering is `filepath@taskname`, where:
+
+- `filepath` is a valid file pattern (it must point to a file, not a directory).
+- `@` is the separator.
+- `taskname` is the exact name of the task to ignore.
+
+#### How Negation Works with Task-Level Rules
+
+You can use the negation operator (`!`) in combination with task-level and file-level rules to create powerful filters. When you negate a task (`!filepath@taskname`), you ensure that specific task is included, even if the file itself or all of its tasks would otherwise be ignored.
+
+This works through a simple priority system:
+
+1. If a file is ignored, all of its tasks are ignored.
+2. If a specific task is negated (`!file@taskname`), it explicitly overrides the broader ignore rules for that one task.
+3. If you ignore all tasks using a wildcard (`file@*`) and negate one (`!file@taskname`), only that specific task will be shown from that file.
+
+#### Task-Level Rule Forms
+
+| Rule Form | Description | Example |
+| --- | --- | --- |
+| `file@task` | Hides a specific task from a specific file. | `package.json@test` |
+| `file@*` | Hides all tasks from a specific file. | `Makefile@*` |
+| `!file@task` | Re-includes a specific task that was otherwise ignored by a broader rule. | `!package.json@build` |
+| `*.ext@task` | Hides a task with a specific name across all files matching the pattern. | `*.json@clean` |
+
+#### Worked Examples
+
+**Example: Hiding a single task while keeping the rest visible**
+To hide only the `serve` task from your `package.json` but keep `build` and `test` visible:
+
+```ignore
+# Ignore only the "serve" task in package.json
+package.json@serve
+```
+
+**Example: Hiding all tasks from a file but re-including one specific task**
+If you have a customized Makefile and you only want the `deploy` task to be discovered, you can ignore all tasks in the file and then explicitly negate (re-include) `deploy`:
+
+```ignore
+# Hide all tasks in the Makefile
+Makefile@*
+
+# Re-include the "deploy" task
+!Makefile@deploy
+```
+
 ## Examples
 
 ### Basic Example
