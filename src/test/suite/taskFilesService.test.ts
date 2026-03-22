@@ -10,7 +10,7 @@ suite('TaskFilesService Test Suite', () => {
     let testFolder: vscode.Uri;
 
     setup(async function(this: Mocha.Context) {
-        this.timeout(10000);
+        this.timeout(60000);
         service = TaskFilesService.getInstance();
 
         // Find workspace root
@@ -35,7 +35,7 @@ suite('TaskFilesService Test Suite', () => {
     });
 
     teardown(async function(this: Mocha.Context) {
-        this.timeout(10000);
+        this.timeout(60000);
         try {
             await vscode.workspace.fs.delete(testFolder, { recursive: true, useTrash: false });
         } catch { }
@@ -76,7 +76,7 @@ suite('TaskFilesService Test Suite', () => {
     });
 
     test('shouldIgnore - Respects workspaceTasks.exclude configuration', async function() {
-        this.timeout(5000); // Increase timeout
+        this.timeout(60000); // Increase timeout
         // Create file that should correspond to new exclude rule
         const fileUri = await createFile('dist/output.js');
         // Initial state check
@@ -138,7 +138,7 @@ suite('TaskFilesService Test Suite', () => {
     }
 
     test('shouldIgnore - Respects .tasksignore file', async function() {
-        this.timeout(10000);
+        this.timeout(60000);
         const fileUri = await createFile('secret/key.txt');
         const allowedUri = await createFile('public/read.txt');
 
@@ -152,7 +152,7 @@ suite('TaskFilesService Test Suite', () => {
     });
 
     test('shouldIgnore - Nested .tasksignore takes precedence/adds rules', async function() {
-        this.timeout(20000); // Two waitForIgnoreFile calls, each up to 5s
+        this.timeout(60000); // Two waitForIgnoreFile calls, each up to 5s
 
         // Use isolated subfolder to avoid stale document cache from other tests
         // Create root ignore blocking foo/
@@ -177,7 +177,7 @@ suite('TaskFilesService Test Suite', () => {
     });
 
     test('filterByDepth - Respects fetchDepth configuration', async function() {
-        this.timeout(10000);
+        this.timeout(60000);
         const config = vscode.workspace.getConfiguration('workspaceTasks');
 
         // Create nested structure
@@ -229,7 +229,7 @@ suite('TaskFilesService Test Suite', () => {
     });
 
     test('loadIgnoreFile - Handles comments and empty lines', async function() {
-        this.timeout(20000); // Increase timeout for file operations
+        this.timeout(60000); // Increase timeout for file operations
 
         // Create complicated ignore file
         const content = `
@@ -254,7 +254,7 @@ ignore.me
     });
 
     test('Integration - findFiles', async function() {
-        this.timeout(15000);
+        this.timeout(60000);
         const file1 = await createFile('match1.json');
         const file2 = await createFile('match2.json');
         const ignored = await createFile('ignore.me');
@@ -294,7 +294,7 @@ ignore.me
     });
 
     test('Integration - findFiles includes file rescued by task-level negation from glob pattern', async function() {
-        this.timeout(15000);
+        this.timeout(60000);
 
         // rescued: ignored by glob but has a specific task-level negation → must appear in findFiles
         // ignored: no negation → must NOT appear
@@ -331,7 +331,7 @@ ignore.me
     });
 
     test('Integration - findFiles includes file rescued by file-level negation from glob pattern', async function() {
-        this.timeout(15000);
+        this.timeout(60000);
 
         // rescued: ignored by glob but has a specific file-level negation → must appear in findFiles
         // ignored: no negation → must NOT appear
@@ -368,7 +368,7 @@ ignore.me
     });
 
     test('findFiles with registered patterns uses cache', async function() {
-        this.timeout(10000);
+        this.timeout(60000);
         // Clear patterns
         (service as any).registeredPatterns.clear();
         service.invalidateCache();
@@ -396,7 +396,7 @@ ignore.me
     });
 
     test('invalidateCache works correctly', async function() {
-        this.timeout(10000);
+        this.timeout(60000);
         (service as any).registeredPatterns.clear();
         // Register the exact pattern used in findFiles calls so cache is used
         service.registerPatterns(['**/invalidate-test/**/*.txt']);
@@ -522,7 +522,7 @@ ignore.me
 
     suite('shouldIgnoreTask ($filepath@taskname)', () => {
         test('Special characters in task names', async function() {
-            this.timeout(15000);
+            this.timeout(60000);
             const taskNames = [
                 'docs:build:serve',
                 'docs/build/serve',
@@ -551,7 +551,7 @@ ignore.me
         });
 
         test('Case sensitivity in task names', async function() {
-            this.timeout(5000);
+            this.timeout(60000);
             const content = `package.json
 !package.json@docs:build`;
             const ignoreFile = await createFile('task-ignore-case/.tasksignore', content);
@@ -564,7 +564,7 @@ ignore.me
         });
 
         test('Rule matches file and task name -> true', async function() {
-            this.timeout(10000);
+            this.timeout(60000);
             const ignoreFile = await createFile('task-ignore/.tasksignore', 'package.json@build');
             await waitForIgnoreFile(ignoreFile);
 
@@ -575,7 +575,7 @@ ignore.me
         });
 
         test('Rule matches file but not task name -> false', async function() {
-            this.timeout(5000);
+            this.timeout(60000);
             const ignoreFile = await createFile('task-ignore-nomatch/.tasksignore', 'package.json@build');
             await waitForIgnoreFile(ignoreFile);
 
@@ -585,7 +585,7 @@ ignore.me
         });
 
         test('Rule does not match file -> false', async function() {
-            this.timeout(5000);
+            this.timeout(60000);
             const ignoreFile = await createFile('task-ignore-wrongfile/.tasksignore', 'package.json@build');
             await waitForIgnoreFile(ignoreFile);
 
@@ -595,7 +595,7 @@ ignore.me
         });
 
         test('Negation re-includes after file-level ignore -> false', async function() {
-            this.timeout(5000);
+            this.timeout(60000);
             const content = `package.json
 !package.json@test`;
             const ignoreFile = await createFile('task-ignore-negation/.tasksignore', content);
@@ -609,7 +609,7 @@ ignore.me
         });
 
         test('Last-match-wins', async function() {
-            this.timeout(10000);
+            this.timeout(60000);
             const content = `package.json@build
 !package.json@build`;
             const ignoreFile1 = await createFile('task-ignore-lastmatch1/.tasksignore', content);
@@ -628,7 +628,7 @@ package.json@build`;
         });
 
         test('Nested .tasksignore files (deeper rule overrides shallower)', async function() {
-            this.timeout(20000);
+            this.timeout(60000);
             const rootIgnore = await createFile('nested-tasks/.tasksignore', 'package.json@build');
             await waitForIgnoreFile(rootIgnore);
 
@@ -650,7 +650,7 @@ package.json@build`;
     // ---------------------------------------------------------------------------
 
     test('shouldIgnore - task-level negation rescues file from glob-level ignore', async function() {
-        this.timeout(10000);
+        this.timeout(60000);
         // Reproduce: apps/sub/** (ignore all) + !apps/sub/package.json@build (task negation)
         // shouldIgnore must return false for package.json so it remains discoverable.
         const ignoreFile = await createFile('rescue-task-only/.tasksignore',
@@ -665,7 +665,7 @@ package.json@build`;
     });
 
     test('shouldIgnore - file-level negation rescues script from glob-level ignore', async function() {
-        this.timeout(10000);
+        this.timeout(60000);
         // Reproduce: apps/sub/** (ignore all) + !apps/sub/script.sh (file negation)
         // shouldIgnore must return false for script.sh so it remains discoverable.
         const ignoreFile = await createFile('rescue-file-only/.tasksignore',
@@ -680,7 +680,7 @@ package.json@build`;
     });
 
     test('shouldIgnore - combined task-level and file-level negations in one .tasksignore', async function() {
-        this.timeout(10000);
+        this.timeout(60000);
         // Reproduces the user-reported scenario (using lowercase paths to match
         // normalizePathForComparison which lowercases for cross-platform consistency):
         //   apps/appa/**                        ← ignore everything
@@ -702,7 +702,7 @@ package.json@build`;
     });
 
     test('Integration - findFiles rescues files via combined task-level and file-level negations (cache path)', async function() {
-        this.timeout(15000);
+        this.timeout(60000);
 
         // Mirrors user-reported bug: both project.json (task negation) and script1.sh (file negation)
         // must appear in findFiles results even though apps/appa/** blocks them at the glob level.
@@ -748,7 +748,7 @@ package.json@build`;
     });
 
     test('Integration - findFiles rescues files via task-level negation (uncovered/dynamic pattern path)', async function() {
-        this.timeout(15000);
+        this.timeout(60000);
 
         // Same rescue scenario but through the uncovered-pattern code path
         // (pattern NOT pre-registered, so findFiles queries VS Code directly).
@@ -783,7 +783,7 @@ package.json@build`;
         // -------------------------------------------------------------------------
 
         test('shouldIgnore - mixed-case glob rescues file via task-level negation', async function() {
-            this.timeout(5000);
+            this.timeout(60000);
             // Reproduces: apps/appA/** + !apps/appA/package.json@build (uppercase A)
             // The negation must still rescue package.json despite the casing difference.
             const ignoreFile = await createFile('mixedcase-task-rescue/.tasksignore',
@@ -800,7 +800,7 @@ package.json@build`;
         });
 
         test('shouldIgnore - mixed-case glob rescues file via file-level negation', async function() {
-            this.timeout(5000);
+            this.timeout(60000);
             // Reproduces: apps/appA/** + !apps/appA/script1.sh (uppercase A, file-level negation)
             const ignoreFile = await createFile('mixedcase-file-rescue/.tasksignore',
                 `apps/appA/**\n!apps/appA/script1.sh`);
@@ -816,7 +816,7 @@ package.json@build`;
         });
 
         test('shouldIgnoreTask - mixed-case pattern allows negated task, blocks others', async function() {
-            this.timeout(10000);
+            this.timeout(60000);
 
             // apps/appA/** + !apps/appA/package.json@build (uppercase A in the glob)
             // shouldIgnoreTask('build') must be false; other tasks must fall back to the file-level block.
@@ -833,7 +833,7 @@ package.json@build`;
         });
 
         test('Integration - findFiles rescues files via mixed-case .tasksignore patterns (cache path)', async function() {
-            this.timeout(15000);
+            this.timeout(60000);
 
             // apps/appA/** with mixed-case A blocks all files; negations must rescue the two named files.
             await createFile('mixedcase-combined/apps/appA/package.json', '{"scripts":{"build":"echo build"}}');

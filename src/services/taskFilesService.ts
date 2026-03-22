@@ -268,9 +268,9 @@ export class TaskFilesService {
 
     let files: vscode.Uri[] = [];
     try {
-      files = await vscode.workspace.findFiles('**/.tasksignore', '**/node_modules/**,**/.git/**');
+      files = await vscode.workspace.findFiles('**/.tasksignore', '{**/node_modules/**,**/.git/**,**/.vscode-test/**}');
     } catch {
-      return;
+      
     }
 
     const folders = new Set(files.map((f) => this.normalizePathForComparison(path.dirname(f.fsPath))));
@@ -359,7 +359,7 @@ export class TaskFilesService {
     }
 
     // Find all .tasksignore files in the workspace
-    const files = await vscode.workspace.findFiles('**/.tasksignore', '**/node_modules/**,**/.git/**');
+      const files = await vscode.workspace.findFiles('**/.tasksignore');
     for (const file of files) {
       await this.loadIgnoreFile(file);
     }
