@@ -520,6 +520,40 @@ ignore.me
         assert.strictEqual((service as any).fileEventsWatcher, undefined, 'fileEventsWatcher should be cleared when disposed via subscriptions');
     });
 
+    test('buildCache coalesces concurrent requests into a single scan', async () => {
+        // Register a pattern so buildCache has something to scan
+        service.registerPatterns(['**/package.json']);
+
+        // Track how many times _doBuildCache is called
+        const original_doBuildCache = (service as any)._doBuildCache.bind(service);
+        let doBuildCacheCallCount = 0;
+        (service as any)._doBuildCache = async () => {
+            doBuildCacheCallCount++;
+            return original_doBuildCache();
+        };
+
+        try {
+            // Inject a pending in-flight promise so that the NEXT buildCache() call
+            // hits the coalesce branch (buildCacheInFlight !== null).
+            let inflightResolve: () => void;
+            const inflightPromise = new Promise<void>((resolve) => { inflightResolve = resolve; });
+            (service as any).buildCacheInFlight = inflightPromise;
+
+            // Call buildCache() while an in-flight build exists — should coalesce
+            const coalescedCall = (service as any).buildCache();
+
+            // Resolve the fake in-flight promise so the coalesced call settles
+            inflightResolve!();
+            await coalescedCall;
+
+            // _doBuildCache must NOT have been invoked (coalesce returned early)
+            assert.strictEqual(doBuildCacheCallCount, 0, '_doBuildCache should not be called again when a build is already in flight');
+        } finally {
+            // Restore original method
+            (service as any)._doBuildCache = original_doBuildCache;
+        }
+    });
+
     suite('shouldIgnoreTask ($filepath@taskname)', () => {
         test('Special characters in task names', async function() {
             this.timeout(60000);

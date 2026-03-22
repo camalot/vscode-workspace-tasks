@@ -58,6 +58,7 @@ function fix_ssh_permissions() {
   echo ""
 }
 
+# shellcheck disable=SC2329
 function install_act() {
   # --- act CLI ---------------------------------------------------------------
   # Download a pre-built binary if it doesn't already exist in the repository.
@@ -87,7 +88,8 @@ function install_sample_tasks() {
   echo -e "${COLOR_BLUE}Installing sample workspace tasks...${COLOR_RESET}"
 
   mkdir -p "$(dirname "$SAMPLE_WORKSPACE_TASKS_DIR")"
-
+  local current_dir
+  current_dir=$(pwd)
   if [ ! -d "$SAMPLE_WORKSPACE_TASKS_DIR" ]; then
     echo -e "${COLOR_BLUE}Cloning sample workspace tasks...${COLOR_RESET}"
     # Bypass local SSH config to avoid "Bad owner or permissions on /home/vscode/.ssh/config" errors
@@ -96,6 +98,9 @@ function install_sample_tasks() {
     echo -e "${COLOR_GREEN}Sample workspace tasks installed successfully at $SAMPLE_WORKSPACE_TASKS_DIR.${COLOR_RESET}"
   else
     echo -e "${COLOR_GREEN}Sample workspace tasks already present at $SAMPLE_WORKSPACE_TASKS_DIR${COLOR_RESET}"
+    cd $SAMPLE_WORKSPACE_TASKS_DIR || true
+    git pull origin main || true
+    cd "$current_dir" || true
   fi
   echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
   echo ""
@@ -211,7 +216,7 @@ echo ""
 
 fix_ssh_permissions
 npm_install
-install_act
+# install_act
 jekyll_bundle_prep
 install_antigen_bundles
 install_ohmyposh

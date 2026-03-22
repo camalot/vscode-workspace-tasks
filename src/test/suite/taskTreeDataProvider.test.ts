@@ -864,6 +864,49 @@ suite('TaskTreeDataProvider Test Suite', () => {
       clearTimeout(secondTimeout);
       (provider as any).refreshTimeouts.delete('someType');
     });
+
+    test('timeout callback fires refreshProvider and onDidChangeTreeData', (done) => {
+      const provider = new TaskTreeDataProvider(ctx);
+      const mockProvider = { type: 'fireType' } as any;
+
+      // Stub TaskCacheService.refreshProvider to track invocation
+      const cacheService = TaskCacheService.getInstance();
+      const originalRefreshProvider = (cacheService as any).refreshProvider;
+      let refreshCalled = false;
+      (cacheService as any).refreshProvider = async (_type: string) => { refreshCalled = true; };
+
+      // Track tree data change event
+      let treeDataFired = false;
+      const sub = provider.onDidChangeTreeData(() => { treeDataFired = true; });
+
+      // Intercept the setTimeout call to capture the callback and invoke it directly
+      const originalSetTimeout = global.setTimeout;
+      let capturedFn: ((...args: any[]) => void) | undefined;
+      (global as any).setTimeout = (fn: (...args: any[]) => void, _delay: number, ...args: any[]) => {
+        capturedFn = fn;
+        // Schedule with a very long delay so it doesn't fire on its own
+        return originalSetTimeout(fn, 60000, ...args);
+      };
+
+      (provider as any).handleFileChange(mockProvider);
+      (global as any).setTimeout = originalSetTimeout;
+
+      // Manually invoke the captured callback
+      if (capturedFn) {
+        Promise.resolve(capturedFn()).then(() => {
+          assert.ok(refreshCalled, 'cache should have been refreshed');
+          assert.ok(treeDataFired, 'tree data change should have fired');
+          sub.dispose();
+          (cacheService as any).refreshProvider = originalRefreshProvider;
+          clearTimeout((provider as any).refreshTimeouts.get('fireType'));
+          done();
+        });
+      } else {
+        sub.dispose();
+        (cacheService as any).refreshProvider = originalRefreshProvider;
+        done(new Error('No callback was captured'));
+      }
+    });
   });
 
   // ── groupTasksByParentFolder (covered separately but adding edge cases) ───
@@ -1198,7 +1241,12 @@ suite('TaskTreeDataProvider Test Suite', () => {
 
   suite('pendingRevealLevel setTimeout callback', () => {
     test('level=0 calls reveal with expand:3 on bound views', (done) => {
-      stubServicesForOrganize([]);
+      const uri = vscode.Uri.file('/root/package.json');
+      const task = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      task.taskFileUri = uri;
+      task.id = 'reveal-build-0';
+      task.originalLabel = 'build';
+      stubServicesForOrganize([task]);
 
       let revealCalled = false;
       let revealExpand: number | undefined;
@@ -1221,22 +1269,24 @@ suite('TaskTreeDataProvider Test Suite', () => {
       // Set pendingRevealLevel to 0 (expand 3 deep)
       (provider as any).pendingRevealLevel = 0;
 
-      // Add a root item so the loop has something to iterate
-      const rootTask = new TaskItem('Root', vscode.TreeItemCollapsibleState.Collapsed, 'workspace');
-      (provider as any).currentRoots = [rootTask];
-
-      // Call getChildren to trigger the setTimeout
+      // Call getChildren so pendingRevealLevel is processed and currentRoots is populated
       provider.getChildren().then(() => {
-        // Wait for the setTimeout (100ms) to fire
+        // Wait for the setTimeout (100ms) to fire, plus a small buffer
         setTimeout(() => {
-          // Note: reveal is only called if currentRoots is non-empty at timeout time
+          assert.ok(revealCalled, 'reveal should have been called when roots exist and view is bound');
+          assert.strictEqual(revealExpand, 3, 'level=0 should expand 3 deep');
           done();
-        }, 200);
+        }, 300);
       });
     });
 
     test('level=1 calls reveal with expand:1 on bound views', (done) => {
-      stubServicesForOrganize([]);
+      const uri = vscode.Uri.file('/root/package.json');
+      const task = new TaskItem('test', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      task.taskFileUri = uri;
+      task.id = 'reveal-test-1';
+      task.originalLabel = 'test';
+      stubServicesForOrganize([task]);
 
       let revealCalled = false;
       let revealExpand: number | undefined;
@@ -1259,16 +1309,34 @@ suite('TaskTreeDataProvider Test Suite', () => {
       // Set pendingRevealLevel to 1 (expand 1 deep)
       (provider as any).pendingRevealLevel = 1;
 
-      const rootTask = new TaskItem('Root', vscode.TreeItemCollapsibleState.Collapsed, 'workspace');
-      (provider as any).currentRoots = [rootTask];
-
       provider.getChildren().then(() => {
         setTimeout(() => {
-          if (revealCalled) {
-            assert.strictEqual(revealExpand, 1, 'Should reveal with expand:1 for level=1');
-          }
+          assert.ok(revealCalled, 'reveal should have been called when roots exist and view is bound');
+          assert.strictEqual(revealExpand, 1, 'Should reveal with expand:1 for level=1');
           done();
-        }, 200);
+        }, 300);
+      });
+    });
+
+    test('returns early when views list is empty when setTimeout fires', (done) => {
+      const uri = vscode.Uri.file('/root/package.json');
+      const task = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      task.taskFileUri = uri;
+      task.id = 'reveal-noview';
+      task.originalLabel = 'build';
+      stubServicesForOrganize([task]);
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      // Do NOT bind any view — views list is empty
+
+      (provider as any).pendingRevealLevel = 1;
+
+      // Should not throw even when views is empty
+      provider.getChildren().then(() => {
+        setTimeout(() => {
+          // No view bound, reveal code should have returned early without error
+          done();
+        }, 300);
       });
     });
   });
