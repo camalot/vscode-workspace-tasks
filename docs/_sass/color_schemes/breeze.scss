@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Official KDE Breeze Dark palette
+$breeze-background: #202326;
+$breeze-current-line: #292C30;
+$breeze-selection: #3DAEE9;
+$breeze-foreground: #FCFCFC;
+$breeze-comment: #A1A9B1;
+$breeze-cyan: #3DAEE9;
+$breeze-green: #27AE60;
+$breeze-orange: #F67400;
+$breeze-pink: #9B59B6;
+$breeze-purple: #9B59B6;
+$breeze-red: #DA4453;
+$breeze-yellow: #FDBC4B;
+
+// Backgrounds
+$body-background-color:       $breeze-background;
+$sidebar-color:               color.adjust($breeze-background, $lightness: 2%);
+$search-background-color:     color.adjust($breeze-background, $lightness: 7%);
+$table-background-color:      $breeze-background;
+$code-background-color:       color.adjust($breeze-background, $lightness: 4%);
+$feedback-color:              color.adjust($breeze-background, $lightness: 5%);
+
+// Text
+$body-text-color:             $breeze-foreground;
+$body-heading-color:          $breeze-cyan;
+$search-result-preview-color: $breeze-comment;
+$nav-child-link-color:        $breeze-foreground;
+$search-result-rel-url-color: $breeze-comment;
+
+// Links
+$link-color:                  $breeze-cyan;
+
+// Buttons
+$btn-primary-color:           $breeze-cyan;
+$base-button-color:           $breeze-current-line;
+
+// Borders
+$border-color:                color.adjust($breeze-background, $lightness: 10%);
+$table-border-color:          color.adjust($breeze-background, $lightness: 10%);
+
+// Code / syntax highlight
+$code-linenumber-color:       $breeze-comment;
+$code-text-color:             $breeze-foreground;
+$code-background-color:       color.adjust($breeze-background, $lightness: 4%);
+
+// Navigation + overlays
+$nav-list-link-color:         $breeze-foreground;
+$nav-list-link-color-hover:   $breeze-cyan;
+$nav-list-link-color-active:  $breeze-purple;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 1%);
+$theme-header-border-color:   color.adjust($breeze-background, $lightness: 12%);
+$theme-nav-link-color:        $breeze-foreground;
+$theme-nav-link-hover-color:  $breeze-cyan;
+$theme-nav-link-active-color: $breeze-purple;
+$theme-nav-link-hover-bg:     rgba($breeze-cyan, 0.16);
+$theme-nav-link-active-bg:    rgba($breeze-purple, 0.2);
+$theme-nav-expander-color:    $breeze-comment;
+$theme-overlay-background:    $breeze-background;
+$theme-overlay-hover-background: rgba($breeze-current-line, 0.9);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     color.adjust($breeze-background, $lightness: 11%);
+$theme-code-gutter-color:     color.adjust($breeze-background, $lightness: 2%);
+$theme-code-gutter-divider:   color.adjust($breeze-background, $lightness: 11%);
+$theme-code-inline-color:     $breeze-pink;
+$syntax-comment-color:        $breeze-comment;
+$syntax-keyword-color:        $breeze-pink;
+$syntax-constant-color:       $breeze-purple;
+$syntax-string-color:         $breeze-yellow;
+$syntax-escape-color:         $breeze-pink;
+$syntax-function-color:       $breeze-green;
+$syntax-builtin-color:        $breeze-cyan;
+$syntax-type-color:           $breeze-cyan;
+$syntax-annotation-color:     $breeze-green;
+$syntax-tag-color:            $breeze-pink;
+$syntax-number-color:         $breeze-purple;
+$syntax-operator-color:       $breeze-pink;
+$syntax-text-color:           $breeze-foreground;
+$syntax-linenumber-color:     $breeze-comment;

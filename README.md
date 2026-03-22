@@ -14,7 +14,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 - [📷 Screenshots](#screenshots)
 - [✨ Key Features](#key-features)
-- [📖 Documentation](#documentation)
+- [📖 Documentation](https://camalot.github.io/vscode-workspace-tasks/)
 - [📥 Installation](#installation)
 - [🛠️ Supported Task Types](#supported-task-types)
 - [🌱 Recent Tasks](#recent-tasks)
@@ -56,12 +56,6 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
 - **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
 - **☁️ Settings Sync** - Sync your favorites and queues across multiple machines via VS Code's Settings Sync
-
-## 📖 Documentation
-
-<a id="documentation"></a>
-
-[Full Documentation](https://camalot.github.io/vscode-workspace-tasks/)
 
 ## 📥 Installation
 

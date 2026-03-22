@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Horizon Dark palette
+$horizon-dark-background:    #16161c;
+$horizon-dark-current-line:  color.adjust($horizon-dark-background, $lightness: 6%);
+$horizon-dark-selection:     color.adjust($horizon-dark-background, $lightness: 8%);
+$horizon-dark-foreground:    #fdf0ed;
+$horizon-dark-comment:       color.mix($horizon-dark-foreground, $horizon-dark-background, 60%);
+$horizon-dark-cyan:          #26bbd9;
+$horizon-dark-green:         #29d398;
+$horizon-dark-orange:        #fab795;
+$horizon-dark-pink:          #ee64ae;
+$horizon-dark-purple:        #f075b7;
+$horizon-dark-red:           #e95678;
+$horizon-dark-yellow:        #fadad1;
+
+// Backgrounds
+$body-background-color:       $horizon-dark-background;
+$sidebar-color:               color.adjust($horizon-dark-background, $lightness: -6%);
+$search-background-color:     $horizon-dark-current-line;
+$table-background-color:      $horizon-dark-background;
+$code-background-color:       $horizon-dark-current-line;
+$feedback-color:              color.adjust($horizon-dark-background, $lightness: -7%);
+
+// Text
+$body-text-color:             $horizon-dark-foreground;
+$body-heading-color:          $horizon-dark-red;
+$search-result-preview-color: $horizon-dark-comment;
+$nav-child-link-color:        $horizon-dark-foreground;
+$search-result-rel-url-color: $horizon-dark-comment;
+
+// Links
+$link-color:                  $horizon-dark-cyan;
+
+// Buttons
+$btn-primary-color:           $horizon-dark-green;
+$base-button-color:           $horizon-dark-current-line;
+
+// Borders
+$border-color:                $horizon-dark-current-line;
+$table-border-color:          $horizon-dark-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $horizon-dark-comment;
+$code-text-color:             $horizon-dark-foreground;
+$code-background-color:       color.adjust($horizon-dark-background, $lightness: -4%);
+
+// Navigation + overlays
+$nav-list-link-color:         $horizon-dark-foreground;
+$nav-list-link-color-hover:   $horizon-dark-cyan;
+$nav-list-link-color-active:  $horizon-dark-green;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   $horizon-dark-current-line;
+$theme-nav-link-color:        $horizon-dark-foreground;
+$theme-nav-link-hover-color:  $horizon-dark-cyan;
+$theme-nav-link-active-color: $horizon-dark-green;
+$theme-nav-link-hover-bg:     rgba($horizon-dark-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($horizon-dark-green, 0.22);
+$theme-nav-expander-color:    $horizon-dark-comment;
+$theme-overlay-background:    $horizon-dark-background;
+$theme-overlay-hover-background: rgba($horizon-dark-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $horizon-dark-current-line;
+$theme-code-gutter-color:     color.adjust($horizon-dark-background, $lightness: -10%);
+$theme-code-gutter-divider:   $horizon-dark-current-line;
+$theme-code-inline-color:     $horizon-dark-pink;
+$syntax-comment-color:        $horizon-dark-comment;
+$syntax-keyword-color:        $horizon-dark-red;
+$syntax-constant-color:       $horizon-dark-yellow;
+$syntax-string-color:         $horizon-dark-green;
+$syntax-escape-color:         $horizon-dark-orange;
+$syntax-function-color:       $horizon-dark-cyan;
+$syntax-builtin-color:        $horizon-dark-purple;
+$syntax-type-color:           $horizon-dark-cyan;
+$syntax-annotation-color:     $horizon-dark-purple;
+$syntax-tag-color:            $horizon-dark-cyan;
+$syntax-number-color:         $horizon-dark-orange;
+$syntax-operator-color:       $horizon-dark-pink;
+$syntax-text-color:           $horizon-dark-foreground;
+$syntax-linenumber-color:     $horizon-dark-comment;

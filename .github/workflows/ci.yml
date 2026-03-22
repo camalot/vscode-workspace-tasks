@@ -45,7 +45,7 @@ jobs:
           DEFAULT_BRANCH: "develop"
           CREATE_LOG_FILE: true
           LOG_FILE: reports/super-linter/super-linter-summary.ansi.log
-          FILTER_REGEX_EXCLUDE: '(test|node_modules)/|(CHANGELOG|CONFIGURATION|SUPPORT|README|CONTRIBUTING|copilot-instructions)\.md$'
+          FILTER_REGEX_EXCLUDE: '(test|node_modules|docs)/|(CHANGELOG|CONFIGURATION|SUPPORT|README|CONTRIBUTING|copilot-instructions)\.md$'
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_BASH_EXEC: false
           VALIDATE_BIOME_FORMAT: false

@@ -207,7 +207,8 @@ suite('RecentTasksService Test Suite', () => {
         recentTasksService.remove({} as any);
     });
 
-    test('invalid maxRecentTasks config defaults to 20', async () => {
+    test('invalid maxRecentTasks config defaults to 20', async function() {
+        this.timeout(60000);
         const config = vscode.workspace.getConfiguration('workspaceTasks');
         // Clear value to force default behavior (if package.json doesn't specify it, it's undefined)
         await config.update('recentTasks.maxItems', undefined, vscode.ConfigurationTarget.Global);

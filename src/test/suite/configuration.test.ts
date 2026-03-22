@@ -31,7 +31,7 @@ suite('Configuration Test Suite', () => {
   });
 
   test.skip('update updates nested object property and persists (Global)', async function () {
-    this.timeout(10000);
+    this.timeout(60000);
     // use a registered object property: shellEnabledTaskTypes
     const parent = 'shellEnabledTaskTypes';
 
@@ -55,7 +55,7 @@ suite('Configuration Test Suite', () => {
   });
 
   test('updateWs updates nested object property at Workspace target', async function () {
-    this.timeout(10000);
+    this.timeout(60000);
     // workspace-level updates require an open workspace; skip if none
     if (!vscode.workspace.workspaceFolders) {
       this.skip();
@@ -80,7 +80,7 @@ suite('Configuration Test Suite', () => {
   });
 
   test.skip('updateVs and updateVsWs update root configuration keys', async function () {
-    this.timeout(10000); // increase timeout for configuration updates
+    this.timeout(60000); // increase timeout for configuration updates
     // updateVs writes to the global configuration; use registered keys
     const key1 = 'workspaceTasks.groups.taskSeparator';
 

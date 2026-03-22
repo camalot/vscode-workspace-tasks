@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Fairy Floss Dark palette
+$fairy-floss-dark-background:    #42395D;
+$fairy-floss-dark-current-line:  color.adjust($fairy-floss-dark-background, $lightness: 6%);
+$fairy-floss-dark-selection:     color.adjust($fairy-floss-dark-background, $lightness: 8%);
+$fairy-floss-dark-foreground:    #F8F8F2;
+$fairy-floss-dark-comment:       #A8757B;
+$fairy-floss-dark-cyan:          #C2FFDF;
+$fairy-floss-dark-green:         #C2FFFF;
+$fairy-floss-dark-orange:        #FF857F;
+$fairy-floss-dark-pink:          #FFB8D1;
+$fairy-floss-dark-purple:        #AE81FF;
+$fairy-floss-dark-red:           #F1568E;
+$fairy-floss-dark-yellow:        #E6C000;
+
+// Backgrounds
+$body-background-color:       $fairy-floss-dark-background;
+$sidebar-color:               color.adjust($fairy-floss-dark-background, $lightness: -4%);
+$search-background-color:     $fairy-floss-dark-current-line;
+$table-background-color:      $fairy-floss-dark-background;
+$code-background-color:       $fairy-floss-dark-current-line;
+$feedback-color:              color.adjust($fairy-floss-dark-background, $lightness: -7%);
+
+// Text
+$body-text-color:             $fairy-floss-dark-foreground;
+$body-heading-color:          $fairy-floss-dark-purple;
+$search-result-preview-color: $fairy-floss-dark-comment;
+$nav-child-link-color:        $fairy-floss-dark-foreground;
+$search-result-rel-url-color: $fairy-floss-dark-comment;
+
+// Links
+$link-color:                  $fairy-floss-dark-cyan;
+
+// Buttons
+$btn-primary-color:           $fairy-floss-dark-purple;
+$base-button-color:           $fairy-floss-dark-current-line;
+
+// Borders
+$border-color:                $fairy-floss-dark-current-line;
+$table-border-color:          $fairy-floss-dark-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $fairy-floss-dark-comment;
+$code-text-color:             $fairy-floss-dark-foreground;
+$code-background-color:       color.adjust($fairy-floss-dark-background, $lightness: -3%);
+
+// Navigation + overlays
+$nav-list-link-color:         $fairy-floss-dark-foreground;
+$nav-list-link-color-hover:   $fairy-floss-dark-cyan;
+$nav-list-link-color-active:  $fairy-floss-dark-purple;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   $fairy-floss-dark-current-line;
+$theme-nav-link-color:        $fairy-floss-dark-foreground;
+$theme-nav-link-hover-color:  $fairy-floss-dark-cyan;
+$theme-nav-link-active-color: $fairy-floss-dark-purple;
+$theme-nav-link-hover-bg:     rgba($fairy-floss-dark-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($fairy-floss-dark-purple, 0.22);
+$theme-nav-expander-color:    $fairy-floss-dark-comment;
+$theme-overlay-background:    $fairy-floss-dark-background;
+$theme-overlay-hover-background: rgba($fairy-floss-dark-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $fairy-floss-dark-current-line;
+$theme-code-gutter-color:     color.adjust($fairy-floss-dark-background, $lightness: -5%);
+$theme-code-gutter-divider:   $fairy-floss-dark-current-line;
+$theme-code-inline-color:     $fairy-floss-dark-pink;
+$syntax-comment-color:        $fairy-floss-dark-comment;
+$syntax-keyword-color:        $fairy-floss-dark-pink;
+$syntax-constant-color:       $fairy-floss-dark-purple;
+$syntax-string-color:         $fairy-floss-dark-yellow;
+$syntax-escape-color:         $fairy-floss-dark-pink;
+$syntax-function-color:       $fairy-floss-dark-green;
+$syntax-builtin-color:        $fairy-floss-dark-cyan;
+$syntax-type-color:           $fairy-floss-dark-cyan;
+$syntax-annotation-color:     $fairy-floss-dark-green;
+$syntax-tag-color:            $fairy-floss-dark-pink;
+$syntax-number-color:         $fairy-floss-dark-orange;
+$syntax-operator-color:       $fairy-floss-dark-pink;
+$syntax-text-color:           $fairy-floss-dark-foreground;
+$syntax-linenumber-color:     $fairy-floss-dark-comment;

@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Horizon Bright palette
+$horizon-bright-background:    #fdf0ed;
+$horizon-bright-current-line:  color.adjust($horizon-bright-background, $lightness: -10%);
+$horizon-bright-selection:     color.adjust($horizon-bright-background, $lightness: -8%);
+$horizon-bright-foreground:    #16161c;
+$horizon-bright-comment:       #1a1c23;
+$horizon-bright-cyan:          #26bbd9;
+$horizon-bright-green:         #1eb980;
+$horizon-bright-orange:        #f6661e;
+$horizon-bright-pink:          #ee64ae;
+$horizon-bright-purple:        #1d8991;
+$horizon-bright-red:           #da103f;
+$horizon-bright-yellow:        #fadad1;
+
+// Backgrounds
+$body-background-color:       $horizon-bright-background;
+$sidebar-color:               color.adjust($horizon-bright-background, $lightness: -6%);
+$search-background-color:     $horizon-bright-current-line;
+$table-background-color:      $horizon-bright-background;
+$code-background-color:       $horizon-bright-current-line;
+$feedback-color:              color.adjust($horizon-bright-background, $lightness: -7%);
+
+// Text
+$body-text-color:             $horizon-bright-foreground;
+$body-heading-color:          $horizon-bright-red;
+$search-result-preview-color: $horizon-bright-comment;
+$nav-child-link-color:        $horizon-bright-foreground;
+$search-result-rel-url-color: $horizon-bright-comment;
+
+// Links
+$link-color:                  $horizon-bright-cyan;
+
+// Buttons
+$btn-primary-color:           $horizon-bright-green;
+$base-button-color:           $horizon-bright-current-line;
+
+// Borders
+$border-color:                $horizon-bright-current-line;
+$table-border-color:          $horizon-bright-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $horizon-bright-comment;
+$code-text-color:             $horizon-bright-foreground;
+$code-background-color:       color.adjust($horizon-bright-background, $lightness: -4%);
+
+// Navigation + overlays
+$nav-list-link-color:         $horizon-bright-foreground;
+$nav-list-link-color-hover:   $horizon-bright-cyan;
+$nav-list-link-color-active:  $horizon-bright-green;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   $horizon-bright-current-line;
+$theme-nav-link-color:        $horizon-bright-foreground;
+$theme-nav-link-hover-color:  $horizon-bright-cyan;
+$theme-nav-link-active-color: $horizon-bright-green;
+$theme-nav-link-hover-bg:     rgba($horizon-bright-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($horizon-bright-green, 0.22);
+$theme-nav-expander-color:    $horizon-bright-comment;
+$theme-overlay-background:    $horizon-bright-background;
+$theme-overlay-hover-background: rgba($horizon-bright-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $horizon-bright-current-line;
+$theme-code-gutter-color:     color.adjust($horizon-bright-background, $lightness: -10%);
+$theme-code-gutter-divider:   $horizon-bright-current-line;
+$theme-code-inline-color:     $horizon-bright-pink;
+$syntax-comment-color:        $horizon-bright-comment;
+$syntax-keyword-color:        $horizon-bright-red;
+$syntax-constant-color:       $horizon-bright-yellow;
+$syntax-string-color:         $horizon-bright-green;
+$syntax-escape-color:         $horizon-bright-orange;
+$syntax-function-color:       $horizon-bright-cyan;
+$syntax-builtin-color:        $horizon-bright-purple;
+$syntax-type-color:           $horizon-bright-cyan;
+$syntax-annotation-color:     $horizon-bright-purple;
+$syntax-tag-color:            $horizon-bright-cyan;
+$syntax-number-color:         $horizon-bright-orange;
+$syntax-operator-color:       $horizon-bright-pink;
+$syntax-text-color:           $horizon-bright-foreground;
+$syntax-linenumber-color:     $horizon-bright-comment;

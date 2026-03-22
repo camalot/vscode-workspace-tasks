@@ -2,6 +2,9 @@
 sample/**/tools/**
 sample/sample-workspace-tasks
 
+test-*.txt
+test-*.log
+
 .devcontainer/mount/.*Marker
 
 tools/

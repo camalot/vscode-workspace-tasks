@@ -1,141 +1,430 @@
-// ── Bootstrap CSS variable overrides — Dracula theme ─────────────────────────
+// ── Bootstrap CSS variable overrides — theme-aware palette ───────────────────
 //
 // Bootstrap 5 uses CSS custom properties on :root for all colours and surfaces.
-// Overriding them here replaces the default light-mode values with the Dracula
-// palette so Bootstrap components (FAB, badges, etc.) stay on-theme without the
-// need to import a full Bootstrap dark-mode build.
+// Overriding them here keeps Bootstrap components (FAB, badges, dropdowns, etc.)
+// visually aligned with whichever docs theme is currently compiled.
 //
 // To add a hex value to a `*-rgb` var, split it as R, G, B integers.
 // e.g. #282a36 → 40, 42, 54  |  #f8f8f2 → 248, 248, 242
 
-:root {
-  // ── Dracula brand colours ──────────────────────────────────────────────────
-  --bs-blue:        #{$dracula-cyan};
-  --bs-indigo:      #{$dracula-comment};
-  --bs-purple:      #{$dracula-purple};
-  --bs-pink:        #{$dracula-pink};
-  --bs-red:         #{$dracula-red};
-  --bs-orange:      #{$dracula-orange};
-  --bs-yellow:      #{$dracula-yellow};
-  --bs-green:       #{$dracula-green};
-  --bs-teal:        #{$dracula-cyan};
-  --bs-cyan:        #{$dracula-cyan};
-  --bs-black:       #000;
-  --bs-white:       #{$dracula-foreground};
+@use 'sass:color';
+@use 'sass:math';
 
-  // ── Grey scale mapped to Dracula shades ────────────────────────────────────
-  --bs-gray-100:    #{color.adjust($dracula-background, $lightness: 40%)};
-  --bs-gray-200:    #{color.adjust($dracula-background, $lightness: 30%)};
-  --bs-gray-300:    #{color.adjust($dracula-background, $lightness: 20%)};
-  --bs-gray-400:    #{color.adjust($dracula-background, $lightness: 15%)};
-  --bs-gray-500:    #{$dracula-comment};
-  --bs-gray-600:    #{color.adjust($dracula-comment, $lightness: -10%)};
-  --bs-gray-700:    #{$dracula-current-line};
-  --bs-gray-800:    #{color.adjust($dracula-background, $lightness: 5%)};
-  --bs-gray-900:    #{$dracula-background};
-  --bs-gray:        #{$dracula-comment};
-  --bs-gray-dark:   #{$dracula-current-line};
+@function rgb-channels($value) {
+  @return #{color.channel($value, 'red', $space: rgb)}, #{color.channel($value, 'green', $space: rgb)},
+    #{color.channel($value, 'blue', $space: rgb)};
+}
+
+@function relative-luma($value) {
+  $red: math.div(color.channel($value, 'red', $space: rgb), 255);
+  $green: math.div(color.channel($value, 'green', $space: rgb), 255);
+  $blue: math.div(color.channel($value, 'blue', $space: rgb), 255);
+
+  @return (0.2126 * $red) + (0.7152 * $green) + (0.0722 * $blue);
+}
+
+@function button-foreground($background) {
+  @if relative-luma($background) > 0.58 {
+    @return $theme-bootstrap-body-bg;
+  }
+
+  @return $theme-bootstrap-body-color;
+}
+
+@function button-state-color($value, $amount) {
+  $lightness: color.channel($value, 'lightness', $space: hsl);
+
+  @if $lightness > 55% {
+    @return color.adjust($value, $lightness: -$amount);
+  }
+
+  @return color.adjust($value, $lightness: $amount);
+}
+
+@function grayscale-tone($value) {
+  $lightness: color.channel($value, 'lightness', $space: hsl);
+
+  @return hsl(0deg, 0%, $lightness);
+}
+
+@mixin bootstrap-button-variant($background, $foreground: null, $border: null) {
+  $resolved-foreground: button-foreground($background);
+  $resolved-border: $background;
+  $hover-background: button-state-color($background, 6%);
+  $active-background: button-state-color($background, 10%);
+  $disabled-background: color.mix($background, $theme-bootstrap-body-bg, 55%);
+
+  @if $foreground != null {
+    $resolved-foreground: $foreground;
+  }
+
+  @if $border != null {
+    $resolved-border: $border;
+  }
+
+  $hover-border: button-state-color($resolved-border, 6%);
+  $active-border: button-state-color($resolved-border, 10%);
+  $disabled-border: color.mix($resolved-border, $theme-bootstrap-body-bg, 55%);
+  $disabled-foreground: color.mix($resolved-foreground, $theme-bootstrap-body-bg, 55%);
+
+  color: $resolved-foreground;
+  background-color: $background;
+  border-color: $resolved-border;
+  background-image: none;
+  --bs-btn-color: #{$resolved-foreground};
+  --bs-btn-bg: #{$background};
+  --bs-btn-border-color: #{$resolved-border};
+  --bs-btn-hover-color: #{button-foreground($hover-background)};
+  --bs-btn-hover-bg: #{$hover-background};
+  --bs-btn-hover-border-color: #{$hover-border};
+  --bs-btn-focus-shadow-rgb: #{rgb-channels(color.mix($background, $theme-bootstrap-body-color, 35%))};
+  --bs-btn-active-color: #{button-foreground($active-background)};
+  --bs-btn-active-bg: #{$active-background};
+  --bs-btn-active-border-color: #{$active-border};
+  --bs-btn-disabled-color: #{$disabled-foreground};
+  --bs-btn-disabled-bg: #{$disabled-background};
+  --bs-btn-disabled-border-color: #{$disabled-border};
+
+  &:hover,
+  &:focus-visible {
+    color: button-foreground($hover-background);
+    background-color: $hover-background;
+    border-color: $hover-border;
+  }
+
+  &:active,
+  &.active,
+  .show > &.dropdown-toggle {
+    color: button-foreground($active-background);
+    background-color: $active-background;
+    border-color: $active-border;
+  }
+
+  &:disabled,
+  &.disabled {
+    color: $disabled-foreground;
+    background-color: $disabled-background;
+    border-color: $disabled-border;
+    box-shadow: none;
+  }
+}
+
+:root {
+  // ── Base brand colours ─────────────────────────────────────────────────────
+  --bs-blue: #{$theme-bootstrap-primary};
+  --bs-indigo: #{$theme-bootstrap-secondary};
+  --bs-purple: #{$theme-bootstrap-info};
+  --bs-pink: #{$theme-bootstrap-danger};
+  --bs-red: #{$theme-bootstrap-danger};
+  --bs-orange: #{$theme-bootstrap-warning};
+  --bs-yellow: #{$theme-bootstrap-warning};
+  --bs-green: #{$theme-bootstrap-success};
+  --bs-teal: #{$theme-bootstrap-info};
+  --bs-cyan: #{$theme-bootstrap-primary};
+  --bs-black: #000;
+  --bs-white: #{$theme-bootstrap-body-color};
+
+  // ── Grey scale mapped to theme surfaces ───────────────────────────────────
+  --bs-gray-100: #{color.adjust($theme-bootstrap-body-bg, $lightness: 40%)};
+  --bs-gray-200: #{color.adjust($theme-bootstrap-body-bg, $lightness: 30%)};
+  --bs-gray-300: #{color.adjust($theme-bootstrap-body-bg, $lightness: 20%)};
+  --bs-gray-400: #{color.adjust($theme-bootstrap-body-bg, $lightness: 15%)};
+  --bs-gray-500: #{$theme-bootstrap-secondary};
+  --bs-gray-600: #{color.adjust($theme-bootstrap-secondary, $lightness: -10%)};
+  --bs-gray-700: #{$theme-bootstrap-light};
+  --bs-gray-800: #{color.adjust($theme-bootstrap-body-bg, $lightness: 5%)};
+  --bs-gray-900: #{$theme-bootstrap-body-bg};
+  --bs-gray: #{$theme-bootstrap-secondary};
+  --bs-gray-dark: #{$theme-bootstrap-light};
 
   // ── Semantic role colours ──────────────────────────────────────────────────
-  --bs-primary:             #{$dracula-cyan};
-  --bs-secondary:           #{$dracula-comment};
-  --bs-success:             #{$dracula-green};
-  --bs-info:                #{$dracula-purple};
-  --bs-warning:             #{$dracula-yellow};
-  --bs-danger:              #{$dracula-red};
-  --bs-light:               #{$dracula-current-line};
-  --bs-dark:                #{$dracula-background};
+  --bs-primary: #{$theme-bootstrap-primary};
+  --bs-secondary: #{$theme-bootstrap-secondary};
+  --bs-success: #{$theme-bootstrap-success};
+  --bs-info: #{$theme-bootstrap-info};
+  --bs-warning: #{$theme-bootstrap-warning};
+  --bs-danger: #{$theme-bootstrap-danger};
+  --bs-light: #{$theme-bootstrap-light};
+  --bs-dark: #{$theme-bootstrap-dark};
 
-  --bs-primary-rgb:         139, 233, 253;   // #8be9fd
-  --bs-secondary-rgb:       98, 114, 164;    // #6272a4
-  --bs-success-rgb:         80, 250, 123;    // #50fa7b
-  --bs-info-rgb:            189, 147, 249;   // #bd93f9
-  --bs-warning-rgb:         241, 250, 140;   // #f1fa8c
-  --bs-danger-rgb:          255, 85, 85;     // #f55
-  --bs-light-rgb:           68, 71, 90;      // #44475a
-  --bs-dark-rgb:            40, 42, 54;      // #282a36
+  --bs-primary-rgb: #{rgb-channels($theme-bootstrap-primary)};
+  --bs-secondary-rgb: #{rgb-channels($theme-bootstrap-secondary)};
+  --bs-success-rgb: #{rgb-channels($theme-bootstrap-success)};
+  --bs-info-rgb: #{rgb-channels($theme-bootstrap-info)};
+  --bs-warning-rgb: #{rgb-channels($theme-bootstrap-warning)};
+  --bs-danger-rgb: #{rgb-channels($theme-bootstrap-danger)};
+  --bs-light-rgb: #{rgb-channels($theme-bootstrap-light)};
+  --bs-dark-rgb: #{rgb-channels($theme-bootstrap-dark)};
 
   // ── Emphasis / subtle shades ───────────────────────────────────────────────
-  --bs-primary-text-emphasis:   #{$dracula-cyan};
-  --bs-secondary-text-emphasis: #{$dracula-foreground};
-  --bs-success-text-emphasis:   #{$dracula-green};
-  --bs-info-text-emphasis:      #{$dracula-purple};
-  --bs-warning-text-emphasis:   #{$dracula-yellow};
-  --bs-danger-text-emphasis:    #{$dracula-red};
-  --bs-light-text-emphasis:     #{$dracula-foreground};
-  --bs-dark-text-emphasis:      #{$dracula-foreground};
+  --bs-primary-text-emphasis: #{$theme-bootstrap-primary-text-emphasis};
+  --bs-secondary-text-emphasis: #{$theme-bootstrap-secondary-text-emphasis};
+  --bs-success-text-emphasis: #{$theme-bootstrap-success-text-emphasis};
+  --bs-info-text-emphasis: #{$theme-bootstrap-info-text-emphasis};
+  --bs-warning-text-emphasis: #{$theme-bootstrap-warning-text-emphasis};
+  --bs-danger-text-emphasis: #{$theme-bootstrap-danger-text-emphasis};
+  --bs-light-text-emphasis: #{$theme-bootstrap-light-text-emphasis};
+  --bs-dark-text-emphasis: #{$theme-bootstrap-dark-text-emphasis};
 
-  --bs-primary-bg-subtle:       #{color.adjust($dracula-background, $lightness: 5%)};
-  --bs-secondary-bg-subtle:     #{color.adjust($dracula-background, $lightness: 3%)};
-  --bs-success-bg-subtle:       #{color.adjust($dracula-background, $lightness: 5%)};
-  --bs-info-bg-subtle:          #{color.adjust($dracula-background, $lightness: 5%)};
-  --bs-warning-bg-subtle:       #{color.adjust($dracula-background, $lightness: 5%)};
-  --bs-danger-bg-subtle:        #{color.adjust($dracula-background, $lightness: 5%)};
-  --bs-light-bg-subtle:         #{$dracula-current-line};
-  --bs-dark-bg-subtle:          #{$dracula-background};
+  --bs-primary-bg-subtle: #{$theme-bootstrap-primary-bg-subtle};
+  --bs-secondary-bg-subtle: #{$theme-bootstrap-secondary-bg-subtle};
+  --bs-success-bg-subtle: #{$theme-bootstrap-success-bg-subtle};
+  --bs-info-bg-subtle: #{$theme-bootstrap-info-bg-subtle};
+  --bs-warning-bg-subtle: #{$theme-bootstrap-warning-bg-subtle};
+  --bs-danger-bg-subtle: #{$theme-bootstrap-danger-bg-subtle};
+  --bs-light-bg-subtle: #{$theme-bootstrap-light-bg-subtle};
+  --bs-dark-bg-subtle: #{$theme-bootstrap-dark-bg-subtle};
 
-  --bs-primary-border-subtle:   #{$dracula-current-line};
-  --bs-secondary-border-subtle: #{$dracula-current-line};
-  --bs-success-border-subtle:   #{$dracula-current-line};
-  --bs-info-border-subtle:      #{$dracula-current-line};
-  --bs-warning-border-subtle:   #{$dracula-current-line};
-  --bs-danger-border-subtle:    #{$dracula-current-line};
-  --bs-light-border-subtle:     #{$dracula-current-line};
-  --bs-dark-border-subtle:      #{$dracula-current-line};
+  --bs-primary-border-subtle: #{$theme-bootstrap-primary-border-subtle};
+  --bs-secondary-border-subtle: #{$theme-bootstrap-secondary-border-subtle};
+  --bs-success-border-subtle: #{$theme-bootstrap-success-border-subtle};
+  --bs-info-border-subtle: #{$theme-bootstrap-info-border-subtle};
+  --bs-warning-border-subtle: #{$theme-bootstrap-warning-border-subtle};
+  --bs-danger-border-subtle: #{$theme-bootstrap-danger-border-subtle};
+  --bs-light-border-subtle: #{$theme-bootstrap-light-border-subtle};
+  --bs-dark-border-subtle: #{$theme-bootstrap-dark-border-subtle};
 
   // ── RGB component pairs ────────────────────────────────────────────────────
-  --bs-white-rgb:   248, 248, 242;  // #f8f8f2
-  --bs-black-rgb:   0, 0, 0;
+  --bs-white-rgb: #{rgb-channels($theme-bootstrap-body-color)};
+  --bs-black-rgb: 0, 0, 0;
 
   // ── Body / surface ─────────────────────────────────────────────────────────
-  --bs-body-color:          #{$dracula-foreground};
-  --bs-body-color-rgb:      248, 248, 242;
-  --bs-body-bg:             #{$dracula-background};
-  --bs-body-bg-rgb:         40, 42, 54;
+  --bs-body-color: #{$theme-bootstrap-body-color};
+  --bs-body-color-rgb: #{rgb-channels($theme-bootstrap-body-color)};
+  --bs-body-bg: #{$theme-bootstrap-body-bg};
+  --bs-body-bg-rgb: #{rgb-channels($theme-bootstrap-body-bg)};
 
-  --bs-emphasis-color:      #{$dracula-foreground};
-  --bs-emphasis-color-rgb:  248, 248, 242;
+  --bs-emphasis-color: #{$theme-bootstrap-emphasis-color};
+  --bs-emphasis-color-rgb: #{rgb-channels($theme-bootstrap-emphasis-color)};
 
-  --bs-secondary-color:       rgba(248, 248, 242, 0.75);
-  --bs-secondary-color-rgb:   248, 248, 242;
-  --bs-secondary-bg:          #{$dracula-current-line};
-  --bs-secondary-bg-rgb:      68, 71, 90;
+  --bs-secondary-color: #{$theme-bootstrap-secondary-color};
+  --bs-secondary-color-rgb: #{rgb-channels($theme-bootstrap-secondary-color)};
+  --bs-secondary-bg: #{$theme-bootstrap-secondary-bg};
+  --bs-secondary-bg-rgb: #{rgb-channels($theme-bootstrap-secondary-bg)};
 
-  --bs-tertiary-color:        rgba(248, 248, 242, 0.5);
-  --bs-tertiary-color-rgb:    248, 248, 242;
-  --bs-tertiary-bg:           #{color.adjust($dracula-background, $lightness: 5%)};
-  --bs-tertiary-bg-rgb:       48, 50, 64;
+  --bs-tertiary-color: #{$theme-bootstrap-tertiary-color};
+  --bs-tertiary-color-rgb: #{rgb-channels($theme-bootstrap-tertiary-color)};
+  --bs-tertiary-bg: #{$theme-bootstrap-tertiary-bg};
+  --bs-tertiary-bg-rgb: #{rgb-channels($theme-bootstrap-tertiary-bg)};
 
   // ── Typography ─────────────────────────────────────────────────────────────
-  --bs-heading-color:         #{$body-heading-color};
+  --bs-heading-color: #{$theme-bootstrap-heading-color};
 
   // ── Links ──────────────────────────────────────────────────────────────────
-  --bs-link-color:            #{$link-color};
-  --bs-link-color-rgb:        139, 233, 253;
-  --bs-link-decoration:       none;
-  --bs-link-hover-color:      #{$dracula-purple};
-  --bs-link-hover-color-rgb:  189, 147, 249;
+  --bs-link-color: #{$theme-bootstrap-link-color};
+  --bs-link-color-rgb: #{rgb-channels($theme-bootstrap-link-color)};
+  --bs-link-decoration: none;
+  --bs-link-hover-color: #{$theme-bootstrap-link-hover-color};
+  --bs-link-hover-color-rgb: #{rgb-channels($theme-bootstrap-link-hover-color)};
 
   // ── Code ───────────────────────────────────────────────────────────────────
-  --bs-code-color:            #{$dracula-pink};
-  --bs-highlight-color:       #{$dracula-foreground};
-  --bs-highlight-bg:          #{$dracula-current-line};
+  --bs-code-color: #{$theme-bootstrap-code-color};
+  --bs-highlight-color: #{$theme-bootstrap-highlight-color};
+  --bs-highlight-bg: #{$theme-bootstrap-highlight-bg};
 
   // ── Borders ────────────────────────────────────────────────────────────────
-  --bs-border-color:              #{$dracula-current-line};
-  --bs-border-color-translucent:  rgba(248, 248, 242, 0.175);
+  --bs-border-color: #{$theme-bootstrap-border-color};
+  --bs-border-color-translucent: #{$theme-bootstrap-border-color-translucent};
+
+  // ── Tables ─────────────────────────────────────────────────────────────────
+  --bs-table-color-type: initial;
+  --bs-table-bg-type: initial;
+  --bs-table-color-state: initial;
+  --bs-table-bg-state: initial;
+  --bs-table-color: #{$theme-bootstrap-table-color};
+  --bs-table-bg: #{$theme-bootstrap-table-bg};
+  --bs-table-border-color: #{$theme-bootstrap-table-border-color};
+  --bs-table-accent-bg: #{$theme-bootstrap-table-accent-bg};
+  --bs-table-striped-color: #{$theme-bootstrap-table-striped-color};
+  --bs-table-striped-bg: #{$theme-bootstrap-table-striped-bg};
+  --bs-table-active-color: #{$theme-bootstrap-table-active-color};
+  --bs-table-active-bg: #{$theme-bootstrap-table-active-bg};
+  --bs-table-hover-color: #{$theme-bootstrap-table-hover-color};
+  --bs-table-hover-bg: #{$theme-bootstrap-table-hover-bg};
 
   // ── Focus ring ─────────────────────────────────────────────────────────────
-  --bs-focus-ring-color:      rgba(139, 233, 253, 0.25);
+  --bs-focus-ring-color: #{rgba($theme-bootstrap-primary, 0.25)};
 
   // ── Shadows ────────────────────────────────────────────────────────────────
-  --bs-box-shadow:            0 0.5rem 1rem rgba(0, 0, 0, 0.5);
-  --bs-box-shadow-sm:         0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
-  --bs-box-shadow-lg:         0 1rem 3rem rgba(0, 0, 0, 0.6);
+  --bs-box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  --bs-box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+  --bs-box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.6);
 
   // ── Form validation ────────────────────────────────────────────────────────
-  --bs-form-valid-color:          #{$dracula-green};
-  --bs-form-valid-border-color:   #{$dracula-green};
-  --bs-form-invalid-color:        #{$dracula-red};
-  --bs-form-invalid-border-color: #{$dracula-red};
+  --bs-form-valid-color: #{$theme-bootstrap-form-valid-color};
+  --bs-form-valid-border-color: #{$theme-bootstrap-form-valid-color};
+  --bs-form-invalid-color: #{$theme-bootstrap-form-invalid-color};
+  --bs-form-invalid-border-color: #{$theme-bootstrap-form-invalid-color};
+}
+
+.btn.btn-primary {
+  @include bootstrap-button-variant($theme-bootstrap-primary);
+}
+
+.btn.btn-secondary {
+  @include bootstrap-button-variant($theme-bootstrap-secondary);
+}
+
+.btn.btn-success {
+  @include bootstrap-button-variant($theme-bootstrap-success);
+}
+
+.btn.btn-danger {
+  @include bootstrap-button-variant($theme-bootstrap-danger);
+}
+
+.btn.btn-warning {
+  @include bootstrap-button-variant($theme-bootstrap-warning);
+}
+
+.btn.btn-info {
+  @include bootstrap-button-variant($theme-bootstrap-info);
+}
+
+.btn.btn-light {
+  @include bootstrap-button-variant(
+    $theme-bootstrap-light,
+    button-foreground($theme-bootstrap-light),
+    color.mix($theme-bootstrap-light, $theme-bootstrap-border-color, 70%)
+  );
+}
+
+.btn.btn-dark {
+  @include bootstrap-button-variant(
+    $theme-bootstrap-dark,
+    button-foreground($theme-bootstrap-dark),
+    color.mix($theme-bootstrap-dark, $theme-bootstrap-body-color, 25%)
+  );
+}
+
+.btn.btn-link {
+  color: $theme-bootstrap-link-color;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  --bs-btn-color: #{$theme-bootstrap-link-color};
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: #{$theme-bootstrap-link-hover-color};
+  --bs-btn-hover-bg: transparent;
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: #{$theme-bootstrap-link-hover-color};
+  --bs-btn-active-bg: transparent;
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-color: #{rgba($theme-bootstrap-link-color, 0.45)};
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: transparent;
+
+  &:hover,
+  &:focus-visible,
+  &:active,
+  &.active {
+    color: $theme-bootstrap-link-hover-color;
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  &:disabled,
+  &.disabled {
+    color: rgba($theme-bootstrap-link-color, 0.45);
+    background-color: transparent;
+    border-color: transparent;
+  }
+}
+
+// Grayscale theme: keep semantic button variants distinct by tone only.
+:root[data-docs-theme='grayscale'] {
+  --bs-primary: #{grayscale-tone($theme-bootstrap-primary)};
+  --bs-secondary: #{grayscale-tone($theme-bootstrap-secondary)};
+  --bs-success: #{grayscale-tone($theme-bootstrap-success)};
+  --bs-info: #{grayscale-tone($theme-bootstrap-info)};
+  --bs-warning: #{grayscale-tone($theme-bootstrap-warning)};
+  --bs-danger: #{grayscale-tone($theme-bootstrap-danger)};
+  --bs-light: #{grayscale-tone($theme-bootstrap-light)};
+  --bs-dark: #{grayscale-tone($theme-bootstrap-dark)};
+
+  --bs-primary-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-primary))};
+  --bs-secondary-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-secondary))};
+  --bs-success-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-success))};
+  --bs-info-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-info))};
+  --bs-warning-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-warning))};
+  --bs-danger-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-danger))};
+  --bs-light-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-light))};
+  --bs-dark-rgb: #{rgb-channels(grayscale-tone($theme-bootstrap-dark))};
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-primary {
+  @include bootstrap-button-variant(grayscale-tone($theme-bootstrap-primary));
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-secondary {
+  @include bootstrap-button-variant(grayscale-tone($theme-bootstrap-secondary));
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-success {
+  @include bootstrap-button-variant(grayscale-tone($theme-bootstrap-success));
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-danger {
+  @include bootstrap-button-variant(grayscale-tone($theme-bootstrap-danger));
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-warning {
+  @include bootstrap-button-variant(grayscale-tone($theme-bootstrap-warning));
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-info {
+  @include bootstrap-button-variant(grayscale-tone($theme-bootstrap-info));
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-light {
+  @include bootstrap-button-variant(
+    grayscale-tone($theme-bootstrap-light),
+    button-foreground(grayscale-tone($theme-bootstrap-light)),
+    color.mix(grayscale-tone($theme-bootstrap-light), grayscale-tone($theme-bootstrap-border-color), 70%)
+  );
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-dark {
+  @include bootstrap-button-variant(
+    grayscale-tone($theme-bootstrap-dark),
+    button-foreground(grayscale-tone($theme-bootstrap-dark)),
+    color.mix(grayscale-tone($theme-bootstrap-dark), grayscale-tone($theme-bootstrap-body-color), 25%)
+  );
+}
+
+:root[data-docs-theme='grayscale'] .btn.btn-link {
+  color: grayscale-tone($theme-bootstrap-link-color);
+  --bs-btn-color: #{grayscale-tone($theme-bootstrap-link-color)};
+  --bs-btn-hover-color: #{grayscale-tone($theme-bootstrap-link-hover-color)};
+  --bs-btn-active-color: #{grayscale-tone($theme-bootstrap-link-hover-color)};
+  --bs-btn-disabled-color: #{rgba(grayscale-tone($theme-bootstrap-link-color), 0.45)};
+
+  &:hover,
+  &:focus-visible,
+  &:active,
+  &.active {
+    color: grayscale-tone($theme-bootstrap-link-hover-color);
+  }
+
+  &:disabled,
+  &.disabled {
+    color: rgba(grayscale-tone($theme-bootstrap-link-color), 0.45);
+  }
+}
+
+// Just-the-Docs applies direct th/td backgrounds. Force theme-driven table cells.
+.main-content .table > :not(caption) > * > * {
+  color: var(--bs-table-color-state, var(--bs-table-color-type, var(--bs-table-color)));
+  background-color: var(--bs-table-bg) !important;
+  border-color: var(--bs-table-border-color);
+  box-shadow: inset 0 0 0 9999px var(--bs-table-bg-state, var(--bs-table-bg-type, var(--bs-table-accent-bg)));
+}
+
+.main-content table:not(.table) th,
+.main-content table:not(.table) td {
+  color: var(--bs-table-color);
+  background-color: var(--bs-table-bg) !important;
+  border-color: var(--bs-table-border-color);
 }

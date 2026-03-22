@@ -4,6 +4,7 @@ import { TaskItem } from '../taskItem';
 import { TaskStateManager } from '../taskStateManager';
 import { TaskProvider } from '../taskProvider';
 import { LoggerService } from './loggerService';
+import { TaskFilesService } from './taskFilesService';
 
 export class TaskCacheService {
   private static instance: TaskCacheService;
@@ -52,7 +53,16 @@ export class TaskCacheService {
     }
 
     try {
-      const tasks = await provider.getTasks();
+      let tasks = await provider.getTasks();
+      tasks = tasks.filter((item) => {
+        if (!item.taskFileUri) {
+          return true;
+        }
+        return !TaskFilesService.getInstance().shouldIgnoreTask(
+          item.taskFileUri,
+          item.originalLabel || String(item.label)
+        );
+      });
 
       this.providerTasks.set(type, tasks);
     } catch (e) {
@@ -142,7 +152,16 @@ export class TaskCacheService {
       if (type) {
         const start = Date.now();
         try {
-          const tasks = await provider.getTasks();
+          let tasks = await provider.getTasks();
+          tasks = tasks.filter((item) => {
+            if (!item.taskFileUri) {
+              return true;
+            }
+            return !TaskFilesService.getInstance().shouldIgnoreTask(
+              item.taskFileUri,
+              item.originalLabel || String(item.label)
+            );
+          });
           this.providerTasks.set(type, tasks);
           this.rebuildCache();
           this._onDidUpdate.fire();
