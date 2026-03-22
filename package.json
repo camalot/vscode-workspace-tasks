@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -11,6 +11,7 @@
     "name": "darthminos",
     "email": "camalot@gmail.com"
   },
+  "documentation": "https://camalot.github.io/vscode-workspace-tasks/",
   "homepage": "https://github.com/camalot/vscode-workspace-tasks",
   "repository": {
     "type": "git",
@@ -82,11 +83,17 @@
     "compile:webpack": "webpack",
     "compile:prod": "npm run check:types && npm run lint && npm run compile:webpack",
     "compile:tests": "tsc -p . --outDir out",
+    "docs:build": "~/bin/build-docs --build",
+    "docs:serve": "~/bin/build-docs --serve",
+    "docs:serve:watch": "~/bin/build-docs --serve",
+    "docs:build:serve": "~/bin/build-docs --build --serve",
     "watch": "npm run watch:webpack",
     "watch:tsc": "tsc --noEmit --watch",
     "watch:tests": "tsc -p . -w --outDir out",
     "watch:webpack": "webpack --watch",
     "vscode:prepublish": "npm run compile:prod && npm run package:webpack",
+    "vscode:headless:test": "xvfb-run -a vscode-test",
+    "vscode:headless:test:coverage": "xvfb-run -a vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
     "vscode:test": "vscode-test",
     "vscode:test:coverage": "vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
     "package": "npm run package:vsix",
@@ -94,7 +101,7 @@
     "package:webpack": "webpack --mode production --devtool hidden-source-map",
     "package:vsix": "npx @vscode/vsce package",
     "package:vsix:prerelease": "npx @vscode/vsce package --pre-release",
-    "test": "npm run pretest && npm run vscode:test",
+    "test": "npm run vscode:test",
     "test:coverage": "npm run pretest && npm run vscode:test:coverage",
     "test:ui": "npm run compile:tests && node .vscode-uitest.mjs",
     "format": "prettier --write .",
@@ -108,31 +115,31 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "25.x",
     "@types/vscode": "^1.105.1",
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
-    "@typescript-eslint/parser": "^8.54.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "codecov": "^3.8.3",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0",
     "git-cliff": "^2.12.0",
     "glob": "^13.0.6",
     "mocha": "^11.7.5",
     "mocha-junit-reporter": "^2.2.1",
-    "nyc": "^17.1.0",
+    "nyc": "^18.0.0",
     "prettier": "^3.8.1",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.0",
-    "webpack": "^5.105.2",
-    "webpack-cli": "^6.0.1"
+    "typescript-eslint": "^8.57.1",
+    "webpack": "^5.105.4",
+    "webpack-cli": "^7.0.2"
   },
   "dependencies": {
-    "fast-xml-parser": "5.2.5",
+    "fast-xml-parser": "5.5.7",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
     "smol-toml": "^1.6.0",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.3"
   },
   "contributes": {
     "languages": [
@@ -973,6 +980,10 @@
             "rake": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.rake%"
+            },
+            "ruby": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.ruby%"
             },
             "tsc": {
               "type": "boolean",

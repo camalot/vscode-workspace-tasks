@@ -1,0 +1,81 @@
+@use "sass:color";
+
+// Dracula color palette
+$dracula-background:    #282a36;
+$dracula-current-line:  #44475a;
+$dracula-selection:     #44475a;
+$dracula-foreground:    #f8f8f2;
+$dracula-comment:       #6272a4;
+$dracula-cyan:          #8be9fd;
+$dracula-green:         #50fa7b;
+$dracula-orange:        #ffb86c;
+$dracula-pink:          #ff79c6;
+$dracula-purple:        #bd93f9;
+$dracula-red:           #f55;
+$dracula-yellow:        #f1fa8c;
+
+// Backgrounds
+$body-background-color:       $dracula-background;
+$sidebar-color:               color.adjust($dracula-background, $lightness: -3%);
+$search-background-color:     $dracula-current-line;
+$table-background-color:      $dracula-background;
+$code-background-color:       $dracula-current-line;
+$feedback-color:              color.adjust($dracula-background, $lightness: -5%);
+
+// Text
+$body-text-color:             $dracula-foreground;
+$body-heading-color:          $dracula-purple;
+$search-result-preview-color: $dracula-comment;
+$nav-child-link-color:        $dracula-foreground;
+$search-result-rel-url-color: $dracula-comment;
+
+// Links
+$link-color:                  $dracula-cyan;
+
+// Buttons
+$btn-primary-color:           $dracula-purple;
+$base-button-color:           $dracula-current-line;
+
+// Borders
+$border-color:                $dracula-current-line;
+$table-border-color:          $dracula-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $dracula-comment;
+$code-text-color:             $dracula-foreground;
+$code-background-color:       color.adjust($dracula-background, $lightness: -3%);
+
+// Navigation + overlays
+$nav-list-link-color:         $dracula-foreground;
+$nav-list-link-color-hover:   $dracula-cyan;
+$nav-list-link-color-active:  $dracula-purple;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 2%);
+$theme-header-border-color:   $dracula-current-line;
+$theme-nav-link-color:        $dracula-foreground;
+$theme-nav-link-hover-color:  $dracula-cyan;
+$theme-nav-link-active-color: $dracula-purple;
+$theme-nav-link-hover-bg:     rgba($dracula-cyan, 0.12);
+$theme-nav-link-active-bg:    rgba($dracula-purple, 0.22);
+$theme-nav-expander-color:    $dracula-comment;
+$theme-overlay-background:    $dracula-background;
+$theme-overlay-hover-background: rgba($dracula-current-line, 0.8);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $dracula-current-line;
+$theme-code-gutter-color:     color.adjust($dracula-background, $lightness: -5%);
+$theme-code-gutter-divider:   $dracula-current-line;
+$theme-code-inline-color:     $dracula-pink;
+$syntax-comment-color:        $dracula-comment;
+$syntax-keyword-color:        $dracula-pink;
+$syntax-constant-color:       $dracula-purple;
+$syntax-string-color:         $dracula-yellow;
+$syntax-escape-color:         $dracula-pink;
+$syntax-function-color:       $dracula-green;
+$syntax-builtin-color:        $dracula-cyan;
+$syntax-type-color:           $dracula-cyan;
+$syntax-annotation-color:     $dracula-green;
+$syntax-tag-color:            $dracula-pink;
+$syntax-number-color:         $dracula-purple;
+$syntax-operator-color:       $dracula-pink;
+$syntax-text-color:           $dracula-foreground;
+$syntax-linenumber-color:     $dracula-comment;

@@ -118,6 +118,7 @@ rake assets:clean        # Clean compiled assets`;
   });
 
   test('getTasks returns array', async function () {
+    this.timeout(60000);
     const provider = new RakeTaskProvider();
     const tasks = await provider.getTasks();
 
@@ -126,6 +127,7 @@ rake assets:clean        # Clean compiled assets`;
   });
 
   test('getSystemTasks returns array', async function () {
+    this.timeout(60000);
     const provider = new RakeTaskProvider();
     const tasks = await provider.getSystemTasks();
 

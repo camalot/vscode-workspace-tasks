@@ -1,19 +1,35 @@
-# Task Filtering
+---
+layout: default
+title: 🚫 Ignoring Tasks
+nav_order: 6
+parent: 🚀 Features
+---
 
-The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension. This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
+<!-- markdownlint-disable-next-line MD025 MD022 -->
+# .tasksignore
+{: .no_toc }
 
-## Overview
+The `.tasksignore` file allows you to control which files are excluded from task discovery in the Workspace Tasks extension.
+
+<!-- markdownlint-disable-next-line MD022 -->
+## Table of Contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
+
+This helps keep your task list focused on relevant tasks by filtering out unwanted files and directories.
+
+## Overview}
 
 `.tasksignore` works similarly to `.gitignore`, using the same pattern syntax to specify which files and directories should be excluded from task scanning. When the extension searches for task files (like `package.json`, `Makefile`, `build.gradle`, etc.), it will skip any files that match patterns in `.tasksignore` files.
 
 ## How It Works
 
-- **Performance with Caching**: The extension drastically speeds up task discovery using an in-memory cache system. Upon the first scan, all supported file patterns are combined into a single file system query. Future task resolutions read purely from memory. This means if new task files are created while a scan is in-progress, they'll be reliably visible on the explicit "Refresh" action.
-The cache invalidates whenever changes to `.tasksignore`, relevant user configurations, or system files are detected.
 - **Per-Directory Control**: Place a `.tasksignore` file in any directory to exclude files from that location and its subdirectories
 - **Hierarchical Application**: Ignore files are evaluated from the workspace root down to the file location
 - **Gitignore Syntax**: Uses standard gitignore pattern matching rules
-- **Automatic Reload**: Changes to `.tasksignore` files are automatically detected and applied along with resetting the underlying cache.
+- **Automatic Reload**: Changes to `.tasksignore` files are automatically detected and applied
 - **Smart Defaults**: The extension always ignores certain directories regardless of `.tasksignore` settings:
   - `**/node_modules/**`
   - `**/.git/**`
@@ -22,7 +38,7 @@ The cache invalidates whenever changes to `.tasksignore`, relevant user configur
 
 ## File Format
 
-The `.tasksignore` file is a plain text file with one pattern per line. The format follows `gitignore` conventions:
+The `.tasksignore` file is a plain text file with one pattern per line. The format follows gitignore conventions:
 
 ### Basic Rules
 
@@ -34,13 +50,63 @@ The `.tasksignore` file is a plain text file with one pattern per line. The form
 ### Pattern Syntax
 
 | Pattern | Description | Example |
-| --- | ---- | --- |
+| --- | --- | --- |
 | `filename` | Matches the filename in any directory | `package.json` |
 | `*.ext` | Matches all files with the extension | `*.test.js` |
 | `dir/` | Matches the directory and all its contents | `build/` |
 | `**/pattern` | Matches in all directories recursively | `**/test/**` |
 | `dir/*.ext` | Matches files in specific directory | `scripts/*.sh` |
 | `!pattern` | Negates a previous pattern (re-includes) | `!important.js` |
+
+### Task-Level Filtering
+
+You can also ignore specific tasks within a file using the `@` symbol. This allows you to hide individual tasks from your task list without ignoring the entire file.
+
+The syntax for task-level filtering is `filepath@taskname`, where:
+
+- `filepath` is a valid file pattern (it must point to a file, not a directory).
+- `@` is the separator.
+- `taskname` is the exact name of the task to ignore.
+
+#### How Negation Works with Task-Level Rules
+
+You can use the negation operator (`!`) in combination with task-level and file-level rules to create powerful filters. When you negate a task (`!filepath@taskname`), you ensure that specific task is included, even if the file itself or all of its tasks would otherwise be ignored.
+
+This works through a simple priority system:
+
+1. If a file is ignored, all of its tasks are ignored.
+2. If a specific task is negated (`!file@taskname`), it explicitly overrides the broader ignore rules for that one task.
+3. If you ignore all tasks using a wildcard (`file@*`) and negate one (`!file@taskname`), only that specific task will be shown from that file.
+
+#### Task-Level Rule Forms
+
+| Rule Form | Description | Example |
+| --- | --- | --- |
+| `file@task` | Hides a specific task from a specific file. | `package.json@test` |
+| `file@*` | Hides all tasks from a specific file. | `Makefile@*` |
+| `!file@task` | Re-includes a specific task that was otherwise ignored by a broader rule. | `!package.json@build` |
+| `*.ext@task` | Hides a task with a specific name across all files matching the pattern. | `*.json@clean` |
+
+#### Worked Examples
+
+**Example: Hiding a single task while keeping the rest visible**
+To hide only the `serve` task from your `package.json` but keep `build` and `test` visible:
+
+```ignore
+# Ignore only the "serve" task in package.json
+package.json@serve
+```
+
+**Example: Hiding all tasks from a file but re-including one specific task**
+If you have a customized Makefile and you only want the `deploy` task to be discovered, you can ignore all tasks in the file and then explicitly negate (re-include) `deploy`:
+
+```ignore
+# Hide all tasks in the Makefile
+Makefile@*
+
+# Re-include the "deploy" task
+!Makefile@deploy
+```
 
 ## Examples
 
@@ -206,6 +272,7 @@ If any pattern matches, the file is excluded from task discovery.
 ## Common Use Cases
 
 ### Exclude Test Files
+
 ```ignore
 **/test/**
 **/__tests__/**
@@ -214,6 +281,7 @@ If any pattern matches, the file is excluded from task discovery.
 ```
 
 ### Exclude Build Artifacts
+
 ```ignore
 build/
 dist/
@@ -226,6 +294,7 @@ obj/
 ```
 
 ### Exclude Example/Demo Code
+
 ```ignore
 examples/
 demo/
@@ -234,6 +303,7 @@ playground/
 ```
 
 ### Exclude Generated Code
+
 ```ignore
 **/*.generated.*
 **/generated/**
@@ -268,8 +338,8 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 !important.js
 ```
 
-## See Also
+## Next Steps
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
-- [Workspace Tasks Configuration](Configuration.md)
+- [Configuration](../configuration)
 - [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)

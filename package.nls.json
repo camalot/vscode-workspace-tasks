@@ -89,6 +89,7 @@
   "config.workspaceTasks.enabledTaskTypes.poetry": "Poetry",
   "config.workspaceTasks.enabledTaskTypes.pnpm": "PNPM",
   "config.workspaceTasks.enabledTaskTypes.rake": "Rake",
+  "config.workspaceTasks.enabledTaskTypes.ruby": "Ruby",
   "config.workspaceTasks.enabledTaskTypes.shell": "Scripts",
   "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
@@ -168,7 +169,6 @@
 
   "config.workspaceTasks.groups.recentTasks.enabled": "Group Recent Tasks",
   "config.workspaceTasks.groups.recentTasks.enabled.markdown": "When enabled, recent tasks will be grouped based on the specified separator and other grouping rules.",
-
 
   "config.workspaceTasks.groups.expanded": "Expanded Groups",
   "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, queue, and recent tasks.",

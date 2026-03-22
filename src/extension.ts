@@ -54,6 +54,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('workspaceTasks.history.disableFilterTerminated', () => taskHistoryTreeDataProvider.toggleFilter('Terminated'))
   );
   await TaskFilesService.getInstance().initialize(context);
+  context.subscriptions.push(TaskFilesService.getInstance());
   TaskCacheService.getInstance().initialize(context);
   TaskIconService.getInstance().initialize(context);
   await WorkspaceTasksService.getInstance().initialize(context);

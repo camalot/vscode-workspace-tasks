@@ -1,7 +1,20 @@
 
 sample/**/tools/**
+sample/sample-workspace-tasks
+
+test-*.txt
+test-*.log
+
+.devcontainer/mount/.*Marker
+
 tools/
 reports/
+
+_site/
+docs/vendor/
+.jekyll-cache
+
+.venv/
 
 codecov
 codecov.*

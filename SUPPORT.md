@@ -1,4 +1,6 @@
+<!-- markdownlint-disable-next-line MD025 MD022 -->
 # Getting Help with Workspace Tasks
+{: .no_toc .text-delta }
 
 We're here to help! Whether you've encountered a bug, have a feature request, or just need assistance, here are the best ways to get support.
 
@@ -6,10 +8,10 @@ We're here to help! Whether you've encountered a bug, have a feature request, or
 
 The easiest way to report issues or request features is through the **GitHub Issues** interface directly from Visual Studio Code:
 
-1. Click the **GitHub icon** (![github](res/assets/images/github-new-issue.png)) in the Workspace Tasks navigation
+1. Click the **GitHub icon** (![github](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/github-new-issue.png)) in the Workspace Tasks navigation
 2. Select the appropriate issue type from the menu
 
-![Create New Issue](res/assets/images/create-new-issue.png)
+![Create New Issue](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/create-new-issue.png)
 
 This will open your browser to the GitHub issues page where you can choose from:
 
@@ -69,10 +71,10 @@ Interested in contributing code, documentation, or other improvements? Check out
 
 ---
 
-**Quick Links:**
+## Quick Links
 
 - 🐛 [Report a Bug](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=bug_report.yml)
 - ✨ [Request a Feature](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=feature_request.yml)
 - 🔧 [Request Task Support](https://github.com/camalot/vscode-workspace-tasks/issues/new?template=task_support.yml)
 - 💬 [Join Discussions](https://github.com/camalot/vscode-workspace-tasks/discussions)
-- 📚 [Read Documentation](https://github.com/camalot/vscode-workspace-tasks/blob/develop/README.md)
+- 📚 [Read Documentation](https://camalot.github.io/vscode-workspace-tasks/)

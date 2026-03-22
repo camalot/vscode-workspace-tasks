@@ -1,0 +1,10 @@
+---
+host: "localhost"
+port: 4000
+url: "http://localhost:4000"
+baseurl: "/vscode-workspace-tasks"
+
+livereload: true
+force_polling: true
+
+detach: false

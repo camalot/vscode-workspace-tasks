@@ -4,11 +4,17 @@ webpack.config.js
 tools/
 coverage/
 .nyc_output/
+.venv/
+.devcontainer/
 codecov
 codecov.*
 super-linter-output/
 .secrets
 .secrets/
+
+*.log
+
+_site/
 
 cliff.toml
 

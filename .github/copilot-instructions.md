@@ -54,3 +54,14 @@ When writing tests for VSCode extensions, consider the following guidelines:
 - Avoid using `any` type in TypeScript; prefer specific types or generics for better type safety.
 - Regularly run a linter (e.g., ESLint) to enforce code style rules and catch potential issues early.
 - Use [Conventional Commits](https://www.conventionalcommits.org/) to maintain a clear and structured commit history.
+
+## Documentation
+
+- Keep the documentation up to date with the latest changes in the extension.
+- Ensure that all new features, bug fixes, and changes in functionality are reflected in the documentation.
+- Review the changelog before making documentation updates to ensure consistency.
+- Do not manually update the `CHANGELOG.md` file; it is automatically generated.
+- Include examples and usage instructions for new features.
+- Maintain a clear and organized structure in the documentation for easy navigation.
+
+Documentation resides in a "minimal form" in the `README.md`. Full, detailed documentation resides in `docs/`. This directory is organized by feature and includes comprehensive guides, examples, and references for all aspects of the extension. It is processed and published as github pages using jekyll.

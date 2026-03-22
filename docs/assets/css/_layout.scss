@@ -1,0 +1,55 @@
+// ── Layout: full-viewport sidebar + main ─────────────────────────────────────
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes vt-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+// Keep the root transition instant — nav/sidebar/logo are never hidden.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+// Only fade the main content area between navigations.
+.main {
+  view-transition-name: main-content;
+}
+
+::view-transition-old(main-content) {
+  animation: 150ms ease-in both vt-fade-out;
+}
+
+::view-transition-new(main-content) {
+  animation: 200ms ease-out both vt-fade-in;
+}
+
+@media (min-width: 66.5rem) {
+  .side-bar + .main {
+    margin-left: 16.5rem;
+  }
+}
+
+@media (min-width: 50rem) {
+  .main {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 66.5rem) {
+  .side-bar {
+    width: 16.5rem;
+  }
+}
+
+.vat {
+  vertical-align: top;
+}

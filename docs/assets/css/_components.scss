@@ -1,0 +1,167 @@
+// ── Site header: logo + title side by side ────────────────────────────────────
+
+.site-header {
+  background-color: $theme-header-background;
+  border-bottom: 1px solid $theme-header-border-color;
+}
+
+.main-header {
+  background-color: $theme-header-background;
+  border-bottom: 1px solid $theme-header-border-color;
+}
+
+.site-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: $theme-nav-link-color;
+}
+
+// Override just-the-docs' width/height: 100% which can collapse the logo to 0
+// inside a flex container when the sibling ::after text can't shrink further.
+.site-logo {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.site-title::after {
+  content: 'Workspace Tasks';
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: $body-heading-color;
+  white-space: nowrap;
+}
+
+// ── Back-to-top FAB ───────────────────────────────────────────────────────────
+
+#back-to-top-fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: none;
+  background-color: $link-color;
+  color: $body-background-color;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease,
+    background-color 0.2s ease;
+  z-index: 1000;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $theme-nav-link-active-color;
+  }
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.mbr-docs-theme-nav-item {
+  display: flex;
+  align-items: center;
+}
+
+.aux-nav-list-item.mbr-docs-theme-nav-item {
+  margin-left: 0.5rem;
+}
+
+.main-header > .mbr-docs-theme-nav-item {
+  margin-left: auto;
+}
+
+nav#site-nav > .mbr-docs-theme-nav-item {
+  padding: 1rem 1.5rem 0.5rem 1.5rem;
+  border-bottom: 1px solid $border-color;
+  margin-bottom: 0.5rem;
+}
+
+.mbr-docs-theme-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-color: $border-color;
+  background-color: $theme-overlay-hover-background;
+  color: $body-text-color;
+  font-weight: 500;
+
+  &:hover,
+  &:focus,
+  &:active,
+  &.show {
+    border-color: $link-color;
+    background-color: $theme-nav-link-active-bg;
+    color: $body-text-color;
+  }
+}
+
+nav#site-nav .mbr-docs-theme-trigger {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.mbr-docs-theme-trigger-label {
+  color: $theme-trigger-label-color;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mbr-docs-theme-menu {
+  min-width: 14rem;
+  border-color: $border-color;
+  background-color: $theme-overlay-background;
+  box-shadow: var(--bs-box-shadow);
+}
+
+.mbr-docs-theme-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: $body-text-color;
+
+  &:hover,
+  &:focus {
+    background-color: $theme-nav-link-hover-bg;
+    color: $body-text-color;
+  }
+
+  &.active,
+  &:active {
+    background-color: rgba($link-color, 0.18);
+    color: $body-text-color;
+  }
+}
+
+.mbr-docs-theme-option-check {
+  color: $link-color;
+  opacity: 0;
+}
+
+.mbr-docs-theme-option.active .mbr-docs-theme-option-check {
+  opacity: 1;
+}
+
+@media (max-width: 50rem) {
+  .main-header > .mbr-docs-theme-nav-item {
+    margin-left: 0;
+  }
+
+  .mbr-docs-theme-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

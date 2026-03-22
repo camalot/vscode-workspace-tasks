@@ -1,0 +1,82 @@
+@use "sass:color";
+
+// Grass palette
+$grass-background:    #13773d;
+$grass-current-line:  color.adjust($grass-background, $lightness: 6%);
+$grass-selection:     color.adjust($grass-background, $lightness: 8%);
+$grass-foreground:    #ffffff;
+$grass-comment:       color.mix($grass-foreground, $grass-background, 60%);
+$grass-cyan:          #00bbbb;
+$grass-green:         #00bb00;
+$grass-orange:        #e7b000;
+$grass-pink:          #ff55ff;
+$grass-purple:        #0000a3;
+$grass-red:           #bb0000;
+$grass-yellow:        #e7b000;
+$grass-black:         color.adjust($grass-background, $lightness: -15%);
+
+// Backgrounds
+$body-background-color:       $grass-background;
+$sidebar-color:               color.adjust($grass-background, $lightness: -6%);
+$search-background-color:     $grass-current-line;
+$table-background-color:      $grass-background;
+$code-background-color:       $grass-current-line;
+$feedback-color:              color.adjust($grass-background, $lightness: -7%);
+
+// Text
+$body-text-color:             $grass-foreground;
+$body-heading-color:          $grass-green;
+$search-result-preview-color: $grass-comment;
+$nav-child-link-color:        $grass-foreground;
+$search-result-rel-url-color: $grass-comment;
+
+// Links
+$link-color:                  $grass-cyan;
+
+// Buttons
+$btn-primary-color:           $grass-green;
+$base-button-color:           $grass-current-line;
+
+// Borders
+$border-color:                $grass-current-line;
+$table-border-color:          $grass-current-line;
+
+// Code / syntax highlight
+$code-linenumber-color:       $grass-comment;
+$code-text-color:             $grass-foreground;
+$code-background-color:       color.adjust($grass-background, $lightness: -3%);
+
+// Navigation + overlays
+$nav-list-link-color:         $grass-foreground;
+$nav-list-link-color-hover:   $grass-cyan;
+$nav-list-link-color-active:  $grass-green;
+$theme-header-background:     color.adjust($sidebar-color, $lightness: 4%);
+$theme-header-border-color:   $grass-current-line;
+$theme-nav-link-color:        $grass-foreground;
+$theme-nav-link-hover-color:  $grass-cyan;
+$theme-nav-link-active-color: $grass-green;
+$theme-nav-link-hover-bg:     rgba($grass-cyan, 0.14);
+$theme-nav-link-active-bg:    rgba($grass-green, 0.22);
+$theme-nav-expander-color:    $grass-comment;
+$theme-overlay-background:    $grass-background;
+$theme-overlay-hover-background: rgba($grass-current-line, 0.84);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $grass-current-line;
+$theme-code-gutter-color:     color.adjust($grass-background, $lightness: -5%);
+$theme-code-gutter-divider:   $grass-current-line;
+$theme-code-inline-color:     $grass-pink;
+$syntax-comment-color:        $grass-comment;
+$syntax-keyword-color:        $grass-red;
+$syntax-constant-color:       $grass-yellow;
+$syntax-string-color:         $grass-green;
+$syntax-escape-color:         $grass-purple;
+$syntax-function-color:       $grass-cyan;
+$syntax-builtin-color:        $grass-black;
+$syntax-type-color:           $grass-green;
+$syntax-annotation-color:     $grass-purple;
+$syntax-tag-color:            $grass-purple;
+$syntax-number-color:         $grass-orange;
+$syntax-operator-color:       $grass-pink;
+$syntax-text-color:           $grass-foreground;
+$syntax-linenumber-color:     $grass-comment;

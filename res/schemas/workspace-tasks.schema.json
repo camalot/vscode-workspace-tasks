@@ -45,6 +45,21 @@
             "required": ["id", "type", "description"]
           }
         },
+        "iconUri": {
+          "anyOf": [
+            { "type": "string", "pattern": "^\\$\\([a-zA-Z0-9_-]+\\)$", "description": "A codicon reference (e.g. $(python))" },
+            { "type": "string", "description": "A path or URI to an icon image" },
+            {
+              "type": "object",
+              "description": "Separate icon paths for light and dark themes",
+              "properties": {
+                "light": { "type": "string", "description": "Path or URI to the icon for light theme" },
+                "dark": { "type": "string", "description": "Path or URI to the icon for dark theme" }
+              },
+              "required": ["light", "dark"]
+            }
+          ]
+        },
         "tasks": {
           "type": "array",
           "description": "List of tasks to be generated for files matching the language ID",

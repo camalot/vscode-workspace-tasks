@@ -1,0 +1,104 @@
+@use 'sass:color';
+
+// ── Code blocks: themed window with syntax-friendly gutter ───────────────────
+
+.figure.highlight,
+div.highlighter-rouge {
+  counter-reset: linenumber;
+}
+
+.figure.highlight pre,
+div.highlighter-rouge pre {
+  position: relative;
+  padding-left: calc(2.5rem + 3rem);
+}
+
+.figure.highlight.tree code,
+div.highlighter-rouge.tree code {
+  font-size: 1rem !important;
+  line-height: 1rem !important;
+}
+
+// Rouge generates .lineno classes on <span>; style them
+.lineno {
+  position: absolute;
+  left: 0;
+  width: 2.5rem;
+  text-align: right;
+  color: $code-linenumber-color;
+  user-select: none;
+  z-index: 1;
+}
+
+// Outer container: single-pixel border, rounded corners
+div.highlighter-rouge,
+figure.highlight {
+  border: 1px solid $theme-code-border-color;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.75rem 0;
+}
+
+figure.highlight pre,
+figure.highlight :not(pre) > code {
+  border: 0;
+}
+
+// Inner pre: gutter via CSS gradient
+div.highlighter-rouge > .highlight,
+figure.highlight {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: $code-background-color;
+  background-image: linear-gradient(
+    to right,
+    $theme-code-gutter-color 2.5rem,
+    $theme-code-gutter-divider 2.5rem,
+    $theme-code-gutter-divider calc(2.5rem + 1px),
+    $code-background-color calc(2.5rem + 1px)
+  );
+  border-radius: 0;
+  color: $code-text-color;
+  margin: 0.75rem 0 0.75rem 0;
+  padding: 0.75rem 1rem 0.75rem calc(2.5rem + 1rem);
+}
+
+// Nested highlights — no double gutter
+div.highlighter-rouge .highlight > .highlight,
+div.highlighter-rouge pre.highlight {
+  background-image: none !important;
+  padding-left: 0 !important;
+  margin-left: 2.5rem !important;
+}
+
+// Overrides against just-the-docs defaults
+div.highlighter-rouge > .highlight {
+  border: 1px solid $theme-code-border-color !important;
+  background-color: $code-background-color !important;
+  color: $code-text-color !important;
+}
+
+div.highlighter-rouge .highlight > .highlight {
+  border: none !important;
+  padding-left: 0 !important;
+}
+
+div.highlighter-rouge pre {
+  margin-left: 2.5rem !important;
+  padding-left: 1rem !important;
+}
+
+.highlight,
+pre.highlight {
+  color: $code-text-color !important;
+}
+
+.highlight pre {
+  background-color: transparent !important;
+}
+
+// Inline code: override upstream hardcoded background
+:not(pre, figure) > code {
+  background-color: $code-background-color !important;
+  border-color: $theme-code-border-color !important;
+}

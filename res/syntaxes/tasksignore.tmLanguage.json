@@ -2,6 +2,24 @@
   "scopeName": "ignore.tasksignore",
   "patterns": [
     {
+      "name": "meta.task-rule.tasksignore",
+      "match": "^(!?)([^@#\\s]+)(@)(.+)$",
+      "captures": {
+        "1": {
+          "name": "keyword.operator.negation.tasksignore"
+        },
+        "2": {
+          "name": "entity.name.tag.file-pattern.tasksignore"
+        },
+        "3": {
+          "name": "punctuation.separator.tasksignore"
+        },
+        "4": {
+          "name": "entity.name.function.task-name.tasksignore"
+        }
+      }
+    },
+    {
       "match": "^\\s*#.*",
       "name": "comment.line.number-sign.tasksignore"
     }

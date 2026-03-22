@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+function build() {
+  local WATCH=$1
+  # save the current working directory
+  local OLDPWD
+  OLDPWD=$(pwd)
+
+  # set the working directory to /workspace/docs
+  cd /workspace/docs || exit
+
+  bundle install
+
+  bundle exec jekyll build --destination ../_site "$WATCH" || {
+    echo "Jekyll build failed"
+    cd "$OLDPWD" || exit
+    exit 1
+  }
+
+  # return to the original working directory
+  cd "$OLDPWD" || exit
+}
+
+function serve() {
+  local WATCH=$1
+  local OLDPWD
+  OLDPWD=$(pwd)
+
+  cd /workspace/docs || exit
+  bundle exec jekyll serve --destination ../_site --config _config.yml,_config-local.yml --skip-initial-build "$WATCH"
+  cd "$OLDPWD" || exit
+}
+
+# loop over all args passed and run the corresponding commands
+for arg in "$@"; do
+  case $arg in
+  --build)
+    build
+    ;;
+  --buildw)
+    build "--watch"
+    ;;
+  --serve)
+    serve
+    ;;
+  --servew)
+    serve "--watch"
+    ;;
+  *)
+    build
+    ;;
+  esac
+done

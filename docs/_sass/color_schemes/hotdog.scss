@@ -1,0 +1,93 @@
+@use "sass:color";
+
+// Hotdog color palette
+$hotdog-background:    #fff6db;
+$hotdog-current-line:  color.adjust($hotdog-background, $lightness: -6%);
+$hotdog-selection:     color.adjust($hotdog-background, $lightness: -14%);
+$hotdog-foreground:    #3d2200;
+$hotdog-comment:       #7a4a16;
+$hotdog-cyan:          #1fa346;
+$hotdog-green:         #1fa346;
+$hotdog-orange:        #f57c00;
+$hotdog-pink:          #e64a19;
+$hotdog-purple:        #d84315;
+$hotdog-red:           #c62828;
+$hotdog-yellow:        #d4a017;
+
+
+$hotdog-muted: #7a4a16;
+$hotdog-accent: #e64a19;
+$hotdog-button: #c62828;
+$hotdog-border: #d7b17a;
+$hotdog-progress: #f57c00;
+$hotdog-volume: #1fa346;
+
+// Derived shades for UI hierarchy
+$hotdog-surface: color.adjust($hotdog-background, $lightness: -4%);
+$hotdog-highlight: color.adjust($hotdog-button, $lightness: 4%);
+
+// Backgrounds
+$body-background-color:       $hotdog-background;
+$sidebar-color:               $hotdog-surface;
+$search-background-color:     color.adjust($hotdog-background, $lightness: -7%);
+$table-background-color:      $hotdog-background;
+$code-background-color:       color.adjust($hotdog-background, $lightness: -6%);
+$feedback-color:              color.adjust($hotdog-background, $lightness: -10%);
+
+// Text
+$body-text-color:             $hotdog-foreground;
+$body-heading-color:          $hotdog-accent;
+$search-result-preview-color: $hotdog-muted;
+$nav-child-link-color:        $hotdog-foreground;
+$search-result-rel-url-color: $hotdog-muted;
+
+// Links
+$link-color:                  $hotdog-accent;
+
+// Buttons
+$btn-primary-color:           $hotdog-button;
+$base-button-color:           $hotdog-surface;
+
+// Borders
+$border-color:                $hotdog-border;
+$table-border-color:          $hotdog-border;
+
+// Code / syntax highlight
+$code-linenumber-color:       $hotdog-muted;
+$code-text-color:             $hotdog-foreground;
+$code-background-color:       color.adjust($hotdog-background, $lightness: -8%);
+
+// Navigation + overlays
+$nav-list-link-color:         $hotdog-foreground;
+$nav-list-link-color-hover:   $hotdog-accent;
+$nav-list-link-color-active:  $hotdog-button;
+$theme-header-background:     color.adjust($hotdog-background, $lightness: -5%);
+$theme-header-border-color:   $hotdog-border;
+$theme-nav-link-color:        $hotdog-foreground;
+$theme-nav-link-hover-color:  $hotdog-accent;
+$theme-nav-link-active-color: $hotdog-button;
+$theme-nav-link-hover-bg:     rgba($hotdog-accent, 0.13);
+$theme-nav-link-active-bg:    rgba($hotdog-button, 0.17);
+$theme-nav-expander-color:    $hotdog-muted;
+$theme-overlay-background:    color.adjust($hotdog-background, $lightness: -2%);
+$theme-overlay-hover-background: rgba($hotdog-surface, 0.9);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     $hotdog-border;
+$theme-code-gutter-color:     color.adjust($hotdog-background, $lightness: -14%);
+$theme-code-gutter-divider:   color.adjust($hotdog-border, $lightness: 6%);
+$theme-code-inline-color:     $hotdog-button;
+$syntax-comment-color:        $hotdog-muted;
+$syntax-keyword-color:        $hotdog-button;
+$syntax-constant-color:       $hotdog-accent;
+$syntax-string-color:         color.adjust($hotdog-progress, $lightness: -8%);
+$syntax-escape-color:         color.adjust($hotdog-accent, $lightness: -8%);
+$syntax-function-color:       $hotdog-volume;
+$syntax-builtin-color:        $hotdog-accent;
+$syntax-type-color:           color.adjust($hotdog-button, $lightness: -4%);
+$syntax-annotation-color:     $hotdog-progress;
+$syntax-tag-color:            $hotdog-button;
+$syntax-number-color:         $hotdog-progress;
+$syntax-operator-color:       color.adjust($hotdog-foreground, $lightness: -8%);
+$syntax-text-color:           $hotdog-foreground;
+$syntax-linenumber-color:     $hotdog-muted;
