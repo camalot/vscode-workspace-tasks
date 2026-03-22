@@ -7,11 +7,6 @@
     var storageKey = 'workspace-tasks-docs-theme';
     var defaultTheme = 'dracula';
     var themes = {
-      dracula: {
-        label: 'Dracula',
-        href: '{{ "/assets/css/theme-dracula.css" | prepend: site.baseurl }}',
-        colorScheme: 'dark',
-      },
       breeze: {
         label: 'Breeze',
         href: '{{ "/assets/css/theme-breeze.css" | prepend: site.baseurl }}',
@@ -22,34 +17,14 @@
         href: '{{ "/assets/css/theme-hotdog.css" | prepend: site.baseurl }}',
         colorScheme: 'light',
       },
-      grayscale: {
-        label: 'Grayscale',
-        href: '{{ "/assets/css/theme-grayscale.css" | prepend: site.baseurl }}',
-        colorScheme: 'dark',
-      },
       cyberpunk2077: {
         label: 'Cyberpunk 2077',
         href: '{{ "/assets/css/theme-cyberpunk2077.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
-      tron: {
-        label: 'Tron',
-        href: '{{ "/assets/css/theme-tron.css" | prepend: site.baseurl }}',
-        colorScheme: 'dark',
-      },
-      matrix: {
-        label: 'Matrix',
-        href: '{{ "/assets/css/theme-matrix.css" | prepend: site.baseurl }}',
-        colorScheme: 'dark',
-      },
-      ubuntu: {
-        label: 'Ubuntu',
-        href: '{{ "/assets/css/theme-ubuntu.css" | prepend: site.baseurl }}',
-        colorScheme: 'dark',
-      },
-      gogh: {
-        label: 'Gogh',
-        href: '{{ "/assets/css/theme-gogh.css" | prepend: site.baseurl }}',
+      dracula: {
+        label: 'Dracula',
+        href: '{{ "/assets/css/theme-dracula.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
       "fairy-floss-dark": {
@@ -57,9 +32,19 @@
         href: '{{ "/assets/css/theme-fairy-floss-dark.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
+      gogh: {
+        label: 'Gogh',
+        href: '{{ "/assets/css/theme-gogh.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
       "grass": {
         label: 'Grass',
         href: '{{ "/assets/css/theme-grass.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
+      grayscale: {
+        label: 'Grayscale',
+        href: '{{ "/assets/css/theme-grayscale.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
       "harper": {
@@ -82,19 +67,14 @@
         href: '{{ "/assets/css/theme-material.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
+      matrix: {
+        label: 'Matrix',
+        href: '{{ "/assets/css/theme-matrix.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
       "mono-amber": {
         label: 'Mono Amber',
         href: '{{ "/assets/css/theme-mono-amber.css" | prepend: site.baseurl }}',
-        colorScheme: 'dark',
-      },
-      "mono-white": {
-        label: 'Mono White',
-        href: '{{ "/assets/css/theme-mono-white.css" | prepend: site.baseurl }}',
-        colorScheme: 'dark',
-      },
-      "mono-green": {
-        label: 'Mono Green',
-        href: '{{ "/assets/css/theme-mono-green.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
       "mono-cyan": {
@@ -102,14 +82,39 @@
         href: '{{ "/assets/css/theme-mono-cyan.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
+      "mono-green": {
+        label: 'Mono Green',
+        href: '{{ "/assets/css/theme-mono-green.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
       "mono-red": {
         label: 'Mono Red',
         href: '{{ "/assets/css/theme-mono-red.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       },
+      "mono-white": {
+        label: 'Mono White',
+        href: '{{ "/assets/css/theme-mono-white.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
       "mono-yellow": {
         label: 'Mono Yellow',
         href: '{{ "/assets/css/theme-mono-yellow.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
+      "tokyo-night": {
+        label: 'Tokyo Night',
+        href: '{{ "/assets/css/theme-tokyo-night.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
+      tron: {
+        label: 'Tron',
+        href: '{{ "/assets/css/theme-tron.css" | prepend: site.baseurl }}',
+        colorScheme: 'dark',
+      },
+      ubuntu: {
+        label: 'Ubuntu',
+        href: '{{ "/assets/css/theme-ubuntu.css" | prepend: site.baseurl }}',
         colorScheme: 'dark',
       }
     };

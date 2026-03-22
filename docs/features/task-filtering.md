@@ -38,151 +38,15 @@ The cache invalidates whenever changes to `.tasksignore`, relevant user configur
   - `**/.vscode-test/**`
   - `**/__pycache__/**`
 
-## File Format
+## Filter Rule Syntax and Examples
 
-The `.tasksignore` file is a plain text file with one pattern per line. The format follows `gitignore` conventions:
+The full `.tasksignore` syntax, task-level rules, and worked examples now live on the dedicated Ignoring Tasks page:
 
-### Basic Rules
+- [Ignoring Tasks](./tasksignore)
+- [Task-Level Filtering](./tasksignore#task-level-filtering)
+- [Pattern Syntax](./tasksignore#pattern-syntax)
 
-- **One pattern per line**: Each line specifies a pattern to exclude
-- **Comments**: Lines starting with `#` are treated as comments and ignored
-- **Empty lines**: Empty lines are ignored
-- **No quotes needed**: Patterns are specified directly without quotes
-
-### Pattern Syntax
-
-| Pattern | Description | Example |
-| --- | ---- | --- |
-| `filename` | Matches the filename in any directory | `package.json` |
-| `*.ext` | Matches all files with the extension | `*.test.js` |
-| `dir/` | Matches the directory and all its contents | `build/` |
-| `**/pattern` | Matches in all directories recursively | `**/test/**` |
-| `dir/*.ext` | Matches files in specific directory | `scripts/*.sh` |
-| `!pattern` | Negates a previous pattern (re-includes) | `!important.js` |
-
-## Examples
-
-### Basic Example
-
-```ignore
-# Ignore test files
-**/test/**
-**/*.test.js
-**/*.spec.ts
-
-# Ignore build outputs
-build/
-dist/
-out/
-target/
-
-# Ignore temporary files
-*.tmp
-*.bak
-*.swp
-
-# Ignore specific tools
-tools/legacy/
-scripts/deprecated/
-```
-
-### Advanced Example
-
-```ignore
-# Ignore all JavaScript files in the scripts directory
-scripts/*.js
-
-# But keep the important ones
-!scripts/deploy.js
-!scripts/release.js
-
-# Ignore all test directories except integration tests
-**/test/**
-!**/test/integration/**
-
-# Ignore generated files
-**/*.generated.*
-**/auto-generated/**
-
-# Ignore vendor and third-party code
-vendor/
-third-party/
-external/
-
-# Ignore CI/CD configuration
-.github/
-.gitlab-ci.yml
-.travis.yml
-
-# Ignore documentation build files
-docs/build/
-*.md.bak
-```
-
-### Project-Specific Examples
-
-#### Node.js Project
-
-```ignore
-# Ignore test and coverage
-coverage/
-.nyc_output/
-**/*.test.js
-**/*.spec.js
-
-# Ignore build artifacts
-dist/
-lib/
-.next/
-.nuxt/
-
-# Ignore example and demo files
-examples/
-demo/
-```
-
-#### Python Project
-
-```ignore
-# Ignore test files
-**/test_*.py
-**/*_test.py
-tests/
-
-# Ignore build and distribution
-build/
-dist/
-*.egg-info/
-
-# Ignore virtual environments
-venv/
-.venv/
-env/
-
-# Ignore Jupyter notebooks
-**/*.ipynb
-```
-
-#### Multi-Language Project
-
-```ignore
-# Frontend
-frontend/node_modules/
-frontend/dist/
-**/*.test.tsx
-
-# Backend
-backend/target/
-backend/build/
-**/*Test.java
-
-# Infrastructure
-infrastructure/terraform/.terraform/
-infrastructure/temp/
-
-# Documentation
-docs/build/
-```
+Use this page for filtering behavior and precedence, and use the Ignoring Tasks page as the source of truth for rule syntax.
 
 ## Global Configuration
 
@@ -199,7 +63,9 @@ In addition to `.tasksignore` files, you can configure workspace-wide exclusions
 }
 ```
 
-These patterns will be applied globally across the entire workspace, regardless of `.tasksignore` files.
+These patterns are applied globally across the entire workspace and complement any local `.tasksignore` files.
+
+For pattern syntax details and edge cases, refer to [Ignoring Tasks](./tasksignore).
 
 ## Pattern Evaluation Order
 
@@ -213,54 +79,17 @@ If any pattern matches, the file is excluded from task discovery.
 
 ## Best Practices
 
-1. **Place `.tasksignore` at project root**: For workspace-wide rules
-2. **Use specific `.tasksignore` files**: For directory-specific exclusions
-3. **Comment your patterns**: Use `#` comments to explain complex patterns
-4. **Start broad, then refine**: Begin with general patterns, add specific ones as needed
-5. **Test your patterns**: Use the Workspace Tasks view to verify files are excluded correctly
-6. **Use negation sparingly**: The `!` operator can make patterns hard to understand
-7. **Prefer global config for permanent exclusions**: Use `workspaceTasks.exclude` for workspace-level settings
+1. **Use `.tasksignore` for repository-specific rules**: Keep project intent close to files and folders.
+2. **Use `workspaceTasks.exclude` for user/workspace-wide rules**: Keep personal or environment-specific filtering in settings.
+3. **Start broad, then refine**: Begin with high-signal exclusions and tighten only when needed.
+4. **Refresh after changes**: If results look stale during active edits, trigger a refresh to rebuild the cache immediately.
+5. **Keep rule syntax centralized**: Use [Ignoring Tasks](./tasksignore) as the canonical syntax reference.
 
 ## Common Use Cases
 
-### Exclude Test Files
+Use [Ignoring Tasks](./tasksignore#examples) for ready-to-copy ignore rule examples.
 
-```ignore
-**/test/**
-**/__tests__/**
-**/*.test.*
-**/*.spec.*
-```
-
-### Exclude Build Artifacts
-
-```ignore
-build/
-dist/
-out/
-target/
-bin/
-obj/
-*.o
-*.pyc
-```
-
-### Exclude Example/Demo Code
-
-```ignore
-examples/
-demo/
-sample/
-playground/
-```
-
-### Exclude Generated Code
-
-```ignore
-**/*.generated.*
-**/generated/**
-**/auto-generated/**
-```
+This page focuses on when filtering is evaluated, how cache invalidation works, and where to place each kind of filter rule.
 
 ## Troubleshooting
 
@@ -277,6 +106,7 @@ playground/
 2. Use forward slashes `/` in patterns (even on Windows)
 3. Check for typos in filenames or extensions
 4. Remember that directory patterns should end with `/`
+5. Verify the rule syntax against [Ignoring Tasks](./tasksignore)
 
 ### Need to Re-include Files
 
@@ -293,5 +123,6 @@ Use the `!` negation operator, but remember it only works if a parent pattern ex
 ## Next Steps
 
 - [Gitignore Pattern Format](https://git-scm.com/docs/gitignore#_pattern_format)
+- [Ignoring Tasks](./tasksignore)
 - [Configuration](../configuration)
 - [Visual Studio Code Settings](https://code.visualstudio.com/docs/getstarted/settings)

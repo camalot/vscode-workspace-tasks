@@ -1,0 +1,82 @@
+@use "sass:color";
+
+// Tokyo Night palette
+$tokyo-night-background:    #1a1b26;
+$tokyo-night-current-line:  #202330;
+$tokyo-night-selection:     #515c7e40;
+$tokyo-night-foreground:    #a9b1d6;
+$tokyo-night-comment:       #51597d;
+$tokyo-night-cyan:          #7dcfff;
+$tokyo-night-green:         #73daca;
+$tokyo-night-orange:        #e0af68;
+$tokyo-night-pink:          #f7768e;
+$tokyo-night-purple:        #bb9af7;
+$tokyo-night-red:           #f7768e;
+$tokyo-night-yellow:        #e0af68;
+$tokyo-night-blue:          #7aa2f7;
+
+// Backgrounds
+$body-background-color:       $tokyo-night-background;
+$sidebar-color:               #16161e;
+$search-background-color:     #14141b;
+$table-background-color:      $tokyo-night-background;
+$code-background-color:       #16161e;
+$feedback-color:              #101014;
+
+// Text
+$body-text-color:             $tokyo-night-foreground;
+$body-heading-color:          $tokyo-night-blue;
+$search-result-preview-color: $tokyo-night-comment;
+$nav-child-link-color:        $tokyo-night-foreground;
+$search-result-rel-url-color: $tokyo-night-comment;
+
+// Links
+$link-color:                  #6183bb;
+
+// Buttons
+$btn-primary-color:           #3d59a1;
+$base-button-color:           $tokyo-night-current-line;
+
+// Borders
+$border-color:                #101014;
+$table-border-color:          #101014;
+
+// Code / syntax highlight
+$code-linenumber-color:       #363b54;
+$code-text-color:             $tokyo-night-foreground;
+$code-background-color:       #16161e;
+
+// Navigation + overlays
+$nav-list-link-color:         $tokyo-night-foreground;
+$nav-list-link-color-hover:   $tokyo-night-cyan;
+$nav-list-link-color-active:  $tokyo-night-blue;
+$theme-header-background:     #16161e;
+$theme-header-border-color:   #101014;
+$theme-nav-link-color:        $tokyo-night-foreground;
+$theme-nav-link-hover-color:  $tokyo-night-cyan;
+$theme-nav-link-active-color: $tokyo-night-blue;
+$theme-nav-link-hover-bg:     rgba($tokyo-night-current-line, 0.85);
+$theme-nav-link-active-bg:    rgba(#3d59a1, 0.3);
+$theme-nav-expander-color:    $tokyo-night-comment;
+$theme-overlay-background:    $tokyo-night-background;
+$theme-overlay-hover-background: rgba($tokyo-night-current-line, 0.8);
+
+// Code chrome + syntax tokens
+$theme-code-border-color:     #101014;
+$theme-code-gutter-color:     #16161e;
+$theme-code-gutter-divider:   #101014;
+$theme-code-inline-color:     $tokyo-night-purple;
+$syntax-comment-color:        $tokyo-night-comment;
+$syntax-keyword-color:        $tokyo-night-purple;
+$syntax-constant-color:       $tokyo-night-orange;
+$syntax-string-color:         #9ece6a;
+$syntax-escape-color:         $tokyo-night-cyan;
+$syntax-function-color:       $tokyo-night-blue;
+$syntax-builtin-color:        #0db9d7;
+$syntax-type-color:           $tokyo-night-cyan;
+$syntax-annotation-color:     $tokyo-night-green;
+$syntax-tag-color:            $tokyo-night-pink;
+$syntax-number-color:         #ff9e64;
+$syntax-operator-color:       $tokyo-night-cyan;
+$syntax-text-color:           $tokyo-night-foreground;
+$syntax-linenumber-color:     #363b54;

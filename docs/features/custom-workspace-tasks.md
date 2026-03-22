@@ -165,6 +165,6 @@ Filenames with unrecognized extensions fall back to the default task group icon.
   - **options** - Array of choices (for `pickString`)
 - **tasks** - Array of task definitions
   - **label** - Display name
-  - **type** - Must be `"workspace"`
+  - **type** - The type of task. Examples include `"workspace"`, `"shell"`, `"process"`, etc.
   - **command** - Shell command (use `{{ .InputId }}` for variables)
   - **group** - Task group (`"build"`, `"test"`, etc.)

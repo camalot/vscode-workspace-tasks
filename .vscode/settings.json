@@ -19,5 +19,10 @@
         "python": true,
         "ruby": true,
         "other": true
-    }
+    },
+    "cSpell.words": [
+        "mimetypes",
+        "Taskignore",
+        "tasksignore"
+    ]
 }

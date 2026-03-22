@@ -17,6 +17,7 @@ plugins:
   - rouge
 
 highlighter: rouge
+destination: ../_site
 
 # kramdown:
 #   input: GFM
@@ -89,6 +90,11 @@ callouts:
   caution:
     title: Caution
     color: red
+
+# Regenerate configuration
+# Force full rebuild when custom plugins change to ensure lexer is properly reloaded
+regenerate:
+  - _plugins
 
 # Exclude from build
 exclude:
