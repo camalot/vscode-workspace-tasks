@@ -36,7 +36,8 @@
         "bierner.github-markdown-preview",
         "editorconfig.editorconfig",
         "igorsbitnev.error-gutters",
-        "timonwong.shellcheck"
+        "timonwong.shellcheck",
+        "tamasfe.even-better-toml"
       ]
     }
   },
