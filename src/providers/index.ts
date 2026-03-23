@@ -22,6 +22,7 @@ import { PoetryTaskProvider } from './poetryTaskProvider';
 import { RakeTaskProvider } from './rakeTaskProvider';
 import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
+import { CMakeTaskProvider } from './cmakeTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 import { TaskFilesService } from '../services/taskFilesService';
@@ -52,7 +53,8 @@ type TaskProviderConstructor =
   | (new () => PoeTaskProvider)
   | (new () => PoetryTaskProvider)
   | (new () => RakeTaskProvider)
-  | (new () => JupyterTaskProvider);
+  | (new () => JupyterTaskProvider)
+  | (new () => CMakeTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
   const logger = LoggerService.getInstance();
@@ -83,6 +85,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     PipenvTaskProvider,
     RakeTaskProvider,
     JupyterTaskProvider,
+    CMakeTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   const filesService = TaskFilesService.getInstance();

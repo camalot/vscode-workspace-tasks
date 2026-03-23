@@ -19,6 +19,7 @@ import { DenoTaskProvider } from './providers/denoTaskProvider';
 import { PoetryTaskProvider } from './providers/poetryTaskProvider';
 import { PoeTaskProvider } from './providers/poeTaskProvider';
 import { CargoMakeTaskProvider } from './providers/cargoMakeTaskProvider';
+import { CMakeTaskProvider } from './providers/cmakeTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -981,6 +982,34 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec,
       );
       return { task, command: full, cwd: cargoMakeCwd, native: false };
+    }
+    case 'cmake': {
+      const cmakeProvider = new CMakeTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: cmakeCmd, args: cmakeInitialArgs } = cmakeProvider.getCommand(workspaceFolder?.uri);
+
+      const sourceDir = path.dirname(resourceUri.fsPath);
+      const buildDir = cmakeProvider.getBuildDirectory();
+      const buildPath = path.isAbsolute(buildDir) ? buildDir : path.join(sourceDir, buildDir);
+
+      const cmakeArgs = cmakeInitialArgs ? [...cmakeInitialArgs] : [];
+      cmakeArgs.push('--build', buildPath, '--target', taskLabel);
+
+      if (args) {
+        cmakeArgs.push(...args.split(' '));
+      }
+
+      const full = `${cmakeCmd} ${cmakeArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(cmakeCmd, cmakeArgs, { cwd: sourceDir });
+
+      const task = new vscode.Task(
+        { type: 'cmake', target: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'cmake',
+        shellExec,
+      );
+      return { task, command: full, cwd: sourceDir, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

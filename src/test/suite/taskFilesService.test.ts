@@ -909,4 +909,96 @@ package.json@build`;
             assert.strictEqual(found.some(u => u.fsPath.toLowerCase().endsWith('other.sh')),     false,
                 'other.sh must remain excluded');
         });
+
+    // -------------------------------------------------------------------------
+    // Regression: modifying a .tasksignore in a subfolder must apply new rules
+    // immediately.  Before the fix the onDidChange handler started loadIgnoreFile
+    // without awaiting it, so invalidateCache() fired while the ignore-files list
+    // still held the stale entry.  The next cache rebuild therefore saw
+    // alreadyLoaded=true and skipped reloading, keeping stale rules.
+    // -------------------------------------------------------------------------
+
+    test('Updating a subfolder .tasksignore immediately applies new rules (regression: race condition)', async function() {
+        this.timeout(60000);
+
+        // Step 1: create a deep subfolder .tasksignore that initially blocks **/package.json
+        const ignoreFile = await createFile('subfolder-update/apps/appA/.tasksignore', '**/package.json');
+        await waitForIgnoreFile(ignoreFile);
+
+        const pkgUri = vscode.Uri.joinPath(testFolder, 'subfolder-update/apps/appA/package.json');
+
+        // Initial rule says "ignore **/package.json" — verify it is ignored
+        assert.strictEqual(service.shouldIgnore(pkgUri), true, 'package.json should be ignored by initial rule');
+
+        // Step 2: overwrite the .tasksignore so that it no longer ignores package.json
+        await vscode.workspace.fs.writeFile(ignoreFile, Buffer.from('# no rules'));
+
+        // Step 3: simulate the FIXED watcher path: await loadIgnoreFile, then invalidateCache
+        // (This is what the fixed onDidChange handler does: async uri => { await this.loadIgnoreFile(uri); this.invalidateCache(); })
+        await (service as any).loadIgnoreFile(ignoreFile);
+        service.invalidateCache();
+
+        // Step 4: the new rules should be in effect immediately
+        assert.strictEqual(service.shouldIgnore(pkgUri), false,
+            'package.json should no longer be ignored after subfolder .tasksignore is updated and reloaded');
+    });
+
+    test('Updating a root .tasksignore task-level rule via awaited reload applies new task filter rules', async function() {
+        this.timeout(60000);
+
+        // Initial rule: ignore build task in any package.json
+        const ignoreFile = await createFile('root-update/.tasksignore', '**/package.json@build');
+        await waitForIgnoreFile(ignoreFile);
+
+        const pkgUri = vscode.Uri.joinPath(testFolder, 'root-update/package.json');
+
+        assert.strictEqual(service.shouldIgnoreTask(pkgUri, 'build'), true,
+            'build task should be ignored by initial rule');
+
+        // Change rule: no longer ignore the build task
+        await vscode.workspace.fs.writeFile(ignoreFile, Buffer.from('# no rules'));
+
+        // Fixed watcher path
+        await (service as any).loadIgnoreFile(ignoreFile);
+        service.invalidateCache();
+
+        assert.strictEqual(service.shouldIgnoreTask(pkgUri, 'build'), false,
+            'build task should no longer be ignored after root .tasksignore is updated');
+    });
+
+    test('Race condition: without awaiting loadIgnoreFile, stale rules may persist', async function() {
+        this.timeout(60000);
+        // This test demonstrates WHY the fix (awaiting loadIgnoreFile) is necessary.
+        // Without await, the ignoreFiles list still has the old entry when invalidateCache
+        // triggers a rebuild, causing syncIgnoreFiles to skip the reload.
+
+        // Create a subfolder .tasksignore that ignores package.json
+        const ignoreFile = await createFile('race-condition/apps/.tasksignore', 'package.json');
+        await waitForIgnoreFile(ignoreFile);
+
+        const pkgUri = vscode.Uri.joinPath(testFolder, 'race-condition/apps/package.json');
+        assert.strictEqual(service.shouldIgnore(pkgUri), true, 'Initially ignored');
+
+        // Overwrite the file  to remove the rule
+        await vscode.workspace.fs.writeFile(ignoreFile, Buffer.from('# cleared'));
+
+        // Simulate the OLD (broken) watcher path: call loadIgnoreFile without awaiting,
+        // then immediately invalidate.  Since loadIgnoreFile is async and the test
+        // itself awaits nothing between these two lines, the ignoreFiles entry still
+        // holds the stale data when we check below — the file read is a promise that
+        // hasn't resolved yet.
+        const loadPromise = (service as any).loadIgnoreFile(ignoreFile); // intentionally not awaited
+        service.invalidateCache(); // fires immediately with stale ignoreFiles
+
+        // shouldIgnore called here still sees the OLD rules because loadIgnoreFile
+        // has not yet resolved (we never awaited it)
+        assert.strictEqual(service.shouldIgnore(pkgUri), true,
+            'Stale rule still active when loadIgnoreFile was not awaited before invalidateCache');
+
+        // Now resolve the load and confirm the fix kicks in
+        await loadPromise;
+        service.invalidateCache();
+        assert.strictEqual(service.shouldIgnore(pkgUri), false,
+            'Rule removed after awaiting loadIgnoreFile and re-invalidating');
+    });
 });

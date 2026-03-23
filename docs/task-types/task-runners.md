@@ -26,6 +26,7 @@ nav_order: 2
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo.png" width="32" alt="cargo" title="cargo"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo-make.png" width="32" alt="cargo-make" title="cargo-make"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cmake.png" width="32" alt="CMake" title="CMake"/>
 </p>
 <!-- markdownlint-enable MD033 -->
 
@@ -38,6 +39,7 @@ nav_order: 2
 | **[Just](https://github.com/casey/just)** | `**/{justfile,.justfile,*.just}` | Command recipes |
 | **[Make](https://www.gnu.org/software/make/)** | `**/Makefile` | Build targets |
 | **[mise](https://mise.jdx.dev/)** | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
+| **[CMake](https://cmake.org/)** | `**/CMakeLists.txt` | `add_custom_target` and `add_executable` targets |
 
 ---
 

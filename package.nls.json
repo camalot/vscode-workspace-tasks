@@ -240,5 +240,18 @@
   "config.workspaceTasks.applicationPath.cargo.markdown": "Specify the path to the [Cargo](https://doc.rust-lang.org/cargo/) executable. On Windows, if the path ends with `cargo`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
 
   "config.workspaceTasks.applicationPath.cargo-make": "Path to cargo-make executable",
-  "config.workspaceTasks.applicationPath.cargo-make.markdown": "Specify the path to the [cargo-make](https://sagiegurari.github.io/cargo-make/) executable. cargo-make is a Rust task runner and build tool using TOML-based Makefile.toml files. On Windows, if the path ends with `cargo-make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory."
+  "config.workspaceTasks.applicationPath.cargo-make.markdown": "Specify the path to the [cargo-make](https://sagiegurari.github.io/cargo-make/) executable. cargo-make is a Rust task runner and build tool using TOML-based Makefile.toml files. On Windows, if the path ends with `cargo-make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+  "config.workspaceTasks.enabledTaskTypes.cmake": "CMake",
+  "config.workspaceTasks.applicationPath.cmake": "Path to CMake executable",
+  "config.workspaceTasks.applicationPath.cmake.markdown": "Specify the path to the [CMake](https://cmake.org/) executable. On Windows, if the path ends with `cmake`, `.exe` will be appended automatically. On all platforms, `~/` will be expanded to the user's home directory.",
+  "config.workspaceTasks.cmake.buildDirectory": "CMake build directory",
+  "config.workspaceTasks.cmake.buildDirectory.markdown": "Relative path from the `CMakeLists.txt` directory to the CMake binary (build) directory. Absolute paths are also accepted. Defaults to `build`.",
+  "config.workspaceTasks.cmake.buildType": "CMake build type",
+  "config.workspaceTasks.cmake.buildType.markdown": "The CMake build type passed as `-DCMAKE_BUILD_TYPE` during configuration and `--config` during the build step. One of `Debug`, `Release`, `RelWithDebInfo`, or `MinSizeRel`.",
+  "config.workspaceTasks.cmake.buildType.debug": "Debug build with no optimization and full debug information.",
+  "config.workspaceTasks.cmake.buildType.release": "Fully optimized release build with no debug information.",
+  "config.workspaceTasks.cmake.buildType.relwithdebinfo": "Optimized build that also includes debug information.",
+  "config.workspaceTasks.cmake.buildType.minsizerel": "Optimized for minimum binary size.",
+  "config.workspaceTasks.cmake.generator": "CMake generator",
+  "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default."
 }

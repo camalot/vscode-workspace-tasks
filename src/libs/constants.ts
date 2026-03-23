@@ -38,6 +38,7 @@ const constants: Record<string, any> = {
   GLOB_MCP: '**/.vscode/mcp.json',
   GLOB_WORKSPACE: '**/.workspace-tasks.{json,*.json}',
   GLOB_VENV: '**/.venv/Scripts/{activate.bat,activate.fish,Activate.ps1,deactivate.bat}',
+  GLOB_CMAKE: '**/CMakeLists.txt',
 };
 
 export default constants;

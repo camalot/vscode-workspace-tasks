@@ -405,12 +405,12 @@ export class TaskFilesService {
       this.fileWatcher = undefined;
     }
     const watcher = vscode.workspace.createFileSystemWatcher('**/.tasksignore');
-    watcher.onDidChange((uri) => {
-      this.loadIgnoreFile(uri);
+    watcher.onDidChange(async (uri) => {
+      await this.loadIgnoreFile(uri);
       this.invalidateCache();
     });
-    watcher.onDidCreate((uri) => {
-      this.loadIgnoreFile(uri);
+    watcher.onDidCreate(async (uri) => {
+      await this.loadIgnoreFile(uri);
       this.invalidateCache();
     });
     watcher.onDidDelete((uri) => {

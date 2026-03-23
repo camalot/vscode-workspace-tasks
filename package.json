@@ -69,7 +69,8 @@
     "pipenv",
     "poe",
     "poetry",
-    "make"
+    "make",
+    "cmake"
   ],
   "categories": [
     "Other"
@@ -897,6 +898,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
             },
+            "cmake": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cmake%"
+            },
             "composer": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
@@ -1007,6 +1012,7 @@
             }
           },
           "default": {
+            "cmake": true,
             "ant": true,
             "bun": false,
             "deno": true,
@@ -1134,6 +1140,41 @@
           "description": "%config.workspaceTasks.applicationPath.rake%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.rake.markdown%",
           "default": "rake"
+        },
+        "workspaceTasks.applicationPath.cmake": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.cmake%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.cmake.markdown%",
+          "default": "cmake",
+          "scope": "resource"
+        },
+        "workspaceTasks.cmake.buildDirectory": {
+          "type": "string",
+          "description": "%config.workspaceTasks.cmake.buildDirectory%",
+          "markdownDescription": "%config.workspaceTasks.cmake.buildDirectory.markdown%",
+          "default": "build",
+          "scope": "resource"
+        },
+        "workspaceTasks.cmake.buildType": {
+          "type": "string",
+          "description": "%config.workspaceTasks.cmake.buildType%",
+          "markdownDescription": "%config.workspaceTasks.cmake.buildType.markdown%",
+          "enum": ["Debug", "Release", "RelWithDebInfo", "MinSizeRel"],
+          "enumDescriptions": [
+            "%config.workspaceTasks.cmake.buildType.debug%",
+            "%config.workspaceTasks.cmake.buildType.release%",
+            "%config.workspaceTasks.cmake.buildType.relwithdebinfo%",
+            "%config.workspaceTasks.cmake.buildType.minsizerel%"
+          ],
+          "default": "Debug",
+          "scope": "resource"
+        },
+        "workspaceTasks.cmake.generator": {
+          "type": "string",
+          "description": "%config.workspaceTasks.cmake.generator%",
+          "markdownDescription": "%config.workspaceTasks.cmake.generator.markdown%",
+          "default": "",
+          "scope": "resource"
         }
       }
     },
