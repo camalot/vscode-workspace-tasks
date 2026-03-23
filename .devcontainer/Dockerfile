@@ -105,9 +105,9 @@ RUN PWSH_TAG=$(curl -s "https://api.github.com/repos/PowerShell/PowerShell/relea
   rm /tmp/powershell.tar.gz && \
   curl -fsSL https://gh.io/copilot-install | bash
 
-# Install dotnet
+# Install dotnet - used for supporting Cake build scripts
 RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -o /tmp/packages-microsoft-prod.deb \
-  && sudo dpkg -i /tmp/packages-microsoft-prod.deb \
+  && dpkg -i /tmp/packages-microsoft-prod.deb \
   && rm /tmp/packages-microsoft-prod.deb \
   && apt-get update \
   && apt-get install -y dotnet-sdk-10.0 \
