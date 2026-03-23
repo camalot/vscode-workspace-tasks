@@ -946,13 +946,15 @@ package.json@build`;
     test('Updating a root .tasksignore task-level rule via awaited reload applies new task filter rules', async function() {
         this.timeout(60000);
 
+        const uniqueTaskName = 'rootUpdateUniqueTask';
+
         // Initial rule: ignore build task in any package.json
-        const ignoreFile = await createFile('root-update/.tasksignore', '**/package.json@build');
+        const ignoreFile = await createFile('root-update/.tasksignore', `**/package.json@${uniqueTaskName}`);
         await waitForIgnoreFile(ignoreFile);
 
         const pkgUri = vscode.Uri.joinPath(testFolder, 'root-update/package.json');
 
-        assert.strictEqual(service.shouldIgnoreTask(pkgUri, 'build'), true,
+        assert.strictEqual(service.shouldIgnoreTask(pkgUri, uniqueTaskName), true,
             'build task should be ignored by initial rule');
 
         // Change rule: no longer ignore the build task
@@ -962,7 +964,7 @@ package.json@build`;
         await (service as any).loadIgnoreFile(ignoreFile);
         service.invalidateCache();
 
-        assert.strictEqual(service.shouldIgnoreTask(pkgUri, 'build'), false,
+        assert.strictEqual(service.shouldIgnoreTask(pkgUri, uniqueTaskName), false,
             'build task should no longer be ignored after root .tasksignore is updated');
     });
 
