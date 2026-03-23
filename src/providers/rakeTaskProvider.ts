@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { promisify } from 'util';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
@@ -10,7 +10,7 @@ import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { TaskStateManager } from '../taskStateManager';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
   private readonly iconService = TaskIconService.getInstance();
@@ -38,9 +38,14 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
         const fileDir = path.dirname(file.fsPath);
         const rakeCmd = this.getCommand(workspaceFolder.uri);
 
-        // Run rake --tasks --file <path> to list tasks for this specific file
-        const { stdout } = await execAsync(
-          `"${rakeCmd.command}" --tasks --file "${file.fsPath}"`,
+        const listInvocation = this.buildRakeTaskListInvocation(rakeCmd, file.fsPath);
+
+        // Run rake --tasks --file <path> to list tasks for this specific file.
+        // Use execFile so configured executable args (e.g. "bundle exec rake")
+        // are preserved and paths with spaces are handled safely.
+        const { stdout } = await execFileAsync(
+          listInvocation.command,
+          listInvocation.args,
           {
             cwd: fileDir,
             timeout: 10000, // 10 second timeout
@@ -155,6 +160,13 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
       },
       workspaceUri,
     );
+  }
+
+  private buildRakeTaskListInvocation(rakeCmd: ExecutableResult, filePath: string): { command: string; args: string[] } {
+    return {
+      command: rakeCmd.command,
+      args: [...rakeCmd.args, '--tasks', '--file', filePath],
+    };
   }
 
   /**

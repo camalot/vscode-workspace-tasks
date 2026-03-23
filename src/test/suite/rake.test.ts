@@ -70,6 +70,34 @@ suite('Rake Provider Test Suite', () => {
     assert.strictEqual(tasks[2].description, undefined);
   });
 
+  test('buildRakeTaskListInvocation appends rake listing flags after executable args', () => {
+    const invocation = (provider as any).buildRakeTaskListInvocation(
+      {
+        command: 'bundle',
+        args: ['exec', 'rake'],
+        cwd: '/workspace',
+      },
+      '/workspace/Rakefile'
+    );
+
+    assert.strictEqual(invocation.command, 'bundle');
+    assert.deepStrictEqual(invocation.args, ['exec', 'rake', '--tasks', '--file', '/workspace/Rakefile']);
+  });
+
+  test('buildRakeTaskListInvocation supports plain rake command', () => {
+    const invocation = (provider as any).buildRakeTaskListInvocation(
+      {
+        command: 'rake',
+        args: [],
+        cwd: '/workspace',
+      },
+      '/workspace/Rakefile'
+    );
+
+    assert.strictEqual(invocation.command, 'rake');
+    assert.deepStrictEqual(invocation.args, ['--tasks', '--file', '/workspace/Rakefile']);
+  });
+
   test('getTasks returns empty array when provider is disabled', async () => {
     Object.defineProperty(provider, 'enabled', { value: false, configurable: true });
     const tasks = await provider.getTasks();
