@@ -153,6 +153,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo.png" width="32" alt="cargo" title="cargo"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo-make.png" width="32" alt="cargo-make" title="cargo-make"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cake.png" width="32" alt="Cake Build" title="Cake Build"/>
 </p>
 
 - **[Gulp](https://gulpjs.com/)** - Tasks from `gulpfile.js` or `gulpfile.mjs`
@@ -162,6 +163,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
 - **[mise](https://mise.jdx.dev/)** - Tasks from `mise.toml` or `mise-tasks/` directory
+- **[Cake Build](https://cakebuild.net/)** - Tasks from `*.cake` scripts via `Task("...")`
 
 ### DevOps & Containers
 
@@ -589,6 +591,7 @@ Each task type watches specific file patterns:
 | --- | --- | --- |
 | npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
 | Ant | `**/*.xml` | Parses build file targets |
+| cake | `**/*.cake` | Cake build targets from `Task("...")` declarations |
 | cargo-make | `**/{Makefile.toml,*.toml}` | Rust task runner from TOML files (requires Cargo) |
 | Composer | `**/composer.json` | PHP dependency scripts |
 | Gradle | `**/*.gradle` | Java/Android build tasks |
@@ -640,6 +643,7 @@ The extension discovers tasks regardless of whether tools are installed, but **e
 - [Gradle](https://gradle.org/) for Gradle tasks
 - [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) for .NET tasks
 - [Make](https://www.gnu.org/software/make/) for Makefile tasks
+- [Cake](https://cakebuild.net/) installed with `dotnet tool install` for Cake build script tasks
 
 **Task Runners:**
 

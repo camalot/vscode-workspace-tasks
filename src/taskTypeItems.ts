@@ -153,6 +153,17 @@ export class MiseTaskTypeItem extends TaskTypeGroupItem {
   }
 }
 
+export class CakeTaskTypeItem extends TaskTypeGroupItem {
+  constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
+    super('cake', vscode.Uri.file('/build.cake'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+    const iconService = TaskIconService.getInstance();
+    const iconUri = iconService.getTaskTypeIcon(this.label, vscode.Uri.file('/build.cake'));
+    if (iconUri?.TaskIcon) {
+      this.iconPath = iconUri.TaskIcon;
+    }
+  }
+}
+
 export class AntTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
     super('ant', undefined, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
@@ -329,6 +340,8 @@ export class TaskTypeFactory {
         return new ComposerTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'mise':
         return new MiseTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
+      case 'cake':
+        return new CakeTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       default:
         return new GenericTaskTypeItem(type, iconUri, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
     }

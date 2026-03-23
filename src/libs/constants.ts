@@ -8,7 +8,7 @@ const constants: Record<string, any> = {
 
   DEFAULT_TASK_GROUP_SEPARATOR: '',
 
-  GLOB_GLOBAL_EXCLUDE: '**/node_modules/**,**/.git/**,**/__pycache__/**',
+  GLOB_GLOBAL_EXCLUDE: '**/node_modules/**,**/.git/**,**/__pycache__/**,**/vendor/bundle/**',
   GLOB_ANT: '**/*.xml',
   GLOB_CARGO_MAKE: '**/{Makefile.toml,*.toml}',
   GLOB_DENO: '**/deno.{json,jsonc}',
@@ -39,6 +39,7 @@ const constants: Record<string, any> = {
   GLOB_WORKSPACE: '**/.workspace-tasks.{json,*.json}',
   GLOB_VENV: '**/.venv/Scripts/{activate.bat,activate.fish,Activate.ps1,deactivate.bat}',
   GLOB_CMAKE: '**/CMakeLists.txt',
+  GLOB_CAKE: '**/*.cake',
 };
 
 export default constants;

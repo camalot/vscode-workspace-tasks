@@ -26,6 +26,7 @@ nav_order: 7
 ```json
 {
   "ant": true,
+  "cake": true,
   "deno": true,
   "shell": true,
   "composer": true,
@@ -55,6 +56,7 @@ Select the types of tasks that the extension should support and display in the t
 #### Available Task Types
 
 - **ant** - Ant
+- **cake** - Cake Build
 - **composer** - Composer
 - **deno** - Deno
 - **docker** - Docker

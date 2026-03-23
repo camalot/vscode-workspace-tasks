@@ -37,6 +37,7 @@ The cache invalidates whenever changes to `.tasksignore`, relevant user configur
   - `**/.git/**`
   - `**/.vscode-test/**`
   - `**/__pycache__/**`
+  - `**/vendor/bundle/**`
 
 ## Filter Rule Syntax and Examples
 
@@ -58,7 +59,9 @@ In addition to `.tasksignore` files, you can configure workspace-wide exclusions
     "**/.git/**",
     "**/vendor/**",
     "**/third-party/**",
-    "**/__pycache__/**"
+    "**/__pycache__/**",
+    "**/vendor/bundle/**"
+
   ]
 }
 ```

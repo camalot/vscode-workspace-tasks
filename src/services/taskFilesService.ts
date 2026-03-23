@@ -354,6 +354,9 @@ export class TaskFilesService {
       this.ignoreList.push('**/__pycache__/**');
       this.globalIgnore.add('**/.vscode-test/**');
       this.ignoreList.push('**/.vscode-test/**');
+      this.globalIgnore.add('**/vendor/bundle/**'); // Always ignore vendor/bundle
+      this.ignoreList.push('**/vendor/bundle/**');
+
       if (Array.isArray(excludes) && excludes.length > 0) {
         this.globalIgnore.add(excludes);
         this.ignoreList.push(...excludes);

@@ -24,6 +24,7 @@ export class TaskConfigService {
     // Map task type names to config keys
     const taskTypeMap: Record<string, string> = {
       ant: 'ant',
+      cake: 'cake',
       dockerfile: 'docker',
       composer: 'composer',
       'github-actions': 'github-actions',

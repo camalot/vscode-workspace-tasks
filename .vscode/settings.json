@@ -21,8 +21,16 @@
         "other": true
     },
     "cSpell.words": [
+        "ansicon",
+        "gradlew",
         "mimetypes",
+        "minsizerel",
+        "msbuild",
+        "pipenv",
+        "relwithdebinfo",
         "Taskignore",
-        "tasksignore"
+        "tasksignore",
+        "unhide",
+        "venv"
     ]
 }

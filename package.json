@@ -70,7 +70,8 @@
     "poe",
     "poetry",
     "make",
-    "cmake"
+    "cmake",
+    "cake"
   ],
   "categories": [
     "Other"
@@ -898,6 +899,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
             },
+            "cake": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cake%"
+            },
             "cmake": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.cmake%"
@@ -1012,6 +1017,7 @@
             }
           },
           "default": {
+            "cake": true,
             "cmake": true,
             "ant": true,
             "bun": false,
@@ -1159,7 +1165,12 @@
           "type": "string",
           "description": "%config.workspaceTasks.cmake.buildType%",
           "markdownDescription": "%config.workspaceTasks.cmake.buildType.markdown%",
-          "enum": ["Debug", "Release", "RelWithDebInfo", "MinSizeRel"],
+          "enum": [
+            "Debug",
+            "Release",
+            "RelWithDebInfo",
+            "MinSizeRel"
+          ],
           "enumDescriptions": [
             "%config.workspaceTasks.cmake.buildType.debug%",
             "%config.workspaceTasks.cmake.buildType.release%",
