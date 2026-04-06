@@ -8,7 +8,9 @@ rules:
     config:
       policies:
         '*': deny
-  secrets-outside-env:
-    config:
-      allow:
-        - CODECOV_TOKEN
+  # secrets-outside-env:
+  #   config:
+  #     allow:
+  #       - CODECOV_TOKEN
+  #       - OPEN_VSX_TOKEN
+  #       - VS_MARKETPLACE_TOKEN

@@ -18,6 +18,7 @@ jobs:
       pull-requests: write
       statuses: write
       id-token: write
+    environment: production
     steps:
       - uses: actions/checkout@v6
         with:
@@ -93,8 +94,10 @@ jobs:
         with:
           fail_ci_if_error: true # optional (default = false)
           files: coverage/lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
           verbose: true # optional (default = false)
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results to Codecov
         if: ${{ !env.ACT }}
@@ -104,8 +107,10 @@ jobs:
           files: coverage/junit.xml
           report_type: test_results
           disable_search: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
           verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Package VSIX (dry run)
         run: npm run package:vsix
