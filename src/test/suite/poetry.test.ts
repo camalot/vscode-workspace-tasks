@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { PoetryTaskProvider } from '../../providers/poetryTaskProvider';
@@ -32,7 +33,7 @@ suite('Poetry Provider Test Suite', () => {
     originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
     iconService.getTaskIcon = () => new vscode.ThemeIcon('symbol-method');
 
-    tempDir = fs.mkdtempSync('/workspace/.tmp-poetry-');
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '.tmp-poetry-'));
   });
 
   teardown(() => {

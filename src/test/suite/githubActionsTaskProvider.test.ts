@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { GithubActionsTaskProvider } from '../../providers/githubActionsTaskProvider';
@@ -24,7 +25,7 @@ suite('GithubActionsTaskProvider Test Suite', () => {
     filesService.findFiles = async () => [];
     iconService.getTaskIcon = () => new vscode.ThemeIcon('github');
 
-    tempDir = fs.mkdtempSync('/workspace/.tmp-gh-actions-');
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '.tmp-gh-actions-'));
   });
 
   teardown(() => {
