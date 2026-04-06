@@ -15,5 +15,13 @@
     "noUnusedParameters": true, /* Report errors on unused parameters. */
     "skipLibCheck": true
   },
-  "exclude": ["node_modules", ".vscode-test", ".vscode-test-web", ".test-storage", ".test-extensions"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    ".vscode-test-web",
+    ".test-storage",
+    ".test-extensions",
+    "vendor/bundle",
+    "sample"
+  ]
 }
