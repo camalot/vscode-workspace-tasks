@@ -8,3 +8,7 @@ rules:
     config:
       policies:
         '*': deny
+  secrets-outside-env:
+    config:
+      allow:
+        - CODECOV_TOKEN
