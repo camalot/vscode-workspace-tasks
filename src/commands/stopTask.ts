@@ -3,16 +3,74 @@ import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskStateManager } from '../taskStateManager';
 
+/** How long (ms) to wait for graceful SIGINT before force-killing the terminal. */
+const GRACEFUL_STOP_TIMEOUT_MS = 5000;
+
+/**
+ * Finds the terminal that belongs to a task by matching against common
+ * naming conventions that VSCode uses for task terminals.
+ *
+ * An optional `terminals` array can be provided for testing; defaults to
+ * `vscode.window.terminals`.
+ */
+export function findTerminalForTask(
+  task: vscode.Task,
+  terminals: readonly vscode.Terminal[] = vscode.window.terminals,
+): vscode.Terminal | undefined {
+  const name = task.name;
+  const source = task.source;
+
+  return terminals.find((t) =>
+    t.name === name ||
+    t.name === `${source}: ${name}` ||
+    t.name === `Task - ${name}` ||
+    t.name.includes(name),
+  );
+}
+
 export class StopTaskCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
     super('stopTask', context);
   }
 
   async run(item: TaskItem): Promise<void> {
-    const id = TaskStateManager.getInstance().getTaskId(item);
-    const execution = TaskStateManager.getInstance().getExecution(id);
-    if (execution) {
-      TaskStateManager.getInstance().markTerminated(id);
+    const stateManager = TaskStateManager.getInstance();
+    const id = stateManager.getTaskId(item);
+    const execution = stateManager.getExecution(id);
+
+    if (!execution) {
+      return;
+    }
+
+    // Second click while a graceful-stop timer is already pending → force kill now.
+    if (stateManager.getStopTimer(id)) {
+      stateManager.clearStopTimer(id);
+      stateManager.markTerminated(id);
+      execution.terminate();
+      return;
+    }
+
+    // Try the stored terminal first, then fall back to a name-based search.
+    const terminal = stateManager.getTerminal(id) ?? findTerminalForTask(execution.task);
+    if (terminal) {
+      // Send SIGINT (Ctrl+C) — the process gets a chance to shut down gracefully
+      // and the terminal window is preserved.
+      terminal.sendText('\u0003', false);
+
+      // Schedule a fallback force-kill in case the process ignores the signal.
+      const timer = setTimeout(() => {
+        stateManager.clearStopTimer(id);
+        // Only terminate if the task is still tracked as running.
+        if (stateManager.getExecution(id) === execution) {
+          stateManager.markTerminated(id);
+          execution.terminate();
+        }
+      }, GRACEFUL_STOP_TIMEOUT_MS);
+
+      stateManager.setStopTimer(id, timer);
+    } else {
+      // No terminal reference found — fall back to immediate hard kill.
+      stateManager.markTerminated(id);
       execution.terminate();
     }
   }

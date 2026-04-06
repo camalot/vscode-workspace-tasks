@@ -186,6 +186,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const id = stateManager.getTaskId(item);
         if (id) {
           stateManager.clearTerminated(id); // Clear any terminated state if task is restarting
+          stateManager.clearStopTimer(id);  // Cancel any pending force-kill timer
           stateManager.setExecution(id, e.execution);
           stateManager.setStatus(id, 'running');
           taskTreeDataProvider.refreshLocal();
@@ -194,6 +195,22 @@ export async function activate(context: vscode.ExtensionContext) {
             clearTimeout(resetTimers.get(id)!);
             resetTimers.delete(id);
           }
+
+          // Capture the terminal that opens for this task so the stop command
+          // can send SIGINT instead of destroying the terminal.
+          const openSub = vscode.window.onDidOpenTerminal((terminal) => {
+            openSub.dispose();
+            clearTimeout(terminalCaptureTimeout);
+            stateManager.setTerminal(id, terminal);
+          });
+          // Fallback: if no new terminal opens within 1.5 s use the active one
+          // (happens when the task reuses an existing dedicated/shared terminal).
+          const terminalCaptureTimeout = setTimeout(() => {
+            openSub.dispose();
+            if (!stateManager.getTerminal(id) && vscode.window.activeTerminal) {
+              stateManager.setTerminal(id, vscode.window.activeTerminal);
+            }
+          }, 1500);
         }
       }
     }),
@@ -204,6 +221,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const stateManager = TaskStateManager.getInstance();
       const id = stateManager.getIdByExecution(e.execution);
       if (id) {
+        stateManager.clearStopTimer(id);
         const status = e.exitCode === 0 ? 'success' : 'failure';
         stateManager.setStatus(id, status);
         stateManager.clearExecution(id);
@@ -222,6 +240,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const stateManager = TaskStateManager.getInstance();
       const id = stateManager.getIdByExecution(e.execution);
       if (id) {
+        stateManager.clearStopTimer(id);
         // Only act if the task is still marked as running.
         // If it was a process task, status would be 'success' or 'failure' by now.
         if (stateManager.getStatus(id) === 'running') {

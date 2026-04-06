@@ -9,6 +9,8 @@ on: # yamllint disable-line rule:truthy
       - develop
 
 permissions: {}
+env:
+  ACT: ""
 jobs:
   build-and-test:
     runs-on: ubuntu-latest

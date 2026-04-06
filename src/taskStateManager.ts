@@ -16,6 +16,8 @@ export class TaskStateManager {
   private static instance: TaskStateManager;
   private states: Map<string, TaskStatus> = new Map();
   private executions: Map<string, vscode.TaskExecution> = new Map();
+  private terminals: Map<string, vscode.Terminal> = new Map();
+  private stopTimers: Map<string, NodeJS.Timeout> = new Map();
   private terminatedTasks: Set<string> = new Set();
   private context: vscode.ExtensionContext | undefined;
   private idMigrationMap: Map<string, string> = new Map(); // Maps old IDs to new portable IDs
@@ -208,6 +210,39 @@ export class TaskStateManager {
 
   public clearExecution(id: string) {
     this.executions.delete(id);
+  }
+
+  public setTerminal(id: string, terminal: vscode.Terminal): void {
+    this.terminals.set(id, terminal);
+  }
+
+  public getTerminal(id: string): vscode.Terminal | undefined {
+    return this.terminals.get(id);
+  }
+
+  public clearTerminal(id: string): void {
+    this.terminals.delete(id);
+  }
+
+  /**
+   * Sets a pending stop timer (for the graceful-stop fallback to force-kill).
+   * Any previous timer for the same task is cleared first.
+   */
+  public setStopTimer(id: string, timer: NodeJS.Timeout): void {
+    this.clearStopTimer(id);
+    this.stopTimers.set(id, timer);
+  }
+
+  public getStopTimer(id: string): NodeJS.Timeout | undefined {
+    return this.stopTimers.get(id);
+  }
+
+  public clearStopTimer(id: string): void {
+    const timer = this.stopTimers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      this.stopTimers.delete(id);
+    }
   }
 
   public setStatus(id: string, status: TaskStatus) {
