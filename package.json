@@ -128,6 +128,7 @@
     "glob": "^13.0.6",
     "mocha": "^11.7.5",
     "mocha-junit-reporter": "^2.2.1",
+    "mocha-multi-reporters": "^1.5.1",
     "nyc": "^18.0.0",
     "prettier": "^3.8.1",
     "ts-loader": "^9.5.4",

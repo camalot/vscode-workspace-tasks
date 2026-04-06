@@ -47,7 +47,8 @@ suite('TaskFilesService Test Suite', () => {
         // Wait for any onDidChangeConfiguration handlers (e.g. initialize()) to settle
         // before the next test starts. Without this, a deferred initialize() triggered by
         // the config reset can clear ignoreFiles mid-test.
-        await new Promise(r => setTimeout(r, 500));
+        // Use a longer wait on CI where file-system and config handlers can be slower.
+        await new Promise(r => setTimeout(r, 1500));
 
         disposables.forEach(d => d.dispose());
     });
@@ -86,11 +87,18 @@ suite('TaskFilesService Test Suite', () => {
         const config = vscode.workspace.getConfiguration('workspaceTasks');
         await config.update('exclude', ['**/dist/**'], vscode.ConfigurationTarget.Workspace);
 
-        // Wait for config update to propagate
-        await new Promise(r => setTimeout(r, 2500));
+        // Poll until the config change propagates (initialize() is async; fixed sleeps are flaky on CI).
+        let ignored = false;
+        for (let i = 0; i < 75; i++) {
+            if (service.shouldIgnore(fileUri)) {
+                ignored = true;
+                break;
+            }
+            await new Promise(r => setTimeout(r, 200));
+        }
 
         // Verify
-        assert.strictEqual(service.shouldIgnore(fileUri), true, 'Should ignore after config update');
+        assert.strictEqual(ignored, true, 'Should ignore after config update');
     });
 
 
@@ -99,7 +107,7 @@ suite('TaskFilesService Test Suite', () => {
      * via vscode.workspace.findFiles. On Linux CI, newly written files can take
      * a moment to be picked up by VS Code's internal file watcher/indexer.
      */
-    async function waitForFilesIndexed(glob: string, expectedCount: number, maxRetries = 30): Promise<void> {
+    async function waitForFilesIndexed(glob: string, expectedCount: number, maxRetries = 75): Promise<void> {
         let actualCount = 0;
         for (let i = 0; i < maxRetries; i++) {
             const uris = await vscode.workspace.findFiles(glob);
