@@ -82,6 +82,10 @@ require_conventional = false
 split_commits = true
 # An array of regex based parsers to modify commit messages prior to further processing.
 commit_preprocessors = [
+    # Strip the body from GitHub PR squash-merge summary commits (e.g. "v1.3.0 (#136)\n...").
+    # When split_commits = true, the body lines would otherwise be treated as separate commits,
+    # which causes duplicate or misattributed changelog entries across release branches.
+    { pattern = '(?s)^v\d+\.\d+\.\d+\s+\(#\d+\)\n.*', replace = "chore(release): pr squash merge summary" },
     # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
     #{ pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
     # Check spelling of the commit message using https://github.com/crate-ci/typos.
@@ -101,10 +105,11 @@ commit_parsers = [
     { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
     { message = "^style", group = "<!-- 5 -->🎨 Styling" },
     { message = "^test", group = "<!-- 6 -->🧪 Testing" },
-    { message = "^chore\\(release\\): prepare for", skip = true },
+    { message = "^chore\\(release\\):", skip = true },
     { message = "^chore\\(deps.*\\)", skip = true },
     { message = "^chore\\(pr\\)", skip = true },
     { message = "^chore\\(pull\\)", skip = true },
+    { message = "^chore\\(changelog\\)", skip = true },
     { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
     { body = ".*security", group = "<!-- 8 -->🛡️ Security" },
     { message = "^revert", group = "<!-- 9 -->◀️ Revert" },

@@ -110,7 +110,7 @@
     "check": "npm run check:types && npm run check:format",
     "check:types": "tsc --noEmit",
     "check:format": "prettier --check .",
-    "changelog:build": "npx git-cliff --bump --output CHANGELOG.md"
+    "changelog:build": "npx git-cliff --bump --unreleased --prepend CHANGELOG.md"
   },
   "devDependencies": {
     "@types/micromatch": "^4.0.10",
