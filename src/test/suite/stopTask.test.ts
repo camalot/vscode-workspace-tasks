@@ -1,9 +1,12 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { StopTaskCommand, findTerminalForTask } from '../../commands/stopTask';
+import { StopTaskCommand, findTerminalForTask, getCompoundDependencyLabels } from '../../commands/stopTask';
 import { TaskItem } from '../../taskItem';
 import { TaskStateManager } from '../../taskStateManager';
 import { LoggerService } from '../../services/loggerService';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const configModule = require('../../libs/configuration');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -84,6 +87,7 @@ suite('StopTaskCommand Test Suite', () => {
   let cmd: StopTaskCommand;
   let fakeStateManager: TaskStateManager;
   let originalRegisterCommand: typeof vscode.commands.registerCommand;
+  let originalConfigGet: (...args: any[]) => any;
 
   setup(() => {
     // Prevent "command already registered" errors: BaseCommand registers the
@@ -102,6 +106,8 @@ suite('StopTaskCommand Test Suite', () => {
     // Build and install a fresh fake state manager for each test
     fakeStateManager = buildFakeStateManager();
     (TaskStateManager as any).instance = fakeStateManager;
+    originalConfigGet = configModule.configuration.get.bind(configModule.configuration);
+    configModule.configuration.get = (_key: string, defaultValue: any) => defaultValue;
 
     const context = {
       subscriptions: { push: () => {} },
@@ -113,6 +119,7 @@ suite('StopTaskCommand Test Suite', () => {
     (vscode.commands as any).registerCommand = originalRegisterCommand;
     (TaskStateManager as any).instance = undefined;
     (LoggerService as any).instance = undefined;
+    configModule.configuration.get = originalConfigGet;
   });
 
   // -------------------------------------------------------------------------
@@ -196,6 +203,44 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(findTerminalForTask(task, []), undefined);
   });
 
+  test('getCompoundDependencyLabels returns direct and nested dependencies', () => {
+    const tasksJson = JSON.stringify({
+      version: '2.0.0',
+      tasks: [
+        { label: 'build', dependsOn: ['compile', 'lint'] },
+        { label: 'compile', dependsOn: 'prepare' },
+        { label: 'lint' },
+        { label: 'prepare' },
+      ],
+    });
+
+    const labels = getCompoundDependencyLabels(tasksJson, 'build');
+    const asSet = new Set(labels);
+
+    assert.strictEqual(asSet.has('compile'), true);
+    assert.strictEqual(asSet.has('lint'), true);
+    assert.strictEqual(asSet.has('prepare'), true);
+    assert.strictEqual(labels.length, 3);
+  });
+
+  test('getCompoundDependencyLabels supports object-form dependsOn entries', () => {
+    const tasksJson = JSON.stringify({
+      version: '2.0.0',
+      tasks: [
+        { label: 'all', dependsOn: [{ task: 'api' }, { task: 'web', type: 'shell' }] },
+        { label: 'api' },
+        { label: 'web' },
+      ],
+    });
+
+    const labels = getCompoundDependencyLabels(tasksJson, 'all');
+    const asSet = new Set(labels);
+
+    assert.strictEqual(asSet.has('api'), true);
+    assert.strictEqual(asSet.has('web'), true);
+    assert.strictEqual(labels.length, 2);
+  });
+
   // -------------------------------------------------------------------------
   // Stored terminal path – graceful stop with SIGINT
   // -------------------------------------------------------------------------
@@ -255,6 +300,115 @@ suite('StopTaskCommand Test Suite', () => {
     await cmd.run(item);
 
     assert.ok(markedTerminated.includes(fakeStateManager.getTaskId(item)));
+  });
+
+  test('run also terminates tracked dependency executions when enabled', async () => {
+    const item = makeTaskItem('compound-root');
+    const parentTerminateCalls: number[] = [];
+    const childTerminateCalls: number[] = [];
+
+    const parentExecution = makeExecution(() => parentTerminateCalls.push(1));
+    const childTask = new vscode.Task(
+      { type: 'shell' },
+      vscode.TaskScope.Workspace,
+      'xyzzy-compound-dependency-no-terminal',
+      'shell',
+      new vscode.ShellExecution('echo child'),
+    );
+    const childExecution = { task: childTask, terminate: () => childTerminateCalls.push(1) } as vscode.TaskExecution;
+
+    (fakeStateManager as any).getExecution = (id: string) => {
+      if (id === 'compound-root') {
+        return parentExecution;
+      }
+      if (id === 'dependency-task') {
+        return childExecution;
+      }
+      return undefined;
+    };
+
+    (fakeStateManager as any).getTerminal = () => undefined;
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopCompoundDependencies') {
+        return true;
+      }
+      if (key === 'task.stopGracefulDelayMilliseconds') {
+        return 5000;
+      }
+      return defaultValue;
+    };
+
+    (cmd as any).getCompoundDependencyTaskIds = async () => ['dependency-task'];
+
+    await cmd.run(item);
+
+    assert.strictEqual(parentTerminateCalls.length, 1, 'parent execution should be terminated');
+    assert.strictEqual(childTerminateCalls.length, 1, 'dependency execution should be terminated');
+  });
+
+  test('run stops dependency gracefully when dependency terminal is available', async () => {
+    const item = makeTaskItem('compound-root-graceful');
+    const parentTerminateCalls: number[] = [];
+    const childTerminateCalls: number[] = [];
+    const depSignals: Array<{ text: string; nl: boolean }> = [];
+
+    const parentTask = new vscode.Task(
+      { type: 'shell' },
+      vscode.TaskScope.Workspace,
+      'xyzzy-parent-no-terminal',
+      'shell',
+      new vscode.ShellExecution('echo parent'),
+    );
+    const parentExecution = { task: parentTask, terminate: () => parentTerminateCalls.push(1) } as vscode.TaskExecution;
+
+    const childTask = new vscode.Task(
+      { type: 'shell' },
+      vscode.TaskScope.Workspace,
+      'dependency-with-terminal',
+      'shell',
+      new vscode.ShellExecution('echo child'),
+    );
+    const childExecution = { task: childTask, terminate: () => childTerminateCalls.push(1) } as vscode.TaskExecution;
+
+    (fakeStateManager as any).getExecution = (id: string) => {
+      if (id === 'compound-root-graceful') {
+        return parentExecution;
+      }
+      if (id === 'dependency-task-graceful') {
+        return childExecution;
+      }
+      return undefined;
+    };
+
+    const depTerminal = makeTerminal((text, nl) => depSignals.push({ text, nl }));
+    (fakeStateManager as any).getTerminal = (id: string) => {
+      if (id === 'dependency-task-graceful') {
+        return depTerminal;
+      }
+      return undefined;
+    };
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopCompoundDependencies') {
+        return true;
+      }
+      if (key === 'task.stopGracefulDelayMilliseconds') {
+        return 5000;
+      }
+      return defaultValue;
+    };
+
+    (cmd as any).getCompoundDependencyTaskIds = async () => ['dependency-task-graceful'];
+
+    await cmd.run(item);
+
+    assert.strictEqual(parentTerminateCalls.length, 1, 'parent should hard stop without terminal');
+    assert.strictEqual(depSignals.length, 1, 'dependency should receive graceful SIGINT');
+    assert.strictEqual(depSignals[0].text, '\u0003');
+    assert.strictEqual(depSignals[0].nl, false);
+    assert.strictEqual(childTerminateCalls.length, 0, 'dependency should not be force terminated immediately');
+
+    fakeStateManager.clearStopTimer('dependency-task-graceful');
   });
 
   // -------------------------------------------------------------------------

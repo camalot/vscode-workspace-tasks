@@ -6,6 +6,70 @@ import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { FilteredTaskService } from '../services/filteredTaskService';
 
+interface VscodeTaskDependencyObject {
+  task?: string;
+}
+
+interface VscodeTaskDefinition {
+  label?: string;
+  dependsOn?: string | VscodeTaskDependencyObject | Array<string | VscodeTaskDependencyObject>;
+}
+
+interface VscodeTasksFile {
+  tasks?: VscodeTaskDefinition[];
+}
+
+function parseDependsOnLabels(dependsOn: VscodeTaskDefinition['dependsOn']): string[] {
+  const labels: string[] = [];
+
+  if (typeof dependsOn === 'string') {
+    labels.push(dependsOn);
+    return labels;
+  }
+
+  if (Array.isArray(dependsOn)) {
+    for (const dep of dependsOn) {
+      if (typeof dep === 'string') {
+        labels.push(dep);
+      } else if (dep && typeof dep.task === 'string') {
+        labels.push(dep.task);
+      }
+    }
+    return labels;
+  }
+
+  if (dependsOn && typeof dependsOn.task === 'string') {
+    labels.push(dependsOn.task);
+  }
+
+  return labels;
+}
+
+function getDependsOnMap(text: string): Map<string, string[]> {
+  let parsed: VscodeTasksFile;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    const jsonText = text
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^[ \t]*\/\/.*/gm, '')
+      .replace(/,\s*}/g, '}')
+      .replace(/,\s*]/g, ']');
+    parsed = JSON.parse(jsonText);
+  }
+
+  const dependsOnMap = new Map<string, string[]>();
+  const tasks = Array.isArray(parsed.tasks) ? parsed.tasks : [];
+  for (const task of tasks) {
+    if (!task.label) {
+      continue;
+    }
+    dependsOnMap.set(task.label.toLowerCase(), parseDependsOnLabels(task.dependsOn));
+  }
+
+  return dependsOnMap;
+}
+
 export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider {
   private readonly addedTasks: Set<string> = new Set<string>();
   private readonly filesService = TaskFilesService.getInstance();
@@ -117,6 +181,8 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       return [];
     }
     const tasks: TaskItem[] = [];
+    const taskTextByFile = new Map<string, string>();
+    const dependsOnByFile = new Map<string, Map<string, string[]>>();
 
     // get the system registered tasks
     const allTasks: vscode.Task[] = await vscode.tasks.fetchTasks();
@@ -177,15 +243,42 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
         item.taskOrigin = 'user';
       }
 
-
       let text = '';
       if (fileUri) {
-        try {
-          const document = await vscode.workspace.openTextDocument(fileUri);
-          text = document.getText();
-        } catch {
-          // File may not exist (e.g. user tasks.json on a machine that has none)
-          this.logger.debug(`[VscodeTaskProvider] - Could not open file: ${fileUri.fsPath}`);
+        const fileKey = fileUri.toString();
+        if (taskTextByFile.has(fileKey)) {
+          text = taskTextByFile.get(fileKey)!;
+        } else {
+          try {
+            const document = await vscode.workspace.openTextDocument(fileUri);
+            text = document.getText();
+          } catch {
+            // File may not exist (e.g. user tasks.json on a machine that has none)
+            this.logger.debug(`[VscodeTaskProvider] - Could not open file: ${fileUri.fsPath}`);
+          }
+          taskTextByFile.set(fileKey, text);
+
+          if (text) {
+            try {
+              dependsOnByFile.set(fileKey, getDependsOnMap(text));
+            } catch {
+              // Ignore parse errors and continue without compound metadata.
+            }
+          }
+        }
+      }
+
+      if (fileUri) {
+        const fileKey = fileUri.toString();
+        const dependsOnMap = dependsOnByFile.get(fileKey);
+        if (dependsOnMap) {
+          const dependsOnLabels = dependsOnMap.get((label || '').toLowerCase()) || [];
+          if (dependsOnLabels.length > 0) {
+            item.metadata = {
+              ...(item.metadata || {}),
+              dependsOnLabels,
+            };
+          }
         }
       }
 
@@ -221,6 +314,89 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       tasks.push(item);
       this.addedTasks.add(item.id!);
     }
+
+    const byFileAndLabel = new Map<string, TaskItem>();
+    for (const task of tasks) {
+      if (!task.taskFileUri) {
+        continue;
+      }
+      const key = `${task.taskFileUri.toString()}::${(task.originalLabel || task.label).toLowerCase()}`;
+      if (!byFileAndLabel.has(key)) {
+        byFileAndLabel.set(key, task);
+      }
+    }
+
+    const buildChildren = (
+      parent: TaskItem,
+      labels: string[],
+      lineage: Set<string>,
+    ): TaskItem[] => {
+      const children: TaskItem[] = [];
+      const parentFileKey = parent.taskFileUri?.toString();
+      if (!parentFileKey) {
+        return children;
+      }
+
+      for (const label of labels) {
+        const normalized = (label || '').toLowerCase();
+        if (!normalized) {
+          continue;
+        }
+        if (lineage.has(normalized)) {
+          continue;
+        }
+
+        const target = byFileAndLabel.get(`${parentFileKey}::${normalized}`);
+        if (!target) {
+          continue;
+        }
+
+        const targetDepends = Array.isArray(target.metadata?.dependsOnLabels) ? target.metadata.dependsOnLabels : [];
+        const child = new TaskItem(
+          target.label,
+          targetDepends.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
+          target.taskType,
+          target.taskFileUri,
+          target.command,
+          target.defaultIconPath,
+        );
+        child.originalLabel = target.originalLabel || target.label;
+        child.startLine = target.startLine;
+        child.task = target.task;
+        child.taskFileUri = target.taskFileUri;
+        child.taskSource = target.taskSource;
+        child.taskOrigin = target.taskOrigin;
+        child.description = target.description;
+        child.metadata = {
+          ...(target.metadata || {}),
+          dependsOnLabels: targetDepends,
+        };
+
+        const nextLineage = new Set(lineage);
+        nextLineage.add(normalized);
+        child.children = buildChildren(child, targetDepends, nextLineage);
+        for (const grandChild of child.children) {
+          grandChild.parent = child;
+        }
+        child.parent = parent;
+        children.push(child);
+      }
+
+      return children;
+    };
+
+    for (const task of tasks) {
+      const dependsOnLabels = Array.isArray(task.metadata?.dependsOnLabels) ? task.metadata.dependsOnLabels : [];
+      if (dependsOnLabels.length === 0) {
+        continue;
+      }
+      (task as any).collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+      task.children = buildChildren(task, dependsOnLabels, new Set([task.label.toLowerCase()]));
+      for (const child of task.children) {
+        child.parent = task;
+      }
+    }
+
     return tasks;
   }
 

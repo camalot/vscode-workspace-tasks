@@ -7,6 +7,7 @@ import { QueueService } from '../../services/queueService';
 import { LoggerService } from '../../services/loggerService';
 import { FavoritesService } from '../../services/favoritesService';
 import { FilteredTaskService } from '../../services/filteredTaskService';
+import { RecentTasksService } from '../../services/recentTasksService';
 
 // CommonJS module references for monkey-patching
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -60,6 +61,7 @@ suite('TaskRunner Test Suite', () => {
   let errors: string[];
   let infos: string[];
   let executedTasks: vscode.Task[];
+  let recentAdds: string[];
 
   function buildFakeStateManager(
     getStatusOverride?: (id: string) => TaskStatus,
@@ -87,6 +89,7 @@ suite('TaskRunner Test Suite', () => {
     errors = [];
     infos = [];
     executedTasks = [];
+    recentAdds = [];
     stateMap = new Map();
     executionMap = new Map();
     stateChangeEmitter = new vscode.EventEmitter();
@@ -121,6 +124,9 @@ suite('TaskRunner Test Suite', () => {
       isFiltered: () => false,
       isFilteredOrHasFilteredParent: () => false,
     };
+    (RecentTasksService as any).instance = {
+      addRecentTask: (id: string) => { recentAdds.push(id); },
+    };
     (LoggerService as any).instance = {
       error: () => { },
       info: () => { },
@@ -143,6 +149,7 @@ suite('TaskRunner Test Suite', () => {
     (TaskStateManager as any).instance = undefined;
     (FavoritesService as any).instance = undefined;
     (FilteredTaskService as any).instance = undefined;
+    (RecentTasksService as any).instance = undefined;
     (LoggerService as any).instance = undefined;
     (QueueService as any).instance = undefined;
   });
@@ -209,6 +216,7 @@ suite('TaskRunner Test Suite', () => {
     await runner.runTask(item);
 
     assert.strictEqual(stateMap.get('build'), 'running');
+    assert.deepStrictEqual(recentAdds, ['build']);
     assert.strictEqual(executedTasks.length, 1);
     assert.strictEqual(warnings.length, 0);
     assert.strictEqual(errors.length, 0);

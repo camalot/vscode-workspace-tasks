@@ -679,6 +679,12 @@
           "description": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds%",
           "markdownDescription": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown%"
         },
+        "workspaceTasks.task.stopCompoundDependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.workspaceTasks.task.stopCompoundDependencies%",
+          "markdownDescription": "%config.workspaceTasks.task.stopCompoundDependencies.markdown%"
+        },
         "workspaceTasks.task.presentationOptions": {
           "type": "object",
           "additionalProperties": false,

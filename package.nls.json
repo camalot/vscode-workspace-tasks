@@ -115,6 +115,8 @@
 
   "config.workspaceTasks.task.stopGracefulDelayMilliseconds": "Stop Graceful Delay (Milliseconds)",
   "config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown": "The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT).",
+  "config.workspaceTasks.task.stopCompoundDependencies": "Stop Compound Dependencies",
+  "config.workspaceTasks.task.stopCompoundDependencies.markdown": "When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action will also stop any currently running dependency tasks referenced by `dependsOn`.",
 
 
   "config.workspaceTasks.task.iconType": "Choose the Icon Type for Tasks",

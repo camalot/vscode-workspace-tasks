@@ -6,6 +6,7 @@ import { QueueService } from './services/queueService';
 import { configuration } from './libs/configuration';
 import { IPresentationOptions } from './taskDefinition';
 import { LoggerService } from './services/loggerService';
+import { RecentTasksService } from './services/recentTasksService';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -108,6 +109,7 @@ export class TaskRunner {
     }
 
     const id = TaskStateManager.getInstance().getTaskId(item);
+    RecentTasksService.getInstance().addRecentTask(id);
     TaskStateManager.getInstance().setStatus(id, 'running');
 
     try {

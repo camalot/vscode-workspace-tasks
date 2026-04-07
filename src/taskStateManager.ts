@@ -83,7 +83,9 @@ export class TaskStateManager {
     }
 
     const parts = oldId.split('|');
-    if (parts.length < 2) {
+    // Old format requires at least: workspacePath|fileUri|label
+    // IDs with a dedupe suffix (e.g. "...|1") must NOT be treated as old format.
+    if (parts.length < 3) {
       return null;
     }
 
@@ -92,6 +94,11 @@ export class TaskStateManager {
     const label = parts.slice(2).join('|'); // In case label contains |
 
     if (!wsPath || !fileUriStr) {
+      return null;
+    }
+
+    // Guard against dedupe suffixes and other non-URI second segments.
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(fileUriStr)) {
       return null;
     }
 

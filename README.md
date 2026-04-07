@@ -48,6 +48,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🌱 Recent Tasks** - Tracks the most recently executed tasks
 - **📋 Multiple Task Queues** - Create and manage named sequences of tasks
 - **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
+- **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
 - **🔀 Drag & Drop** - Reorder tasks in queues with drag and drop
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
