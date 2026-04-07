@@ -179,8 +179,6 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.strictEqual(userTask!.description, 'User Tasks');
     });
 
-
-
     test('system tasks have item.task set to the native vscode.Task instance', async () => {
       const workspaceFolder: vscode.WorkspaceFolder = {
         uri: vscode.Uri.file('/workspace'),
@@ -411,12 +409,6 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.ok(tasks.some(t => t.label === 'Workspace Task One'), 'Should include workspace task from file');
     });
 
-
-
-
-
-
-
     test('does not show user tasks when user tasks.json does not exist', async () => {
       const taskFilesService = TaskFilesService.getInstance();
       taskFilesService.findFiles = async () => [];
@@ -433,8 +425,6 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.strictEqual(tasks.length, 0, 'Should return no tasks when no files exist');
     });
 
-
-
     test('workspace tasks do NOT have taskOrigin set to "user"', async () => {
       const workspaceTasksFile = vscode.Uri.file('/workspace/.vscode/tasks.json');
       const taskFilesService = TaskFilesService.getInstance();
@@ -448,10 +438,8 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.notStrictEqual(wsTask!.taskOrigin, 'user', 'taskOrigin should NOT be "user" for workspace tasks');
     });
 
-
-
     // Regression: user profile tasks must not appear twice when VSCode returns them with
-    // source='Workspace' and scope=TaskScope.Global (the real-world behaviour).
+    // source='Workspace' and scope=TaskScope.Global (the real-world behavior).
     test('does not duplicate user tasks when system tasks return them with source Workspace and scope Global', async () => {
       const mockUserTask = {
         name: 'User Task One',

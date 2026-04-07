@@ -40,7 +40,7 @@ function parseIgnoreLines(lines: string[]): {
     const atIndex = body.indexOf('@');
     if (atIndex === -1) {
       // Standard file-level rule — lowercase to align with normalizePathForComparison so that
-      // micromatch comparisons are case-insensitive on all platforms (mirrors Windows behaviour).
+      // micromatch comparisons are case-insensitive on all platforms (mirrors Windows behavior).
       fileRules.push(negated ? '!' + body.toLowerCase() : body.toLowerCase());
     } else {
       // Task-level rule: split on the first `@`
