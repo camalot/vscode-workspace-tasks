@@ -113,6 +113,10 @@
   "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
+  "config.workspaceTasks.task.stopGracefulDelayMilliseconds": "Stop Graceful Delay (Milliseconds)",
+  "config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown": "The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT).",
+
+
   "config.workspaceTasks.task.iconType": "Choose the Icon Type for Tasks",
   "config.workspaceTasks.task.iconType.markdown": "Select the type of icon to display for tasks. Options include predefined icons or custom icons specified by the user.",
 

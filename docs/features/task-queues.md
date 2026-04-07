@@ -26,6 +26,20 @@ Create and manage multiple named queues to run sequences of tasks in order. Task
 
 ---
 
+## How to Add a Task to a Queue
+
+1. **Hover** over any task in the tree to reveal the action bar
+2. Click the **queue icon** (`$(list-unordered)`) in the action bar — or **right-click** the task and select **Add to Queue**
+3. If no queues exist, enter a name for a new queue in the input box that appears
+4. If queues already exist, select one from the list or choose **New Queue...** to create a new one
+5. The task appears in the selected queue under the **Queues** group in the task tree
+
+## How to Run a Queue
+
+1. In the **Queues** group, hover over the queue name to reveal its action bar
+2. Click the **Run All** button to execute all tasks in sequence from the beginning
+3. To start from a specific task, hover over that item in the queue and click its **Run** button
+
 ## How to Use
 
 1. Click the **list icon** next to any task to add it to a queue

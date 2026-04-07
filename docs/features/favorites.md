@@ -22,11 +22,17 @@ Pin your most frequently used tasks for instant access. Favorites appear in a de
 
 ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
 
-### How to Use
+### How to Favorite a Task
 
-1. Click the **star icon (☆)** next to any task to add it to favorites
-2. Access all favorited tasks from the **"Favorites"** group at the top
-3. Click the **filled star (⭐)** to remove from favorites
+1. **Hover** over any task in the tree to reveal the action bar
+2. Click the **star icon (☆)** in the action bar — or **right-click** the task and select **Add to Favorites**
+3. The task appears immediately in the **Favorites** group at the top of the tree
+4. The star icon fills in (⭐) at both the original task location and in the Favorites group
+
+### How to Remove a Task from Favorites
+
+1. Click the **filled star (⭐)** in the action bar — or **right-click** the task and select **Remove from Favorites**
+2. The task is removed from the Favorites group but remains in its original location in the tree
 
 ### Features
 

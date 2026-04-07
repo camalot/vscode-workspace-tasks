@@ -673,6 +673,12 @@
           "description": "%config.workspaceTasks.task.doubleClickAction%",
           "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%"
         },
+        "workspaceTasks.task.stopGracefulDelayMilliseconds": {
+          "type": "number",
+          "default": 5000,
+          "description": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds%",
+          "markdownDescription": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown%"
+        },
         "workspaceTasks.task.presentationOptions": {
           "type": "object",
           "additionalProperties": false,

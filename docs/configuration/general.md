@@ -53,3 +53,20 @@ Specify the fetch depth when discovering tasks from within the workspace. A valu
 ```
 
 ![Screenshot - Task Discovery Fetch Depth](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/fetch-depth.png)
+
+### workspaceTasks.task.stopGracefulDelayMilliseconds
+
+**Type:** `number`
+**Default:** `5000`
+
+The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT).
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.task.stopGracefulDelayMilliseconds": 5000
+}
+```
+
+![Screenshot - Stop Graceful Delay](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/stop-graceful-delay.png)

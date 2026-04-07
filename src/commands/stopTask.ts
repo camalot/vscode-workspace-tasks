@@ -2,9 +2,7 @@ import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskStateManager } from '../taskStateManager';
-
-/** How long (ms) to wait for graceful SIGINT before force-killing the terminal. */
-const GRACEFUL_STOP_TIMEOUT_MS = 5000;
+import { ExtensionConfigurationService } from '../services/extensionConfigurationService';
 
 /**
  * Finds the terminal that belongs to a task by matching against common
@@ -57,6 +55,10 @@ export class StopTaskCommand extends BaseCommand {
       // and the terminal window is preserved.
       terminal.sendText('\u0003', false);
 
+      const extensionConfig = ExtensionConfigurationService.getInstance();
+
+      // graceful-stop timeout should come from configuration at workspaceTasks.task.stopGracefulDelayMilliseconds
+      const timeout = extensionConfig.get<number>('workspaceTasks.task.stopGracefulDelayMilliseconds', 5000);
       // Schedule a fallback force-kill in case the process ignores the signal.
       const timer = setTimeout(() => {
         stateManager.clearStopTimer(id);
@@ -65,7 +67,7 @@ export class StopTaskCommand extends BaseCommand {
           stateManager.markTerminated(id);
           execution.terminate();
         }
-      }, GRACEFUL_STOP_TIMEOUT_MS);
+      }, timeout);
 
       stateManager.setStopTimer(id, timer);
     } else {
