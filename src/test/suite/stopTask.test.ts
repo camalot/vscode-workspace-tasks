@@ -51,6 +51,7 @@ function buildFakeStateManager(overrides: Partial<TaskStateManager> = {}): TaskS
   const stopTimerMap = new Map<string, NodeJS.Timeout>();
   const executionMap = new Map<string, vscode.TaskExecution>();
   const terminatedSet = new Set<string>();
+  const blockedSet = new Set<string>();
 
   return {
     getTaskId: (item: TaskItem) => item.originalLabel || item.label,
@@ -61,6 +62,10 @@ function buildFakeStateManager(overrides: Partial<TaskStateManager> = {}): TaskS
     markTerminated: (id: string) => { terminatedSet.add(id); },
     isTerminated: (id: string) => terminatedSet.has(id),
     clearTerminated: (id: string) => { terminatedSet.delete(id); },
+    blockTask: (id: string) => { blockedSet.add(id); },
+    isBlocked: (id: string) => blockedSet.has(id),
+    unblockTask: (id: string) => { blockedSet.delete(id); },
+    clearAllBlocks: () => { blockedSet.clear(); },
     getTerminal: (id: string) => terminalMap.get(id),
     setTerminal: (id: string, t: vscode.Terminal) => { terminalMap.set(id, t); },
     clearTerminal: (id: string) => { terminalMap.delete(id); },
@@ -480,5 +485,63 @@ suite('StopTaskCommand Test Suite', () => {
     }, 10);
 
     fakeStateManager.setStopTimer(id, immediateTimer);
+  });
+
+  // -------------------------------------------------------------------------
+  // Blocking pending sequential dependencies
+  // -------------------------------------------------------------------------
+
+  test('stopCompoundDependencies blocks pending dependencies that have no active execution', async () => {
+    const item = makeTaskItem('seq-compound-root');
+    const parentExecution = makeExecution();
+    const blockedIds: string[] = [];
+
+    // Only the currently-running dependency (dep-running) has an active execution.
+    // dep-pending-1 and dep-pending-2 have no execution yet (haven't started yet).
+    (fakeStateManager as any).getExecution = (id: string) => {
+      if (id === 'seq-compound-root') {
+        return parentExecution;
+      }
+      if (id === 'dep-running') {
+        return makeExecution();
+      }
+      return undefined;
+    };
+    (fakeStateManager as any).getTerminal = (id: string) => {
+      if (id === 'dep-running') {
+        return makeTerminal();
+      }
+      return undefined;
+    };
+    (fakeStateManager as any).blockTask = (id: string) => { blockedIds.push(id); };
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopCompoundDependencies') {
+        return true;
+      }
+      if (key === 'task.stopGracefulDelayMilliseconds') {
+        return 5000;
+      }
+      return defaultValue;
+    };
+
+    (cmd as any).getCompoundDependencyTaskIds = async () => [
+      'dep-running',
+      'dep-pending-1',
+      'dep-pending-2',
+    ];
+
+    await cmd.run(item);
+
+    assert.ok(blockedIds.includes('dep-pending-1'), 'dep-pending-1 should be blocked');
+    assert.ok(blockedIds.includes('dep-pending-2'), 'dep-pending-2 should be blocked');
+    assert.strictEqual(
+      blockedIds.includes('dep-running'),
+      false,
+      'dep-running should NOT be blocked (it is already running and gets SIGINT)',
+    );
+
+    // Clean up the graceful-stop timer that was set for dep-running
+    fakeStateManager.clearStopTimer('dep-running');
   });
 });

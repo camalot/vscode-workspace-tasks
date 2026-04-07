@@ -109,6 +109,9 @@ export class TaskRunner {
     }
 
     const id = TaskStateManager.getInstance().getTaskId(item);
+    // Clear all stale blocks from any previous compound-task stop so that
+    // dependency tasks are free to run in the new execution sequence.
+    TaskStateManager.getInstance().clearAllBlocks();
     RecentTasksService.getInstance().addRecentTask(id);
     TaskStateManager.getInstance().setStatus(id, 'running');
 

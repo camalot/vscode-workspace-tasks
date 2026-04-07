@@ -19,6 +19,7 @@ export class TaskStateManager {
   private terminals: Map<string, vscode.Terminal> = new Map();
   private stopTimers: Map<string, NodeJS.Timeout> = new Map();
   private terminatedTasks: Set<string> = new Set();
+  private blockedTaskIds: Set<string> = new Set();
   private context: vscode.ExtensionContext | undefined;
   private idMigrationMap: Map<string, string> = new Map(); // Maps old IDs to new portable IDs
 
@@ -255,5 +256,30 @@ export class TaskStateManager {
   public setStatus(id: string, status: TaskStatus) {
     this.states.set(id, status);
     this._onDidStateChange.fire({ id, status });
+  }
+
+  /**
+   * Marks a task as blocked so that if VSCode starts it automatically as part
+   * of a stopped compound sequence, it will be immediately terminated.
+   */
+  public blockTask(id: string): void {
+    this.blockedTaskIds.add(id);
+  }
+
+  public isBlocked(id: string): boolean {
+    return this.blockedTaskIds.has(id);
+  }
+
+  public unblockTask(id: string): void {
+    this.blockedTaskIds.delete(id);
+  }
+
+  /**
+   * Clears all blocked task IDs. Called when the user explicitly starts a task
+   * so that stale blocks from a previous compound-task stop do not prevent
+   * dependency tasks from running in the new sequence.
+   */
+  public clearAllBlocks(): void {
+    this.blockedTaskIds.clear();
   }
 }

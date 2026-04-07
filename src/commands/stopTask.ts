@@ -220,6 +220,10 @@ export class StopTaskCommand extends BaseCommand {
 
       const dependencyExecution = stateManager.getExecution(dependencyId);
       if (!dependencyExecution) {
+        // This dependency hasn't started yet — block it so that if VSCode's
+        // compound sequential runner tries to start it after the current
+        // dependency exits (even via SIGINT), it will be immediately terminated.
+        stateManager.blockTask(dependencyId);
         continue;
       }
 

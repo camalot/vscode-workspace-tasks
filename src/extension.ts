@@ -185,6 +185,14 @@ export async function activate(context: vscode.ExtensionContext) {
       if (item) {
         const id = stateManager.getTaskId(item);
         if (id) {
+          // If  this task was blocked because a parent compound sequential task was
+          // stopped, immediately terminate it so the sequence does not continue.
+          if (stateManager.isBlocked(id)) {
+            stateManager.unblockTask(id);
+            e.execution.terminate();
+            return;
+          }
+
           stateManager.clearTerminated(id); // Clear any terminated state if task is restarting
           stateManager.clearStopTimer(id);  // Cancel any pending force-kill timer
           stateManager.setExecution(id, e.execution);

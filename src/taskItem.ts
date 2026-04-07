@@ -185,9 +185,12 @@ export class TaskItem extends vscode.TreeItem {
       }
     } else {
       // It's a task leaf node
-      const id = TaskStateManager.getInstance().getTaskId(this);
+      const rawId = TaskStateManager.getInstance().getTaskId(this);
+      // Strip the dedup suffix ("|"+N) that TaskCacheService appends to compound task children
+      // so they share status, filter, and favourite state with the original standalone task.
+      const id = rawId.replace(/\|\d+$/, '');
       const status = TaskStateManager.getInstance().getStatus(id);
-      const isFavorite = FavoritesService.getInstance().isFavorite(this);
+      const isFavorite = FavoritesService.getInstance().isFavorite(id);
       const isFiltered = filteredService.isFiltered(id);
       const isFilteredOrParent = filteredService.isFilteredOrHasFilteredParent(this);
 

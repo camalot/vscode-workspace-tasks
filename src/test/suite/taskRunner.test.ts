@@ -76,6 +76,8 @@ suite('TaskRunner Test Suite', () => {
       setExecution: (id: string, exec: vscode.TaskExecution) => {
         executionMap.set(id, exec);
       },
+      unblockTask: (_id: string) => { /* no-op in tests unless overridden */ },
+      clearAllBlocks: () => { /* no-op in tests unless overridden */ },
       onDidStateChange: stateChangeEmitter.event,
     };
   }
@@ -250,6 +252,20 @@ suite('TaskRunner Test Suite', () => {
     const item = makeTaskItem('native-exec');
     await runner.runTask(item);
     assert.strictEqual(executedTasks.length, 1);
+  });
+
+  test('runTask calls clearAllBlocks before executing to clear any compound-stop blocks', async () => {
+    let clearAllBlocksCalled = false;
+    (TaskStateManager as any).instance = {
+      ...buildFakeStateManager(),
+      clearAllBlocks: () => { clearAllBlocksCalled = true; },
+    };
+
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+    const item = makeTaskItem('blocked-task');
+    await runner.runTask(item);
+
+    assert.ok(clearAllBlocksCalled, 'clearAllBlocks should be called before executing to lift stale blocks');
   });
 
   // -------------------------------------------------------------------------
