@@ -35,8 +35,7 @@ export function findTerminalForTask(
   return terminals.find((t) =>
     t.name === name ||
     t.name === `${source}: ${name}` ||
-    t.name === `Task - ${name}` ||
-    t.name.includes(name),
+    t.name === `Task - ${name}`,
   );
 }
 

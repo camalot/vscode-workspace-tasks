@@ -243,6 +243,17 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(findTerminalForTask(taskB, allTerminals), terminalB, 'taskB should match terminalB');
   });
 
+  test('findTerminalForTask does not match via substring when name is a subset of another terminal name', () => {
+    // "build" must not match a terminal named "npm: build-watch" via substring.
+    const task = new vscode.Task(
+      { type: 'shell' }, vscode.TaskScope.Workspace, 'build', 'shell',
+      new vscode.ShellExecution('make'),
+    );
+    const unrelated = makeTerminal();
+    (unrelated as any).name = 'npm: build-watch';
+    assert.strictEqual(findTerminalForTask(task, [unrelated]), undefined, 'substring-only match must not be accepted');
+  });
+
   test('getCompoundDependencyLabels returns direct and nested dependencies', () => {
     const tasksJson = JSON.stringify({
       version: '2.0.0',
