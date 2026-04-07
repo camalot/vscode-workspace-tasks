@@ -208,6 +208,41 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(findTerminalForTask(task, []), undefined);
   });
 
+  test('findTerminalForTask ignores unrelated terminals when multiple are open', () => {
+    const task = new vscode.Task(
+      { type: 'shell' }, vscode.TaskScope.Workspace, 'my-task', 'shell',
+      new vscode.ShellExecution('echo hi'),
+    );
+    const unrelated1 = makeTerminal();
+    (unrelated1 as any).name = 'zsh';
+    const unrelated2 = makeTerminal();
+    (unrelated2 as any).name = 'bash';
+    const matching = makeTerminal();
+    (matching as any).name = 'my-task';
+
+    assert.strictEqual(findTerminalForTask(task, [unrelated1, unrelated2, matching]), matching);
+  });
+
+  test('findTerminalForTask does not match a terminal opened by a different concurrent task', () => {
+    // Simulate two tasks running simultaneously; each should only match its own terminal.
+    const taskA = new vscode.Task(
+      { type: 'npm' }, vscode.TaskScope.Workspace, 'build', 'npm',
+      new vscode.ShellExecution('npm run build'),
+    );
+    const taskB = new vscode.Task(
+      { type: 'npm' }, vscode.TaskScope.Workspace, 'test', 'npm',
+      new vscode.ShellExecution('npm test'),
+    );
+    const terminalA = makeTerminal();
+    (terminalA as any).name = 'npm: build';
+    const terminalB = makeTerminal();
+    (terminalB as any).name = 'npm: test';
+    const allTerminals = [terminalA, terminalB];
+
+    assert.strictEqual(findTerminalForTask(taskA, allTerminals), terminalA, 'taskA should match terminalA');
+    assert.strictEqual(findTerminalForTask(taskB, allTerminals), terminalB, 'taskB should match terminalB');
+  });
+
   test('getCompoundDependencyLabels returns direct and nested dependencies', () => {
     const tasksJson = JSON.stringify({
       version: '2.0.0',
