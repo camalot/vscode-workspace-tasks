@@ -36,11 +36,4 @@ export class ExtensionConfigurationService {
     const value = key.split('.').reduce((o, i) => o?.[i], this.packageJson);
     return value !== undefined ? value : defaultValue;
   }
-
-  // public get(key: string): any {
-  //   if (!this.packageJson) {
-  //     return undefined;
-  //   }
-  //   return key.split('.').reduce((o, i) => o?.[i], this.packageJson);
-  // }
 }
