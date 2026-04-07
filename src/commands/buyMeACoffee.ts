@@ -8,7 +8,7 @@ export class BuyMeACoffeeCommand extends BaseCommand {
   }
 
   async run(): Promise<void> {
-    const url = ExtensionConfigurationService.getInstance().get('sponsor.buymeacoffee');
+    const url = ExtensionConfigurationService.getInstance().get<string>('sponsor.buymeacoffee');
     if (url) {
       vscode.env.openExternal(vscode.Uri.parse(url));
     }

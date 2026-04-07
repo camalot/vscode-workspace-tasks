@@ -8,7 +8,7 @@ export class GithubSponsorCommand extends BaseCommand {
   }
 
   async run(): Promise<void> {
-    const url = ExtensionConfigurationService.getInstance().get('sponsor.github');
+    const url = ExtensionConfigurationService.getInstance().get<string>('sponsor.github');
     if (url) {
       vscode.env.openExternal(vscode.Uri.parse(url));
     }

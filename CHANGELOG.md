@@ -1,3 +1,62 @@
+## [1.4.0] - 2026-04-07
+
+### 🚀 Features
+
+- Support for cmake and cake tasks
+
+- Stop a compound task #144
+
+- Stop a compound task #144
+
+
+### 🐛 Bug Fixes
+
+- Superlinter workflow permission fix
+
+- Zizmor codecov token rule
+
+- Zizmor token access from environment
+
+- Correct failing tests
+
+- Corrected failing tests looking for specific path
+
+
+### 💼 Other
+
+- Send Interrupt Signal on Stop Instead of Killing the Terminal #140
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Docs ignore syntax lexer by @camalot
+
+- Adding testing for some providers by @camalot
+
+- Fix test suite for new tests by @camalot
+
+- Added cmake provider.
+
+- Fix test suite for new tests
+
+- Fix lint errors
+
+- Tsconfig changes for errors
+
+- Documentation about new stop functionality
+
+- Remove unused code block
+
+- Bump version v1.4.0
+
+- Update documentation for compound tasks
+
+- Merge tag v1.3.0 in
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.3.0...v1.4.0
+
 ## [1.3.0] - 2026-03-22
 
 ### 🚀 Features

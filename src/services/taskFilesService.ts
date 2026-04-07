@@ -40,7 +40,7 @@ function parseIgnoreLines(lines: string[]): {
     const atIndex = body.indexOf('@');
     if (atIndex === -1) {
       // Standard file-level rule — lowercase to align with normalizePathForComparison so that
-      // micromatch comparisons are case-insensitive on all platforms (mirrors Windows behaviour).
+      // micromatch comparisons are case-insensitive on all platforms (mirrors Windows behavior).
       fileRules.push(negated ? '!' + body.toLowerCase() : body.toLowerCase());
     } else {
       // Task-level rule: split on the first `@`
@@ -354,6 +354,9 @@ export class TaskFilesService {
       this.ignoreList.push('**/__pycache__/**');
       this.globalIgnore.add('**/.vscode-test/**');
       this.ignoreList.push('**/.vscode-test/**');
+      this.globalIgnore.add('**/vendor/bundle/**'); // Always ignore vendor/bundle
+      this.ignoreList.push('**/vendor/bundle/**');
+
       if (Array.isArray(excludes) && excludes.length > 0) {
         this.globalIgnore.add(excludes);
         this.ignoreList.push(...excludes);
@@ -405,12 +408,12 @@ export class TaskFilesService {
       this.fileWatcher = undefined;
     }
     const watcher = vscode.workspace.createFileSystemWatcher('**/.tasksignore');
-    watcher.onDidChange((uri) => {
-      this.loadIgnoreFile(uri);
+    watcher.onDidChange(async (uri) => {
+      await this.loadIgnoreFile(uri);
       this.invalidateCache();
     });
-    watcher.onDidCreate((uri) => {
-      this.loadIgnoreFile(uri);
+    watcher.onDidCreate(async (uri) => {
+      await this.loadIgnoreFile(uri);
       this.invalidateCache();
     });
     watcher.onDidDelete((uri) => {

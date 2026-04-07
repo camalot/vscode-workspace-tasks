@@ -16,8 +16,10 @@ Workspace Tasks provides a rich set of features to help you discover, organize, 
 
 | Feature | Description |
 | --- | --- |
+| [Running Tasks](running-tasks) | Run tasks, pass arguments, stop execution, and navigate to source files |
 | [Favorites & Recent Tasks](favorites) | Pin frequently used tasks and track recently run tasks |
 | [Task Queues](task-queues) | Create and run sequences of tasks in order |
+| [Compound Tasks](compound-tasks) | Wire multiple tasks together with `dependsOn` for sequential or parallel execution |
 | [Hide Tasks & Groups](hide-tasks) | Declutter your task view by hiding unused tasks |
 | [Task History](task-history) | Track and review all task executions with status and timing |
 

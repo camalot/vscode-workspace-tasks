@@ -80,3 +80,20 @@ The delay in **milliseconds** before resetting the task icon back to its origina
 ```
 
 ![Screenshot - Status Reset Delay](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/status-reset-delay.png)
+
+### workspaceTasks.task.stopCompoundDependencies
+
+**Type:** `boolean`
+**Default:** `true`
+
+When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action also stops any currently running dependency tasks declared in `dependsOn`.
+
+This is useful when a compound task launches several child tasks and you want a single stop action to shut down the full task chain.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.task.stopCompoundDependencies": true
+}
+```

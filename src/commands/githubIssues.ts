@@ -8,7 +8,7 @@ export class GithubIssuesCommand extends BaseCommand {
   }
 
   async run(): Promise<void> {
-    const url = ExtensionConfigurationService.getInstance().get('bugs.new');
+    const url = ExtensionConfigurationService.getInstance().get<string>('bugs.new');
     if (url) {
       vscode.env.openExternal(vscode.Uri.parse(url));
     }

@@ -14,6 +14,9 @@ on: # yamllint disable-line rule:truthy
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions: {}
 
+env:
+  ACT: ""
+
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
@@ -35,7 +38,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -66,4 +69,4 @@ jobs:
       - name: Deploy to GitHub Pages
         if: ${{ !env.ACT }}
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

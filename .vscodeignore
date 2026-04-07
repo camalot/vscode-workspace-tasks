@@ -3,6 +3,7 @@ vsc-extension-quickstart.md
 webpack.config.js
 tools/
 coverage/
+dotnet-tools.json
 .nyc_output/
 .venv/
 .devcontainer/

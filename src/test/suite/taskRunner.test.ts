@@ -7,6 +7,7 @@ import { QueueService } from '../../services/queueService';
 import { LoggerService } from '../../services/loggerService';
 import { FavoritesService } from '../../services/favoritesService';
 import { FilteredTaskService } from '../../services/filteredTaskService';
+import { RecentTasksService } from '../../services/recentTasksService';
 
 // CommonJS module references for monkey-patching
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -60,6 +61,7 @@ suite('TaskRunner Test Suite', () => {
   let errors: string[];
   let infos: string[];
   let executedTasks: vscode.Task[];
+  let recentAdds: string[];
 
   function buildFakeStateManager(
     getStatusOverride?: (id: string) => TaskStatus,
@@ -74,6 +76,8 @@ suite('TaskRunner Test Suite', () => {
       setExecution: (id: string, exec: vscode.TaskExecution) => {
         executionMap.set(id, exec);
       },
+      unblockTask: (_id: string) => { /* no-op in tests unless overridden */ },
+      clearAllBlocks: () => { /* no-op in tests unless overridden */ },
       onDidStateChange: stateChangeEmitter.event,
     };
   }
@@ -87,6 +91,7 @@ suite('TaskRunner Test Suite', () => {
     errors = [];
     infos = [];
     executedTasks = [];
+    recentAdds = [];
     stateMap = new Map();
     executionMap = new Map();
     stateChangeEmitter = new vscode.EventEmitter();
@@ -121,6 +126,9 @@ suite('TaskRunner Test Suite', () => {
       isFiltered: () => false,
       isFilteredOrHasFilteredParent: () => false,
     };
+    (RecentTasksService as any).instance = {
+      addRecentTask: (id: string) => { recentAdds.push(id); },
+    };
     (LoggerService as any).instance = {
       error: () => { },
       info: () => { },
@@ -143,6 +151,7 @@ suite('TaskRunner Test Suite', () => {
     (TaskStateManager as any).instance = undefined;
     (FavoritesService as any).instance = undefined;
     (FilteredTaskService as any).instance = undefined;
+    (RecentTasksService as any).instance = undefined;
     (LoggerService as any).instance = undefined;
     (QueueService as any).instance = undefined;
   });
@@ -209,6 +218,7 @@ suite('TaskRunner Test Suite', () => {
     await runner.runTask(item);
 
     assert.strictEqual(stateMap.get('build'), 'running');
+    assert.deepStrictEqual(recentAdds, ['build']);
     assert.strictEqual(executedTasks.length, 1);
     assert.strictEqual(warnings.length, 0);
     assert.strictEqual(errors.length, 0);
@@ -242,6 +252,20 @@ suite('TaskRunner Test Suite', () => {
     const item = makeTaskItem('native-exec');
     await runner.runTask(item);
     assert.strictEqual(executedTasks.length, 1);
+  });
+
+  test('runTask calls clearAllBlocks before executing to clear any compound-stop blocks', async () => {
+    let clearAllBlocksCalled = false;
+    (TaskStateManager as any).instance = {
+      ...buildFakeStateManager(),
+      clearAllBlocks: () => { clearAllBlocksCalled = true; },
+    };
+
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+    const item = makeTaskItem('blocked-task');
+    await runner.runTask(item);
+
+    assert.ok(clearAllBlocksCalled, 'clearAllBlocks should be called before executing to lift stale blocks');
   });
 
   // -------------------------------------------------------------------------

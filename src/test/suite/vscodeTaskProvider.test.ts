@@ -179,8 +179,6 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.strictEqual(userTask!.description, 'User Tasks');
     });
 
-    
-
     test('system tasks have item.task set to the native vscode.Task instance', async () => {
       const workspaceFolder: vscode.WorkspaceFolder = {
         uri: vscode.Uri.file('/workspace'),
@@ -263,6 +261,53 @@ suite('VscodeTaskProvider Test Suite', () => {
       const wsTask = tasks.find(t => t.label === 'Workspace Task One');
       assert.ok(wsTask, 'Should still create task item even when file cannot be opened');
       assert.strictEqual(wsTask!.startLine, undefined, 'startLine should be undefined when file is missing');
+    });
+
+    test('compound tasks include dependsOn tasks as children', async () => {
+      const workspaceFolder: vscode.WorkspaceFolder = {
+        uri: vscode.Uri.file('/workspace'),
+        name: 'workspace',
+        index: 0,
+      };
+
+      const compound = {
+        name: 'Build All',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+      const lint = {
+        name: 'Lint',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+      const compile = {
+        name: 'Compile',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [compound, lint, compile];
+      const compoundJson = JSON.stringify({
+        version: '2.0.0',
+        tasks: [
+          { label: 'Build All', dependsOn: ['Lint', 'Compile'] },
+          { label: 'Lint', type: 'shell', command: 'npm run lint' },
+          { label: 'Compile', type: 'shell', command: 'npm run compile' },
+        ],
+      });
+      (vscode.workspace as any).openTextDocument = async (_uri: any) => ({ getText: () => compoundJson });
+
+      const tasks = await provider.getSystemTasks();
+      const compoundItem = tasks.find(t => t.label === 'Build All');
+      assert.ok(compoundItem, 'Should find compound task');
+      assert.ok(compoundItem!.children.length >= 2, 'Compound task should have dependency children');
+
+      const childLabels = new Set(compoundItem!.children.map(c => c.label));
+      assert.strictEqual(childLabels.has('Lint'), true);
+      assert.strictEqual(childLabels.has('Compile'), true);
     });
 
     // Real-world: VSCode returns user profile tasks with source='Workspace' and a numeric scope.
@@ -364,12 +409,6 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.ok(tasks.some(t => t.label === 'Workspace Task One'), 'Should include workspace task from file');
     });
 
-    
-
-    
-
-    
-
     test('does not show user tasks when user tasks.json does not exist', async () => {
       const taskFilesService = TaskFilesService.getInstance();
       taskFilesService.findFiles = async () => [];
@@ -386,8 +425,6 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.strictEqual(tasks.length, 0, 'Should return no tasks when no files exist');
     });
 
-    
-
     test('workspace tasks do NOT have taskOrigin set to "user"', async () => {
       const workspaceTasksFile = vscode.Uri.file('/workspace/.vscode/tasks.json');
       const taskFilesService = TaskFilesService.getInstance();
@@ -401,10 +438,8 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.notStrictEqual(wsTask!.taskOrigin, 'user', 'taskOrigin should NOT be "user" for workspace tasks');
     });
 
-    
-
     // Regression: user profile tasks must not appear twice when VSCode returns them with
-    // source='Workspace' and scope=TaskScope.Global (the real-world behaviour).
+    // source='Workspace' and scope=TaskScope.Global (the real-world behavior).
     test('does not duplicate user tasks when system tasks return them with source Workspace and scope Global', async () => {
       const mockUserTask = {
         name: 'User Task One',

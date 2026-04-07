@@ -9,7 +9,7 @@ has_children: true
 # Supported Task Types
 {: .no_toc }
 
-Workspace Tasks automatically discovers and organizes tasks from 20+ file types and build systems.
+Workspace Tasks automatically discovers and organizes tasks from 25+ file types and build systems.
 
 ---
 
@@ -25,7 +25,7 @@ Workspace Tasks automatically discovers and organizes tasks from 20+ file types 
 | Category | Description |
 | --- | --- |
 | [Package Managers & Build Tools](package-managers) | npm, Yarn, pnpm, Bun, Composer, Pipenv, Poetry, Ant, Maven, Gradle, MSBuild |
-| [Task Runners](task-runners) | Gulp, Grunt, Cargo, cargo-make, Just, Make, mise |
+| [Task Runners](task-runners) | Gulp, Grunt, Cargo, cargo-make, Just, Make, mise, Cake Build |
 | [DevOps & Containers](devops) | Docker, Docker Compose, GitHub Actions |
 | [Scripts & Other](scripts) | Shell scripts, Python, Jupyter Notebooks, VS Code Tasks, Workspace Tasks |
 | [GitHub Actions Integration](github-actions) | Run GitHub Actions workflows locally with act |

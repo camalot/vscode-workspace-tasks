@@ -29,10 +29,11 @@ export class ExtensionConfigurationService {
     }
   }
 
-  public get(key: string): any {
+  public get<T>(key: string, defaultValue?: T): T | undefined {
     if (!this.packageJson) {
-      return undefined;
+      return defaultValue;
     }
-    return key.split('.').reduce((o, i) => o?.[i], this.packageJson);
+    const value = key.split('.').reduce((o, i) => o?.[i], this.packageJson);
+    return value !== undefined ? value : defaultValue;
   }
 }

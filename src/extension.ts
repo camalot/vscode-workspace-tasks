@@ -15,6 +15,7 @@ import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
 import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
 import { loadCommands } from './commands/index';
+import { findTerminalForTask } from './commands/stopTask';
 import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 
@@ -185,7 +186,16 @@ export async function activate(context: vscode.ExtensionContext) {
       if (item) {
         const id = stateManager.getTaskId(item);
         if (id) {
+          // If  this task was blocked because a parent compound sequential task was
+          // stopped, immediately terminate it so the sequence does not continue.
+          if (stateManager.isBlocked(id)) {
+            stateManager.unblockTask(id);
+            e.execution.terminate();
+            return;
+          }
+
           stateManager.clearTerminated(id); // Clear any terminated state if task is restarting
+          stateManager.clearStopTimer(id);  // Cancel any pending force-kill timer
           stateManager.setExecution(id, e.execution);
           stateManager.setStatus(id, 'running');
           taskTreeDataProvider.refreshLocal();
@@ -193,6 +203,36 @@ export async function activate(context: vscode.ExtensionContext) {
           if (resetTimers.has(id)) {
             clearTimeout(resetTimers.get(id)!);
             resetTimers.delete(id);
+          }
+
+          // Capture the terminal for this task so the stop command can send
+          // SIGINT instead of destroying the terminal.  Match by name to avoid
+          // associating an unrelated terminal when multiple tasks start at once.
+          const existingTerminal = findTerminalForTask(e.execution.task);
+          if (existingTerminal) {
+            // Terminal already exists (task reuses a dedicated/shared terminal).
+            stateManager.setTerminal(id, existingTerminal);
+          } else {
+            const openSub = vscode.window.onDidOpenTerminal((terminal) => {
+              // Only accept the terminal if its name matches this task's
+              // naming conventions; ignore unrelated terminals.
+              if (findTerminalForTask(e.execution.task, [terminal])) {
+                openSub.dispose();
+                clearTimeout(terminalCaptureTimeout);
+                stateManager.setTerminal(id, terminal);
+              }
+            });
+            // Fallback: search all open terminals by name after 1.5 s in case
+            // the task reused an existing terminal without re-opening one.
+            const terminalCaptureTimeout = setTimeout(() => {
+              openSub.dispose();
+              if (!stateManager.getTerminal(id)) {
+                const terminal = findTerminalForTask(e.execution.task);
+                if (terminal) {
+                  stateManager.setTerminal(id, terminal);
+                }
+              }
+            }, 1500);
           }
         }
       }
@@ -204,6 +244,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const stateManager = TaskStateManager.getInstance();
       const id = stateManager.getIdByExecution(e.execution);
       if (id) {
+        stateManager.clearStopTimer(id);
         const status = e.exitCode === 0 ? 'success' : 'failure';
         stateManager.setStatus(id, status);
         stateManager.clearExecution(id);
@@ -222,6 +263,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const stateManager = TaskStateManager.getInstance();
       const id = stateManager.getIdByExecution(e.execution);
       if (id) {
+        stateManager.clearStopTimer(id);
         // Only act if the task is still marked as running.
         // If it was a process task, status would be 'success' or 'failure' by now.
         if (stateManager.getStatus(id) === 'running') {

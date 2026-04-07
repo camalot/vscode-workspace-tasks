@@ -152,6 +152,31 @@ suite('FilteredTaskService Test Suite', () => {
         assert.strictEqual(service.isFiltered('child-id'), false);
     });
 
+    test('isFilteredOrHasFilteredParent returns true for item whose canonical id is filtered (dedup suffix)', () => {
+        // Simulate a compound task child whose id has the "|N" dedup suffix.
+        // The original task is stored as "ws:path:compile"; the child has "ws:path:compile|1".
+        const originalTask = {
+            label: 'compile',
+            taskType: 'vscode',
+            id: 'ws:path:compile',
+            parent: undefined,
+        } as unknown as TaskItem;
+
+        const depChild = {
+            label: 'compile',
+            taskType: 'vscode',
+            id: 'ws:path:compile|1',
+            parent: undefined,
+        } as unknown as TaskItem;
+
+        // Hide the original
+        service.hideTask(originalTask);
+        assert.strictEqual(service.isFiltered('ws:path:compile'), true);
+
+        // The compound child should be considered filtered too (via canonical id match)
+        assert.strictEqual(service.isFilteredOrHasFilteredParent(depChild), true);
+    });
+
     test('toggleShowHidden toggles mode', () => {
         assert.strictEqual(service.isShowHiddenMode(), false);
 

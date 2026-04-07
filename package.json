@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -69,7 +69,9 @@
     "pipenv",
     "poe",
     "poetry",
-    "make"
+    "make",
+    "cmake",
+    "cake"
   ],
   "categories": [
     "Other"
@@ -108,15 +110,15 @@
     "check": "npm run check:types && npm run check:format",
     "check:types": "tsc --noEmit",
     "check:format": "prettier --check .",
-    "changelog:build": "npx git-cliff --bump --output CHANGELOG.md"
+    "changelog:build": "npx git-cliff --bump --unreleased --prepend CHANGELOG.md"
   },
   "devDependencies": {
     "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
     "@types/node": "25.x",
     "@types/vscode": "^1.105.1",
-    "@typescript-eslint/eslint-plugin": "^8.57.1",
-    "@typescript-eslint/parser": "^8.57.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
@@ -126,19 +128,20 @@
     "glob": "^13.0.6",
     "mocha": "^11.7.5",
     "mocha-junit-reporter": "^2.2.1",
+    "mocha-multi-reporters": "^1.5.1",
     "nyc": "^18.0.0",
     "prettier": "^3.8.1",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.1",
+    "typescript-eslint": "^8.58.0",
     "webpack": "^5.105.4",
     "webpack-cli": "^7.0.2"
   },
   "dependencies": {
-    "fast-xml-parser": "5.5.7",
+    "fast-xml-parser": "5.5.9",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
-    "smol-toml": "^1.6.0",
+    "smol-toml": "^1.6.1",
     "yaml": "^2.8.3"
   },
   "contributes": {
@@ -670,6 +673,18 @@
           "description": "%config.workspaceTasks.task.doubleClickAction%",
           "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%"
         },
+        "workspaceTasks.task.stopGracefulDelayMilliseconds": {
+          "type": "number",
+          "default": 5000,
+          "description": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds%",
+          "markdownDescription": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown%"
+        },
+        "workspaceTasks.task.stopCompoundDependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.workspaceTasks.task.stopCompoundDependencies%",
+          "markdownDescription": "%config.workspaceTasks.task.stopCompoundDependencies.markdown%"
+        },
         "workspaceTasks.task.presentationOptions": {
           "type": "object",
           "additionalProperties": false,
@@ -897,6 +912,14 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
             },
+            "cake": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cake%"
+            },
+            "cmake": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.cmake%"
+            },
             "composer": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.composer%"
@@ -1007,6 +1030,8 @@
             }
           },
           "default": {
+            "cake": true,
+            "cmake": true,
             "ant": true,
             "bun": false,
             "deno": true,
@@ -1134,6 +1159,46 @@
           "description": "%config.workspaceTasks.applicationPath.rake%",
           "markdownDescription": "%config.workspaceTasks.applicationPath.rake.markdown%",
           "default": "rake"
+        },
+        "workspaceTasks.applicationPath.cmake": {
+          "type": "string",
+          "description": "%config.workspaceTasks.applicationPath.cmake%",
+          "markdownDescription": "%config.workspaceTasks.applicationPath.cmake.markdown%",
+          "default": "cmake",
+          "scope": "resource"
+        },
+        "workspaceTasks.cmake.buildDirectory": {
+          "type": "string",
+          "description": "%config.workspaceTasks.cmake.buildDirectory%",
+          "markdownDescription": "%config.workspaceTasks.cmake.buildDirectory.markdown%",
+          "default": "build",
+          "scope": "resource"
+        },
+        "workspaceTasks.cmake.buildType": {
+          "type": "string",
+          "description": "%config.workspaceTasks.cmake.buildType%",
+          "markdownDescription": "%config.workspaceTasks.cmake.buildType.markdown%",
+          "enum": [
+            "Debug",
+            "Release",
+            "RelWithDebInfo",
+            "MinSizeRel"
+          ],
+          "enumDescriptions": [
+            "%config.workspaceTasks.cmake.buildType.debug%",
+            "%config.workspaceTasks.cmake.buildType.release%",
+            "%config.workspaceTasks.cmake.buildType.relwithdebinfo%",
+            "%config.workspaceTasks.cmake.buildType.minsizerel%"
+          ],
+          "default": "Debug",
+          "scope": "resource"
+        },
+        "workspaceTasks.cmake.generator": {
+          "type": "string",
+          "description": "%config.workspaceTasks.cmake.generator%",
+          "markdownDescription": "%config.workspaceTasks.cmake.generator.markdown%",
+          "default": "",
+          "scope": "resource"
         }
       }
     },

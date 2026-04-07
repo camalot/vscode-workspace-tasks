@@ -6,6 +6,7 @@ import { QueueService } from './services/queueService';
 import { configuration } from './libs/configuration';
 import { IPresentationOptions } from './taskDefinition';
 import { LoggerService } from './services/loggerService';
+import { RecentTasksService } from './services/recentTasksService';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -108,6 +109,10 @@ export class TaskRunner {
     }
 
     const id = TaskStateManager.getInstance().getTaskId(item);
+    // Clear all stale blocks from any previous compound-task stop so that
+    // dependency tasks are free to run in the new execution sequence.
+    TaskStateManager.getInstance().clearAllBlocks();
+    RecentTasksService.getInstance().addRecentTask(id);
     TaskStateManager.getInstance().setStatus(id, 'running');
 
     try {

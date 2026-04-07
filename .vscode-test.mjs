@@ -12,10 +12,12 @@ export default defineConfig({
   launchArgs: ['--disable-updates', '--no-sandbox', '--disable-gpu', `--user-data-dir=${join(tmpdir(), 'vscode-workspace-tasks-test', 'user-data')}`],
   mocha: {
     timeout: 60000,
-    reporter: 'mocha-junit-reporter',
+    reporter: 'mocha-multi-reporters',
     reporterOptions: {
-      mochaFile: join(__dirname, 'coverage', 'junit.xml'),
-      toConsole: true
+      reporterEnabled: 'spec, mocha-junit-reporter',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: join(__dirname, 'coverage', 'junit.xml'),
+      }
     }
   }
 });

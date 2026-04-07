@@ -3,3 +3,4 @@ sample/sample-workspace-tasks/**
 .vscode-test/**
 .github/workflows/release.yml
 src/test/task-files
+**/package.json@build

@@ -174,9 +174,11 @@ export class FilteredTaskService {
    * @returns true if the item or any parent is filtered, false otherwise
    */
   public isFilteredOrHasFilteredParent(item: TaskItem): boolean {
-    // Check the item itself
+    // Check the item itself, also stripping any dedup suffix so compound task
+    // children inherit the filtered state of the original standalone task.
     const itemId = item.id;
-    if (itemId && this.filteredTasks.has(itemId)) {
+    const canonicalItemId = itemId ? itemId.replace(/\|\d+$/, '') : itemId;
+    if ((itemId && this.filteredTasks.has(itemId)) || (canonicalItemId && this.filteredTasks.has(canonicalItemId))) {
       return true;
     }
 
