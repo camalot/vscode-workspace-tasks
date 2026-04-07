@@ -992,9 +992,10 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       const sourceDir = path.dirname(resourceUri.fsPath);
       const buildDir = cmakeProvider.getBuildDirectory();
       const buildPath = path.isAbsolute(buildDir) ? buildDir : path.join(sourceDir, buildDir);
+      const buildType = cmakeProvider.getBuildType();
 
       const cmakeArgs = cmakeInitialArgs ? [...cmakeInitialArgs] : [];
-      cmakeArgs.push('--build', buildPath, '--target', taskLabel);
+      cmakeArgs.push('--build', buildPath, '--target', taskLabel, '--config', buildType);
 
       if (args) {
         cmakeArgs.push(...args.split(' '));

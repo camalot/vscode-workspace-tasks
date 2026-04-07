@@ -2,18 +2,21 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { CMakeTaskProvider } from '../../providers/cmakeTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
+import { configuration } from '../../libs/configuration';
 import constants from '../../libs/constants';
 
 suite('CMakeTaskProvider Test Suite', () => {
   let originalFindFiles: any;
   let originalOpenTextDocument: any;
   let originalAsRelativePath: any;
+  let originalConfigGet: typeof configuration.get;
 
   setup(() => {
     const filesService = TaskFilesService.getInstance();
     originalFindFiles = filesService.findFiles.bind(filesService);
     originalOpenTextDocument = vscode.workspace.openTextDocument;
     originalAsRelativePath = vscode.workspace.asRelativePath;
+    originalConfigGet = configuration.get.bind(configuration);
 
     filesService.findFiles = async () => [];
     (vscode.workspace as any).asRelativePath = (uri: vscode.Uri | string) => {
@@ -27,6 +30,7 @@ suite('CMakeTaskProvider Test Suite', () => {
     filesService.findFiles = originalFindFiles;
     (vscode.workspace as any).openTextDocument = originalOpenTextDocument;
     (vscode.workspace as any).asRelativePath = originalAsRelativePath;
+    configuration.get = originalConfigGet;
   });
 
   // ── Identity ────────────────────────────────────────────────────────────────
@@ -71,13 +75,76 @@ suite('CMakeTaskProvider Test Suite', () => {
     assert.strictEqual(type, 'Debug');
   });
 
+  test('getBuildType returns configured value', () => {
+    configuration.get = (key: string, def?: any) => {
+      if (key === 'cmake.buildType') { return 'Release'; }
+      return originalConfigGet(key, def);
+    };
+    const provider = new CMakeTaskProvider();
+    assert.strictEqual(provider.getBuildType(), 'Release');
+  });
+
   test('getGenerator returns empty string by default', () => {
     const provider = new CMakeTaskProvider();
     const gen = provider.getGenerator();
     assert.strictEqual(gen, '');
   });
 
-  // ── getSystemTasks ───────────────────────────────────────────────────────────
+  // ── createTaskForItem — cmake args ───────────────────────────────────────────
+
+  test('createTaskForItem passes --config <buildType> for cmake tasks', async () => {
+    // Import lazily to avoid circular-dependency issues at module load time.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createTaskForItem } = require('../../taskFactory');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { TaskItem } = require('../../taskItem');
+
+    configuration.get = (key: string, def?: any) => {
+      if (key === 'cmake.buildType') { return 'Release'; }
+      if (key === 'cmake.buildDirectory') { return 'build'; }
+      return originalConfigGet(key, def);
+    };
+
+    const fileUri = vscode.Uri.file('/project/CMakeLists.txt');
+    const item = new TaskItem('myTarget', vscode.TreeItemCollapsibleState.None, 'cmake');
+    item.originalLabel = 'myTarget';
+    item.taskType = 'cmake';
+    item.taskFileUri = fileUri;
+    // Omit item.task and item.taskSource so createTaskForItem reaches the cmake switch arm.
+
+    const result = await createTaskForItem(item);
+    assert.ok(result, 'Expected a CreatedTask result');
+
+    const exec = result.task.execution as vscode.ShellExecution;
+    const args: string[] = exec.args as string[];
+    const configIdx = args.indexOf('--config');
+    assert.ok(configIdx !== -1, '--config flag should be present in cmake args');
+    assert.strictEqual(args[configIdx + 1], 'Release', '--config should be followed by the configured build type');
+  });
+
+  test('createTaskForItem uses Debug as default --config for cmake tasks', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createTaskForItem } = require('../../taskFactory');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { TaskItem } = require('../../taskItem');
+
+    const fileUri = vscode.Uri.file('/project/CMakeLists.txt');
+    const item = new TaskItem('myTarget', vscode.TreeItemCollapsibleState.None, 'cmake');
+    item.originalLabel = 'myTarget';
+    item.taskType = 'cmake';
+    item.taskFileUri = fileUri;
+
+    const result = await createTaskForItem(item);
+    assert.ok(result, 'Expected a CreatedTask result');
+
+    const exec = result.task.execution as vscode.ShellExecution;
+    const args: string[] = exec.args as string[];
+    const configIdx = args.indexOf('--config');
+    assert.ok(configIdx !== -1, '--config flag should be present in cmake args');
+    assert.strictEqual(args[configIdx + 1], 'Debug', '--config should default to Debug');
+  });
+
+
 
   test('getSystemTasks returns empty array when enabled', async () => {
     const provider = new CMakeTaskProvider();
