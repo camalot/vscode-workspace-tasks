@@ -697,6 +697,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
       // Stub getAllQueues to return a queue with one task
       const queueService = QueueService.getInstance();
       (queueService as any).getAllQueues = () => new Map([['MyQueue', [task]]]);
+      (queueService as any).getQueueExecutionType = (_name: string) => 'sequential';
 
       const provider = new TestableTaskTreeDataProvider(ctx);
       const roots = await provider.getChildren();
@@ -704,6 +705,46 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const queueGroup = roots.find((r) => r.taskType === 'queue');
       assert.ok(queueGroup, 'Should have queue group');
       assert.strictEqual(queueGroup!.label, 'MyQueue');
+    });
+
+    test('queue group uses sequential icon when executionType is sequential', async () => {
+      const task = new TaskItem('seq-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'seq-task-id';
+      task.originalLabel = 'seq-task';
+
+      stubServicesForOrganize([]);
+      const queueService = QueueService.getInstance();
+      (queueService as any).getAllQueues = () => new Map([['SeqQueue', [task]]]);
+      (queueService as any).getQueueExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const queueGroup = roots.find((r) => r.taskType === 'queue');
+      assert.ok(queueGroup, 'Should have queue group');
+      const iconPath = queueGroup!.iconPath as { light: vscode.Uri; dark: vscode.Uri };
+      assert.ok(iconPath.light.fsPath.includes('sequential.svg'), 'Should use sequential icon for light theme');
+      assert.ok(iconPath.dark.fsPath.includes('sequential.svg'), 'Should use sequential icon for dark theme');
+    });
+
+    test('queue group uses parallel icon when executionType is parallel', async () => {
+      const task = new TaskItem('par-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'par-task-id';
+      task.originalLabel = 'par-task';
+
+      stubServicesForOrganize([]);
+      const queueService = QueueService.getInstance();
+      (queueService as any).getAllQueues = () => new Map([['ParQueue', [task]]]);
+      (queueService as any).getQueueExecutionType = (_name: string) => 'parallel';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const queueGroup = roots.find((r) => r.taskType === 'queue');
+      assert.ok(queueGroup, 'Should have queue group');
+      const iconPath = queueGroup!.iconPath as { light: vscode.Uri; dark: vscode.Uri };
+      assert.ok(iconPath.light.fsPath.includes('parallel.svg'), 'Should use parallel icon for light theme');
+      assert.ok(iconPath.dark.fsPath.includes('parallel.svg'), 'Should use parallel icon for dark theme');
     });
 
     test('root ordering: recent, favorites, queue, workspace', async () => {
@@ -724,6 +765,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
 
       const queueService = QueueService.getInstance();
       (queueService as any).getAllQueues = () => new Map([['Q1', [task]]]);
+      (queueService as any).getQueueExecutionType = (_name: string) => 'sequential';
 
       const provider = new TestableTaskTreeDataProvider(ctx);
       const roots = await provider.getChildren();
@@ -1136,6 +1178,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
 
       const queueService = QueueService.getInstance();
       (queueService as any).getAllQueues = () => new Map([['TestQueue', [task]]]);
+      (queueService as any).getQueueExecutionType = (_name: string) => 'sequential';
 
       const provider = new TestableTaskTreeDataProvider(ctx);
       const roots = await provider.getChildren();

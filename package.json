@@ -357,6 +357,11 @@
         "icon": "$(debug-stop)"
       },
       {
+        "command": "workspaceTasks.stopQueue",
+        "title": "%command.stopQueue%",
+        "icon": "$(debug-stop)"
+      },
+      {
         "command": "workspaceTasks.restartTask",
         "title": "%command.restartTask%",
         "icon": "$(debug-restart)"
@@ -411,6 +416,11 @@
         "command": "workspaceTasks.renameQueue",
         "title": "%command.renameQueue%",
         "icon": "$(edit)"
+      },
+      {
+        "command": "workspaceTasks.setQueueExecutionType",
+        "title": "%command.setQueueExecutionType%",
+        "icon": "$(arrow-swap)"
       },
       {
         "command": "workspaceTasks.hideTask",
@@ -1336,6 +1346,11 @@
           "group": "inline@3"
         },
         {
+          "command": "workspaceTasks.setQueueExecutionType",
+          "when": "viewItem == queue",
+          "group": "inline@4"
+        },
+        {
           "command": "workspaceTasks.openFileAtLine",
           "when": "viewItem =~ /ask$/ && config.workspaceTasks.task.actionBar.openFile",
           "group": "inline@3"
@@ -1386,19 +1401,29 @@
           "group": "4_queue@2"
         },
         {
+          "command": "workspaceTasks.setQueueExecutionType",
+          "when": "viewItem == queue",
+          "group": "4_queue@1"
+        },
+        {
           "command": "workspaceTasks.copyTaskCommand",
           "when": "viewItem =~ /[tT]ask$/",
           "group": "5_copy"
         },
         {
           "command": "workspaceTasks.restartTask",
-          "when": "viewItem =~ /running/",
+          "when": "viewItem =~ /running.*[Tt]ask/",
           "group": "inline@98"
         },
         {
           "command": "workspaceTasks.stopTask",
-          "when": "viewItem =~ /running/",
+          "when": "viewItem =~ /running.*[Tt]ask/",
           "group": "inline@99"
+        },
+        {
+          "command": "workspaceTasks.stopQueue",
+          "when": "viewItem == runningQueue",
+          "group": "inline@1"
         },
         {
           "command": "workspaceTasks.addToFavorites",

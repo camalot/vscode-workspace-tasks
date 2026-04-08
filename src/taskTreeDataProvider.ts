@@ -541,10 +541,20 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           this.getExpandedState(queueId, this.getRootState('queue', expandedGroups)),
           'queue'
         );
-        queueGroup.iconPath = new vscode.ThemeIcon('list-ordered');
+        const executionType = queueService.getQueueExecutionType(queueName);
+        queueGroup.iconPath = {
+          light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${executionType}.svg`)),
+          dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${executionType}.svg`)),
+        };
         queueGroup.id = queueId;
         // Update context value after setting the final ID
         queueGroup.updateContextValue();
+
+        // Override context value and icon when queue is actively running
+        if (queueService.isQueueRunning(queueName)) {
+          queueGroup.contextValue = 'runningQueue';
+          queueGroup.iconPath = new vscode.ThemeIcon('loading~spin');
+        }
 
         // Create Queued Items
         for (const task of queueTasks) {

@@ -120,6 +120,13 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Listen for queue running state changes and refresh tree
+  context.subscriptions.push(
+    QueueService.getInstance().onQueueStateChanged(() => {
+      taskTreeDataProvider.refreshLocal();
+    })
+  );
+
   // Register Providers
   registerTaskProviders(context);
   // Initial refresh

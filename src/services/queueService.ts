@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskStateManager } from '../taskStateManager';
 
+export type QueueExecutionType = 'sequential' | 'parallel';
+
 interface SerializedTaskItem {
   id: string;
   label: string;
@@ -12,11 +14,25 @@ interface SerializedTaskItem {
   metadata?: any;
 }
 
+interface SerializedQueue {
+  executionType: QueueExecutionType;
+  items: SerializedTaskItem[];
+}
+
+export interface QueueCancellationToken {
+  cancelled: boolean;
+}
+
 export class QueueService {
   private static instance: QueueService;
   private queues: Map<string, TaskItem[]> = new Map();
+  private queueTypes: Map<string, QueueExecutionType> = new Map();
+  private runningQueues: Map<string, QueueCancellationToken> = new Map();
   private context: vscode.ExtensionContext | undefined;
   private readonly STORAGE_KEY = 'savedQueues';
+
+  private _onQueueStateChanged = new vscode.EventEmitter<{ name: string; running: boolean }>();
+  public readonly onQueueStateChanged = this._onQueueStateChanged.event;
 
   private constructor() {}
 
@@ -32,13 +48,13 @@ export class QueueService {
     // Restore Queues
     // Check for new persistence format first
     // Switch to workspaceState
-    const savedQueues = context.workspaceState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
+    const savedQueues = context.workspaceState.get<Record<string, SerializedQueue | SerializedTaskItem[]>>(this.STORAGE_KEY);
 
     let queuesToLoad = savedQueues;
     let sourceIsGlobal = false;
 
     if (!queuesToLoad) {
-        const globalQueues = context.globalState.get<Record<string, SerializedTaskItem[]>>(this.STORAGE_KEY);
+        const globalQueues = context.globalState.get<Record<string, SerializedQueue | SerializedTaskItem[]>>(this.STORAGE_KEY);
         if (globalQueues) {
             queuesToLoad = globalQueues;
             sourceIsGlobal = true;
@@ -48,10 +64,21 @@ export class QueueService {
     let hasMigration = sourceIsGlobal; // Valid reason to save back to workspaceState
 
     if (queuesToLoad) {
-      Object.entries(queuesToLoad).forEach(([queueName, items]) => {
+      Object.entries(queuesToLoad).forEach(([queueName, value]) => {
+        // Migrate from old format (array) to new format (SerializedQueue object)
+        let serializedQueue: SerializedQueue;
+        if (Array.isArray(value)) {
+          serializedQueue = { executionType: 'sequential', items: value as SerializedTaskItem[] };
+          hasMigration = true;
+        } else {
+          serializedQueue = value as SerializedQueue;
+        }
+
+        this.queueTypes.set(queueName, serializedQueue.executionType ?? 'sequential');
+
         // Track if any IDs were migrated during deserialization
-        const originalIds = items.map(q => q.id);
-        const deserializedTasks = this.deserializeTasks(items);
+        const originalIds = serializedQueue.items.map(q => q.id);
+        const deserializedTasks = this.deserializeTasks(serializedQueue.items);
         const newIds = deserializedTasks.map(t => TaskStateManager.getInstance().getTaskId(t));
 
         if (JSON.stringify(originalIds) !== JSON.stringify(newIds)) {
@@ -67,6 +94,7 @@ export class QueueService {
       if (legacyQueue.length > 0) {
         const legacyName = context.globalState.get<string>('queueName', 'Queue');
         this.queues.set(legacyName, this.deserializeTasks(legacyQueue));
+        this.queueTypes.set(legacyName, 'sequential');
         hasMigration = true;
       }
     }
@@ -74,6 +102,46 @@ export class QueueService {
     // If any IDs were migrated, save the normalized data back to storage (workspaceState)
     if (hasMigration) {
       this.saveQueues();
+    }
+  }
+
+  /**
+   * Marks a queue as running and returns a cancellation token.
+   * The token's `cancelled` property can be set to true to stop the queue loop.
+   */
+  public markQueueRunning(name: string): QueueCancellationToken {
+    const token: QueueCancellationToken = { cancelled: false };
+    this.runningQueues.set(name, token);
+    this._onQueueStateChanged.fire({ name, running: true });
+    return token;
+  }
+
+  /**
+   * Marks a queue as stopped (completed normally).
+   */
+  public markQueueStopped(name: string): void {
+    if (this.runningQueues.has(name)) {
+      this.runningQueues.delete(name);
+      this._onQueueStateChanged.fire({ name, running: false });
+    }
+  }
+
+  /**
+   * Returns true if the named queue is currently running.
+   */
+  public isQueueRunning(name: string): boolean {
+    return this.runningQueues.has(name);
+  }
+
+  /**
+   * Cancels a running queue (signals the loop to stop and no new tasks will start).
+   */
+  public cancelQueue(name: string): void {
+    const token = this.runningQueues.get(name);
+    if (token) {
+      token.cancelled = true;
+      this.runningQueues.delete(name);
+      this._onQueueStateChanged.fire({ name, running: false });
     }
   }
 
@@ -135,19 +203,22 @@ export class QueueService {
       return;
     }
 
-    const serializedQueues: Record<string, SerializedTaskItem[]> = {};
+    const serializedQueues: Record<string, SerializedQueue> = {};
 
     for (const [name, tasks] of this.queues) {
       if (tasks.length > 0) {
-        serializedQueues[name] = tasks.map((q) => ({
-          id: TaskStateManager.getInstance().getTaskId(q),
-          label: q.label,
-          originalLabel: q.originalLabel || q.label,
-          taskType: q.taskType,
-          resourceUri: (q.taskFileUri || q.resourceUri)?.toString(),
-          startLine: q.startLine,
-          metadata: q.metadata,
-        }));
+        serializedQueues[name] = {
+          executionType: this.queueTypes.get(name) ?? 'sequential',
+          items: tasks.map((q) => ({
+            id: TaskStateManager.getInstance().getTaskId(q),
+            label: q.label,
+            originalLabel: q.originalLabel || q.label,
+            taskType: q.taskType,
+            resourceUri: (q.taskFileUri || q.resourceUri)?.toString(),
+            startLine: q.startLine,
+            metadata: q.metadata,
+          })),
+        };
       }
     }
     this.context.workspaceState.update(this.STORAGE_KEY, serializedQueues);
@@ -161,11 +232,21 @@ export class QueueService {
     return Array.from(this.queues.keys());
   }
 
-  public createQueue(name: string) {
+  public createQueue(name: string, executionType: QueueExecutionType = 'sequential') {
     if (!this.queues.has(name)) {
       this.queues.set(name, []);
+      this.queueTypes.set(name, executionType);
       this.saveQueues();
     }
+  }
+
+  public getQueueExecutionType(name: string): QueueExecutionType {
+    return this.queueTypes.get(name) ?? 'sequential';
+  }
+
+  public setQueueExecutionType(name: string, executionType: QueueExecutionType) {
+    this.queueTypes.set(name, executionType);
+    this.saveQueues();
   }
 
   public addToQueue(item: TaskItem, queueName: string) {
@@ -246,14 +327,18 @@ export class QueueService {
 
   public clearQueue(queueName: string) {
     this.queues.delete(queueName);
+    this.queueTypes.delete(queueName);
     this.saveQueues();
   }
 
   public renameQueue(oldName: string, newName: string) {
     if (this.queues.has(oldName)) {
       const tasks = this.queues.get(oldName)!;
+      const executionType = this.queueTypes.get(oldName) ?? 'sequential';
       this.queues.delete(oldName);
+      this.queueTypes.delete(oldName);
       this.queues.set(newName, tasks);
+      this.queueTypes.set(newName, executionType);
       this.saveQueues();
     }
   }

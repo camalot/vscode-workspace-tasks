@@ -134,6 +134,8 @@ export class TaskRunner {
       return;
     }
 
+    const executionType = QueueService.getInstance().getQueueExecutionType(queueName);
+
     let startIndex = 0;
     if (startItem) {
       const startId = TaskStateManager.getInstance().getTaskId(startItem);
@@ -144,24 +146,44 @@ export class TaskRunner {
     }
 
     const tasksToRun = queue.slice(startIndex);
+    const token = QueueService.getInstance().markQueueRunning(queueName);
 
-    for (const item of tasksToRun) {
-      try {
-        await this.runTask(item);
-        // runTask starts execution but returns effectively immediately after launch.
-        // We need to WAIT for the task to finish.
-        const status = await this.waitForTask(item);
+    try {
+      if (executionType === 'parallel') {
+        await Promise.all(
+          tasksToRun.map(async (item) => {
+            if (token.cancelled) { return; }
+            try {
+              await this.runTask(item);
+              await this.waitForTask(item);
+            } catch (e) {
+              vscode.window.showErrorMessage(`Queue '${queueName}': Failed to launch '${item.label}'.`);
+            }
+          }),
+        );
+      } else {
+        for (const item of tasksToRun) {
+          if (token.cancelled) { break; }
+          try {
+            await this.runTask(item);
+            // runTask starts execution but returns effectively immediately after launch.
+            // We need to WAIT for the task to finish.
+            const status = await this.waitForTask(item);
 
-        // Check status
-        if (status === 'failure') {
-          vscode.window.showErrorMessage(`Queue '${queueName}' stopped: Task '${item.label}' failed.`);
-          break;
+            // Check status
+            if (status === 'failure') {
+              vscode.window.showErrorMessage(`Queue '${queueName}' stopped: Task '${item.label}' failed.`);
+              break;
+            }
+          } catch (e) {
+            // If launch failed
+            vscode.window.showErrorMessage(`Queue stopped: Failed to launch '${item.label}'.`);
+            break;
+          }
         }
-      } catch (e) {
-        // If launch failed
-        vscode.window.showErrorMessage(`Queue stopped: Failed to launch '${item.label}'.`);
-        break;
       }
+    } finally {
+      QueueService.getInstance().markQueueStopped(queueName);
     }
   }
 

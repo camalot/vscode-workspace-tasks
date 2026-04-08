@@ -46,7 +46,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
 - **⭐ Favorites** - Pin frequently used tasks for instant access
 - **🌱 Recent Tasks** - Tracks the most recently executed tasks
-- **📋 Multiple Task Queues** - Create and manage named sequences of tasks
+- **📋 Multiple Task Queues** - Create and manage named sequences of tasks with sequential or parallel execution
 - **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
 - **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
@@ -253,7 +253,7 @@ Pin your most frequently used tasks for instant access. Favorites appear in a de
 
 ## 📋 Task Queues
 
-Create and manage multiple named queues to run sequences of tasks in order. Perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
+Create and manage multiple named queues to run tasks either **sequentially** (one at a time, stops on first failure) or **in parallel** (all simultaneously). Perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
 
 **How to Use:**
 
@@ -261,22 +261,24 @@ Create and manage multiple named queues to run sequences of tasks in order. Perf
 2. Choose an existing queue or create a new one
 3. Drag and drop tasks to reorder them
 4. Run the entire queue or start from a specific task
+5. Toggle between **sequential** and **parallel** execution using the arrow-swap button in the queue action bar
 
 **Features:**
 
 - **Multiple Queues** - Create separate queues for different workflows (e.g., "Build", "Deploy", "CI Pipeline")
+- **Sequential or Parallel Execution** - Toggle each queue's mode; the queue icon reflects the current type
 - **Drag & Drop Reordering** - Easily reorder tasks within and across queues
 - **Visual Context** - Each queue item shows the task icon, label, workspace name, and file path
 - **Queue Controls** - Run entire queue, start from specific task, or stop execution
 - **Queue Management** - Rename queues, clear all tasks, or delete empty queues
-- **Persistent Storage** - Queues are saved and restored between sessions
+- **Persistent Storage** - Queues and their execution modes are saved and restored between sessions
 - **Status Indicators** - Real-time visual feedback with running/success/failure icons
 - **Settings Sync** - Queues automatically sync across all your machines when VS Code Settings Sync is enabled
 
 **Example Workflow:**
 
 ```text
-CI Pipeline Queue:
+CI Pipeline Queue (Sequential):
 1. Install Dependencies (npm install)
 2. Lint Code (npm run lint)
 3. Run Tests (npm test)

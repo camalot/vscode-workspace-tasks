@@ -20,9 +20,31 @@ nav_order: 2
 
 ## Overview
 
-Create and manage multiple named queues to run sequences of tasks in order. Task Queues are perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
+Create and manage multiple named queues to run tasks either **sequentially** (one after another) or **in parallel** (all at once). Task Queues are perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
 
 ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
+
+---
+
+## Execution Modes
+
+Each queue supports two execution modes:
+
+| Mode | Icon | Behavior |
+|---|---|---|
+| **Sequential** | `sequential.svg` | Tasks run one at a time, in order. If a task fails, the queue stops. |
+| **Parallel** | `parallel.svg` | All tasks launch simultaneously. A failure in one does not stop others. |
+
+The queue group item in the tree displays the current mode via its icon — a **sequential** icon or a **parallel** icon.
+
+### Changing the Execution Mode
+
+Hover over a queue in the tree to reveal its action bar, then click the **Toggle Queue Execution Type** button (`$(arrow-swap)`). The queue icon updates immediately to reflect the new mode:
+
+- Sequential → Parallel
+- Parallel → Sequential
+
+You can also right-click the queue and choose **Toggle Queue Execution Type** from the context menu.
 
 ---
 
@@ -52,11 +74,13 @@ Create and manage multiple named queues to run sequences of tasks in order. Task
 ## Features
 
 - **Multiple Queues** — Create separate queues for different workflows (e.g., "Build", "Deploy", "CI Pipeline")
+- **Sequential or Parallel Execution** — Toggle each queue between sequential (one-at-a-time, stops on failure) and parallel (all at once) modes
+- **Execution Mode Icon** — The queue group icon shows the current mode: `sequential.svg` or `parallel.svg`
 - **Drag & Drop Reordering** — Easily reorder tasks within and across queues
 - **Visual Context** — Each queue item shows the task icon, label, workspace name, and file path
 - **Queue Controls** — Run the entire queue, start from a specific task, or stop execution
 - **Queue Management** — Rename queues, clear all tasks, or delete empty queues
-- **Persistent Storage** — Queues are saved and restored between sessions
+- **Persistent Storage** — Queues and their execution modes are saved and restored between sessions
 - **Status Indicators** — Real-time visual feedback with running/success/failure icons
 - **Settings Sync** — Queues automatically sync across all your machines when VS Code Settings Sync is enabled
 
@@ -84,6 +108,7 @@ Use the actions in the queue's title bar to:
 - **Run All** — Execute all tasks in the queue from the beginning
 - **Rename** — Give the queue a descriptive name (e.g., "Full CI Build")
 - **Clear** — Remove all tasks from the queue
+- **Toggle Execution Type** — Switch between sequential and parallel execution
 - **Delete** — Remove an empty queue entirely
 
 ---

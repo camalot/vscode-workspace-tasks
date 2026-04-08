@@ -12,6 +12,7 @@ import * as removeFromRecentTasks from './removeFromRecentTasks';
 import * as openFileAtLine from './openFileAtLine';
 import * as openSettings from './openSettings';
 import * as restartTask from './restartTask';
+import * as stopQueue from './stopQueue';
 import * as stopTask from './stopTask';
 import * as addToFavorites from './addToFavorites';
 import * as addToQueue from './addToQueue';
@@ -30,6 +31,7 @@ import * as hideHiddenTasks from './hideHiddenTasks';
 import * as toggleShowHidden from './toggleShowHidden';
 import * as resetFilteredTasks from './resetFilteredTasks';
 import * as copyTaskCommand from './copyTaskCommand';
+import * as setQueueExecutionType from './setQueueExecutionType';
 
 import { LoggerService } from '../services/loggerService';
 
@@ -64,6 +66,8 @@ export function loadCommands(context: vscode.ExtensionContext) {
     runQueue,
     runTaskWithArgs,
     showHiddenTasks,
+    setQueueExecutionType,
+    stopQueue,
     stopTask,
     toggleShowHidden,
     unhideTask,
