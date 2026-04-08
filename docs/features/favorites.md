@@ -20,7 +20,7 @@ nav_order: 1
 
 Pin your most frequently used tasks for instant access. Favorites appear in a dedicated section at the top of the task tree, making your common operations just one click away.
 
-![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
+![Workspace-Tasks Sidebar Compound Tasks & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
 
 ### How to Favorite a Task
 
@@ -93,4 +93,4 @@ When enabled, recent tasks will be grouped by task type in the same way as the m
 ## Next Steps
 
 - [Configuration](../configuration) — Full settings reference
-- [Task Queues](task-queues) — Group tasks into runnable sequences
+- [Compound Tasks (Queues)](task-queues) — Group tasks into runnable sequences

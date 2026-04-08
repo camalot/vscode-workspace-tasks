@@ -23,13 +23,13 @@ nav_order: 5
 **Type:** `object`
 **Default:**
 
-```json
+```jsonc
 {
   "run": true,
   "runWithArgs": true,
   "openFile": true,
   "favorite": true,
-  "queue": true,
+  "queue": true, // Compound Tasks (Queues) support
   "hide:": false,
   "unhide": true
 }
@@ -43,20 +43,20 @@ Select which items should be shown in the task action bar for each task. This al
 - **runWithArgs** - Run Task with Arguments
 - **openFile** - Open File
 - **favorite** - Add to Favorites
-- **queue** - Add to Queue
+- **queue** - Add to Compound Task (Queue)
 - **hide** - Hide Task
 - **unhide** - Unhide Task
 
 **Example:**
 
-```json
+```jsonc
 {
   "workspaceTasks.task.actionBar": {
     "run": true,
     "runWithArgs": false,
     "openFile": true,
     "favorite": true,
-    "queue": false,
+    "queue": false, // Hide Compound Tasks (Queues) action
     "hide": false,
     "unhide": true
   }

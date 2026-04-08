@@ -245,7 +245,7 @@ export class FilteredTaskService {
         item.taskType === 'type' ||
         item.taskType === 'folder' ||
         item.taskType === 'favorites' ||
-        item.taskType === 'queue' ||
+        item.taskType === 'compoundTask' ||
         item.taskType === 'recent') {
       // This is a group - use its ID directly
       id = item.id;
@@ -297,7 +297,7 @@ export class FilteredTaskService {
         item.taskType === 'type' ||
         item.taskType === 'folder' ||
         item.taskType === 'favorites' ||
-        item.taskType === 'queue' ||
+        item.taskType === 'compoundTask' ||
         item.taskType === 'recent') {
       // This is a group - use its ID directly
       id = item.id;

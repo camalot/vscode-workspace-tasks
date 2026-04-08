@@ -9,7 +9,7 @@ import { TaskIconService } from './services/taskIconService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
-import { QueueService } from './services/queueService';
+import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
@@ -61,8 +61,8 @@ export async function activate(context: vscode.ExtensionContext) {
   await WorkspaceTasksService.getInstance().initialize(context);
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
-  QueueService.getInstance().initialize(context);
-  // Enable Settings Sync for favorites and queues so they sync across machines
+  CompoundTaskService.getInstance().initialize(context);
+  // Enable Settings Sync for favorites and compound tasks so they sync across machines
   context.globalState.setKeysForSync(['favorites', 'savedQueues']);
   FilteredTaskService.getInstance().initialize(context);
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
@@ -120,9 +120,9 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Listen for queue running state changes and refresh tree
+  // Listen for compound task running state changes and refresh tree
   context.subscriptions.push(
-    QueueService.getInstance().onQueueStateChanged(() => {
+    CompoundTaskService.getInstance().onCompoundTaskStateChanged(() => {
       taskTreeDataProvider.refreshLocal();
     })
   );

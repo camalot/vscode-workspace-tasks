@@ -15,7 +15,7 @@ nav_order: 1
 [![VS Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/darthminos.workspace-tasks.svg?label=vsm%20downloads)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?label=ovsx%20downloads)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
-A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
+A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and compound tasks — all from a single, intuitive interface.
 
 ---
 
@@ -33,16 +33,16 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📍 Flexible Placement** — View tasks in the dedicated sidebar or as a dockable panel in the Explorer
 - **⭐ Favorites** — Pin frequently used tasks for instant access
 - **🌱 Recent Tasks** — Tracks the most recently executed tasks
-- **📋 Multiple Task Queues** — Create and manage named sequences of tasks
+- **📋 Multiple Compound Tasks (Queues)** — Create and manage named sequences of tasks
 - **▶️ Quick Execution** — Double-click tasks to run instantly, or use the play icon (▶️)
 - **🎯 Smart Organization** — Hierarchical tree view organized by workspace, task type, and file
-- **🔀 Drag & Drop** — Reorder tasks in queues with drag and drop
+- **🔀 Drag & Drop** — Reorder tasks in Compound Tasks (Queues) with drag and drop
 - **🎭 GitHub Actions Support** — Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** — Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** — Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** — Hide individual tasks or entire task groups from view
-- **💾 Persistent State** — Favorites and queues are saved across Visual Studio Code sessions
-- **☁️ Settings Sync** — Sync your favorites and queues across multiple machines via VS Code's Settings Sync
+- **💾 Persistent State** — Favorites and Compound Tasks (Queues) are saved across Visual Studio Code sessions
+- **☁️ Settings Sync** — Sync your favorites and Compound Tasks (Queues) across multiple machines via VS Code's Settings Sync
 
 ---
 
@@ -61,7 +61,7 @@ See [Getting Started](getting-started) for more installation options.
 3. **Browse tasks** organized by workspace folder and task type
 4. **Run a task** by double-clicking it or clicking the play icon (▶️)
 5. **Add to favorites** by clicking the star icon (☆)
-6. **Create a queue** by clicking the list icon to organize task sequences
+6. **Create a Compound Task (Queue)** by clicking the list icon to organize task sequences
 
 See the [Getting Started guide](getting-started) for full installation and setup instructions.
 
@@ -74,7 +74,7 @@ See the [Getting Started guide](getting-started) for full installation and setup
 | [Getting Started](getting-started) | Installation and initial setup |
 | [Supported Task Types](task-types) | All supported build tools and frameworks |
 | [Favorites & Recent Tasks](features/favorites) | Pin and track frequently used tasks |
-| [Task Queues](features/task-queues) | Create sequences of tasks to run in order |
+| [Compound Tasks (Queues)](features/task-queues) | Create sequences of tasks to run in order |
 | [Hide Tasks & Groups](features/hide-tasks) | Declutter your task view |
 | [Task History](features/task-history) | Track and review all task executions |
 | [GitHub Actions Integration](task-types/github-actions) | Run workflows locally with act |

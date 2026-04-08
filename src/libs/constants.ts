@@ -4,7 +4,10 @@ const constants: Record<string, any> = {
 
   FAVORITES_KEY: 'favorites',
 
-  QUEUE_KEY: 'queue',
+  // ID prefix for compound tasks to ensure uniqueness and allow for specific handling in tree logic
+  // format: `queue:CompoundTaskName` for groups, `queue:CompoundTaskName:TaskId` for items
+  // `queue` is used to provide backwards compatibility with existing IDs and logic that may have been built around the concept of "queues" before we settled on "compound tasks" as the feature name.
+  COMPOUND_TASK_ID_KEY: 'queue',
 
   DEFAULT_TASK_GROUP_SEPARATOR: '',
 

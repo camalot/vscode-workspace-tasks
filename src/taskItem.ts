@@ -128,7 +128,7 @@ export class TaskItem extends vscode.TreeItem {
       this.taskType === 'folder' ||
       this.taskType === 'type' ||
       this.taskType === 'favorites' ||
-      this.taskType === 'queue' ||
+      this.taskType === 'compoundTask' ||
       this.taskType === 'recent'
     ) {
       // Check if this group is filtered
@@ -213,6 +213,8 @@ export class TaskItem extends vscode.TreeItem {
       // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
       // Note: This check relies on contextValue being set before updateContextValue call
       // which happens in constructor or by parent
+      // ---
+      /// The contextValue of `queuedTask` is a special case for tasks that are part of a compound task (formerly "queue") group. The name remains as `queuedTask` in the context value for backwards compatibility and to avoid breaking existing logic that may have been built around this context value before we renamed the feature to "compound tasks". When a task is added to a compound task, its contextValue is set to 'queuedTask' to allow specific menu items (e.g., "Remove from Compound Task") to be shown for these tasks. We check for this context value here and preserve it if already set, rather than overwriting it based on taskType. This allows us to maintain the special handling for tasks that are part of compound tasks while still supporting the new grouping and filtering logic.
       if (this.contextValue === 'queuedTask' || (this.contextValue && this.contextValue.includes('queuedTask'))) {
         baseContext = 'queuedTask';
       } else if (this.contextValue === 'recentTask' || (this.contextValue && this.contextValue.includes('recentTask'))) {

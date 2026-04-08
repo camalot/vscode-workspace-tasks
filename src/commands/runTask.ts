@@ -18,8 +18,8 @@ export class RunTaskCommand extends BaseCommand {
     }
 
     if (item.contextValue === 'queuedTask') {
-      const queueName = item.parent?.label as string;
-      await TaskRunner.getInstance().runQueue(queueName, item);
+      const compoundTaskName = item.parent?.label as string;
+      await TaskRunner.getInstance().runCompoundTask(compoundTaskName, item);
     } else {
       await TaskRunner.getInstance().runTask(item);
     }

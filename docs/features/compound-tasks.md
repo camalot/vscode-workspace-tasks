@@ -128,7 +128,7 @@ When you click the **Stop** button (⏹) on a compound task in the Workspace Tas
 This means a single stop action shuts down the entire task chain.
 
 {: .note }
-This behaviour can be disabled via the `workspaceTasks.task.stopCompoundDependencies` setting. When disabled, only the orchestrating compound task is stopped; running dependencies continue until they finish on their own.
+This behavior can be disabled via the `workspaceTasks.task.stopCompoundDependencies` setting. When disabled, only the orchestrating compound task is stopped; running dependencies continue until they finish on their own.
 
 ### Double-Click Force Stop
 
@@ -160,7 +160,7 @@ Compound tasks appear in the Workspace Tasks tree alongside all other tasks. The
 You can:
 
 - **Favorite** a compound task for quick access
-- **Add** a compound task to a queue
+- **Add** a compound task to a Compound Task (Queue)
 - **Stop** a compound task to terminate the full dependency chain
 
 ---
@@ -207,5 +207,5 @@ Click **▶️** next to `Full Build` in the Workspace Tasks view to run the ent
 ## Related
 
 - [Running Tasks](running-tasks)
-- [Task Queues](task-queues)
+- [Compound Tasks (Queues)](task-queues)
 - [Task Display Configuration](../configuration/task-display)

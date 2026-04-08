@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { TaskRunner } from '../../taskRunner';
 import { TaskItem } from '../../taskItem';
 import { TaskStateManager, TaskStatus } from '../../taskStateManager';
-import { QueueService } from '../../services/queueService';
+import { CompoundTaskService } from '../../services/compoundTaskService';
 import { LoggerService } from '../../services/loggerService';
 import { FavoritesService } from '../../services/favoritesService';
 import { FilteredTaskService } from '../../services/filteredTaskService';
@@ -153,7 +153,7 @@ suite('TaskRunner Test Suite', () => {
     (FilteredTaskService as any).instance = undefined;
     (RecentTasksService as any).instance = undefined;
     (LoggerService as any).instance = undefined;
-    (QueueService as any).instance = undefined;
+    (CompoundTaskService as any).instance = undefined;
   });
 
   // -------------------------------------------------------------------------
@@ -475,76 +475,76 @@ suite('TaskRunner Test Suite', () => {
   });
 
   // -------------------------------------------------------------------------
-  // runQueue – empty / missing queue
+  // runCompoundTask – empty / missing compound task
   // -------------------------------------------------------------------------
 
-  test('runQueue shows info when queue is empty', async () => {
-    const fakeQueueService = {
-      getQueue: (_name: string) => [] as TaskItem[],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+  test('runCompoundTask shows info when compound task is empty', async () => {
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [] as TaskItem[],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
-    await runner.runQueue('EmptyQueue');
+    await runner.runCompoundTask('EmptyCompoundTask');
 
     assert.strictEqual(infos.length, 1);
-    assert.ok(infos[0].includes('EmptyQueue'));
+    assert.ok(infos[0].includes('EmptyCompoundTask'));
   });
 
-  test('runQueue shows info when queue does not exist', async () => {
-    const fakeQueueService = {
-      getQueue: (_name: string) => undefined,
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+  test('runCompoundTask shows info when compound task does not exist', async () => {
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => undefined,
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
-    await runner.runQueue('NoSuchQueue');
+    await runner.runCompoundTask('NoSuchCompoundTask');
 
     assert.strictEqual(infos.length, 1);
-    assert.ok(infos[0].includes('NoSuchQueue'));
+    assert.ok(infos[0].includes('NoSuchCompoundTask'));
   });
 
   // -------------------------------------------------------------------------
-  // runQueue – successful execution
+  // runCompoundTask – successful execution
   // -------------------------------------------------------------------------
 
-  test('runQueue runs all tasks when none fail', async () => {
+  test('runCompoundTask runs all tasks when none fail', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     // Inject runTask / waitForTask stubs so we don't need real execution
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('MyQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
     assert.deepStrictEqual(ranTasks, ['task1', 'task2']);
     assert.strictEqual(errors.length, 0);
   });
 
-  test('runQueue stops at first failure and shows error', async () => {
+  test('runCompoundTask stops at first failure and shows error', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
     const item3 = makeTaskItem('task3');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2, item3],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2, item3],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
@@ -552,24 +552,24 @@ suite('TaskRunner Test Suite', () => {
       return (item.originalLabel || item.label) === 'task2' ? 'failure' : 'success';
     };
 
-    await runner.runQueue('MyQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
     assert.deepStrictEqual(ranTasks, ['task1', 'task2']);
     assert.strictEqual(errors.length, 1);
     assert.ok(errors[0].includes('task2'));
-    assert.ok(errors[0].includes('MyQueue'));
+    assert.ok(errors[0].includes('MyCompoundTask'));
   });
 
-  test('runQueue stops when a task launch throws', async () => {
+  test('runCompoundTask stops when a task launch throws', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     let callCount = 0;
     (runner as any).runTask = async (_item: TaskItem) => {
@@ -578,7 +578,7 @@ suite('TaskRunner Test Suite', () => {
     };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('MyQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
     assert.strictEqual(callCount, 1);
     assert.strictEqual(errors.length, 1);
@@ -586,74 +586,74 @@ suite('TaskRunner Test Suite', () => {
   });
 
   // -------------------------------------------------------------------------
-  // runQueue – startItem
+  // runCompoundTask – startItem
   // -------------------------------------------------------------------------
 
-  test('runQueue starts from startItem when found in queue', async () => {
+  test('runCompoundTask starts from startItem when found in compound task', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
     const item3 = makeTaskItem('task3');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2, item3],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2, item3],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('MyQueue', item2);
+    await runner.runCompoundTask('MyCompoundTask', item2);
 
     // Should only run item2 and item3
     assert.deepStrictEqual(ranTasks, ['task2', 'task3']);
   });
 
-  test('runQueue starts from index 0 when startItem not found in queue', async () => {
+  test('runCompoundTask starts from index 0 when startItem not found in compound task', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
     const outsider = makeTaskItem('outsider');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('MyQueue', outsider);
+    await runner.runCompoundTask('MyCompoundTask', outsider);
 
-    // startItem not in queue → start from index 0 (all tasks run)
+    // startItem not in compound task → start from index 0 (all tasks run)
     assert.deepStrictEqual(ranTasks, ['task1', 'task2']);
   });
 
   // -------------------------------------------------------------------------
-  // runQueue – parallel execution
+  // runCompoundTask – parallel execution
   // -------------------------------------------------------------------------
 
-  test('runQueue parallel runs all tasks concurrently', async () => {
+  test('runCompoundTask parallel runs all tasks concurrently', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
     const item3 = makeTaskItem('task3');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2, item3],
-      getQueueExecutionType: (_name: string) => 'parallel',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2, item3],
+      getCompoundTaskExecutionType: (_name: string) => 'parallel',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('ParallelQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
     // All tasks should have started
     assert.strictEqual(ranTasks.length, 3);
@@ -663,17 +663,17 @@ suite('TaskRunner Test Suite', () => {
     assert.strictEqual(errors.length, 0);
   });
 
-  test('runQueue parallel continues other tasks even if one fails', async () => {
+  test('runCompoundTask parallel continues other tasks even if one fails', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
     const item3 = makeTaskItem('task3');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2, item3],
-      getQueueExecutionType: (_name: string) => 'parallel',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2, item3],
+      getCompoundTaskExecutionType: (_name: string) => 'parallel',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
@@ -681,52 +681,52 @@ suite('TaskRunner Test Suite', () => {
       return (item.originalLabel || item.label) === 'task2' ? 'failure' : 'success';
     };
 
-    await runner.runQueue('ParallelQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
     // All 3 tasks should still have been launched in parallel
     assert.strictEqual(ranTasks.length, 3);
     assert.strictEqual(errors.length, 0); // parallel does not stop on failure
   });
 
-  test('runQueue parallel shows error when task launch throws', async () => {
+  test('runCompoundTask parallel shows error when task launch throws', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2],
-      getQueueExecutionType: (_name: string) => 'parallel',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2],
+      getCompoundTaskExecutionType: (_name: string) => 'parallel',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     (runner as any).runTask = async (item: TaskItem) => {
       if ((item.originalLabel || item.label) === 'task1') { throw new Error('launch failed'); }
     };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('ParallelQueue');
+    await runner.runCompoundTask('ParallelCompoundTask');
 
     assert.strictEqual(errors.length, 1);
     assert.ok(errors[0].includes('task1'));
-    assert.ok(errors[0].includes('ParallelQueue'));
+    assert.ok(errors[0].includes('ParallelCompoundTask'));
   });
 
   // -------------------------------------------------------------------------
-  // runQueue – cancellation
+  // runCompoundTask – cancellation
   // -------------------------------------------------------------------------
 
-  test('runQueue stops sequential execution when token is cancelled before next task', async () => {
+  test('runCompoundTask stops sequential execution when token is cancelled before next task', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
     const item3 = makeTaskItem('task3');
     let token = { cancelled: false };
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2, item3],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => { token = { cancelled: false }; return token; },
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2, item3],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => { token = { cancelled: false }; return token; },
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
@@ -737,69 +737,69 @@ suite('TaskRunner Test Suite', () => {
       return 'success';
     };
 
-    await runner.runQueue('MyQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
     // Only task1 should have run; task2 and task3 are skipped due to cancellation
     assert.deepStrictEqual(ranTasks, ['task1']);
   });
 
-  test('runQueue calls markQueueRunning and markQueueStopped', async () => {
+  test('runCompoundTask calls markCompoundTaskRunning and markCompoundTaskStopped', async () => {
     const item1 = makeTaskItem('task1');
     let runningMarked = false;
     let stoppedMarked = false;
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => { runningMarked = true; return { cancelled: false }; },
-      markQueueStopped: (_name: string) => { stoppedMarked = true; },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => { runningMarked = true; return { cancelled: false }; },
+      markCompoundTaskStopped: (_name: string) => { stoppedMarked = true; },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     (runner as any).runTask = async (_item: TaskItem) => { };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('MyQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
-    assert.ok(runningMarked, 'markQueueRunning should be called');
-    assert.ok(stoppedMarked, 'markQueueStopped should be called in finally');
+    assert.ok(runningMarked, 'markCompoundTaskRunning should be called');
+    assert.ok(stoppedMarked, 'markCompoundTaskStopped should be called in finally');
   });
 
-  test('runQueue calls markQueueStopped even when a task throws', async () => {
+  test('runCompoundTask calls markCompoundTaskStopped even when a task throws', async () => {
     const item1 = makeTaskItem('task1');
     let stoppedMarked = false;
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1],
-      getQueueExecutionType: (_name: string) => 'sequential',
-      markQueueRunning: (_name: string) => ({ cancelled: false }),
-      markQueueStopped: (_name: string) => { stoppedMarked = true; },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1],
+      getCompoundTaskExecutionType: (_name: string) => 'sequential',
+      markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
+      markCompoundTaskStopped: (_name: string) => { stoppedMarked = true; },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     (runner as any).runTask = async (_item: TaskItem) => { throw new Error('task failed'); };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('MyQueue');
+    await runner.runCompoundTask('MyCompoundTask');
 
-    assert.ok(stoppedMarked, 'markQueueStopped should be called even after task throws');
+    assert.ok(stoppedMarked, 'markCompoundTaskStopped should be called even after task throws');
   });
 
-  test('runQueue parallel skips cancelled tasks', async () => {
+  test('runCompoundTask parallel skips cancelled tasks', async () => {
     const item1 = makeTaskItem('task1');
     const item2 = makeTaskItem('task2');
     let token = { cancelled: false };
-    const fakeQueueService = {
-      getQueue: (_name: string) => [item1, item2],
-      getQueueExecutionType: (_name: string) => 'parallel',
-      markQueueRunning: (_name: string) => { token.cancelled = true; return token; }, // already cancelled
-      markQueueStopped: (_name: string) => { },
+    const fakeCompoundTaskService = {
+      getCompoundTask: (_name: string) => [item1, item2],
+      getCompoundTaskExecutionType: (_name: string) => 'parallel',
+      markCompoundTaskRunning: (_name: string) => { token.cancelled = true; return token; }, // already cancelled
+      markCompoundTaskStopped: (_name: string) => { },
     } as any;
-    (QueueService as any).instance = fakeQueueService;
+    (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
     const ranTasks: string[] = [];
     (runner as any).runTask = async (item: TaskItem) => { ranTasks.push(item.originalLabel || item.label); };
     (runner as any).waitForTask = async (_item: TaskItem): Promise<TaskStatus> => 'success';
 
-    await runner.runQueue('ParallelQueue');
+    await runner.runCompoundTask('ParallelCompoundTask');
 
     // All tasks skipped because token was already cancelled
     assert.strictEqual(ranTasks.length, 0);

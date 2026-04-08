@@ -19,7 +19,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [🛠️ Supported Task Types](#supported-task-types)
 - [🌱 Recent Tasks](#recent-tasks)
 - [⭐ Favorites](#favorites)
-- [📋 Task Queues](#task-queues)
+- [📋 Compound Tasks (Queues)](#task-queues)
 - [🙈 Hide Tasks & Groups](#hide-tasks--groups)
 - [🕰️ Task History](#task-history)
 - [⚙️ Configuration](#configuration)
@@ -46,17 +46,17 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
 - **⭐ Favorites** - Pin frequently used tasks for instant access
 - **🌱 Recent Tasks** - Tracks the most recently executed tasks
-- **📋 Multiple Task Queues** - Create and manage named sequences of tasks with sequential or parallel execution
+- **📋 Multiple Compound Tasks (Queues)** - Create and manage named sequences of tasks with sequential or parallel execution
 - **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
 - **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
-- **🔀 Drag & Drop** - Reorder tasks in queues with drag and drop
+- **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
-- **💾 Persistent State** - Favorites and queues are saved across Visual Studio Code sessions
-- **☁️ Settings Sync** - Sync your favorites and queues across multiple machines via VS Code's Settings Sync
+- **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
+- **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 
 ## 📥 Installation
 
@@ -251,34 +251,34 @@ Pin your most frequently used tasks for instant access. Favorites appear in a de
 
 <a id="task-queues"></a>
 
-## 📋 Task Queues
+## 📋 Compound Tasks (Queues)
 
-Create and manage multiple named queues to run tasks either **sequentially** (one at a time, stops on first failure) or **in parallel** (all simultaneously). Perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
+Create and manage multiple named compound tasks (queues) to run tasks either **sequentially** (one at a time, stops on first failure) or **in parallel** (all simultaneously). Perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
 
 **How to Use:**
 
 1. Click the list icon next to any task
-2. Choose an existing queue or create a new one
+2. Choose an existing compound task group (queue) or create a new one
 3. Drag and drop tasks to reorder them
-4. Run the entire queue or start from a specific task
-5. Toggle between **sequential** and **parallel** execution using the arrow-swap button in the queue action bar
+4. Run the entire compound task (queue) or start from a specific task
+5. Toggle between **sequential** and **parallel** execution using the arrow-swap button in the compound task (queue) action bar
 
 **Features:**
 
-- **Multiple Queues** - Create separate queues for different workflows (e.g., "Build", "Deploy", "CI Pipeline")
-- **Sequential or Parallel Execution** - Toggle each queue's mode; the queue icon reflects the current type
-- **Drag & Drop Reordering** - Easily reorder tasks within and across queues
-- **Visual Context** - Each queue item shows the task icon, label, workspace name, and file path
-- **Queue Controls** - Run entire queue, start from specific task, or stop execution
-- **Queue Management** - Rename queues, clear all tasks, or delete empty queues
-- **Persistent Storage** - Queues and their execution modes are saved and restored between sessions
+- **Multiple Compound Tasks (Queues)** - Create separate compound tasks (queues) for different workflows (e.g., "Build", "Deploy", "CI Pipeline")
+- **Sequential or Parallel Execution** - Toggle each compound task's mode; the compound task icon reflects the current type
+- **Drag & Drop Reordering** - Easily reorder tasks within and across compound tasks (queues)
+- **Visual Context** - Each compound task item shows the task icon, label, workspace name, and file path
+- **Compound Task Controls** - Run entire compound task, start from specific task, or stop execution
+- **Compound Task Management** - Rename compound tasks, clear all tasks, or delete empty compound tasks
+- **Persistent Storage** - Compound tasks (queues) and their execution modes are saved and restored between sessions
 - **Status Indicators** - Real-time visual feedback with running/success/failure icons
-- **Settings Sync** - Queues automatically sync across all your machines when VS Code Settings Sync is enabled
+- **Settings Sync** - Compound tasks (queues) automatically sync across all your machines when VS Code Settings Sync is enabled
 
 **Example Workflow:**
 
 ```text
-CI Pipeline Queue (Sequential):
+CI Pipeline Compound Task (Sequential):
 1. Install Dependencies (npm install)
 2. Lint Code (npm run lint)
 3. Run Tests (npm test)
@@ -286,7 +286,7 @@ CI Pipeline Queue (Sequential):
 5. Deploy to Staging (deploy.sh)
 ```
 
-Click on the navigation items for the queue to run all tasks in sequence, rename the queue, or clear it.
+Click on the navigation items for the compound task (queue) to run all tasks in sequence, rename the compound task (queue), or clear it.
 
 <a id="hide-tasks--groups"></a>
 
@@ -391,7 +391,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 3. **Browse tasks** organized by workspace folder and task type
 4. **Run a task** by double-clicking it or clicking the play icon (▶️)
 5. **Add to favorites** by clicking the star icon (☆)
-6. **Create a queue** by clicking the list icon to organize task sequences
+6. **Create a Compound Task** by clicking the list icon to organize task sequences
 
 **Tips:**
 

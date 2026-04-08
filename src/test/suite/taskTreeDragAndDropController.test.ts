@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { TaskTreeDragAndDropController } from '../../taskTreeDragAndDropController';
 import { TaskItem } from '../../taskItem';
 import { TaskStateManager } from '../../taskStateManager';
-import { QueueService } from '../../services/queueService';
+import { CompoundTaskService } from '../../services/compoundTaskService';
 import { FavoritesService } from '../../services/favoritesService';
 import { FilteredTaskService } from '../../services/filteredTaskService';
 
@@ -44,7 +44,7 @@ function makeTransferItem(value: string): vscode.DataTransferItem {
 suite('TaskTreeDragAndDropController Test Suite', () => {
   let controller: TaskTreeDragAndDropController;
   let fakeStateManager: TaskStateManager;
-  let fakeQueueService: QueueService;
+  let fakeCompoundService: CompoundTaskService;
   let executedCommands: string[];
   let originalExecuteCommand: typeof vscode.commands.executeCommand;
 
@@ -78,12 +78,12 @@ suite('TaskTreeDragAndDropController Test Suite', () => {
     } as unknown as FilteredTaskService;
     (FilteredTaskService as any).instance = fakeFilteredTaskService;
 
-    // Set up fake QueueService
-    fakeQueueService = {
-      getAllQueues: () => new Map<string, TaskItem[]>(),
-      moveQueueItem: (_source: TaskItem, _target: TaskItem) => { },
-    } as unknown as QueueService;
-    (QueueService as any).instance = fakeQueueService;
+    // Set up fake CompoundTaskService
+    fakeCompoundService = {
+      getAllCompoundTasks: () => new Map<string, TaskItem[]>(),
+      moveCompoundTaskItem: (_source: TaskItem, _target: TaskItem) => { },
+    } as unknown as CompoundTaskService;
+    (CompoundTaskService as any).instance = fakeCompoundService;
   });
 
   teardown(() => {
@@ -91,7 +91,7 @@ suite('TaskTreeDragAndDropController Test Suite', () => {
     (TaskStateManager as any).instance = undefined;
     (FavoritesService as any).instance = undefined;
     (FilteredTaskService as any).instance = undefined;
-    (QueueService as any).instance = undefined;
+    (CompoundTaskService as any).instance = undefined;
   });
 
   // ---------------------------------------------------------------------------
@@ -249,27 +249,28 @@ suite('TaskTreeDragAndDropController Test Suite', () => {
     const target = makeTaskItem('Target', 'queuedTask');
     const token = { isCancellationRequested: false } as vscode.CancellationToken;
 
-    let moveQueueItemCalled = false;
-    (fakeQueueService as any).moveQueueItem = () => { moveQueueItemCalled = true; };
+    let moveCompoundTaskItemCalled = false;
+    (fakeCompoundService as any).moveCompoundTaskItem = () => { moveCompoundTaskItemCalled = true; };
 
     await controller.handleDrop(target, dataTransfer, token);
 
-    assert.strictEqual(moveQueueItemCalled, false, 'moveQueueItem should not be called');
+    assert.strictEqual(moveCompoundTaskItemCalled, false, 'moveCompoundTaskItem should not be called');
     assert.strictEqual(executedCommands.length, 0, 'No command should be executed');
   });
 
-  test('handleDrop moves item and refreshes when source is found in a queue', async () => {
+  test('handleDrop moves item and refreshes when source is found in a compound task', async () => {
     const sourceItem = makeTaskItem('SourceTask', 'queuedTask');
     const targetItem = makeTaskItem('TargetTask', 'queuedTask');
 
-    // Return a queue containing the source item
-    const queues = new Map<string, TaskItem[]>();
-    queues.set('MyQueue', [sourceItem]);
-    (fakeQueueService as any).getAllQueues = () => queues;
+    // Return a compound task containing the source item
+    const compoundTasks = new Map<string, TaskItem[]>();
+
+    compoundTasks.set('MyCompoundTask', [sourceItem]);
+    (fakeCompoundService as any).getAllCompoundTasks = () => compoundTasks;
 
     let movedSource: TaskItem | undefined;
     let movedTarget: TaskItem | undefined;
-    (fakeQueueService as any).moveQueueItem = (src: TaskItem, tgt: TaskItem) => {
+    (fakeCompoundService as any).moveCompoundTaskItem = (src: TaskItem, tgt: TaskItem) => {
       movedSource = src;
       movedTarget = tgt;
     };
@@ -285,7 +286,7 @@ suite('TaskTreeDragAndDropController Test Suite', () => {
 
     await controller.handleDrop(targetItem, dataTransfer, token);
 
-    assert.strictEqual(movedSource, sourceItem, 'Source item should be the one from the queue');
+    assert.strictEqual(movedSource, sourceItem, 'Source item should be the one from the compound task');
     assert.strictEqual(movedTarget, targetItem, 'Target item should be the drop target');
     assert.ok(
       executedCommands.includes('workspaceTasks.refresh'),
@@ -293,18 +294,18 @@ suite('TaskTreeDragAndDropController Test Suite', () => {
     );
   });
 
-  test('handleDrop finds source in second queue when first queue has no match', async () => {
+  test('handleDrop finds source in second compound task when first compound task has no match', async () => {
     const sourceItem = makeTaskItem('LaterTask', 'queuedTask');
     const otherItem = makeTaskItem('OtherTask', 'queuedTask');
     const targetItem = makeTaskItem('TargetTask', 'queuedTask');
 
-    const queues = new Map<string, TaskItem[]>();
-    queues.set('Queue1', [otherItem]);
-    queues.set('Queue2', [sourceItem]);
-    (fakeQueueService as any).getAllQueues = () => queues;
+    const compoundTasks = new Map<string, TaskItem[]>();
+    compoundTasks.set('CompoundTask1', [otherItem]);
+    compoundTasks.set('CompoundTask2', [sourceItem]);
+    (fakeCompoundService as any).getAllCompoundTasks = () => compoundTasks;
 
     let movedSource: TaskItem | undefined;
-    (fakeQueueService as any).moveQueueItem = (src: TaskItem, _tgt: TaskItem) => {
+    (fakeCompoundService as any).moveCompoundTaskItem = (src: TaskItem, _tgt: TaskItem) => {
       movedSource = src;
     };
 
@@ -318,7 +319,7 @@ suite('TaskTreeDragAndDropController Test Suite', () => {
 
     await controller.handleDrop(targetItem, dataTransfer, token);
 
-    assert.strictEqual(movedSource, sourceItem, 'Source item should be found in the second queue');
+    assert.strictEqual(movedSource, sourceItem, 'Source item should be found in the second compound task');
     assert.ok(
       executedCommands.includes('workspaceTasks.refresh'),
       'Refresh command should be called after a move',

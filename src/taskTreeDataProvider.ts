@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import constants from './libs/constants';
 import { TaskProvider } from './taskProvider';
 import { TaskItem } from './taskItem';
 import { TaskTypeFactory } from './taskTypeItems';
@@ -9,9 +10,12 @@ import { TaskCacheService } from './services/taskCacheService';
 import { TaskIconService } from './services/taskIconService';
 import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
-import { QueueService } from './services/queueService';
+import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
+
+export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean, recent: boolean };
+export type RootTreeTypes = 'favorites' | 'compoundTask' | 'recent' | 'workspace';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private static instance: TaskTreeDataProvider | undefined;
@@ -230,9 +234,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const useParentFolder = config.get<boolean>('groups.useParentFolder', false);
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
-    const expandedGroups = config.get<{ favorites: boolean; queue: boolean; recent: boolean }>('groups.expanded', {
+    const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
       favorites: true,
-      queue: true,
+      compoundTask: true,
       recent: true,
     });
 
@@ -306,7 +310,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Determine Group Items Collapsible State and ID Salt
     // If we're in Default (Level 0), we use Collapsed as default for standard groups, but Visual Studio Code persistence should handle expansions.
-    // Favorites/Recent/Queue will verify their own config for default state.
+    // Favorites/Recent/CompoundTasks will verify their own config for default state.
 
     let groupState = vscode.TreeItemCollapsibleState.Collapsed;
     let groupSalt = '';
@@ -332,7 +336,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       : allRecentTasks.filter((t: TaskItem) => !filteredService.isFilteredOrHasFilteredParent(t));
 
     const favoritesService = FavoritesService.getInstance();
-    const queueService = QueueService.getInstance();
+    const compoundTaskService = CompoundTaskService.getInstance();
 
     // Helper to recursively check and add favorites
     const checkFavorite = (item: TaskItem) => {
@@ -526,42 +530,43 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Build the tree items
     const rootItems: TaskItem[] = [];
-    const queueGroups: TaskItem[] = [];
+    const compoundTaskGroups: TaskItem[] = [];
     let favGroup: TaskItem | undefined;
     let recentGroup: TaskItem | undefined;
+    let compoundTaskGroup: TaskItem | undefined; // TODO: for when they are grouped.
     const workspaceRoots: TaskItem[] = [];
 
-    // Add Queue Groups
-    const allQueues = queueService.getAllQueues();
-    for (const [queueName, queueTasks] of allQueues) {
-      if (queueTasks.length > 0) {
-        const queueId = `queue:${queueName}`;
-        const queueGroup = new TaskItem(
-          queueName,
-          this.getExpandedState(queueId, this.getRootState('queue', expandedGroups)),
-          'queue'
+    // Add Compound Task Groups
+    const allCompoundTasks = compoundTaskService.getAllCompoundTasks();
+    for (const [compoundTaskName, compoundTaskItems] of allCompoundTasks) {
+      if (compoundTaskItems.length > 0) {
+        const compoundTaskId = `${constants.COMPOUND_TASK_ID_PREFIX}:${compoundTaskName}`;
+        const compoundTaskGroup = new TaskItem(
+          compoundTaskName,
+          this.getExpandedState(compoundTaskId, this.getRootState('compoundTask', expandedGroups)),
+          'compoundTask'
         );
-        const executionType = queueService.getQueueExecutionType(queueName);
-        queueGroup.iconPath = {
+        const executionType = compoundTaskService.getCompoundTaskExecutionType(compoundTaskName);
+        compoundTaskGroup.iconPath = {
           light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${executionType}.svg`)),
           dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${executionType}.svg`)),
         };
-        queueGroup.id = queueId;
+        compoundTaskGroup.id = compoundTaskId;
         // Update context value after setting the final ID
-        queueGroup.updateContextValue();
+        compoundTaskGroup.updateContextValue();
 
-        // Override context value and icon when queue is actively running
-        if (queueService.isQueueRunning(queueName)) {
-          queueGroup.contextValue = 'runningQueue';
-          queueGroup.iconPath = new vscode.ThemeIcon('loading~spin');
+        // Override context value and icon when compound task is actively running
+        if (compoundTaskService.isCompoundTaskRunning(compoundTaskName)) {
+          compoundTaskGroup.contextValue = 'runningCompoundTask';
+          compoundTaskGroup.iconPath = new vscode.ThemeIcon('loading~spin');
         }
 
-        // Create Queued Items
-        for (const task of queueTasks) {
+        // Create Compound Task Items
+        for (const task of compoundTaskItems) {
           const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType);
           const iconPath = iconObj ? iconObj.TaskIcon : undefined;
 
-          const queuedItem = new TaskItem(
+          const compoundTaskItem = new TaskItem(
             task.label,
             vscode.TreeItemCollapsibleState.None,
             task.taskType,
@@ -569,9 +574,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             task.command,
             iconPath,
           );
-          queuedItem.originalLabel = task.originalLabel || task.label;
-          queuedItem.startLine = task.startLine;
-          queuedItem.metadata = task.metadata;
+          compoundTaskItem.originalLabel = task.originalLabel || task.label;
+          compoundTaskItem.startLine = task.startLine;
+          compoundTaskItem.metadata = task.metadata;
           // Set description to workspace folder and file path
           const workspaceFolder = task.taskFileUri ? vscode.workspace.getWorkspaceFolder(task.taskFileUri) : undefined;
           let description = workspaceFolder ? workspaceFolder.name : '';
@@ -582,26 +587,26 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
               description = `${description} • ${relativePath}`;
             }
           }
-          queuedItem.description = description;
+          compoundTaskItem.description = description;
 
-          // Explicitly set context value for queued items to allow distinct actions
-          queuedItem.contextValue = 'queuedTask';
-          queuedItem.parent = queueGroup;
+          // Explicitly set context value for compound task items to allow distinct actions
+          compoundTaskItem.contextValue = 'compoundTask';
+          compoundTaskItem.parent = compoundTaskGroup;
 
           // Re-sync ID just like favorites
-          queuedItem.id = task.id; // Use original task ID for status lookup
-          queuedItem.updateContextValue(); // Updates status (running/success/fail)
+          compoundTaskItem.id = task.id; // Use original task ID for status lookup
+          compoundTaskItem.updateContextValue(); // Updates status (running/success/fail)
 
-          // Force context value to queued task if not running
-          if (queuedItem.contextValue !== 'runningTask') {
-            queuedItem.contextValue = 'queuedTask';
+          // Force context value to compound task if not running
+          if (compoundTaskItem.contextValue !== 'runningCompoundTask') {
+            compoundTaskItem.contextValue = 'compoundTask';
           }
 
-          queuedItem.id = `queue:${queueName}:${queuedItem.id}`;
+          compoundTaskItem.id = `${constants.COMPOUND_TASK_ID_PREFIX}:${compoundTaskName}:${compoundTaskItem.id}`;
 
-          queueGroup.children.push(queuedItem);
+          compoundTaskGroup.children.push(compoundTaskItem);
         }
-        queueGroups.push(queueGroup);
+        compoundTaskGroups.push(compoundTaskGroup);
       }
     }
 
@@ -851,15 +856,15 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
     }
 
-    // Assemble final root order: Recent, Favorites, Queues, Projects
+    // Assemble final root order: Recent, Favorites, Compound Tasks, Projects
     if (recentGroup) {
       rootItems.push(recentGroup);
     }
     if (favGroup) {
       rootItems.push(favGroup);
     }
-    if (queueGroups.length > 0) {
-      rootItems.push(...queueGroups);
+    if (compoundTaskGroups.length > 0) {
+      rootItems.push(...compoundTaskGroups);
     }
 
     // Add remaining project roots
@@ -1094,8 +1099,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   private getRootState(
-    type: 'favorites' | 'queue' | 'recent' | 'workspace',
-    expandedGroups: { favorites: boolean; queue: boolean; recent: boolean },
+    type: RootTreeTypes,
+    expandedGroups: ExpandedTaskGroups,
   ): vscode.TreeItemCollapsibleState {
     if (this.collapseLevel === 2) {
       return vscode.TreeItemCollapsibleState.Collapsed;
@@ -1109,8 +1114,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
-    if (type === 'queue') {
-      return expandedGroups.queue
+    if (type === 'compoundTask') {
+      return expandedGroups.compoundTask
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
@@ -1123,8 +1128,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   private getGroupState(
-    rootType: 'favorites' | 'queue' | 'recent' | 'workspace',
-    expandedGroups: { favorites: boolean; queue: boolean; recent: boolean },
+    rootType: RootTreeTypes,
+    expandedGroups: ExpandedTaskGroups,
   ): vscode.TreeItemCollapsibleState {
     if (this.collapseLevel === 1) {
       return vscode.TreeItemCollapsibleState.Expanded;
@@ -1140,6 +1145,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     }
     if (rootType === 'recent') {
       return expandedGroups.recent
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed;
+    }
+    if (rootType === 'compoundTask') {
+      return expandedGroups.compoundTask
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TaskItem } from './taskItem';
 import { TaskStateManager, TaskStatus } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';
-import { QueueService } from './services/queueService';
+import { CompoundTaskService } from './services/compoundTaskService';
 import { configuration } from './libs/configuration';
 import { IPresentationOptions } from './taskDefinition';
 import { LoggerService } from './services/loggerService';
@@ -127,26 +127,26 @@ export class TaskRunner {
     }
   }
 
-  public async runQueue(queueName: string, startItem?: TaskItem) {
-    const queue = QueueService.getInstance().getQueue(queueName);
-    if (!queue || queue.length === 0) {
-      vscode.window.showInformationMessage(`Queue '${queueName}' is empty or does not exist.`);
+  public async runCompoundTask(compoundTaskName: string, startItem?: TaskItem) {
+    const compoundTask = CompoundTaskService.getInstance().getCompoundTask(compoundTaskName);
+    if (!compoundTask || compoundTask.length === 0) {
+      vscode.window.showInformationMessage(`Compound task '${compoundTaskName}' is empty or does not exist.`);
       return;
     }
 
-    const executionType = QueueService.getInstance().getQueueExecutionType(queueName);
+    const executionType = CompoundTaskService.getInstance().getCompoundTaskExecutionType(compoundTaskName);
 
     let startIndex = 0;
     if (startItem) {
       const startId = TaskStateManager.getInstance().getTaskId(startItem);
-      startIndex = queue.findIndex((t) => TaskStateManager.getInstance().getTaskId(t) === startId);
+      startIndex = compoundTask.findIndex((t) => TaskStateManager.getInstance().getTaskId(t) === startId);
       if (startIndex === -1) {
         startIndex = 0;
       }
     }
 
-    const tasksToRun = queue.slice(startIndex);
-    const token = QueueService.getInstance().markQueueRunning(queueName);
+    const tasksToRun = compoundTask.slice(startIndex);
+    const token = CompoundTaskService.getInstance().markCompoundTaskRunning(compoundTaskName);
 
     try {
       if (executionType === 'parallel') {
@@ -157,7 +157,7 @@ export class TaskRunner {
               await this.runTask(item);
               await this.waitForTask(item);
             } catch (e) {
-              vscode.window.showErrorMessage(`Queue '${queueName}': Failed to launch '${item.label}'.`);
+              vscode.window.showErrorMessage(`Compound task '${compoundTaskName}': Failed to launch '${item.label}'.`);
             }
           }),
         );
@@ -172,18 +172,18 @@ export class TaskRunner {
 
             // Check status
             if (status === 'failure') {
-              vscode.window.showErrorMessage(`Queue '${queueName}' stopped: Task '${item.label}' failed.`);
+              vscode.window.showErrorMessage(`Compound task '${compoundTaskName}' stopped: Task '${item.label}' failed.`);
               break;
             }
           } catch (e) {
             // If launch failed
-            vscode.window.showErrorMessage(`Queue stopped: Failed to launch '${item.label}'.`);
+            vscode.window.showErrorMessage(`Compound task '${compoundTaskName}' stopped: Failed to launch '${item.label}'.`);
             break;
           }
         }
       }
     } finally {
-      QueueService.getInstance().markQueueStopped(queueName);
+      CompoundTaskService.getInstance().markCompoundTaskStopped(compoundTaskName);
     }
   }
 

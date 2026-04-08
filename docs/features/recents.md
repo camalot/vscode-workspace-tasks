@@ -58,4 +58,4 @@ When enabled, recent tasks will be grouped by task type in the same way as the m
 ## Next Steps
 
 - [Configuration](../configuration) — Full settings reference
-- [Task Queues](task-queues) — Group tasks into runnable sequences
+- [Compound Tasks (Queues)](task-queues) — Group tasks into runnable sequences

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { TaskItem } from './taskItem';
+import constants from './libs/constants';
 export type TaskStatus = 'idle' | 'running' | 'success' | 'failure';
 
 interface SerializedTaskItem {
@@ -137,8 +138,8 @@ export class TaskStateManager {
       normalized = normalized.substring(4);
     }
 
-    // Handle queue prefix "queue:name:realId"
-    if (normalized && normalized.startsWith('queue:')) {
+    // Handle compound task prefix "queue:name:realId"
+    if (normalized && normalized.startsWith(`${constants.COMPOUND_TASK_ID_PREFIX}:`)) {
       const firstColon = normalized.indexOf(':');
       const secondColon = normalized.indexOf(':', firstColon + 1);
       if (secondColon !== -1) {
