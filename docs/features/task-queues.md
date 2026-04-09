@@ -81,6 +81,7 @@ You can also right-click the compound task and choose **Toggle Compound Task Exe
 - **Drag & Drop Reordering** — Easily reorder tasks within and across compound tasks
 - **Visual Context** — Each compound task item shows the task icon, label, workspace name, and file path
 - **VSCode Task Dependency Display** — When a VSCode task that has `dependsOn` is added to a compound task, its dependency tasks are shown as expandable sub-items in the tree for quick reference
+- **VSCode Compound Tasks in Group** — When the Compound Tasks group and the `includeVsCodeCompoundTasks` setting are both enabled, VSCode compound tasks (those using `dependsOn` in `tasks.json`) are automatically surfaced inside the **Compound Tasks** group alongside your user-defined compound tasks
 - **Compound Task Controls** — Run the entire compound task, start from a specific task, or stop execution
 - **Compound Task Management** — Rename compound tasks, clear all tasks, or delete empty compound tasks
 - **Persistent Storage** — Compound tasks and their execution modes are saved and restored between sessions
@@ -116,6 +117,76 @@ My Compound Task:
 ```
 
 This gives you a quick view of which tasks will run as part of the VSCode task, directly in the compound task tree.
+
+---
+
+## VSCode Compound Tasks in the Compound Tasks Group
+
+When the **Compound Tasks group** is enabled (`workspaceTasks.groups.compoundTasks.enabled`) and the **Include VS Code Compound Tasks** setting is turned on (`workspaceTasks.compoundTasks.includeVsCodeCompoundTasks`), any VSCode task that uses `dependsOn` is automatically surfaced inside the **Compound Tasks** group — alongside your user-defined compound tasks.
+
+Each VSCode compound task entry is expandable, showing all of its `dependsOn` dependency tasks as sub-items directly in the tree. This makes it easy to see your entire compound-task landscape — both native VSCode compound tasks and user-defined queues — in one place.
+
+![VSCode Compound Tasks in the Compound Tasks Group](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/compound-tasks-vscode.png)
+
+{: .note }
+VSCode compound tasks still appear in the normal task tree (under their `group` and `label`) regardless of this setting. Enabling `includeVsCodeCompoundTasks` only adds them to the Compound Tasks group as an additional entry — it does not remove them from their original location.
+
+### Required Settings
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `workspaceTasks.groups.compoundTasks.enabled` | `boolean` | `false` | Enable the **Compound Tasks** group in the task view. |
+| `workspaceTasks.compoundTasks.includeVsCodeCompoundTasks` | `boolean` | `true` | When enabled (along with the group setting above), include VSCode compound tasks in the **Compound Tasks** group. |
+
+Both settings must be enabled for VSCode compound tasks to appear in the Compound Tasks group.
+
+```json
+{
+  "workspaceTasks.groups.compoundTasks.enabled": true,
+  "workspaceTasks.compoundTasks.includeVsCodeCompoundTasks": true
+}
+```
+
+---
+
+## Workspace Tasks Compound Tasks vs. VSCode Compound Tasks
+
+VSCode's native compound tasks (defined via `dependsOn` in `tasks.json`) and Workspace Tasks compound tasks are complementary. You can use both together — in fact, you can add a VSCode compound task _into_ a Workspace Tasks compound task. The table below highlights where Workspace Tasks compound tasks offer additional flexibility.
+
+| Capability | Workspace Tasks Compound Tasks | VSCode Compound Tasks |
+| --- | --- | --- |
+| Works with any task type (npm, shell, cmake, powershell, etc.) | ✅ | ❌ VSCode tasks only |
+| Add a VSCode compound task as a step | ✅ | ✅ |
+| Create and manage entirely through the UI | ✅ | ❌ Requires editing `tasks.json` |
+| Toggle sequential ↔ parallel with one click | ✅ | ❌ Requires editing `tasks.json` |
+| Start execution from any step in the list | ✅ | ❌ Always starts from the first dependency |
+| Drag & drop to reorder steps | ✅ | ❌ Requires editing `tasks.json` |
+| Per-task real-time status icons (running / success / failure) | ✅ | ✅ |
+| Multiple independent named compound tasks | ✅ | ✅ (separate task entries) |
+| Stop the entire chain with one action | ✅ | ✅ (with `stopCompoundDependencies`) |
+| Persistent without committing a file to source control | ✅ Settings Sync | ❌ Stored in `tasks.json` |
+| Can be added to Favorites | ✅ | ✅ |
+
+### When to Use Each
+
+**Use VSCode compound tasks when:**
+
+- Your workflow is tightly coupled to the project and should be shared with all contributors via `tasks.json`
+- You need VS Code to resolve task dependencies automatically (e.g., pre-built chains with `dependsOn`)
+- The steps are always the same and don't need to change often
+
+**Use Workspace Tasks compound tasks when:**
+
+- You want a UI-driven workflow that doesn't require editing any JSON files
+- You need to mix different task types in a single sequence (npm scripts, shell commands, cmake targets, etc.)
+- You want to easily toggle between sequential and parallel execution
+- You want to skip ahead and start from the middle of a long pipeline
+- You want a personal workflow that is synced via Settings Sync rather than committed to the repo
+
+**Use both together when:**
+
+- You have project-defined VSCode compound tasks that you want to chain with other task types
+- You want to wrap one or more VSCode compound tasks inside a larger Workspace Tasks compound task pipeline
 
 ---
 

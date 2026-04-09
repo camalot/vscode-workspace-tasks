@@ -1338,6 +1338,193 @@ suite('TaskTreeDataProvider Test Suite', () => {
         assert.ok(labels.includes('CompoundB'), 'CompoundB should be a child');
       });
     });
+
+    // Helper to configure both groups.compoundTasks.enabled and includeVsCodeCompoundTasks
+    function withVscodeCompoundTasksEnabled(
+      includeVscode: boolean,
+      callback: () => Promise<void>,
+    ): Promise<void> {
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: (key: string, defaultValue?: any) => {
+              if (key === 'groups.compoundTasks.enabled') { return true; }
+              if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return includeVscode; }
+              return defaultValue;
+            },
+          };
+        }
+        return originalGetConfig.call(vscode.workspace, section);
+      };
+      return callback().finally(() => {
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+      });
+    }
+
+    test('vscode compound tasks appear as direct children of Compound Tasks root when includeVsCodeCompoundTasks is true', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile', 'Test'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have Compound Tasks root');
+
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build should be a direct child of Compound Tasks root');
+        assert.strictEqual(vscodeChild!.taskType, 'vscode', 'Child should have vscode type');
+        assert.strictEqual(
+          vscodeChild!.collapsibleState,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          'VSCode compound task should be collapsible',
+        );
+      });
+    });
+
+    test('vscode compound task has dependency sub-items when includeVsCodeCompoundTasks is true', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile', 'Test'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build should exist');
+        assert.strictEqual(vscodeChild!.children.length, 2, 'Should have 2 dependency sub-items');
+
+        const depLabels = vscodeChild!.children.map((d) => d.label);
+        assert.ok(depLabels.includes('Compile'), 'Should have Compile dep');
+        assert.ok(depLabels.includes('Test'), 'Should have Test dep');
+      });
+    });
+
+    test('vscode task without dependsOn is NOT added to Compound Tasks root', async () => {
+      const vscodeTask = new TaskItem('Build', vscode.TreeItemCollapsibleState.None, 'vscode');
+      vscodeTask.id = 'vscode-build-id';
+      vscodeTask.originalLabel = 'Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      // no dependsOnLabels metadata
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        // No compound tasks group because no vscode compound tasks and no user compound tasks
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.strictEqual(compoundTasksRoot, undefined, 'Should not have Compound Tasks root when no compound tasks exist');
+      });
+    });
+
+    test('vscode compound task is NOT added to Compound Tasks root when includeVsCodeCompoundTasks is false', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile', 'Test'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(false, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.strictEqual(compoundTasksRoot, undefined, 'Should not have Compound Tasks root when includeVsCodeCompoundTasks is false');
+      });
+    });
+
+    test('vscode compound task has unique prefixed ID for tree node uniqueness', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build should exist');
+        assert.ok(
+          vscodeChild!.id?.startsWith('compoundTasksVscode:'),
+          `ID should be prefixed with 'compoundTasksVscode:', got '${vscodeChild!.id}'`,
+        );
+      });
+    });
+
+    test('vscode compound task and user-defined compound tasks both appear under Compound Tasks root', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile'] };
+
+      const npmTask = new TaskItem('test', vscode.TreeItemCollapsibleState.None, 'npm');
+      npmTask.id = 'npm-test-id';
+      npmTask.originalLabel = 'test';
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [npmTask]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have Compound Tasks root');
+
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build VSCode compound task should be a child');
+
+        const userCompoundChild = compoundTasksRoot!.children.find((c) => c.label === 'MyCompound');
+        assert.ok(userCompoundChild, 'User-defined MyCompound should be a child');
+        assert.strictEqual(userCompoundChild!.taskType, 'compoundTask');
+      });
+    });
   });
 
   // ── organizeTasks with groups disabled ───────────────────────────────────

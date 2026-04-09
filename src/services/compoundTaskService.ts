@@ -235,16 +235,21 @@ export class CompoundTaskService {
     return Array.from(this.compoundTasks.keys());
   }
 
-  public createCompoundTask(name: string, executionType: CompoundTaskExecutionType = 'sequential') {
+  private getConfigDefaultExecutionType(): CompoundTaskExecutionType {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    return config.get<CompoundTaskExecutionType>('compoundTasks.defaultExecutionType', 'sequential');
+  }
+
+  public createCompoundTask(name: string, executionType?: CompoundTaskExecutionType) {
     if (!this.compoundTasks.has(name)) {
       this.compoundTasks.set(name, []);
-      this.compoundTaskTypes.set(name, executionType);
+      this.compoundTaskTypes.set(name, executionType ?? this.getConfigDefaultExecutionType());
       this.saveCompoundTasks();
     }
   }
 
   public getCompoundTaskExecutionType(name: string): CompoundTaskExecutionType {
-    return this.compoundTaskTypes.get(name) ?? 'sequential';
+    return this.compoundTaskTypes.get(name) ?? this.getConfigDefaultExecutionType();
   }
 
   public setCompoundTaskExecutionType(name: string, executionType: CompoundTaskExecutionType) {
@@ -255,6 +260,7 @@ export class CompoundTaskService {
   public addToCompoundTask(item: TaskItem, compoundTaskName: string) {
     if (!this.compoundTasks.has(compoundTaskName)) {
       this.compoundTasks.set(compoundTaskName, []);
+      this.compoundTaskTypes.set(compoundTaskName, this.getConfigDefaultExecutionType());
     }
 
     const compoundTask = this.compoundTasks.get(compoundTaskName)!;

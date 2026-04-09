@@ -2,7 +2,7 @@
 layout: default
 title: 🙈 Hide Tasks & Groups
 parent: 🚀 Features
-nav_order: 3
+nav_order: 5
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

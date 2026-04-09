@@ -246,6 +246,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const useParentFolder = config.get<boolean>('groups.useParentFolder', false);
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const compoundTasksGroupEnabled = config.get<boolean>('groups.compoundTasks.enabled', false);
+    const includeVsCodeCompoundTasks = config.get<boolean>('compoundTasks.includeVsCodeCompoundTasks', true);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
     const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
       favorites: true,
@@ -545,6 +546,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const rootItems: TaskItem[] = [];
     const compoundTaskGroups: TaskItem[] = [];
     const favoriteCompoundGroups: TaskItem[] = [];
+    const vscodeCompoundTasksForGroup: TaskItem[] = [];
     let favGroup: TaskItem | undefined;
     let recentGroup: TaskItem | undefined;
     let compoundTaskGroup: TaskItem | undefined; // TODO: for when they are grouped.
@@ -734,6 +736,89 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           favCompoundGroup.id = `fav:${compoundTaskId}`;
           favoriteCompoundGroups.push(favCompoundGroup);
         }
+      }
+    }
+
+    // Collect VSCode compound tasks (with dependsOn) for the Compound Tasks group
+    if (compoundTasksGroupEnabled && includeVsCodeCompoundTasks) {
+      const allCacheTasks = TaskCacheService.getInstance().getAllTasks();
+      const vscodeIconObj = TaskIconService.getInstance().getTaskTypeIcon('vscode');
+      const vscodeDepIconPath = vscodeIconObj ? vscodeIconObj.TaskIcon : undefined;
+
+      for (const task of filteredTasks) {
+        if (task.taskType !== 'vscode') {
+          continue;
+        }
+        const dependsOnLabels: string[] = Array.isArray(task.metadata?.dependsOnLabels)
+          ? task.metadata.dependsOnLabels
+          : [];
+        if (dependsOnLabels.length === 0) {
+          continue;
+        }
+
+        const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType);
+        const iconPath = iconObj ? iconObj.TaskIcon : undefined;
+
+        const compoundItem = new TaskItem(
+          task.label,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          task.taskType,
+          task.taskFileUri,
+          task.command,
+          iconPath,
+        );
+        compoundItem.originalLabel = task.originalLabel || task.label;
+        compoundItem.startLine = task.startLine;
+        compoundItem.metadata = task.metadata;
+        compoundItem.taskFileUri = task.taskFileUri;
+        compoundItem.taskSource = task.taskSource;
+        compoundItem.taskOrigin = task.taskOrigin;
+        compoundItem.task = task.task;
+
+        const taskWsFolder = task.taskFileUri ? vscode.workspace.getWorkspaceFolder(task.taskFileUri) : undefined;
+        let taskDescription = taskWsFolder ? taskWsFolder.name : '';
+        if (task.taskFileUri && taskWsFolder) {
+          const relativePath = vscode.workspace.asRelativePath(task.taskFileUri, false);
+          if (relativePath && relativePath !== taskDescription) {
+            taskDescription = `${taskDescription} • ${relativePath}`;
+          }
+        }
+        compoundItem.description = taskDescription;
+
+        // Use the original task ID for state (running/success/fail) lookup, then prefix for tree uniqueness
+        compoundItem.id = task.id;
+        compoundItem.updateContextValue();
+        compoundItem.id = `compoundTasksVscode:${task.id}`;
+
+        // Build dependency sub-items
+        for (const depLabel of dependsOnLabels) {
+          const depTask = allCacheTasks.find(
+            (t) =>
+              t.taskType === 'vscode' &&
+              String(t.originalLabel || t.label).toLowerCase() === depLabel.toLowerCase() &&
+              t.taskFileUri?.toString() === task.taskFileUri?.toString(),
+          );
+
+          const depItem = new TaskItem(
+            depLabel,
+            vscode.TreeItemCollapsibleState.None,
+            'vscode',
+            depTask?.taskFileUri ?? task.taskFileUri,
+            undefined,
+            depTask?.defaultIconPath ?? vscodeDepIconPath,
+          );
+          depItem.originalLabel = depLabel;
+          depItem.startLine = depTask?.startLine;
+          depItem.metadata = depTask?.metadata;
+          depItem.description = taskDescription;
+          depItem.parent = compoundItem;
+          depItem.id = depTask?.id ?? depItem.id;
+          depItem.updateContextValue();
+          depItem.id = `${compoundItem.id}:dep:${depItem.id}`;
+          compoundItem.children.push(depItem);
+        }
+
+        vscodeCompoundTasksForGroup.push(compoundItem);
       }
     }
 
@@ -1003,7 +1088,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     if (favGroup) {
       rootItems.push(favGroup);
     }
-    if (compoundTaskGroups.length > 0) {
+    if (compoundTaskGroups.length > 0 || vscodeCompoundTasksForGroup.length > 0) {
       if (compoundTasksGroupEnabled) {
         // Wrap all compound task groups under a single "Compound Tasks" root item
         const compoundTasksRootId = this.makeId('compoundTasks', rootSalt);
@@ -1015,6 +1100,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         compoundTasksRoot.id = compoundTasksRootId;
         compoundTasksRoot.updateContextValue();
         compoundTasksRoot.iconPath = new vscode.ThemeIcon('layers');
+
+        // Add VSCode compound tasks (from tasks.json dependsOn) as direct root children
+        for (const item of vscodeCompoundTasksForGroup) {
+          item.parent = compoundTasksRoot;
+          compoundTasksRoot.children.push(item);
+        }
 
         for (const group of compoundTaskGroups) {
           group.parent = compoundTasksRoot;

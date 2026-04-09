@@ -196,7 +196,7 @@
   "config.workspaceTasks.compoundTasks.defaultExecutionType.markdown": "Specify the default execution type for compound tasks (previously called 'Queues'). Options are 'sequential' or 'parallel'.",
 
   "config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks": "Include Visual Studio Code Compound Tasks",
-  "config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks.markdown": "When enabled, compound tasks defined in Visual Studio Code (using `type: 'compound'` in `tasks.json`) will be included in the `Compound Tasks` group. They will still be defined in the normal tree structure based on their `group` and `label` even if this setting is disabled.",
+  "config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks.markdown": "When enabled along with `workspaceTasks.groups.compoundTasks.enabled`, compound tasks defined in Visual Studio Code (using `type: 'compound'` in `tasks.json`) will be included in the `Compound Tasks` group. They will still be defined in the normal tree structure based on their `group` and `label` even if this setting is disabled.",
 
   "config.workspaceTasks.taskDiscovery.fetchDepth": "Fetch Depth for Task Discovery",
   "config.workspaceTasks.taskDiscovery.fetchDepth.markdown": "Specify the fetch depth when discovering tasks from within the workspace. A value of `null` means full fetch, while a positive integer limits the depth of the fetch operation. This can help improve performance when working with large repositories.",

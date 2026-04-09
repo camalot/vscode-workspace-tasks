@@ -1,7 +1,7 @@
 ---
 layout: default
 title: 🚫 Ignoring Tasks
-nav_order: 6
+nav_order: 8
 parent: 🚀 Features
 ---
 

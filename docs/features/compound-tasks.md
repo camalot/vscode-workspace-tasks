@@ -1,12 +1,12 @@
 ---
 layout: default
-title: 🔗 Compound Tasks
+title: 🔗 VSCode Compound Tasks
 parent: 🚀 Features
-nav_order: 5
+nav_order: 3
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
-# Compound Tasks
+# VSCode Compound Tasks
 {: .no_toc }
 
 <!-- markdownlint-disable-next-line MD022 -->

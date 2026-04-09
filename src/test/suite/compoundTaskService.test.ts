@@ -168,6 +168,37 @@ suite('CompoundTaskService Test Suite', () => {
     assert.strictEqual(compoundTaskService.getCompoundTask('Existing')?.length, 1);
   });
 
+  test('createCompoundTask uses configured defaultExecutionType when no type provided', () => {
+    const originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = () => ({
+      get: <T>(key: string, defaultValue?: T) =>
+        key === 'compoundTasks.defaultExecutionType' ? ('parallel' as unknown as T) : defaultValue as T,
+    });
+    try {
+      compoundTaskService.initialize(mockContext);
+      compoundTaskService.createCompoundTask('ConfiguredCompoundTask');
+      assert.strictEqual(compoundTaskService.getCompoundTaskExecutionType('ConfiguredCompoundTask'), 'parallel');
+    } finally {
+      (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+    }
+  });
+
+  test('addToCompoundTask uses configured defaultExecutionType when creating a new compound task', () => {
+    const originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = () => ({
+      get: <T>(key: string, defaultValue?: T) =>
+        key === 'compoundTasks.defaultExecutionType' ? ('parallel' as unknown as T) : defaultValue as T,
+    });
+    try {
+      compoundTaskService.initialize(mockContext);
+      const item = new TaskItem('Task1', vscode.TreeItemCollapsibleState.None, 'type');
+      compoundTaskService.addToCompoundTask(item, 'NewViaAdd');
+      assert.strictEqual(compoundTaskService.getCompoundTaskExecutionType('NewViaAdd'), 'parallel');
+    } finally {
+      (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+    }
+  });
+
   test('addToCompoundTask adds item to compound task', () => {
     compoundTaskService.initialize(mockContext);
     const item = new TaskItem('Task1', vscode.TreeItemCollapsibleState.None, 'type');
