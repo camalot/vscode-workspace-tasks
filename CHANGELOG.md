@@ -1,3 +1,43 @@
+## [1.5.0] - 2026-04-09
+
+### 🚀 Features
+
+- Added support for parallel and sequential queues
+
+- Queues refactored as 'Compound Tasks' #149
+
+- When setting enabled, group compound tasks at root of tree #149
+
+- Enable vscode compound tasks to be grouped with compound tasks
+
+
+### 🐛 Bug Fixes
+
+- Compound tasks not remaining favorited after renamed #149
+
+- Vscode compound tasks not updating state
+
+- Correct possition of run compound task action bar button
+
+- Ensure queue setting is deprecated and backwards compatible with the new compoundTasks expanded setting #149
+
+- CompoundTasksVscode id prefix normalized #149
+
+- Ensure the correct filter ID is stored for hide/unhide when compound task are grouped at the root #149
+
+- Provide command palette to purge invalid compound tasks
+
+
+### 📚 Documentation
+
+- Document the new features for Workspace Tasks Compound Tasks
+
+- Documentation around troubleshooting and clearing bad compound tasks
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.4.0...v1.5.0
+
 ## [1.4.0] - 2026-04-07
 
 ### 🚀 Features
