@@ -102,7 +102,7 @@ export class FilteredTaskService {
    */
   readonly onDidChange: vscode.Event<void> = this._onDidChange.event;
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Gets the singleton instance of FilteredTaskService.
@@ -242,11 +242,12 @@ export class FilteredTaskService {
     let id: string | undefined;
 
     if (item.taskType === 'workspace' ||
-        item.taskType === 'type' ||
-        item.taskType === 'folder' ||
-        item.taskType === 'favorites' ||
-        item.taskType === 'compoundTask' ||
-        item.taskType === 'recent') {
+      item.taskType === 'type' ||
+      item.taskType === 'folder' ||
+      item.taskType === 'favorites' ||
+      item.taskType === 'compoundTask' ||
+      item.taskType === 'compoundTasks' ||
+      item.taskType === 'recent') {
       // This is a group - use its ID directly
       id = item.id;
     } else {
@@ -294,11 +295,12 @@ export class FilteredTaskService {
     let id: string | undefined;
 
     if (item.taskType === 'workspace' ||
-        item.taskType === 'type' ||
-        item.taskType === 'folder' ||
-        item.taskType === 'favorites' ||
-        item.taskType === 'compoundTask' ||
-        item.taskType === 'recent') {
+      item.taskType === 'type' ||
+      item.taskType === 'folder' ||
+      item.taskType === 'favorites' ||
+      item.taskType === 'compoundTask' ||
+      item.taskType === 'compoundTasks' ||
+      item.taskType === 'recent') {
       // This is a group - use its ID directly
       id = item.id;
     } else {
