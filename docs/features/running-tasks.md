@@ -122,20 +122,20 @@ See [Favorites](favorites) for more details on managing and configuring favorite
 
 ---
 
-## Adding a Task to a Queue
+## Adding a Task to a Compound Task (Queue)
 
-Task Queues let you run multiple tasks in sequence.
+Compound Tasks (Queues) let you run multiple tasks in sequence.
 
 1. **Hover** over the task to reveal the action bar
-2. Click the **queue icon** (`$(list-unordered)`) in the action bar
+2. Click the **compound task icon** (`$(list-unordered)`) in the action bar
 
    — or —
 
-   **Right-click** the task and select **Add to Queue**
+   **Right-click** the task and select **Add to Compound Task (Queue)**
 
-3. If no queues exist, you are prompted to enter a name for a new queue
-4. If queues already exist, select an existing queue from the list or choose **New Queue...** to create one
+3. If no compound tasks exist, you are prompted to enter a name for a new compound task
+4. If compound tasks already exist, select an existing compound task from the list or choose **New Compound Task (Queue)...** to create one
 
-The task is added to the selected queue and appears in the **Queues** section of the task tree.
+The task is added to the selected compound task group and appears in the **Compound Tasks (Queues)** section of the task tree.
 
-See [Task Queues](task-queues) for details on running, reordering, and managing queues.
+See [Compound Tasks (Queues)](task-queues) for details on running, reordering, and managing compound tasks.

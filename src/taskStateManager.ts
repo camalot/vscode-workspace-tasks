@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { TaskItem } from './taskItem';
+import constants from './libs/constants';
 export type TaskStatus = 'idle' | 'running' | 'success' | 'failure';
 
 interface SerializedTaskItem {
@@ -137,13 +138,28 @@ export class TaskStateManager {
       normalized = normalized.substring(4);
     }
 
-    // Handle queue prefix "queue:name:realId"
-    if (normalized && normalized.startsWith('queue:')) {
+    // Strip VSCode native compound task prefix "compoundTasksVscode:realId"
+    if (normalized && normalized.startsWith(`${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:`)) {
+      normalized = normalized.substring(constants.VSCODE_COMPOUND_TASK_ID_PREFIX.length + 1);
+    }
+
+    // Handle compound task prefix "queue:name:realId"
+    if (normalized && normalized.startsWith(`${constants.COMPOUND_TASK_ID_PREFIX}:`)) {
       const firstColon = normalized.indexOf(':');
       const secondColon = normalized.indexOf(':', firstColon + 1);
       if (secondColon !== -1) {
         normalized = normalized.substring(secondColon + 1);
       }
+    }
+
+    // Strip compound-task dependency-item suffix ":dep:realDepTaskId".
+    // Dep items inside a compound task get the full path
+    // "vscodeTaskId:dep:depTaskId" after the queue prefix is removed above.
+    // We need only the canonical dep task ID for status/filter/favorite lookups.
+    const depMarker = ':dep:';
+    const depIdx = normalized.indexOf(depMarker);
+    if (depIdx !== -1) {
+      normalized = normalized.substring(depIdx + depMarker.length);
     }
 
     // Check if we have a cached migration for this old ID

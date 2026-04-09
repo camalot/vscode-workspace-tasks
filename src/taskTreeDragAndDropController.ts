@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { TaskItem } from './taskItem';
 import { TaskStateManager } from './taskStateManager';
-import { QueueService } from './services/queueService';
+import { CompoundTaskService } from './services/compoundTaskService';
 
 export class TaskTreeDragAndDropController implements vscode.TreeDragAndDropController<TaskItem> {
   readonly dragMimeTypes = ['application/vnd.code.tree.workspaceTasksView'];
@@ -53,10 +53,10 @@ export class TaskTreeDragAndDropController implements vscode.TreeDragAndDropCont
     }
 
     // Perform the move in the state manager
-    // Find source item across all queues
+    // Find source item across all compound tasks
     let sourceItem: TaskItem | undefined;
-    const allQueues = QueueService.getInstance().getAllQueues();
-    for (const [_, tasks] of allQueues) {
+    const allCompoundTasks = CompoundTaskService.getInstance().getAllCompoundTasks();
+    for (const [_, tasks] of allCompoundTasks) {
       const found = tasks.find((t) => TaskStateManager.getInstance().getTaskId(t) === sourceId);
       if (found) {
         sourceItem = found;
@@ -65,7 +65,7 @@ export class TaskTreeDragAndDropController implements vscode.TreeDragAndDropCont
     }
 
     if (sourceItem) {
-      QueueService.getInstance().moveQueueItem(sourceItem, target);
+      CompoundTaskService.getInstance().moveCompoundTaskItem(sourceItem, target);
       vscode.commands.executeCommand('workspaceTasks.refresh');
     }
   }

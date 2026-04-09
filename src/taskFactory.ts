@@ -29,6 +29,19 @@ export interface CreatedTask {
   native: boolean;
 }
 
+/**
+ * The complete set of task types with a case-handler in createTaskForItem.
+ * Any item whose taskType is NOT in this set (and has no taskSource or native task) will
+ * return undefined from createTaskForItem and cannot be run.
+ */
+export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
+  'npm', 'yarn', 'bun', 'pnpm', 'deno', 'mise', 'jupyter',
+  'maven', 'gradle', 'composer', 'shell', 'grunt', 'gulp', 'ant',
+  'workspace-task', 'github-actions', 'vscode', 'makefile', 'dockerfile',
+  'pipenv', 'venv', 'msbuild', 'justfile', 'cmake', 'cake',
+  'poe', 'poetry', 'cargo-make',
+]);
+
 export async function createTaskForItem(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
   if (!item) {
     return undefined;

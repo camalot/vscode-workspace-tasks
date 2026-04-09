@@ -5,10 +5,11 @@ import { TaskItem } from '../../taskItem';
 import { TaskCacheService } from '../../services/taskCacheService';
 import { FilteredTaskService } from '../../services/filteredTaskService';
 import { FavoritesService } from '../../services/favoritesService';
-import { QueueService } from '../../services/queueService';
+import { CompoundTaskService } from '../../services/compoundTaskService';
 import { RecentTasksService } from '../../services/recentTasksService';
 import { TaskStateManager } from '../../taskStateManager';
 import { TaskIconService } from '../../services/taskIconService';
+import constants from '../../libs/constants';
 
 // ─── Mock helpers ────────────────────────────────────────────────────────────
 
@@ -56,7 +57,7 @@ function resetSingletons() {
   (TaskCacheService as any).instance = undefined;
   (FilteredTaskService as any).instance = undefined;
   (FavoritesService as any).instance = undefined;
-  (QueueService as any).instance = undefined;
+  (CompoundTaskService as any).instance = undefined;
   (RecentTasksService as any).instance = undefined;
   (TaskStateManager as any).instance = undefined;
   (TaskIconService as any).instance = undefined;
@@ -89,8 +90,8 @@ function stubServicesForOrganize(tasks: TaskItem[]) {
   // Stub isFavorite to return false by default
   (favService as any).isFavorite = (_item: TaskItem | string) => false;
 
-  const queueService = QueueService.getInstance();
-  (queueService as any).getAllQueues = () => new Map<string, TaskItem[]>();
+  const compoundService = CompoundTaskService.getInstance();
+  (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
 
   const recentService = RecentTasksService.getInstance();
   (recentService as any).getRecentTasks = () => [];
@@ -456,14 +457,14 @@ suite('TaskTreeDataProvider Test Suite', () => {
   // ── getRootState (internal) ──────────────────────────────────────────────
 
   suite('getRootState (internal)', () => {
-    const expandedGroups = { favorites: true, queue: true, recent: true };
-    const collapsedGroups = { favorites: false, queue: false, recent: false };
+    const expandedGroups = { favorites: true, compoundTask: true, recent: true };
+    const collapsedGroups = { favorites: false, compoundTask: false, recent: false };
 
     test('collapseLevel 2 always returns Collapsed', () => {
       const provider = new TaskTreeDataProvider(ctx);
       (provider as any).collapseLevel = 2;
       assert.strictEqual((provider as any).getRootState('favorites', expandedGroups), vscode.TreeItemCollapsibleState.Collapsed);
-      assert.strictEqual((provider as any).getRootState('queue', expandedGroups), vscode.TreeItemCollapsibleState.Collapsed);
+      assert.strictEqual((provider as any).getRootState('compoundTask', expandedGroups), vscode.TreeItemCollapsibleState.Collapsed);
       assert.strictEqual((provider as any).getRootState('recent', expandedGroups), vscode.TreeItemCollapsibleState.Collapsed);
       assert.strictEqual((provider as any).getRootState('workspace', expandedGroups), vscode.TreeItemCollapsibleState.Collapsed);
     });
@@ -486,14 +487,14 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.strictEqual((provider as any).getRootState('favorites', collapsedGroups), vscode.TreeItemCollapsibleState.Collapsed);
     });
 
-    test('collapseLevel 0, queue=true returns Expanded', () => {
+    test('collapseLevel 0, compoundTask=true returns Expanded', () => {
       const provider = new TaskTreeDataProvider(ctx);
-      assert.strictEqual((provider as any).getRootState('queue', expandedGroups), vscode.TreeItemCollapsibleState.Expanded);
+      assert.strictEqual((provider as any).getRootState('compoundTask', expandedGroups), vscode.TreeItemCollapsibleState.Expanded);
     });
 
-    test('collapseLevel 0, queue=false returns Collapsed', () => {
+    test('collapseLevel 0, compoundTask=false returns Collapsed', () => {
       const provider = new TaskTreeDataProvider(ctx);
-      assert.strictEqual((provider as any).getRootState('queue', collapsedGroups), vscode.TreeItemCollapsibleState.Collapsed);
+      assert.strictEqual((provider as any).getRootState('compoundTask', collapsedGroups), vscode.TreeItemCollapsibleState.Collapsed);
     });
 
     test('collapseLevel 0, recent=true returns Expanded', () => {
@@ -515,8 +516,8 @@ suite('TaskTreeDataProvider Test Suite', () => {
   // ── getGroupState (internal) ─────────────────────────────────────────────
 
   suite('getGroupState (internal)', () => {
-    const expandedGroups = { favorites: true, queue: true, recent: true };
-    const collapsedGroups = { favorites: false, queue: false, recent: false };
+    const expandedGroups = { favorites: true, compoundTask: true, recent: true };
+    const collapsedGroups = { favorites: false, compoundTask: false, recent: false };
 
     test('collapseLevel 1 returns Expanded for all types', () => {
       const provider = new TaskTreeDataProvider(ctx);
@@ -687,26 +688,477 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.strictEqual(recentGroup!.label, 'Recent Tasks');
     });
 
-    test('includes queue group when queue has items', async () => {
-      const task = new TaskItem('queue-task', vscode.TreeItemCollapsibleState.None, 'npm');
-      task.id = 'queue-task-id';
-      task.originalLabel = 'queue-task';
+    test('includes compound task group when compound task has items', async () => {
+      const task = new TaskItem('compound-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'compound-task-id';
+      task.originalLabel = 'compound-task';
 
       stubServicesForOrganize([]);
 
-      // Stub getAllQueues to return a queue with one task
-      const queueService = QueueService.getInstance();
-      (queueService as any).getAllQueues = () => new Map([['MyQueue', [task]]]);
+      // Stub getAllCompoundTasks to return a compound task with one task
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompoundTask', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
 
       const provider = new TestableTaskTreeDataProvider(ctx);
       const roots = await provider.getChildren();
 
-      const queueGroup = roots.find((r) => r.taskType === 'queue');
-      assert.ok(queueGroup, 'Should have queue group');
-      assert.strictEqual(queueGroup!.label, 'MyQueue');
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      assert.strictEqual(compoundGroup!.label, 'MyCompoundTask');
     });
 
-    test('root ordering: recent, favorites, queue, workspace', async () => {
+    test('compound task child items have queuedTask contextValue, not compoundTask', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompoundTask', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      assert.ok(compoundGroup!.children.length > 0, 'Compound task group should have children');
+
+      const childItem = compoundGroup!.children[0];
+      assert.ok(
+        childItem.contextValue === 'queuedTask' || childItem.contextValue?.startsWith('running'),
+        `Compound task child contextValue should be 'queuedTask' or 'runningQueuedTask', got '${childItem.contextValue}'`
+      );
+      assert.notStrictEqual(childItem.contextValue, 'compoundTask', 'Child item should not have compoundTask contextValue');
+    });
+
+    test('vscode task with dependsOnLabels shows as collapsible with dependency children', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1', 'dep2'] };
+
+      // dep1 exists in cache
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      dep1.startLine = 5;
+
+      stubServicesForOrganize([dep1]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      assert.ok(compoundGroup!.children.length > 0, 'Compound task group should have children');
+
+      const compoundTaskItem = compoundGroup!.children[0];
+      assert.strictEqual(compoundTaskItem.label, 'MyVscodeTask');
+      assert.strictEqual(compoundTaskItem.collapsibleState, vscode.TreeItemCollapsibleState.Collapsed,
+        'Task with dependsOnLabels should be collapsible');
+      assert.strictEqual(compoundTaskItem.children.length, 2, 'Should have two dependency children');
+    });
+
+    test('dependency children have the same contextValue as their task type', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+      assert.strictEqual(compoundTaskItem.children.length, 1);
+
+      const depItem = compoundTaskItem.children[0];
+      assert.strictEqual(depItem.label, 'dep1');
+      // Dependency items use the natural context value for their task type (e.g. 'task'),
+      // not a special 'compoundTaskDependency', so they show the same action bar as their type.
+      assert.ok(
+        depItem.contextValue === 'task' || depItem.contextValue?.endsWith('Task') || depItem.contextValue?.includes('task'),
+        `Dependency item should have a task-type contextValue, got '${depItem.contextValue}'`
+      );
+      assert.strictEqual(depItem.collapsibleState, vscode.TreeItemCollapsibleState.None,
+        'Dependency item should not be collapsible');
+    });
+
+    test('dependency child uses cached task properties when found in cache', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      dep1.startLine = 10;
+
+      stubServicesForOrganize([dep1]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+      const depItem = compoundTaskItem.children[0];
+
+      assert.strictEqual(depItem.startLine, 10, 'Dependency item should use startLine from cached task');
+    });
+
+    test('dependency child shows running status when dep task is running at build time', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+
+      stubServicesForOrganize([dep1]);
+      const stateManager = TaskStateManager.getInstance();
+      stateManager.setStatus('dep1-id', 'running');
+
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+      const depItem = compoundTaskItem.children[0];
+
+      assert.ok(
+        depItem.iconPath instanceof vscode.ThemeIcon && (depItem.iconPath as vscode.ThemeIcon).id === 'loading~spin',
+        `Dependency item should show spinning icon when task is running, got iconPath: ${JSON.stringify(depItem.iconPath)}`
+      );
+      assert.ok(
+        depItem.contextValue?.includes('running'),
+        `Dependency item contextValue should include 'running', got '${depItem.contextValue}'`
+      );
+    });
+
+    test('dependency items update their running status when getChildren is called on a stale element', async () => {
+      // This test simulates the VS Code tree-view behaviour where it can pass an OLD
+      // element reference to getChildren() even after a full refresh fires.  In that
+      // case the dep-item objects inside the old compound-task item were built before
+      // the sub-task started running and therefore carry stale (idle) state.
+      // getChildren must call updateContextValue() on each child/grandchild so the
+      // returned items always reflect the current task status.
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+
+      stubServicesForOrganize([dep1]);
+      const stateManager = TaskStateManager.getInstance();
+
+      // Override getTaskId to mimic the real normalizeTaskId behaviour for this test.
+      // The real implementation strips "queue:name:" and then ":dep:" prefixes so that
+      // both freshly-built and stale dep-item objects can look up the canonical status key.
+      (stateManager as any).getTaskId = (item: TaskItem) => {
+        let id = item.id ?? '';
+        // Strip "queue:name:" compound-task prefix
+        if (id.startsWith('queue:')) {
+          const fi = id.indexOf(':');
+          const si = id.indexOf(':', fi + 1);
+          if (si !== -1) { id = id.substring(si + 1); }
+        }
+        // Strip ":dep:canonicalDepId" to extract the canonical dep task ID
+        const di = id.indexOf(':dep:');
+        if (di !== -1) { id = id.substring(di + ':dep:'.length); }
+        return id;
+      };
+
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+
+      // --- Phase 1: build initial tree while dep task is still idle ---
+      const roots = await provider.getChildren();
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const oldCompoundTaskItem = compoundGroup!.children[0];
+
+      // Verify dep item is idle initially
+      const idleDepItem = oldCompoundTaskItem.children[0];
+      assert.ok(
+        !(idleDepItem.iconPath instanceof vscode.ThemeIcon && (idleDepItem.iconPath as vscode.ThemeIcon).id === 'loading~spin'),
+        'Dep item should NOT be spinning when task is idle'
+      );
+
+      // --- Phase 2: dep task starts running (simulating onDidStartTask) ---
+      stateManager.setStatus('dep1-id', 'running');
+
+      // --- Phase 3: VS Code calls getChildren on the OLD compound task item reference ---
+      // (This is the stale-element scenario that caused the bug)
+      const refreshedChildren = await provider.getChildren(oldCompoundTaskItem);
+      const refreshedDepItem = refreshedChildren[0];
+
+      assert.ok(
+        refreshedDepItem.iconPath instanceof vscode.ThemeIcon && (refreshedDepItem.iconPath as vscode.ThemeIcon).id === 'loading~spin',
+        `Dep item should show spinning icon after task starts running (stale element scenario), got: ${JSON.stringify(refreshedDepItem.iconPath)}`
+      );
+      assert.ok(
+        refreshedDepItem.contextValue?.includes('running'),
+        `Dep item contextValue should include 'running' after refresh, got '${refreshedDepItem.contextValue}'`
+      );
+    });
+
+    test('task without dependsOnLabels remains non-collapsible', async () => {
+      const task = new TaskItem('PlainTask', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'plain-task-id';
+      task.originalLabel = 'PlainTask';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+
+      assert.strictEqual(compoundTaskItem.collapsibleState, vscode.TreeItemCollapsibleState.None,
+        'Task without dependsOnLabels should remain non-collapsible');
+      assert.strictEqual(compoundTaskItem.children.length, 0, 'Should have no dependency children');
+    });
+
+    test('favorited compound task clones dependency grandchildren', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      assert.ok(favGroup, 'Favorites group should exist');
+      const favCompoundGroup = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundGroup, 'Favorited compound task should appear in favorites');
+      assert.ok(favCompoundGroup!.children.length > 0, 'Favorited compound task should have children');
+
+      const favChildItem = favCompoundGroup!.children[0];
+      assert.strictEqual(favChildItem.label, 'MyVscodeTask');
+      assert.strictEqual(favChildItem.children.length, 1, 'Favorites clone should preserve dependency grandchildren');
+
+      const favDepItem = favChildItem.children[0];
+      assert.strictEqual(favDepItem.label, 'dep1');
+      // Dependency items use natural task context values so their action bar matches their type
+      assert.ok(
+        favDepItem.contextValue === 'task' || favDepItem.contextValue?.endsWith('Task') || favDepItem.contextValue?.includes('task'),
+        `Favorites dep item should have a task-type contextValue, got '${favDepItem.contextValue}'`
+      );
+    });
+
+    test('compound task group uses sequential icon when executionType is sequential', async () => {
+      const task = new TaskItem('seq-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'seq-task-id';
+      task.originalLabel = 'seq-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['SeqCompoundTask', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      const iconPath = compoundGroup!.iconPath as { light: vscode.Uri; dark: vscode.Uri };
+      assert.ok(iconPath.light.fsPath.includes('sequential.svg'), 'Should use sequential icon for light theme');
+      assert.ok(iconPath.dark.fsPath.includes('sequential.svg'), 'Should use sequential icon for dark theme');
+    });
+
+    test('compound task group uses parallel icon when executionType is parallel', async () => {
+      const task = new TaskItem('par-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'par-task-id';
+      task.originalLabel = 'par-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['ParCompoundTask', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'parallel';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      const iconPath = compoundGroup!.iconPath as { light: vscode.Uri; dark: vscode.Uri };
+      assert.ok(iconPath.light.fsPath.includes('parallel.svg'), 'Should use parallel icon for light theme');
+      assert.ok(iconPath.dark.fsPath.includes('parallel.svg'), 'Should use parallel icon for dark theme');
+    });
+
+    test('favorited compound task group appears in favorites section', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      // Mark the compound task group as a favorite by its ID
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      assert.ok(favGroup, 'Favorites group should exist when a compound task is favorited');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundChild, 'Favorited compound task should appear as child of favorites group');
+      assert.strictEqual(favCompoundChild!.taskType, 'compoundTask');
+    });
+
+    test('favorited compound task group child has queuedTask contextValue', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundChild, 'Favorited compound task should appear in favorites');
+      assert.ok(favCompoundChild!.children.length > 0, 'Favorited compound task should include children');
+      const childItem = favCompoundChild!.children[0];
+      assert.ok(
+        childItem.contextValue === 'queuedTask' || childItem.contextValue?.startsWith('running'),
+        `Favorited compound task child should have queuedTask contextValue, got '${childItem.contextValue}'`
+      );
+    });
+
+    test('favorited compound task group has favoriteCompoundTask contextValue', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      // Original compound task group should have favoriteCompoundTask contextValue
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Compound task group should still exist in compound section');
+      assert.strictEqual(compoundGroup!.contextValue, 'favoriteCompoundTask');
+
+      // Favorite copy should also have favoriteCompoundTask contextValue
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundChild, 'Favorited compound task should appear in favorites');
+      assert.strictEqual(favCompoundChild!.contextValue, 'favoriteCompoundTask');
+    });
+
+    test('running favorited compound task has runningFavoriteCompoundTask contextValue in favorites', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['RunningFav', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => true;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('RunningFav');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      assert.ok(favGroup, 'Favorites group should exist');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'RunningFav');
+      assert.ok(favCompoundChild, 'Running favorited compound task should appear in favorites');
+      assert.strictEqual(favCompoundChild!.contextValue, 'runningFavoriteCompoundTask');
+    });
+
+    test('root ordering: recent, favorites, compoundTask, workspace', async () => {
       const task = new TaskItem('task', vscode.TreeItemCollapsibleState.None, 'npm');
       task.id = 'task-id';
       task.originalLabel = 'task';
@@ -722,8 +1174,9 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const recentService = RecentTasksService.getInstance();
       (recentService as any).getRecentTasks = () => [task];
 
-      const queueService = QueueService.getInstance();
-      (queueService as any).getAllQueues = () => new Map([['Q1', [task]]]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['Q1', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
 
       const provider = new TestableTaskTreeDataProvider(ctx);
       const roots = await provider.getChildren();
@@ -731,18 +1184,347 @@ suite('TaskTreeDataProvider Test Suite', () => {
       // Find positions
       const recentIdx = roots.findIndex((r) => r.taskType === 'recent');
       const favIdx = roots.findIndex((r) => r.taskType === 'favorites');
-      const queueIdx = roots.findIndex((r) => r.taskType === 'queue');
+      const compoundIdx = roots.findIndex((r) => r.taskType === 'compoundTask');
       const wsIdx = roots.findIndex((r) => r.taskType === 'workspace');
 
       assert.ok(recentIdx !== -1, 'Should have recent group');
       assert.ok(favIdx !== -1, 'Should have favorites group');
-      assert.ok(queueIdx !== -1, 'Should have queue group');
+      assert.ok(compoundIdx !== -1, 'Should have compound task group');
       assert.ok(wsIdx !== -1, 'Should have workspace root');
 
-      // recent < favorites < queue < workspace in the output array
+      // recent < favorites < compoundTask < workspace in the output array
       assert.ok(recentIdx < favIdx, 'Recent should come before favorites');
-      assert.ok(favIdx < queueIdx, 'Favorites should come before queue');
-      assert.ok(queueIdx < wsIdx, 'Queue should come before workspace');
+      assert.ok(favIdx < compoundIdx, 'Favorites should come before compound task');
+      assert.ok(compoundIdx < wsIdx, 'Compound task should come before workspace');
+    });
+  });
+
+  // ── organizeTasks with groups.compoundTasks.enabled ──────────────────────
+
+  suite('compound tasks grouped mode', () => {
+    function withCompoundTasksGroupEnabled(callback: () => Promise<void>): Promise<void> {
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: (key: string, defaultValue?: any) => {
+              if (key === 'groups.compoundTasks.enabled') { return true; }
+              return defaultValue;
+            },
+          };
+        }
+        return originalGetConfig.call(vscode.workspace, section);
+      };
+      return callback().finally(() => {
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+      });
+    }
+
+    test('compound tasks appear under a Compound Tasks root when groups.compoundTasks.enabled is true', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        // Should have a 'compoundTasks' root instead of a bare 'compoundTask' root
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have a Compound Tasks root group');
+        assert.strictEqual(compoundTasksRoot!.label, 'Compound Tasks');
+
+        // The individual compound task should be a child, not a root
+        const bareCompoundRoot = roots.find((r) => r.taskType === 'compoundTask');
+        assert.strictEqual(bareCompoundRoot, undefined, 'Individual compound task should NOT be a root when grouped');
+
+        const childGroup = compoundTasksRoot!.children.find((c) => c.label === 'MyCompound');
+        assert.ok(childGroup, 'MyCompound should be a child of the Compound Tasks root');
+        assert.strictEqual(childGroup!.taskType, 'compoundTask');
+      });
+    });
+
+    test('compoundTasks root has contextValue compoundTasks', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have compoundTasks root');
+        assert.strictEqual(compoundTasksRoot!.contextValue, 'compoundTasks');
+      });
+    });
+
+    test('root ordering: recent, favorites, compoundTasks, workspace when grouped', async () => {
+      const task = new TaskItem('task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'task-id';
+      task.originalLabel = 'task';
+
+      stubServicesForOrganize([task]);
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return id === 'task-id';
+      };
+
+      const recentService = RecentTasksService.getInstance();
+      (recentService as any).getRecentTasks = () => [task];
+
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['Q1', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const recentIdx = roots.findIndex((r) => r.taskType === 'recent');
+        const favIdx = roots.findIndex((r) => r.taskType === 'favorites');
+        const compoundGroupIdx = roots.findIndex((r) => r.taskType === 'compoundTasks');
+        const wsIdx = roots.findIndex((r) => r.taskType === 'workspace');
+
+        assert.ok(recentIdx !== -1, 'Should have recent group');
+        assert.ok(favIdx !== -1, 'Should have favorites group');
+        assert.ok(compoundGroupIdx !== -1, 'Should have compoundTasks root');
+        assert.ok(wsIdx !== -1, 'Should have workspace root');
+
+        assert.ok(recentIdx < favIdx, 'Recent should come before favorites');
+        assert.ok(favIdx < compoundGroupIdx, 'Favorites should come before compoundTasks');
+        assert.ok(compoundGroupIdx < wsIdx, 'compoundTasks should come before workspace');
+      });
+    });
+
+    test('multiple compound tasks are all children of the Compound Tasks root', async () => {
+      const t1 = new TaskItem('task1', vscode.TreeItemCollapsibleState.None, 'npm');
+      t1.id = 'task1-id';
+      t1.originalLabel = 'task1';
+      const t2 = new TaskItem('task2', vscode.TreeItemCollapsibleState.None, 'npm');
+      t2.id = 'task2-id';
+      t2.originalLabel = 'task2';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['CompoundA', [t1]], ['CompoundB', [t2]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have compoundTasks root');
+        assert.strictEqual(compoundTasksRoot!.children.length, 2, 'Should have 2 compound task children');
+
+        const labels = compoundTasksRoot!.children.map((c) => c.label);
+        assert.ok(labels.includes('CompoundA'), 'CompoundA should be a child');
+        assert.ok(labels.includes('CompoundB'), 'CompoundB should be a child');
+      });
+    });
+
+    // Helper to configure both groups.compoundTasks.enabled and includeVsCodeCompoundTasks
+    function withVscodeCompoundTasksEnabled(
+      includeVscode: boolean,
+      callback: () => Promise<void>,
+    ): Promise<void> {
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: (key: string, defaultValue?: any) => {
+              if (key === 'groups.compoundTasks.enabled') { return true; }
+              if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return includeVscode; }
+              return defaultValue;
+            },
+          };
+        }
+        return originalGetConfig.call(vscode.workspace, section);
+      };
+      return callback().finally(() => {
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+      });
+    }
+
+    test('vscode compound tasks appear as direct children of Compound Tasks root when includeVsCodeCompoundTasks is true', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile', 'Test'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have Compound Tasks root');
+
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build should be a direct child of Compound Tasks root');
+        assert.strictEqual(vscodeChild!.taskType, 'vscode', 'Child should have vscode type');
+        assert.strictEqual(
+          vscodeChild!.collapsibleState,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          'VSCode compound task should be collapsible',
+        );
+      });
+    });
+
+    test('vscode compound task has dependency sub-items when includeVsCodeCompoundTasks is true', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile', 'Test'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build should exist');
+        assert.strictEqual(vscodeChild!.children.length, 2, 'Should have 2 dependency sub-items');
+
+        const depLabels = vscodeChild!.children.map((d) => d.label);
+        assert.ok(depLabels.includes('Compile'), 'Should have Compile dep');
+        assert.ok(depLabels.includes('Test'), 'Should have Test dep');
+      });
+    });
+
+    test('vscode task without dependsOn is NOT added to Compound Tasks root', async () => {
+      const vscodeTask = new TaskItem('Build', vscode.TreeItemCollapsibleState.None, 'vscode');
+      vscodeTask.id = 'vscode-build-id';
+      vscodeTask.originalLabel = 'Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      // no dependsOnLabels metadata
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        // No compound tasks group because no vscode compound tasks and no user compound tasks
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.strictEqual(compoundTasksRoot, undefined, 'Should not have Compound Tasks root when no compound tasks exist');
+      });
+    });
+
+    test('vscode compound task is NOT added to Compound Tasks root when includeVsCodeCompoundTasks is false', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile', 'Test'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(false, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.strictEqual(compoundTasksRoot, undefined, 'Should not have Compound Tasks root when includeVsCodeCompoundTasks is false');
+      });
+    });
+
+    test('vscode compound task has unique prefixed ID for tree node uniqueness', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile'] };
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map<string, TaskItem[]>();
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build should exist');
+        assert.ok(
+          vscodeChild!.id?.startsWith(`${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:`),
+          `ID should be prefixed with '${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:', got '${vscodeChild!.id}'`,
+        );
+      });
+    });
+
+    test('vscode compound task and user-defined compound tasks both appear under Compound Tasks root', async () => {
+      const vscodeTask = new TaskItem('Full Build', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      vscodeTask.id = 'vscode-full-build-id';
+      vscodeTask.originalLabel = 'Full Build';
+      vscodeTask.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      vscodeTask.metadata = { dependsOnLabels: ['Compile'] };
+
+      const npmTask = new TaskItem('test', vscode.TreeItemCollapsibleState.None, 'npm');
+      npmTask.id = 'npm-test-id';
+      npmTask.originalLabel = 'test';
+
+      stubServicesForOrganize([vscodeTask]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [npmTask]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withVscodeCompoundTasksEnabled(true, async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have Compound Tasks root');
+
+        const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
+        assert.ok(vscodeChild, 'Full Build VSCode compound task should be a child');
+
+        const userCompoundChild = compoundTasksRoot!.children.find((c) => c.label === 'MyCompound');
+        assert.ok(userCompoundChild, 'User-defined MyCompound should be a child');
+        assert.strictEqual(userCompoundChild!.taskType, 'compoundTask');
+      });
     });
   });
 
@@ -1124,25 +1906,26 @@ suite('TaskTreeDataProvider Test Suite', () => {
     });
   });
 
-  suite('queue items with taskFileUri', () => {
-    test('queue items get description from workspace folder when taskFileUri matches real workspace', async () => {
-      const task = new TaskItem('queue-with-uri', vscode.TreeItemCollapsibleState.None, 'npm');
-      task.id = 'queue-uri-id';
-      task.originalLabel = 'queue-with-uri';
+  suite('compound task items with taskFileUri', () => {
+    test('compound task items get description from workspace folder when taskFileUri matches real workspace', async () => {
+      const task = new TaskItem('compound-task-with-uri', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'compound-task-uri-id';
+      task.originalLabel = 'compound-task-with-uri';
       // No taskFileUri — description should be empty string
       task.taskFileUri = undefined;
 
       stubServicesForOrganize([]);
 
-      const queueService = QueueService.getInstance();
-      (queueService as any).getAllQueues = () => new Map([['TestQueue', [task]]]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['TestCompoundTask', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
 
       const provider = new TestableTaskTreeDataProvider(ctx);
       const roots = await provider.getChildren();
 
-      const queueGroup = roots.find((r) => r.taskType === 'queue');
-      assert.ok(queueGroup, 'Should have queue group');
-      assert.strictEqual(queueGroup!.children.length, 1);
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      assert.strictEqual(compoundGroup!.children.length, 1);
     });
   });
 
@@ -1167,7 +1950,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
               if (key === 'groups.enabled') { return true; }
               if (key === 'groups.useParentFolder') { return false; }
               if (key === 'groups.taskSeparator') { return '-'; }
-              if (key === 'groups.expanded') { return { favorites: true, queue: true, recent: true }; }
+              if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
               return defaultValue;
             },
           };
@@ -1244,7 +2027,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
               if (key === 'groups.enabled') { return true; }
               if (key === 'groups.recentTasks.enabled') { return false; }
               if (key === 'groups.taskSeparator') { return '-'; }
-              if (key === 'groups.expanded') { return { favorites: true, queue: true, recent: true }; }
+              if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
               return defaultValue;
             },
           };

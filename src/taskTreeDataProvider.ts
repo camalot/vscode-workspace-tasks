@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import constants from './libs/constants';
 import { TaskProvider } from './taskProvider';
 import { TaskItem } from './taskItem';
 import { TaskTypeFactory } from './taskTypeItems';
@@ -9,9 +10,12 @@ import { TaskCacheService } from './services/taskCacheService';
 import { TaskIconService } from './services/taskIconService';
 import { RecentTasksService } from './services/recentTasksService';
 import { FavoritesService } from './services/favoritesService';
-import { QueueService } from './services/queueService';
+import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
+
+export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean; queue?: boolean; recent: boolean };
+export type RootTreeTypes = 'favorites' | 'compoundTask' | 'compoundTasks' | 'recent' | 'workspace';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private static instance: TaskTreeDataProvider | undefined;
@@ -181,6 +185,18 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   async getChildren(element?: TaskItem): Promise<TaskItem[]> {
     if (element) {
+      // Compound task dep items (and other dynamically-created children) are built fresh
+      // in organizeTasks() but are NOT part of the shared task cache. Unlike cache items
+      // that are updated in-place by updateContextRecursively(), these items may become
+      // stale if VS Code passes an old element reference to getChildren during a tree
+      // refresh. Explicitly refreshing the context values here ensures running status
+      // (icons, contextValues) is always current when VS Code renders these items.
+      for (const child of element.children) {
+        child.updateContextValue();
+        for (const grandchild of child.children) {
+          grandchild.updateContextValue();
+        }
+      }
       return element.children;
     } else {
       const allTasks = TaskCacheService.getInstance().getAllTasks();
@@ -229,10 +245,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const groupsEnabled = config.get<boolean>('groups.enabled', true);
     const useParentFolder = config.get<boolean>('groups.useParentFolder', false);
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
+    const compoundTasksGroupEnabled = config.get<boolean>('groups.compoundTasks.enabled', false);
+    const includeVsCodeCompoundTasks = config.get<boolean>('compoundTasks.includeVsCodeCompoundTasks', true);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
-    const expandedGroups = config.get<{ favorites: boolean; queue: boolean; recent: boolean }>('groups.expanded', {
+    const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
       favorites: true,
-      queue: true,
+      compoundTask: true,
       recent: true,
     });
 
@@ -306,7 +324,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Determine Group Items Collapsible State and ID Salt
     // If we're in Default (Level 0), we use Collapsed as default for standard groups, but Visual Studio Code persistence should handle expansions.
-    // Favorites/Recent/Queue will verify their own config for default state.
+    // Favorites/Recent/CompoundTasks will verify their own config for default state.
 
     let groupState = vscode.TreeItemCollapsibleState.Collapsed;
     let groupSalt = '';
@@ -332,7 +350,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       : allRecentTasks.filter((t: TaskItem) => !filteredService.isFilteredOrHasFilteredParent(t));
 
     const favoritesService = FavoritesService.getInstance();
-    const queueService = QueueService.getInstance();
+    const compoundTaskService = CompoundTaskService.getInstance();
 
     // Helper to recursively check and add favorites
     const checkFavorite = (item: TaskItem) => {
@@ -526,42 +544,59 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Build the tree items
     const rootItems: TaskItem[] = [];
-    const queueGroups: TaskItem[] = [];
+    const compoundTaskGroups: TaskItem[] = [];
+    const favoriteCompoundGroups: TaskItem[] = [];
+    const vscodeCompoundTasksForGroup: TaskItem[] = [];
     let favGroup: TaskItem | undefined;
     let recentGroup: TaskItem | undefined;
+    let compoundTaskGroup: TaskItem | undefined; // TODO: for when they are grouped.
     const workspaceRoots: TaskItem[] = [];
 
-    // Add Queue Groups
-    const allQueues = queueService.getAllQueues();
-    for (const [queueName, queueTasks] of allQueues) {
-      if (queueTasks.length > 0) {
-        const queueId = `queue:${queueName}`;
-        const queueGroup = new TaskItem(
-          queueName,
-          this.getExpandedState(queueId, this.getRootState('queue', expandedGroups)),
-          'queue'
+    // Add Compound Task Groups
+    const allCompoundTasks = compoundTaskService.getAllCompoundTasks();
+    for (const [compoundTaskName, compoundTaskItems] of allCompoundTasks) {
+      if (compoundTaskItems.length > 0) {
+        const compoundTaskId = `${constants.COMPOUND_TASK_ID_PREFIX}:${compoundTaskName}`;
+        const compoundTaskGroup = new TaskItem(
+          compoundTaskName,
+          this.getExpandedState(compoundTaskId, this.getRootState('compoundTask', expandedGroups)),
+          'compoundTask'
         );
-        queueGroup.iconPath = new vscode.ThemeIcon('list-ordered');
-        queueGroup.id = queueId;
+        const executionType = compoundTaskService.getCompoundTaskExecutionType(compoundTaskName);
+        compoundTaskGroup.iconPath = {
+          light: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'light', `${executionType}.svg`)),
+          dark: vscode.Uri.file(path.join(this.context.extensionPath, 'res', 'icons', 'dark', `${executionType}.svg`)),
+        };
+        compoundTaskGroup.id = compoundTaskId;
         // Update context value after setting the final ID
-        queueGroup.updateContextValue();
+        compoundTaskGroup.updateContextValue();
 
-        // Create Queued Items
-        for (const task of queueTasks) {
+        // Override context value and icon when compound task is actively running
+        if (compoundTaskService.isCompoundTaskRunning(compoundTaskName)) {
+          compoundTaskGroup.contextValue = 'runningCompoundTask';
+          compoundTaskGroup.iconPath = new vscode.ThemeIcon('loading~spin');
+        }
+
+        // Create Compound Task Items
+        for (const task of compoundTaskItems) {
           const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType);
           const iconPath = iconObj ? iconObj.TaskIcon : undefined;
 
-          const queuedItem = new TaskItem(
+          // If this task has dependsOn labels, it is a VSCode compound (dependent) task.
+          // In that case, show it as collapsible so users can see its dependency tasks.
+          const dependsOnLabels: string[] = task.metadata?.dependsOnLabels || [];
+
+          const compoundTaskItem = new TaskItem(
             task.label,
-            vscode.TreeItemCollapsibleState.None,
+            dependsOnLabels.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
             task.taskType,
             task.taskFileUri,
             task.command,
             iconPath,
           );
-          queuedItem.originalLabel = task.originalLabel || task.label;
-          queuedItem.startLine = task.startLine;
-          queuedItem.metadata = task.metadata;
+          compoundTaskItem.originalLabel = task.originalLabel || task.label;
+          compoundTaskItem.startLine = task.startLine;
+          compoundTaskItem.metadata = task.metadata;
           // Set description to workspace folder and file path
           const workspaceFolder = task.taskFileUri ? vscode.workspace.getWorkspaceFolder(task.taskFileUri) : undefined;
           let description = workspaceFolder ? workspaceFolder.name : '';
@@ -572,31 +607,223 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
               description = `${description} • ${relativePath}`;
             }
           }
-          queuedItem.description = description;
+          compoundTaskItem.description = description;
 
-          // Explicitly set context value for queued items to allow distinct actions
-          queuedItem.contextValue = 'queuedTask';
-          queuedItem.parent = queueGroup;
+          // Set context value to 'queuedTask' so that compound task child items show standard
+          // task action bar items (run, open, favorites) plus the "Remove from Compound Task" action.
+          // updateContextValue() preserves 'queuedTask' as the base and will produce
+          // 'runningQueuedTask' when the task is actively running.
+          compoundTaskItem.contextValue = 'queuedTask';
+          compoundTaskItem.parent = compoundTaskGroup;
 
           // Re-sync ID just like favorites
-          queuedItem.id = task.id; // Use original task ID for status lookup
-          queuedItem.updateContextValue(); // Updates status (running/success/fail)
+          compoundTaskItem.id = task.id; // Use original task ID for status lookup
+          compoundTaskItem.updateContextValue(); // Updates status (running/success/fail), preserves queuedTask as base
 
-          // Force context value to queued task if not running
-          if (queuedItem.contextValue !== 'runningTask') {
-            queuedItem.contextValue = 'queuedTask';
+          compoundTaskItem.id = `${constants.COMPOUND_TASK_ID_PREFIX}:${compoundTaskName}:${compoundTaskItem.id}`;
+
+          // Add dependency task items as children when the task has dependsOn labels.
+          // These are displayed as read-only informational sub-items (contextValue: 'compoundTaskDependency')
+          // so users can see which tasks this VSCode compound task depends on.
+          if (dependsOnLabels.length > 0) {
+            const allCacheTasks = TaskCacheService.getInstance().getAllTasks();
+            const depIconObj = TaskIconService.getInstance().getTaskTypeIcon('vscode');
+            const depIconPath = depIconObj ? depIconObj.TaskIcon : undefined;
+
+            for (const depLabel of dependsOnLabels) {
+              // Look up the matching VSCode task from the cache by label and file URI
+              const depTask = allCacheTasks.find(
+                (t) =>
+                  t.taskType === 'vscode' &&
+                  String(t.originalLabel || t.label).toLowerCase() === depLabel.toLowerCase() &&
+                  t.taskFileUri?.toString() === task.taskFileUri?.toString(),
+              );
+
+              const depItem = new TaskItem(
+                depLabel,
+                vscode.TreeItemCollapsibleState.None,
+                'vscode',
+                depTask?.taskFileUri ?? task.taskFileUri,
+                undefined,
+                depTask?.defaultIconPath ?? depIconPath,
+              );
+              depItem.originalLabel = depLabel;
+              depItem.startLine = depTask?.startLine;
+              depItem.metadata = depTask?.metadata;
+              // Set description same as parent compound task item
+              depItem.description = description;
+              depItem.parent = compoundTaskItem;
+
+              // Use the dep task's original ID for status (running/success/fail) lookup,
+              // then update context value so the item gets the same action bar as its task type,
+              // then prefix the ID for tree node uniqueness.
+              depItem.id = depTask?.id ?? depItem.id;
+              depItem.updateContextValue();
+              depItem.id = `${compoundTaskItem.id}:dep:${depItem.id}`;
+
+              compoundTaskItem.children.push(depItem);
+            }
           }
 
-          queuedItem.id = `queue:${queueName}:${queuedItem.id}`;
-
-          queueGroup.children.push(queuedItem);
+          compoundTaskGroup.children.push(compoundTaskItem);
         }
-        queueGroups.push(queueGroup);
+        compoundTaskGroups.push(compoundTaskGroup);
+
+        // If this compound task group is a favorite, create a clone for the favorites section
+        if (favoritesService.isFavorite(compoundTaskGroup)) {
+          const favCompoundGroup = new TaskItem(
+            compoundTaskName,
+            this.getExpandedState(`fav:${compoundTaskId}`, this.getGroupState('favorites', expandedGroups)),
+            'compoundTask',
+          );
+          favCompoundGroup.iconPath = compoundTaskGroup.iconPath;
+          // Use the original (non-prefixed, non-fav) ID for state lookups, then prefix for tree uniqueness
+          favCompoundGroup.id = compoundTaskId;
+          favCompoundGroup.updateContextValue(); // Sets 'favoriteCompoundTask'
+
+          if (compoundTaskService.isCompoundTaskRunning(compoundTaskName)) {
+            favCompoundGroup.contextValue = 'runningFavoriteCompoundTask';
+            favCompoundGroup.iconPath = new vscode.ThemeIcon('loading~spin');
+          }
+
+          // Clone children so the favorites copy has its own tree nodes
+          favCompoundGroup.children = compoundTaskGroup.children.map((child) => {
+            const childCopy = new TaskItem(
+              child.label,
+              child.collapsibleState,
+              child.taskType,
+              child.taskFileUri,
+              child.command,
+              child.defaultIconPath,
+            );
+            childCopy.originalLabel = child.originalLabel;
+            childCopy.startLine = child.startLine;
+            childCopy.metadata = child.metadata;
+            childCopy.taskFileUri = child.taskFileUri;
+            childCopy.description = child.description;
+            childCopy.contextValue = child.contextValue;
+            childCopy.parent = favCompoundGroup;
+            // Re-use the same ID so running state is shared with the original
+            childCopy.id = child.id;
+
+            // Clone dependency grandchildren (sub-items of a VSCode compound/dependent task)
+            if (child.children.length > 0) {
+              childCopy.children = child.children.map((grandchild) => {
+                const grandchildCopy = new TaskItem(
+                  grandchild.label,
+                  grandchild.collapsibleState,
+                  grandchild.taskType,
+                  grandchild.taskFileUri,
+                  grandchild.command,
+                  grandchild.defaultIconPath,
+                );
+                grandchildCopy.originalLabel = grandchild.originalLabel;
+                grandchildCopy.startLine = grandchild.startLine;
+                grandchildCopy.metadata = grandchild.metadata;
+                grandchildCopy.taskFileUri = grandchild.taskFileUri;
+                grandchildCopy.description = grandchild.description;
+                grandchildCopy.contextValue = grandchild.contextValue;
+                grandchildCopy.parent = childCopy;
+                grandchildCopy.id = grandchild.id;
+                return grandchildCopy;
+              });
+            }
+
+            return childCopy;
+          });
+
+          // Prefix the ID so this node is unique in the VS Code tree
+          favCompoundGroup.id = `fav:${compoundTaskId}`;
+          favoriteCompoundGroups.push(favCompoundGroup);
+        }
+      }
+    }
+
+    // Collect VSCode compound tasks (with dependsOn) for the Compound Tasks group
+    if (compoundTasksGroupEnabled && includeVsCodeCompoundTasks) {
+      const allCacheTasks = TaskCacheService.getInstance().getAllTasks();
+      const vscodeIconObj = TaskIconService.getInstance().getTaskTypeIcon('vscode');
+      const vscodeDepIconPath = vscodeIconObj ? vscodeIconObj.TaskIcon : undefined;
+
+      for (const task of filteredTasks) {
+        if (task.taskType !== 'vscode') {
+          continue;
+        }
+        const dependsOnLabels: string[] = Array.isArray(task.metadata?.dependsOnLabels)
+          ? task.metadata.dependsOnLabels
+          : [];
+        if (dependsOnLabels.length === 0) {
+          continue;
+        }
+
+        const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType);
+        const iconPath = iconObj ? iconObj.TaskIcon : undefined;
+
+        const compoundItem = new TaskItem(
+          task.label,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          task.taskType,
+          task.taskFileUri,
+          task.command,
+          iconPath,
+        );
+        compoundItem.originalLabel = task.originalLabel || task.label;
+        compoundItem.startLine = task.startLine;
+        compoundItem.metadata = task.metadata;
+        compoundItem.taskFileUri = task.taskFileUri;
+        compoundItem.taskSource = task.taskSource;
+        compoundItem.taskOrigin = task.taskOrigin;
+        compoundItem.task = task.task;
+
+        const taskWsFolder = task.taskFileUri ? vscode.workspace.getWorkspaceFolder(task.taskFileUri) : undefined;
+        let taskDescription = taskWsFolder ? taskWsFolder.name : '';
+        if (task.taskFileUri && taskWsFolder) {
+          const relativePath = vscode.workspace.asRelativePath(task.taskFileUri, false);
+          if (relativePath && relativePath !== taskDescription) {
+            taskDescription = `${taskDescription} • ${relativePath}`;
+          }
+        }
+        compoundItem.description = taskDescription;
+
+        // Use the original task ID for state (running/success/fail) lookup, then prefix for tree uniqueness
+        compoundItem.id = task.id;
+        compoundItem.updateContextValue();
+        compoundItem.id = `${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:${task.id}`;
+
+        // Build dependency sub-items
+        for (const depLabel of dependsOnLabels) {
+          const depTask = allCacheTasks.find(
+            (t) =>
+              t.taskType === 'vscode' &&
+              String(t.originalLabel || t.label).toLowerCase() === depLabel.toLowerCase() &&
+              t.taskFileUri?.toString() === task.taskFileUri?.toString(),
+          );
+
+          const depItem = new TaskItem(
+            depLabel,
+            vscode.TreeItemCollapsibleState.None,
+            'vscode',
+            depTask?.taskFileUri ?? task.taskFileUri,
+            undefined,
+            depTask?.defaultIconPath ?? vscodeDepIconPath,
+          );
+          depItem.originalLabel = depLabel;
+          depItem.startLine = depTask?.startLine;
+          depItem.metadata = depTask?.metadata;
+          depItem.description = taskDescription;
+          depItem.parent = compoundItem;
+          depItem.id = depTask?.id ?? depItem.id;
+          depItem.updateContextValue();
+          depItem.id = `${compoundItem.id}:dep:${depItem.id}`;
+          compoundItem.children.push(depItem);
+        }
+
+        vscodeCompoundTasksForGroup.push(compoundItem);
       }
     }
 
     // Add Favorites Group
-    if (favoriteTasks.length > 0) {
+    if (favoriteTasks.length > 0 || favoriteCompoundGroups.length > 0) {
       const favGroupId = this.makeId('favorites', rootSalt);
       favGroup = new TaskItem(
         'Favorites', // TODO: support localization from package.nls.json (%tree.favorites%)
@@ -609,7 +836,20 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       favGroup.updateContextValue();
       favGroup.iconPath = new vscode.ThemeIcon('star-full');
 
-      // Group favorites by type
+      // Add favorited compound task groups directly as children (not bucketed by type)
+      for (const favCompoundGroup of favoriteCompoundGroups) {
+        favCompoundGroup.parent = favGroup;
+        // parent setter triggers updateContextValue() which resets the running override;
+        // re-apply it so the correct contextValue is preserved.
+        const favCompoundName = favCompoundGroup.label as string;
+        if (compoundTaskService.isCompoundTaskRunning(favCompoundName)) {
+          favCompoundGroup.contextValue = 'runningFavoriteCompoundTask';
+          favCompoundGroup.iconPath = new vscode.ThemeIcon('loading~spin');
+        }
+        favGroup.children.push(favCompoundGroup);
+      }
+
+      // Group leaf favorites by type
       const favTypeMap = new Map<string, TaskItem[]>();
       for (const task of favoriteTasks) {
         let list = favTypeMap.get(task.taskType);
@@ -841,15 +1081,40 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
     }
 
-    // Assemble final root order: Recent, Favorites, Queues, Projects
+    // Assemble final root order: Recent, Favorites, Compound Tasks, Projects
     if (recentGroup) {
       rootItems.push(recentGroup);
     }
     if (favGroup) {
       rootItems.push(favGroup);
     }
-    if (queueGroups.length > 0) {
-      rootItems.push(...queueGroups);
+    if (compoundTaskGroups.length > 0 || vscodeCompoundTasksForGroup.length > 0) {
+      if (compoundTasksGroupEnabled) {
+        // Wrap all compound task groups under a single "Compound Tasks" root item
+        const compoundTasksRootId = this.makeId('compoundTasks', rootSalt);
+        const compoundTasksRoot = new TaskItem(
+          'Compound Tasks',
+          this.getExpandedState(compoundTasksRootId, this.getRootState('compoundTasks', expandedGroups)),
+          'compoundTasks',
+        );
+        compoundTasksRoot.id = compoundTasksRootId;
+        compoundTasksRoot.updateContextValue();
+        compoundTasksRoot.iconPath = new vscode.ThemeIcon('layers');
+
+        // Add VSCode compound tasks (from tasks.json dependsOn) as direct root children
+        for (const item of vscodeCompoundTasksForGroup) {
+          item.parent = compoundTasksRoot;
+          compoundTasksRoot.children.push(item);
+        }
+
+        for (const group of compoundTaskGroups) {
+          group.parent = compoundTasksRoot;
+          compoundTasksRoot.children.push(group);
+        }
+        rootItems.push(compoundTasksRoot);
+      } else {
+        rootItems.push(...compoundTaskGroups);
+      }
     }
 
     // Add remaining project roots
@@ -1084,8 +1349,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   private getRootState(
-    type: 'favorites' | 'queue' | 'recent' | 'workspace',
-    expandedGroups: { favorites: boolean; queue: boolean; recent: boolean },
+    type: RootTreeTypes,
+    expandedGroups: ExpandedTaskGroups,
   ): vscode.TreeItemCollapsibleState {
     if (this.collapseLevel === 2) {
       return vscode.TreeItemCollapsibleState.Collapsed;
@@ -1099,8 +1364,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
-    if (type === 'queue') {
-      return expandedGroups.queue
+    if (type === 'compoundTask' || type === 'compoundTasks') {
+      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
@@ -1113,8 +1378,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   private getGroupState(
-    rootType: 'favorites' | 'queue' | 'recent' | 'workspace',
-    expandedGroups: { favorites: boolean; queue: boolean; recent: boolean },
+    rootType: RootTreeTypes,
+    expandedGroups: ExpandedTaskGroups,
   ): vscode.TreeItemCollapsibleState {
     if (this.collapseLevel === 1) {
       return vscode.TreeItemCollapsibleState.Expanded;
@@ -1130,6 +1395,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     }
     if (rootType === 'recent') {
       return expandedGroups.recent
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed;
+    }
+    if (rootType === 'compoundTask' || rootType === 'compoundTasks') {
+      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }

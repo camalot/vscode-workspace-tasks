@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TaskItem } from './taskItem';
 import { TaskStateManager, TaskStatus } from './taskStateManager';
 import { createTaskForItem } from './taskFactory';
-import { QueueService } from './services/queueService';
+import { CompoundTaskService } from './services/compoundTaskService';
 import { configuration } from './libs/configuration';
 import { IPresentationOptions } from './taskDefinition';
 import { LoggerService } from './services/loggerService';
@@ -48,6 +48,8 @@ export class TaskRunner {
     // Delegate task creation to the Task Factory to centralize logic and make it testable
     const created = await createTaskForItem(item, args);
     if (!created || !created.task) {
+      const itemUri = (item.taskFileUri || item.resourceUri)?.toString() ?? '(none)';
+      this.logger.debug(`[TaskRunner] Could not create runnable task for '${taskLabel}': taskType='${item.taskType}', id='${item.id ?? '(none)'}', uri='${itemUri}', contextValue='${item.contextValue ?? '(none)'}'`);
       vscode.window.showWarningMessage(`No runnable task could be created for '${taskLabel}'.`);
       return;
     }
@@ -127,41 +129,85 @@ export class TaskRunner {
     }
   }
 
-  public async runQueue(queueName: string, startItem?: TaskItem) {
-    const queue = QueueService.getInstance().getQueue(queueName);
-    if (!queue || queue.length === 0) {
-      vscode.window.showInformationMessage(`Queue '${queueName}' is empty or does not exist.`);
+  public async runCompoundTask(compoundTaskName: string, startItem?: TaskItem) {
+    const compoundTask = CompoundTaskService.getInstance().getCompoundTask(compoundTaskName);
+    if (!compoundTask || compoundTask.length === 0) {
+      vscode.window.showInformationMessage(`Compound task '${compoundTaskName}' is empty or does not exist.`);
       return;
     }
+
+    const executionType = CompoundTaskService.getInstance().getCompoundTaskExecutionType(compoundTaskName);
+
+    this.logger.debug(`[TaskRunner] Running compound task '${compoundTaskName}' (${executionType}) with ${compoundTask.length} item(s):`);
+    compoundTask.forEach((item, idx) => {
+      const uri = (item.taskFileUri || item.resourceUri)?.toString() ?? '(none)';
+      this.logger.debug(`[TaskRunner]   Item[${idx}]: label='${item.originalLabel || item.label}', taskType='${item.taskType}', id='${item.id ?? '(none)'}', uri='${uri}'`);
+    });
 
     let startIndex = 0;
     if (startItem) {
       const startId = TaskStateManager.getInstance().getTaskId(startItem);
-      startIndex = queue.findIndex((t) => TaskStateManager.getInstance().getTaskId(t) === startId);
+      startIndex = compoundTask.findIndex((t) => TaskStateManager.getInstance().getTaskId(t) === startId);
       if (startIndex === -1) {
         startIndex = 0;
       }
     }
 
-    const tasksToRun = queue.slice(startIndex);
+    const tasksToRun = compoundTask.slice(startIndex);
+    const token = CompoundTaskService.getInstance().markCompoundTaskRunning(compoundTaskName);
 
-    for (const item of tasksToRun) {
-      try {
-        await this.runTask(item);
-        // runTask starts execution but returns effectively immediately after launch.
-        // We need to WAIT for the task to finish.
-        const status = await this.waitForTask(item);
+    try {
+      if (executionType === 'parallel') {
+        await Promise.all(
+          tasksToRun.map(async (item) => {
+            if (token.cancelled) { return; }
+            if (CompoundTaskService.getInstance().isItemDefinitelyNotRunnable(item)) {
+              const itemLabel = item.originalLabel || item.label;
+              this.logger.warn(`[TaskRunner] Skipping unrunnable item '${itemLabel}' in compound task '${compoundTaskName}': taskType='${item.taskType || '(empty)'}'.`);
+              vscode.window.showWarningMessage(
+                `Compound task '${compoundTaskName}': item '${itemLabel}' has an unrecognized task type and will be skipped. Run "Purge Invalid Compound Tasks" from the Command Palette to clean up storage.`,
+              );
+              return;
+            }
+            try {
+              await this.runTask(item);
+              await this.waitForTask(item);
+            } catch (e) {
+              vscode.window.showErrorMessage(`Compound task '${compoundTaskName}': Failed to launch '${item.label}'.`);
+            }
+          }),
+        );
+      } else {
+        for (const item of tasksToRun) {
+          if (token.cancelled) { break; }
+          if (CompoundTaskService.getInstance().isItemDefinitelyNotRunnable(item)) {
+            const itemLabel = item.originalLabel || item.label;
+            this.logger.warn(`[TaskRunner] Skipping unrunnable item '${itemLabel}' in compound task '${compoundTaskName}': taskType='${item.taskType || '(empty)'}'.`);
+            vscode.window.showWarningMessage(
+              `Compound task '${compoundTaskName}': item '${itemLabel}' has an unrecognized task type and will be skipped. Run "Purge Invalid Compound Tasks" from the Command Palette to clean up storage.`,
+            );
+            continue;
+          }
+          try {
+            await this.runTask(item);
+            // runTask starts execution but returns effectively immediately after launch.
+            // We need to WAIT for the task to finish.
+            const status = await this.waitForTask(item);
 
-        // Check status
-        if (status === 'failure') {
-          vscode.window.showErrorMessage(`Queue '${queueName}' stopped: Task '${item.label}' failed.`);
-          break;
+            // Check status
+            if (status === 'failure') {
+              vscode.window.showErrorMessage(`Compound task '${compoundTaskName}' stopped: Task '${item.label}' failed.`);
+              break;
+            }
+          } catch (e) {
+            // If launch failed
+            vscode.window.showErrorMessage(`Compound task '${compoundTaskName}' stopped: Failed to launch '${item.label}'.`);
+            break;
+          }
         }
-      } catch (e) {
-        // If launch failed
-        vscode.window.showErrorMessage(`Queue stopped: Failed to launch '${item.label}'.`);
-        break;
       }
+    } finally {
+      CompoundTaskService.getInstance().markCompoundTaskStopped(compoundTaskName);
     }
   }
 

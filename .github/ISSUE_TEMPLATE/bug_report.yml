@@ -70,7 +70,7 @@ body:
         - Visual Studio Code Tasks
         - Workspace Tasks (.workspace-tasks.json)
         - Favorites
-        - Queues
+        - Compound Tasks (Queues)
         - Other/General
         - Not applicable
     validations:

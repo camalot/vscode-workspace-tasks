@@ -45,7 +45,7 @@ body:
         - Task Discovery
         - Task Execution
         - Favorites
-        - Queues
+        - Compound Tasks (Queues)
         - UI/UX
         - Configuration
         - Task Types/Providers

@@ -2,7 +2,7 @@
 layout: default
 title: 📚 Task History
 parent: 🚀 Features
-nav_order: 4
+nav_order: 6
 ---
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
@@ -87,5 +87,5 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 ## Next Steps
 
-- [Task Queues](task-queues) — Run sequences of tasks
+- [Compound Tasks (Queues)](task-queues) — Run sequences of tasks
 - [Configuration](../configuration) — Full settings reference

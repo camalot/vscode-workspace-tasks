@@ -45,6 +45,6 @@ Workspace Folder
 
 Click the **star icon (☆)** next to any task to add it to your Favorites. Favorites appear at the top of the task tree for quick access.
 
-## 5. Create a Task Queue
+## 5. Create a Compound Task (Queue)
 
-Click the **list icon** next to any task to add it to a queue. Queues let you run multiple tasks in sequence—perfect for build, test, and deploy pipelines.
+Click the **compound task icon** next to any task to add it to a compound task. Compound tasks (queues) let you run multiple tasks in sequence—perfect for build, test, and deploy pipelines.

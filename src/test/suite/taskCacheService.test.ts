@@ -294,6 +294,34 @@ suite('TaskCacheService Test Suite', () => {
         assert.strictEqual(match, itemScoped);
     });
 
+    test('findMatchingTask - Prefers top-level item over dependsOn child clone', async () => {
+        // Simulate a tasks.json with Task A (dependsOn Task B) and Task B.
+        // vscodeTaskProvider builds a child clone of Task B under Task A.
+        // When onDidStartTask fires for Task B (as a dependency), findMatchingTask
+        // must return the top-level Task B, not the child clone, so that setStatus
+        // targets the item whose ID the tree view uses for status display.
+        const uri = vscode.Uri.file('/workspace/.vscode/tasks.json');
+
+        const topLevelTaskB = createTaskItem('Task B', 'vscode', uri);
+
+        // Create a clone of Task B as a child of Task A (simulating buildChildren)
+        const taskA = createTaskItem('Task A', 'vscode', uri);
+        const childTaskBClone = createTaskItem('Task B', 'vscode', uri);
+        // Set the parent so this clone is recognized as a child item
+        childTaskBClone.parent = taskA;
+        taskA.children = [childTaskBClone];
+
+        // Push both parent (Task A) and top-level Task B (alphabetical: A before B)
+        mockTasks.push(taskA, topLevelTaskB);
+        await service.refreshProvider('mockType');
+
+        const vsTask = createVsCodeTask('Task B', { type: 'shell' });
+
+        const match = service.findMatchingTask(vsTask);
+        assert.ok(match, 'Should find a matching task');
+        assert.strictEqual(match, topLevelTaskB, 'Should prefer the top-level item over the dependsOn child clone');
+    });
+
     test('refresh - Handles multiple providers and errors gracefully', async () => {
         mockTasks.length = 0;
         const item1 = createTaskItem('Task 1', 'type1');

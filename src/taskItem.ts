@@ -128,7 +128,8 @@ export class TaskItem extends vscode.TreeItem {
       this.taskType === 'folder' ||
       this.taskType === 'type' ||
       this.taskType === 'favorites' ||
-      this.taskType === 'queue' ||
+      this.taskType === 'compoundTask' ||
+      this.taskType === 'compoundTasks' ||
       this.taskType === 'recent'
     ) {
       // Check if this group is filtered
@@ -180,14 +181,20 @@ export class TaskItem extends vscode.TreeItem {
       if (isFiltered) {
         // Add filtered prefix to group context value
         this.contextValue = 'filtered' + this.taskType.charAt(0).toUpperCase() + this.taskType.slice(1);
+      } else if (this.taskType === 'compoundTask') {
+        // Compound task groups can be favorited; reflect that in the context value
+        const isFav = FavoritesService.getInstance().isFavorite(this);
+        this.contextValue = isFav ? 'favoriteCompoundTask' : 'compoundTask';
+      } else if (this.taskType === 'compoundTasks') {
+        this.contextValue = 'compoundTasks';
       } else {
         this.contextValue = this.taskType;
       }
     } else {
       // It's a task leaf node
       const rawId = TaskStateManager.getInstance().getTaskId(this);
-      // Strip the dedup suffix ("|"+N) that TaskCacheService appends to compound task children
-      // so they share status, filter, and favourite state with the original standalone task.
+      // Strip the dedupe suffix ("|"+N) that TaskCacheService appends to compound task children
+      // so they share status, filter, and favorite state with the original standalone task.
       const id = rawId.replace(/\|\d+$/, '');
       const status = TaskStateManager.getInstance().getStatus(id);
       const isFavorite = FavoritesService.getInstance().isFavorite(id);
@@ -213,6 +220,8 @@ export class TaskItem extends vscode.TreeItem {
       // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
       // Note: This check relies on contextValue being set before updateContextValue call
       // which happens in constructor or by parent
+      // ---
+      /// The contextValue of `queuedTask` is a special case for tasks that are part of a compound task (formerly "queue") group. The name remains as `queuedTask` in the context value for backwards compatibility and to avoid breaking existing logic that may have been built around this context value before we renamed the feature to "compound tasks". When a task is added to a compound task, its contextValue is set to 'queuedTask' to allow specific menu items (e.g., "Remove from Compound Task") to be shown for these tasks. We check for this context value here and preserve it if already set, rather than overwriting it based on taskType. This allows us to maintain the special handling for tasks that are part of compound tasks while still supporting the new grouping and filtering logic.
       if (this.contextValue === 'queuedTask' || (this.contextValue && this.contextValue.includes('queuedTask'))) {
         baseContext = 'queuedTask';
       } else if (this.contextValue === 'recentTask' || (this.contextValue && this.contextValue.includes('recentTask'))) {

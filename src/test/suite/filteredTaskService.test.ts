@@ -230,4 +230,80 @@ suite('FilteredTaskService Test Suite', () => {
         assert.strictEqual(service.isUnhidden('test-task-id'), false);
     });
 
+    test('hideTask uses item ID directly for compoundTask type', () => {
+        const compoundTask = {
+            label: 'My Compound Task',
+            taskType: 'compoundTask',
+            id: 'compound-task-id'
+        } as unknown as TaskItem;
+
+        let fired = false;
+        service.onDidChange(() => { fired = true; });
+
+        service.hideTask(compoundTask);
+
+        assert.strictEqual(service.isFiltered('compound-task-id'), true);
+        assert.strictEqual(fired, true);
+        assert.strictEqual(globalStateMock.get('filteredTasks').includes('compound-task-id'), true);
+    });
+
+    test('hideTask uses item ID directly for compoundTasks type', () => {
+        const compoundTasks = {
+            label: 'Compound Tasks Group',
+            taskType: 'compoundTasks',
+            id: 'compound-tasks-group-id'
+        } as unknown as TaskItem;
+
+        let fired = false;
+        service.onDidChange(() => { fired = true; });
+
+        service.hideTask(compoundTasks);
+
+        assert.strictEqual(service.isFiltered('compound-tasks-group-id'), true);
+        assert.strictEqual(fired, true);
+        assert.strictEqual(globalStateMock.get('filteredTasks').includes('compound-tasks-group-id'), true);
+    });
+
+    test('showTask uses item ID directly for compoundTask type', () => {
+        const compoundTask = {
+            label: 'My Compound Task',
+            taskType: 'compoundTask',
+            id: 'compound-task-id'
+        } as unknown as TaskItem;
+
+        service.hideTask(compoundTask);
+        assert.strictEqual(service.isFiltered('compound-task-id'), true);
+
+        let fired = false;
+        service.onDidChange(() => { fired = true; });
+
+        service.showTask(compoundTask);
+
+        assert.strictEqual(service.isFiltered('compound-task-id'), false);
+        assert.strictEqual(service.isUnhidden('compound-task-id'), true);
+        assert.strictEqual(fired, true);
+        assert.strictEqual(globalStateMock.get('unhiddenTasks').includes('compound-task-id'), true);
+    });
+
+    test('showTask uses item ID directly for compoundTasks type', () => {
+        const compoundTasks = {
+            label: 'Compound Tasks Group',
+            taskType: 'compoundTasks',
+            id: 'compound-tasks-group-id'
+        } as unknown as TaskItem;
+
+        service.hideTask(compoundTasks);
+        assert.strictEqual(service.isFiltered('compound-tasks-group-id'), true);
+
+        let fired = false;
+        service.onDidChange(() => { fired = true; });
+
+        service.showTask(compoundTasks);
+
+        assert.strictEqual(service.isFiltered('compound-tasks-group-id'), false);
+        assert.strictEqual(service.isUnhidden('compound-tasks-group-id'), true);
+        assert.strictEqual(fired, true);
+        assert.strictEqual(globalStateMock.get('unhiddenTasks').includes('compound-tasks-group-id'), true);
+    });
+
 });

@@ -283,6 +283,15 @@ export class TaskCacheService {
       return undefined;
     }
 
+    // When the same task appears both as a standalone top-level item and as a dependsOn
+    // child clone under another task, the top-level item is the one rendered in the tree
+    // and used for status display. Prefer top-level (parentless) candidates so that
+    // `setStatus` targets the correct item's ID.
+    const topLevelCandidates = candidates.filter(c => !c.parent);
+    if (topLevelCandidates.length > 0) {
+      candidates.splice(0, candidates.length, ...topLevelCandidates);
+    }
+
     const defType =
       task.definition && (task.definition as any).type ? ((task.definition as any).type as string) : undefined;
     const taskSource = (task as any).source as string | undefined;

@@ -214,4 +214,68 @@ suite('FavoritesService Test Suite', () => {
     assert.strictEqual(updates.length, 0, 'should not persist when no portable id');
     assert.strictEqual(svc.isFavorite(item), false);
   });
+
+  test('updateFavoriteId renames the stored favorite id', async () => {
+    const fakeState = {
+      normalizeTaskIds: (ids: string[]) => ids || [],
+      normalizeTaskId: (id: string) => id,
+      generatePortableTaskId: (item: TaskItem) => item.label,
+      getTaskId: (item: TaskItem) => item.label,
+    } as unknown as TaskStateManager;
+    (TaskStateManager as any).instance = fakeState;
+
+    const fakeStateValue = {
+      get: (_k: string, _d?: any) => ['undefined:OldName'],
+      update: async (k: string, v: any) => {
+        updates.push({ key: k, value: v });
+        return Promise.resolve();
+      },
+    };
+    ctx = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
+    } as unknown as vscode.ExtensionContext;
+
+    const svc = FavoritesService.getInstance();
+    svc.initialize(ctx);
+
+    assert.strictEqual(svc.isFavorite('undefined:OldName'), true, 'old id should be present before rename');
+
+    svc.updateFavoriteId('undefined:OldName', 'undefined:NewName');
+
+    assert.strictEqual(svc.isFavorite('undefined:OldName'), false, 'old id should be removed after rename');
+    assert.strictEqual(svc.isFavorite('undefined:NewName'), true, 'new id should be present after rename');
+    assert.strictEqual(updates.length, 1, 'should persist after update');
+    assert.deepStrictEqual(updates[0].value, ['undefined:NewName']);
+  });
+
+  test('updateFavoriteId is a no-op when old id is not in favorites', () => {
+    const fakeState = {
+      normalizeTaskIds: (ids: string[]) => ids || [],
+      normalizeTaskId: (id: string) => id,
+      generatePortableTaskId: (item: TaskItem) => item.label,
+      getTaskId: (item: TaskItem) => item.label,
+    } as unknown as TaskStateManager;
+    (TaskStateManager as any).instance = fakeState;
+
+    const fakeStateValue = {
+      get: (_k: string, d?: any) => d,
+      update: async (k: string, v: any) => {
+        updates.push({ key: k, value: v });
+        return Promise.resolve();
+      },
+    };
+    ctx = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
+    } as unknown as vscode.ExtensionContext;
+
+    const svc = FavoritesService.getInstance();
+    svc.initialize(ctx);
+
+    svc.updateFavoriteId('undefined:NonExistent', 'undefined:NewName');
+
+    assert.strictEqual(svc.isFavorite('undefined:NewName'), false, 'new id should not be added');
+    assert.strictEqual(updates.length, 0, 'should not persist when old id was not in favorites');
+  });
 });

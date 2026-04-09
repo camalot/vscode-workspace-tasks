@@ -5,17 +5,20 @@
 
   "command.addToFavorites": "Add to Favorites",
   "command.removeFromFavorites": "Remove from Favorites",
-  "command.addToQueue": "Add to Queue",
-  "command.runQueue": "Run Queue",
-  "command.clearQueue": "Clear Queue",
+  "command.addToCompoundTask": "Add to Compound Task (Queue)",
+  "command.runCompoundTask": "Run Compound Task (Queue)",
+  "command.clearCompoundTask": "Clear Compound Task (Queue)",
+  "command.purgeInvalidCompoundTasks": "Purge Invalid Compound Tasks (Queue) from Storage",
   "command.removeFromRecentTasks": "Remove from Recent Tasks",
   "command.clearRecentTasks": "Clear Recent Tasks",
-  "command.removeFromQueue": "Remove from Queue",
-  "command.renameQueue": "Rename Queue",
+  "command.removeFromCompoundTask": "Remove from Compound Task (Queue)",
+  "command.renameCompoundTask": "Rename Compound Task (Queue)",
+  "command.setCompoundTaskExecutionType": "Toggle Compound Task (Queue) Execution Type",
   "command.runTaskWithArgs": "Run Task with Arguments",
   "command.runTask": "Run Task",
   "command.copyTaskCommand": "Copy Command",
   "command.stopTask": "Stop Task",
+  "command.stopCompoundTask": "Stop Compound Task (Queue)",
   "command.restartTask": "Restart Task",
   "command.refreshTasks": "Refresh Tasks",
   "command.openSettings": "Workspace Tasks Settings",
@@ -45,7 +48,7 @@
   "command.history.disableFilterTerminated": "Terminated ✓",
 
   "tree.favorites": "Favorites",
-  "tree.queue": "Queue",
+  "tree.compoundTasks": "Compound Tasks (Queues)",
   "tree.tasks": "Tasks",
   "tree.recentTasks": "Recent Tasks",
 
@@ -57,7 +60,7 @@
   "config.workspaceTasks.task.actionBar.runWithArgs": "Run Task with Arguments",
   "config.workspaceTasks.task.actionBar.openFile": "Open File",
   "config.workspaceTasks.task.actionBar.favorite": "Add to Favorites",
-  "config.workspaceTasks.task.actionBar.queue": "Add to Queue",
+  "config.workspaceTasks.task.actionBar.compoundTask": "Add to Compound Task (Queue)",
 
   "config.workspaceTasks.autoRefresh": "Automatically refresh tasks when changes are detected",
   "config.workspaceTasks.autoRefresh.description": "Automatically refresh tasks when changes are detected",
@@ -177,15 +180,25 @@
   "config.workspaceTasks.groups.recentTasks.enabled": "Group Recent Tasks",
   "config.workspaceTasks.groups.recentTasks.enabled.markdown": "When enabled, recent tasks will be grouped based on the specified separator and other grouping rules.",
 
+  "config.workspaceTasks.groups.compoundTasks.enabled": "Group Compound Tasks (previously called 'Queues')",
+  "config.workspaceTasks.groups.compoundTasks.enabled.markdown": "When enabled, compound tasks (previously called 'Queues') will be grouped together in the task view. Otherwise, each compound task will be shown at the root level of the task view.",
+
   "config.workspaceTasks.groups.expanded": "Expanded Groups",
-  "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, queue, and recent tasks.",
+  "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, compound tasks, and recent tasks.",
   "config.workspaceTasks.groups.expanded.favorites": "Favorites",
-  "config.workspaceTasks.groups.expanded.queue": "Queue",
+  "config.workspaceTasks.groups.expanded.compoundTasks": "Compound Tasks (Queues)",
+  "config.workspaceTasks.groups.expanded.queue.deprecated": "Deprecated: use 'compoundTask' instead. Controls whether the Compound Tasks group is expanded by default.",
   "config.workspaceTasks.groups.expanded.recent": "Recent",
 
   "config.workspaceTasks.recentTasks.maxItems": "Max Recent Tasks",
   "config.workspaceTasks.recentTasks.maxItems.description": "Maximum number of recent tasks to display.",
   "config.workspaceTasks.recentTasks.maxItems.markdown": "Maximum number of recent tasks to display in the Recent Tasks group. Once the limit is reached, the oldest tasks will drop off the list. Set to 0 to disable the Recent Tasks group.",
+
+  "config.workspaceTasks.compoundTasks.defaultExecutionType": "Default Compound Task Execution Type",
+  "config.workspaceTasks.compoundTasks.defaultExecutionType.markdown": "Specify the default execution type for compound tasks (previously called 'Queues'). Options are 'sequential' or 'parallel'.",
+
+  "config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks": "Include Visual Studio Code Compound Tasks",
+  "config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks.markdown": "When enabled along with `workspaceTasks.groups.compoundTasks.enabled`, compound tasks defined in Visual Studio Code (using `type: 'compound'` in `tasks.json`) will be included in the `Compound Tasks` group. They will still be defined in the normal tree structure based on their `group` and `label` even if this setting is disabled.",
 
   "config.workspaceTasks.taskDiscovery.fetchDepth": "Fetch Depth for Task Discovery",
   "config.workspaceTasks.taskDiscovery.fetchDepth.markdown": "Specify the fetch depth when discovering tasks from within the workspace. A value of `null` means full fetch, while a positive integer limits the depth of the fetch operation. This can help improve performance when working with large repositories.",

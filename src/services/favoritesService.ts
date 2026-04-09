@@ -101,6 +101,18 @@ export class FavoritesService {
     }
   }
 
+  /**
+   * Updates a stored favorite ID to a new ID.
+   * Used when a compound task is renamed so the favorite entry reflects the new name.
+   */
+  public updateFavoriteId(oldId: string, newId: string): void {
+    if (this.favorites.has(oldId)) {
+      this.favorites.delete(oldId);
+      this.favorites.add(newId);
+      this.save();
+    }
+  }
+
   private save() {
     this.context?.workspaceState.update(this.STORAGE_KEY, Array.from(this.favorites));
   }

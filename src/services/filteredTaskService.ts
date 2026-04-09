@@ -102,7 +102,7 @@ export class FilteredTaskService {
    */
   readonly onDidChange: vscode.Event<void> = this._onDidChange.event;
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Gets the singleton instance of FilteredTaskService.
@@ -174,7 +174,7 @@ export class FilteredTaskService {
    * @returns true if the item or any parent is filtered, false otherwise
    */
   public isFilteredOrHasFilteredParent(item: TaskItem): boolean {
-    // Check the item itself, also stripping any dedup suffix so compound task
+    // Check the item itself, also stripping any dedupe suffix so compound task
     // children inherit the filtered state of the original standalone task.
     const itemId = item.id;
     const canonicalItemId = itemId ? itemId.replace(/\|\d+$/, '') : itemId;
@@ -242,11 +242,12 @@ export class FilteredTaskService {
     let id: string | undefined;
 
     if (item.taskType === 'workspace' ||
-        item.taskType === 'type' ||
-        item.taskType === 'folder' ||
-        item.taskType === 'favorites' ||
-        item.taskType === 'queue' ||
-        item.taskType === 'recent') {
+      item.taskType === 'type' ||
+      item.taskType === 'folder' ||
+      item.taskType === 'favorites' ||
+      item.taskType === 'compoundTask' ||
+      item.taskType === 'compoundTasks' ||
+      item.taskType === 'recent') {
       // This is a group - use its ID directly
       id = item.id;
     } else {
@@ -294,11 +295,12 @@ export class FilteredTaskService {
     let id: string | undefined;
 
     if (item.taskType === 'workspace' ||
-        item.taskType === 'type' ||
-        item.taskType === 'folder' ||
-        item.taskType === 'favorites' ||
-        item.taskType === 'queue' ||
-        item.taskType === 'recent') {
+      item.taskType === 'type' ||
+      item.taskType === 'folder' ||
+      item.taskType === 'favorites' ||
+      item.taskType === 'compoundTask' ||
+      item.taskType === 'compoundTasks' ||
+      item.taskType === 'recent') {
       // This is a group - use its ID directly
       id = item.id;
     } else {
