@@ -186,6 +186,7 @@
   "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, compound tasks, and recent tasks.",
   "config.workspaceTasks.groups.expanded.favorites": "Favorites",
   "config.workspaceTasks.groups.expanded.compoundTasks": "Compound Tasks (Queues)",
+  "config.workspaceTasks.groups.expanded.queue.deprecated": "Deprecated: use 'compoundTask' instead. Controls whether the Compound Tasks group is expanded by default.",
   "config.workspaceTasks.groups.expanded.recent": "Recent",
 
   "config.workspaceTasks.recentTasks.maxItems": "Max Recent Tasks",

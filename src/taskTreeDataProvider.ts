@@ -14,7 +14,7 @@ import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 
-export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean, recent: boolean };
+export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean; queue?: boolean; recent: boolean };
 export type RootTreeTypes = 'favorites' | 'compoundTask' | 'compoundTasks' | 'recent' | 'workspace';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
@@ -1365,7 +1365,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
     if (type === 'compoundTask' || type === 'compoundTasks') {
-      return expandedGroups.compoundTask
+      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
@@ -1398,8 +1398,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
-    if (rootType === 'compoundTask') {
-      return expandedGroups.compoundTask
+    if (rootType === 'compoundTask' || rootType === 'compoundTasks') {
+      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }

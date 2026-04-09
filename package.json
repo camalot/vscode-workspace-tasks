@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -544,15 +544,18 @@
         "workspaceTasks.groups.expanded": {
           "type": "object",
           "markdownDescription": "%config.workspaceTasks.groups.expanded.markdown%",
-          "additionalProperties": false,
           "properties": {
             "favorites": {
               "type": "boolean",
               "description": "%config.workspaceTasks.groups.expanded.favorites%"
             },
-            "queue": {
+            "compoundTask": {
               "type": "boolean",
               "description": "%config.workspaceTasks.groups.expanded.compoundTasks%"
+            },
+            "queue": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.groups.expanded.queue.deprecated%"
             },
             "recent": {
               "type": "boolean",
@@ -561,7 +564,7 @@
           },
           "default": {
             "favorites": true,
-            "queue": true,
+            "compoundTask": true,
             "recent": true
           }
         },
