@@ -207,4 +207,72 @@ suite('TaskItem.updateContextValue Test Suite', () => {
     // Restore original instance
     (TaskStateManager as any).instance = origInstance;
   });
+
+  test('vscode compound task item with compoundTasksVscode: prefix shows running icon via normalizeTaskId stripping', () => {
+    // In production, a VSCode compound task item in the Compound Tasks group gets an ID of the form:
+    //   "compoundTasksVscode:<vscodeTaskId>"
+    // normalizeTaskId should strip "compoundTasksVscode:" so status lookups match the canonical task ID.
+    const canonicalId = 'ws:path:vscodeTask';
+    const prefixedId = `compoundTasksVscode:${canonicalId}`;
+
+    const statusMap = new Map<string, TaskStatus>();
+    statusMap.set(canonicalId, 'running');
+
+    const realStateManager = TaskStateManager.getInstance();
+    const origInstance = (TaskStateManager as any).instance;
+    (TaskStateManager as any).instance = realStateManager;
+    (realStateManager as any).states = statusMap;
+
+    (FavoritesService as any).instance = buildFakeFavoritesService();
+    (FilteredTaskService as any).instance = buildFakeFilteredTaskService();
+
+    const compoundItem = makeTaskItem('Full Build', prefixedId);
+    compoundItem.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+    compoundItem.updateContextValue();
+
+    assert.ok(
+      (compoundItem.iconPath as vscode.ThemeIcon)?.id === 'loading~spin',
+      `Compound item icon should be loading~spin when task is running, got: ${JSON.stringify(compoundItem.iconPath)}`,
+    );
+    assert.ok(
+      (compoundItem.contextValue ?? '').includes('running'),
+      `Compound item contextValue should include "running", got: ${compoundItem.contextValue}`,
+    );
+
+    (TaskStateManager as any).instance = origInstance;
+  });
+
+  test('vscode compound task dep item with compoundTasksVscode: prefix shows running icon via normalizeTaskId stripping', () => {
+    // In production, a dependency sub-item of a VSCode compound task gets an ID of the form:
+    //   "compoundTasksVscode:<vscodeTaskId>:dep:<depTaskId>"
+    // normalizeTaskId should strip "compoundTasksVscode:" then extract the portion after ":dep:".
+    const depTaskId = 'ws:path:dep1';
+    const prefixedId = `compoundTasksVscode:ws:path:vscodeTask:dep:${depTaskId}`;
+
+    const statusMap = new Map<string, TaskStatus>();
+    statusMap.set(depTaskId, 'running');
+
+    const realStateManager = TaskStateManager.getInstance();
+    const origInstance = (TaskStateManager as any).instance;
+    (TaskStateManager as any).instance = realStateManager;
+    (realStateManager as any).states = statusMap;
+
+    (FavoritesService as any).instance = buildFakeFavoritesService();
+    (FilteredTaskService as any).instance = buildFakeFilteredTaskService();
+
+    const depItem = makeTaskItem('dep1', prefixedId);
+    depItem.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+    depItem.updateContextValue();
+
+    assert.ok(
+      (depItem.iconPath as vscode.ThemeIcon)?.id === 'loading~spin',
+      `Dep item icon should be loading~spin when dep task is running, got: ${JSON.stringify(depItem.iconPath)}`,
+    );
+    assert.ok(
+      (depItem.contextValue ?? '').includes('running'),
+      `Dep item contextValue should include "running", got: ${depItem.contextValue}`,
+    );
+
+    (TaskStateManager as any).instance = origInstance;
+  });
 });

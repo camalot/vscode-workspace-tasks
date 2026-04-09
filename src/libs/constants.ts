@@ -9,6 +9,10 @@ const constants: Record<string, any> = {
   // `queue` is used to provide backwards compatibility with existing IDs and logic that may have been built around the concept of "queues" before we settled on "compound tasks" as the feature name.
   COMPOUND_TASK_ID_PREFIX: 'queue',
 
+  // ID prefix for VSCode native compound tasks (tasks with dependsOn) shown in the Compound Tasks group.
+  // format: `compoundTasksVscode:TaskId`
+  VSCODE_COMPOUND_TASK_ID_PREFIX: 'compoundTasksVscode',
+
   DEFAULT_TASK_GROUP_SEPARATOR: '',
 
   GLOB_GLOBAL_EXCLUDE: '**/node_modules/**,**/.git/**,**/__pycache__/**,**/vendor/bundle/**',

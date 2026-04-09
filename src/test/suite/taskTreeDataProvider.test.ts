@@ -9,6 +9,7 @@ import { CompoundTaskService } from '../../services/compoundTaskService';
 import { RecentTasksService } from '../../services/recentTasksService';
 import { TaskStateManager } from '../../taskStateManager';
 import { TaskIconService } from '../../services/taskIconService';
+import constants from '../../libs/constants';
 
 // ─── Mock helpers ────────────────────────────────────────────────────────────
 
@@ -1487,8 +1488,8 @@ suite('TaskTreeDataProvider Test Suite', () => {
         const vscodeChild = compoundTasksRoot!.children.find((c) => c.label === 'Full Build');
         assert.ok(vscodeChild, 'Full Build should exist');
         assert.ok(
-          vscodeChild!.id?.startsWith('compoundTasksVscode:'),
-          `ID should be prefixed with 'compoundTasksVscode:', got '${vscodeChild!.id}'`,
+          vscodeChild!.id?.startsWith(`${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:`),
+          `ID should be prefixed with '${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:', got '${vscodeChild!.id}'`,
         );
       });
     });

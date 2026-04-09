@@ -788,7 +788,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // Use the original task ID for state (running/success/fail) lookup, then prefix for tree uniqueness
         compoundItem.id = task.id;
         compoundItem.updateContextValue();
-        compoundItem.id = `compoundTasksVscode:${task.id}`;
+        compoundItem.id = `${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:${task.id}`;
 
         // Build dependency sub-items
         for (const depLabel of dependsOnLabels) {

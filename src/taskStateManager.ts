@@ -138,6 +138,11 @@ export class TaskStateManager {
       normalized = normalized.substring(4);
     }
 
+    // Strip VSCode native compound task prefix "compoundTasksVscode:realId"
+    if (normalized && normalized.startsWith(`${constants.VSCODE_COMPOUND_TASK_ID_PREFIX}:`)) {
+      normalized = normalized.substring(constants.VSCODE_COMPOUND_TASK_ID_PREFIX.length + 1);
+    }
+
     // Handle compound task prefix "queue:name:realId"
     if (normalized && normalized.startsWith(`${constants.COMPOUND_TASK_ID_PREFIX}:`)) {
       const firstColon = normalized.indexOf(':');
