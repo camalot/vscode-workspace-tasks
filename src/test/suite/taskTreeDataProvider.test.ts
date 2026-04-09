@@ -931,6 +931,148 @@ suite('TaskTreeDataProvider Test Suite', () => {
     });
   });
 
+  // ── organizeTasks with groups.compoundTasks.enabled ──────────────────────
+
+  suite('compound tasks grouped mode', () => {
+    function withCompoundTasksGroupEnabled(callback: () => Promise<void>): Promise<void> {
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: (key: string, defaultValue?: any) => {
+              if (key === 'groups.compoundTasks.enabled') { return true; }
+              return defaultValue;
+            },
+          };
+        }
+        return originalGetConfig.call(vscode.workspace, section);
+      };
+      return callback().finally(() => {
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+      });
+    }
+
+    test('compound tasks appear under a Compound Tasks root when groups.compoundTasks.enabled is true', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        // Should have a 'compoundTasks' root instead of a bare 'compoundTask' root
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have a Compound Tasks root group');
+        assert.strictEqual(compoundTasksRoot!.label, 'Compound Tasks');
+
+        // The individual compound task should be a child, not a root
+        const bareCompoundRoot = roots.find((r) => r.taskType === 'compoundTask');
+        assert.strictEqual(bareCompoundRoot, undefined, 'Individual compound task should NOT be a root when grouped');
+
+        const childGroup = compoundTasksRoot!.children.find((c) => c.label === 'MyCompound');
+        assert.ok(childGroup, 'MyCompound should be a child of the Compound Tasks root');
+        assert.strictEqual(childGroup!.taskType, 'compoundTask');
+      });
+    });
+
+    test('compoundTasks root has contextValue compoundTasks', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have compoundTasks root');
+        assert.strictEqual(compoundTasksRoot!.contextValue, 'compoundTasks');
+      });
+    });
+
+    test('root ordering: recent, favorites, compoundTasks, workspace when grouped', async () => {
+      const task = new TaskItem('task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'task-id';
+      task.originalLabel = 'task';
+
+      stubServicesForOrganize([task]);
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return id === 'task-id';
+      };
+
+      const recentService = RecentTasksService.getInstance();
+      (recentService as any).getRecentTasks = () => [task];
+
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['Q1', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const recentIdx = roots.findIndex((r) => r.taskType === 'recent');
+        const favIdx = roots.findIndex((r) => r.taskType === 'favorites');
+        const compoundGroupIdx = roots.findIndex((r) => r.taskType === 'compoundTasks');
+        const wsIdx = roots.findIndex((r) => r.taskType === 'workspace');
+
+        assert.ok(recentIdx !== -1, 'Should have recent group');
+        assert.ok(favIdx !== -1, 'Should have favorites group');
+        assert.ok(compoundGroupIdx !== -1, 'Should have compoundTasks root');
+        assert.ok(wsIdx !== -1, 'Should have workspace root');
+
+        assert.ok(recentIdx < favIdx, 'Recent should come before favorites');
+        assert.ok(favIdx < compoundGroupIdx, 'Favorites should come before compoundTasks');
+        assert.ok(compoundGroupIdx < wsIdx, 'compoundTasks should come before workspace');
+      });
+    });
+
+    test('multiple compound tasks are all children of the Compound Tasks root', async () => {
+      const t1 = new TaskItem('task1', vscode.TreeItemCollapsibleState.None, 'npm');
+      t1.id = 'task1-id';
+      t1.originalLabel = 'task1';
+      const t2 = new TaskItem('task2', vscode.TreeItemCollapsibleState.None, 'npm');
+      t2.id = 'task2-id';
+      t2.originalLabel = 'task2';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['CompoundA', [t1]], ['CompoundB', [t2]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      await withCompoundTasksGroupEnabled(async () => {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+
+        const compoundTasksRoot = roots.find((r) => r.taskType === 'compoundTasks');
+        assert.ok(compoundTasksRoot, 'Should have compoundTasks root');
+        assert.strictEqual(compoundTasksRoot!.children.length, 2, 'Should have 2 compound task children');
+
+        const labels = compoundTasksRoot!.children.map((c) => c.label);
+        assert.ok(labels.includes('CompoundA'), 'CompoundA should be a child');
+        assert.ok(labels.includes('CompoundB'), 'CompoundB should be a child');
+      });
+    });
+  });
+
   // ── organizeTasks with groups disabled ───────────────────────────────────
 
   suite('groups disabled mode', () => {

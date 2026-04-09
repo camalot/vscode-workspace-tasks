@@ -129,6 +129,7 @@ export class TaskItem extends vscode.TreeItem {
       this.taskType === 'type' ||
       this.taskType === 'favorites' ||
       this.taskType === 'compoundTask' ||
+      this.taskType === 'compoundTasks' ||
       this.taskType === 'recent'
     ) {
       // Check if this group is filtered
@@ -184,6 +185,8 @@ export class TaskItem extends vscode.TreeItem {
         // Compound task groups can be favorited; reflect that in the context value
         const isFav = FavoritesService.getInstance().isFavorite(this);
         this.contextValue = isFav ? 'favoriteCompoundTask' : 'compoundTask';
+      } else if (this.taskType === 'compoundTasks') {
+        this.contextValue = 'compoundTasks';
       } else {
         this.contextValue = this.taskType;
       }

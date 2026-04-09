@@ -15,7 +15,7 @@ import { FilteredTaskService } from './services/filteredTaskService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 
 export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean, recent: boolean };
-export type RootTreeTypes = 'favorites' | 'compoundTask' | 'recent' | 'workspace';
+export type RootTreeTypes = 'favorites' | 'compoundTask' | 'compoundTasks' | 'recent' | 'workspace';
 
 export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private static instance: TaskTreeDataProvider | undefined;
@@ -233,6 +233,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const groupsEnabled = config.get<boolean>('groups.enabled', true);
     const useParentFolder = config.get<boolean>('groups.useParentFolder', false);
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
+    const compoundTasksGroupEnabled = config.get<boolean>('groups.compoundTasks.enabled', false);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
     const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
       favorites: true,
@@ -920,7 +921,26 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       rootItems.push(favGroup);
     }
     if (compoundTaskGroups.length > 0) {
-      rootItems.push(...compoundTaskGroups);
+      if (compoundTasksGroupEnabled) {
+        // Wrap all compound task groups under a single "Compound Tasks" root item
+        const compoundTasksRootId = this.makeId('compoundTasks', rootSalt);
+        const compoundTasksRoot = new TaskItem(
+          'Compound Tasks',
+          this.getExpandedState(compoundTasksRootId, this.getRootState('compoundTasks', expandedGroups)),
+          'compoundTasks',
+        );
+        compoundTasksRoot.id = compoundTasksRootId;
+        compoundTasksRoot.updateContextValue();
+        compoundTasksRoot.iconPath = new vscode.ThemeIcon('layers');
+
+        for (const group of compoundTaskGroups) {
+          group.parent = compoundTasksRoot;
+          compoundTasksRoot.children.push(group);
+        }
+        rootItems.push(compoundTasksRoot);
+      } else {
+        rootItems.push(...compoundTaskGroups);
+      }
     }
 
     // Add remaining project roots
@@ -1170,7 +1190,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
-    if (type === 'compoundTask') {
+    if (type === 'compoundTask' || type === 'compoundTasks') {
       return expandedGroups.compoundTask
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
