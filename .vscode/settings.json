@@ -84,5 +84,32 @@
         "venv",
         "vscmarketplace",
         "wrongfile"
-    ]
+    ],
+    "workspaceTasks.groups.compoundTasks.enabled": true,
+    "workspaceTasks.recentTasks.maxItems": 5,
+    "workspaceTasks.debug": true,
+    "workspaceTasks.enabledTaskTypes": {
+        "ant": false,
+        "ruby": false,
+        "cake": false,
+        "composer": false,
+        "cargo-make": false,
+        "cargo": false,
+        "cmake": false,
+        "deno": false,
+        "go": false,
+        "gradle": false,
+        "grunt": false,
+        "gulp": false,
+        "jupyter": false,
+        "make": false,
+        "just": false,
+        "maven": false,
+        "msbuild": false,
+        "pipenv": false,
+        "poe": false,
+        "poetry": false,
+        "rake": false,
+        "venv": false
+    }
 }
