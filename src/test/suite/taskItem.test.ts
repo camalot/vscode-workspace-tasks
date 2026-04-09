@@ -165,4 +165,46 @@ suite('TaskItem.updateContextValue Test Suite', () => {
       'Original task should still show running icon',
     );
   });
+
+  // -------------------------------------------------------------------------
+  // Compound-task dependency-item prefix stripping
+  // -------------------------------------------------------------------------
+
+  test('dep item with full compound-task prefix shows running icon via normalizeTaskId stripping', () => {
+    // In production, a compound-task dependency item gets an ID of the form:
+    //   "queue:<CompoundName>:<vscodeTaskId>:dep:<depTaskId>"
+    // normalizeTaskId should strip "queue:<CompoundName>:" and then extract
+    // everything after ":dep:" so that the status lookup uses just <depTaskId>.
+    const depTaskId = 'ws:path:dep1';
+    const fullPrefixedId = `queue:MyCompound:ws:path:vscodeTask:dep:${depTaskId}`;
+
+    const statusMap = new Map<string, TaskStatus>();
+    statusMap.set(depTaskId, 'running');
+
+    // Use the real TaskStateManager so normalizeTaskId is exercised
+    const realStateManager = TaskStateManager.getInstance();
+    const origInstance = (TaskStateManager as any).instance;
+    (TaskStateManager as any).instance = realStateManager;
+    // Bootstrap so getStatus works
+    (realStateManager as any).states = statusMap;
+
+    (FavoritesService as any).instance = buildFakeFavoritesService();
+    (FilteredTaskService as any).instance = buildFakeFilteredTaskService();
+
+    const depItem = makeTaskItem('dep1', fullPrefixedId);
+    depItem.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+    depItem.updateContextValue();
+
+    assert.ok(
+      (depItem.iconPath as vscode.ThemeIcon)?.id === 'loading~spin',
+      `Dep item icon should be loading~spin when dep task is running, got: ${JSON.stringify(depItem.iconPath)}`
+    );
+    assert.ok(
+      (depItem.contextValue ?? '').includes('running'),
+      `Dep item contextValue should include "running", got: ${depItem.contextValue}`
+    );
+
+    // Restore original instance
+    (TaskStateManager as any).instance = origInstance;
+  });
 });

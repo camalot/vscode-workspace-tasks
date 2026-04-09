@@ -147,6 +147,16 @@ export class TaskStateManager {
       }
     }
 
+    // Strip compound-task dependency-item suffix ":dep:realDepTaskId".
+    // Dep items inside a compound task get the full path
+    // "vscodeTaskId:dep:depTaskId" after the queue prefix is removed above.
+    // We need only the canonical dep task ID for status/filter/favorite lookups.
+    const depMarker = ':dep:';
+    const depIdx = normalized.indexOf(depMarker);
+    if (depIdx !== -1) {
+      normalized = normalized.substring(depIdx + depMarker.length);
+    }
+
     // Check if we have a cached migration for this old ID
     if (this.idMigrationMap.has(normalized)) {
       return this.idMigrationMap.get(normalized)!;

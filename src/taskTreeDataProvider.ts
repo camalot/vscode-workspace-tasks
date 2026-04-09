@@ -185,6 +185,18 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
   async getChildren(element?: TaskItem): Promise<TaskItem[]> {
     if (element) {
+      // Compound task dep items (and other dynamically-created children) are built fresh
+      // in organizeTasks() but are NOT part of the shared task cache. Unlike cache items
+      // that are updated in-place by updateContextRecursively(), these items may become
+      // stale if VS Code passes an old element reference to getChildren during a tree
+      // refresh. Explicitly refreshing the context values here ensures running status
+      // (icons, contextValues) is always current when VS Code renders these items.
+      for (const child of element.children) {
+        child.updateContextValue();
+        for (const grandchild of child.children) {
+          grandchild.updateContextValue();
+        }
+      }
       return element.children;
     } else {
       const allTasks = TaskCacheService.getInstance().getAllTasks();
@@ -568,9 +580,13 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           const iconObj = TaskIconService.getInstance().getTaskTypeIcon(task.taskType);
           const iconPath = iconObj ? iconObj.TaskIcon : undefined;
 
+          // If this task has dependsOn labels, it is a VSCode compound (dependent) task.
+          // In that case, show it as collapsible so users can see its dependency tasks.
+          const dependsOnLabels: string[] = task.metadata?.dependsOnLabels || [];
+
           const compoundTaskItem = new TaskItem(
             task.label,
-            vscode.TreeItemCollapsibleState.None,
+            dependsOnLabels.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
             task.taskType,
             task.taskFileUri,
             task.command,
@@ -603,6 +619,49 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           compoundTaskItem.updateContextValue(); // Updates status (running/success/fail), preserves queuedTask as base
 
           compoundTaskItem.id = `${constants.COMPOUND_TASK_ID_PREFIX}:${compoundTaskName}:${compoundTaskItem.id}`;
+
+          // Add dependency task items as children when the task has dependsOn labels.
+          // These are displayed as read-only informational sub-items (contextValue: 'compoundTaskDependency')
+          // so users can see which tasks this VSCode compound task depends on.
+          if (dependsOnLabels.length > 0) {
+            const allCacheTasks = TaskCacheService.getInstance().getAllTasks();
+            const depIconObj = TaskIconService.getInstance().getTaskTypeIcon('vscode');
+            const depIconPath = depIconObj ? depIconObj.TaskIcon : undefined;
+
+            for (const depLabel of dependsOnLabels) {
+              // Look up the matching VSCode task from the cache by label and file URI
+              const depTask = allCacheTasks.find(
+                (t) =>
+                  t.taskType === 'vscode' &&
+                  String(t.originalLabel || t.label).toLowerCase() === depLabel.toLowerCase() &&
+                  t.taskFileUri?.toString() === task.taskFileUri?.toString(),
+              );
+
+              const depItem = new TaskItem(
+                depLabel,
+                vscode.TreeItemCollapsibleState.None,
+                'vscode',
+                depTask?.taskFileUri ?? task.taskFileUri,
+                undefined,
+                depTask?.defaultIconPath ?? depIconPath,
+              );
+              depItem.originalLabel = depLabel;
+              depItem.startLine = depTask?.startLine;
+              depItem.metadata = depTask?.metadata;
+              // Set description same as parent compound task item
+              depItem.description = description;
+              depItem.parent = compoundTaskItem;
+
+              // Use the dep task's original ID for status (running/success/fail) lookup,
+              // then update context value so the item gets the same action bar as its task type,
+              // then prefix the ID for tree node uniqueness.
+              depItem.id = depTask?.id ?? depItem.id;
+              depItem.updateContextValue();
+              depItem.id = `${compoundTaskItem.id}:dep:${depItem.id}`;
+
+              compoundTaskItem.children.push(depItem);
+            }
+          }
 
           compoundTaskGroup.children.push(compoundTaskItem);
         }
@@ -644,6 +703,30 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             childCopy.parent = favCompoundGroup;
             // Re-use the same ID so running state is shared with the original
             childCopy.id = child.id;
+
+            // Clone dependency grandchildren (sub-items of a VSCode compound/dependent task)
+            if (child.children.length > 0) {
+              childCopy.children = child.children.map((grandchild) => {
+                const grandchildCopy = new TaskItem(
+                  grandchild.label,
+                  grandchild.collapsibleState,
+                  grandchild.taskType,
+                  grandchild.taskFileUri,
+                  grandchild.command,
+                  grandchild.defaultIconPath,
+                );
+                grandchildCopy.originalLabel = grandchild.originalLabel;
+                grandchildCopy.startLine = grandchild.startLine;
+                grandchildCopy.metadata = grandchild.metadata;
+                grandchildCopy.taskFileUri = grandchild.taskFileUri;
+                grandchildCopy.description = grandchild.description;
+                grandchildCopy.contextValue = grandchild.contextValue;
+                grandchildCopy.parent = childCopy;
+                grandchildCopy.id = grandchild.id;
+                return grandchildCopy;
+              });
+            }
+
             return childCopy;
           });
 

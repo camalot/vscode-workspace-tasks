@@ -80,6 +80,7 @@ You can also right-click the compound task and choose **Toggle Compound Task Exe
 - **Execution Mode Icon** — The compound task group icon shows the current mode: `sequential.svg` or `parallel.svg`
 - **Drag & Drop Reordering** — Easily reorder tasks within and across compound tasks
 - **Visual Context** — Each compound task item shows the task icon, label, workspace name, and file path
+- **VSCode Task Dependency Display** — When a VSCode task that has `dependsOn` is added to a compound task, its dependency tasks are shown as expandable sub-items in the tree for quick reference
 - **Compound Task Controls** — Run the entire compound task, start from a specific task, or stop execution
 - **Compound Task Management** — Rename compound tasks, clear all tasks, or delete empty compound tasks
 - **Persistent Storage** — Compound tasks and their execution modes are saved and restored between sessions
@@ -100,6 +101,21 @@ CI Pipeline (Sequential Mode):
 ```
 
 Run all tasks in sequence by clicking the run button on the compound task — Workspace Tasks executes each one automatically and stops if any task fails.
+
+### VSCode Task Dependencies in Compound Tasks
+
+When a VSCode task that uses `dependsOn` is added to a compound task, the tree displays its dependency tasks as expandable sub-items:
+
+```text
+My Compound Task:
+  ▼ Full Build  (vscode)           ← VSCode compound task with dependsOn
+      ├─ Compile TypeScript         ← dependency task
+      └─ Copy Assets                ← dependency task
+  ▶ Run Tests   (npm)
+  ▶ Deploy      (shell)
+```
+
+This gives you a quick view of which tasks will run as part of the VSCode task, directly in the compound task tree.
 
 ---
 

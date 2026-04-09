@@ -732,6 +732,273 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.notStrictEqual(childItem.contextValue, 'compoundTask', 'Child item should not have compoundTask contextValue');
     });
 
+    test('vscode task with dependsOnLabels shows as collapsible with dependency children', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1', 'dep2'] };
+
+      // dep1 exists in cache
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      dep1.startLine = 5;
+
+      stubServicesForOrganize([dep1]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      assert.ok(compoundGroup!.children.length > 0, 'Compound task group should have children');
+
+      const compoundTaskItem = compoundGroup!.children[0];
+      assert.strictEqual(compoundTaskItem.label, 'MyVscodeTask');
+      assert.strictEqual(compoundTaskItem.collapsibleState, vscode.TreeItemCollapsibleState.Collapsed,
+        'Task with dependsOnLabels should be collapsible');
+      assert.strictEqual(compoundTaskItem.children.length, 2, 'Should have two dependency children');
+    });
+
+    test('dependency children have the same contextValue as their task type', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+      assert.strictEqual(compoundTaskItem.children.length, 1);
+
+      const depItem = compoundTaskItem.children[0];
+      assert.strictEqual(depItem.label, 'dep1');
+      // Dependency items use the natural context value for their task type (e.g. 'task'),
+      // not a special 'compoundTaskDependency', so they show the same action bar as their type.
+      assert.ok(
+        depItem.contextValue === 'task' || depItem.contextValue?.endsWith('Task') || depItem.contextValue?.includes('task'),
+        `Dependency item should have a task-type contextValue, got '${depItem.contextValue}'`
+      );
+      assert.strictEqual(depItem.collapsibleState, vscode.TreeItemCollapsibleState.None,
+        'Dependency item should not be collapsible');
+    });
+
+    test('dependency child uses cached task properties when found in cache', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      dep1.startLine = 10;
+
+      stubServicesForOrganize([dep1]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+      const depItem = compoundTaskItem.children[0];
+
+      assert.strictEqual(depItem.startLine, 10, 'Dependency item should use startLine from cached task');
+    });
+
+    test('dependency child shows running status when dep task is running at build time', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+
+      stubServicesForOrganize([dep1]);
+      const stateManager = TaskStateManager.getInstance();
+      stateManager.setStatus('dep1-id', 'running');
+
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+      const depItem = compoundTaskItem.children[0];
+
+      assert.ok(
+        depItem.iconPath instanceof vscode.ThemeIcon && (depItem.iconPath as vscode.ThemeIcon).id === 'loading~spin',
+        `Dependency item should show spinning icon when task is running, got iconPath: ${JSON.stringify(depItem.iconPath)}`
+      );
+      assert.ok(
+        depItem.contextValue?.includes('running'),
+        `Dependency item contextValue should include 'running', got '${depItem.contextValue}'`
+      );
+    });
+
+    test('dependency items update their running status when getChildren is called on a stale element', async () => {
+      // This test simulates the VS Code tree-view behaviour where it can pass an OLD
+      // element reference to getChildren() even after a full refresh fires.  In that
+      // case the dep-item objects inside the old compound-task item were built before
+      // the sub-task started running and therefore carry stale (idle) state.
+      // getChildren must call updateContextValue() on each child/grandchild so the
+      // returned items always reflect the current task status.
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      const dep1 = new TaskItem('dep1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      dep1.originalLabel = 'dep1';
+      dep1.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+
+      stubServicesForOrganize([dep1]);
+      const stateManager = TaskStateManager.getInstance();
+
+      // Override getTaskId to mimic the real normalizeTaskId behaviour for this test.
+      // The real implementation strips "queue:name:" and then ":dep:" prefixes so that
+      // both freshly-built and stale dep-item objects can look up the canonical status key.
+      (stateManager as any).getTaskId = (item: TaskItem) => {
+        let id = item.id ?? '';
+        // Strip "queue:name:" compound-task prefix
+        if (id.startsWith('queue:')) {
+          const fi = id.indexOf(':');
+          const si = id.indexOf(':', fi + 1);
+          if (si !== -1) { id = id.substring(si + 1); }
+        }
+        // Strip ":dep:canonicalDepId" to extract the canonical dep task ID
+        const di = id.indexOf(':dep:');
+        if (di !== -1) { id = id.substring(di + ':dep:'.length); }
+        return id;
+      };
+
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+
+      // --- Phase 1: build initial tree while dep task is still idle ---
+      const roots = await provider.getChildren();
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const oldCompoundTaskItem = compoundGroup!.children[0];
+
+      // Verify dep item is idle initially
+      const idleDepItem = oldCompoundTaskItem.children[0];
+      assert.ok(
+        !(idleDepItem.iconPath instanceof vscode.ThemeIcon && (idleDepItem.iconPath as vscode.ThemeIcon).id === 'loading~spin'),
+        'Dep item should NOT be spinning when task is idle'
+      );
+
+      // --- Phase 2: dep task starts running (simulating onDidStartTask) ---
+      stateManager.setStatus('dep1-id', 'running');
+
+      // --- Phase 3: VS Code calls getChildren on the OLD compound task item reference ---
+      // (This is the stale-element scenario that caused the bug)
+      const refreshedChildren = await provider.getChildren(oldCompoundTaskItem);
+      const refreshedDepItem = refreshedChildren[0];
+
+      assert.ok(
+        refreshedDepItem.iconPath instanceof vscode.ThemeIcon && (refreshedDepItem.iconPath as vscode.ThemeIcon).id === 'loading~spin',
+        `Dep item should show spinning icon after task starts running (stale element scenario), got: ${JSON.stringify(refreshedDepItem.iconPath)}`
+      );
+      assert.ok(
+        refreshedDepItem.contextValue?.includes('running'),
+        `Dep item contextValue should include 'running' after refresh, got '${refreshedDepItem.contextValue}'`
+      );
+    });
+
+    test('task without dependsOnLabels remains non-collapsible', async () => {
+      const task = new TaskItem('PlainTask', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'plain-task-id';
+      task.originalLabel = 'PlainTask';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      const compoundTaskItem = compoundGroup!.children[0];
+
+      assert.strictEqual(compoundTaskItem.collapsibleState, vscode.TreeItemCollapsibleState.None,
+        'Task without dependsOnLabels should remain non-collapsible');
+      assert.strictEqual(compoundTaskItem.children.length, 0, 'Should have no dependency children');
+    });
+
+    test('favorited compound task clones dependency grandchildren', async () => {
+      const task = new TaskItem('MyVscodeTask', vscode.TreeItemCollapsibleState.None, 'vscode');
+      task.id = 'vscode-task-id';
+      task.originalLabel = 'MyVscodeTask';
+      task.taskFileUri = vscode.Uri.file('/root/.vscode/tasks.json');
+      task.metadata = { dependsOnLabels: ['dep1'] };
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      assert.ok(favGroup, 'Favorites group should exist');
+      const favCompoundGroup = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundGroup, 'Favorited compound task should appear in favorites');
+      assert.ok(favCompoundGroup!.children.length > 0, 'Favorited compound task should have children');
+
+      const favChildItem = favCompoundGroup!.children[0];
+      assert.strictEqual(favChildItem.label, 'MyVscodeTask');
+      assert.strictEqual(favChildItem.children.length, 1, 'Favorites clone should preserve dependency grandchildren');
+
+      const favDepItem = favChildItem.children[0];
+      assert.strictEqual(favDepItem.label, 'dep1');
+      // Dependency items use natural task context values so their action bar matches their type
+      assert.ok(
+        favDepItem.contextValue === 'task' || favDepItem.contextValue?.endsWith('Task') || favDepItem.contextValue?.includes('task'),
+        `Favorites dep item should have a task-type contextValue, got '${favDepItem.contextValue}'`
+      );
+    });
+
     test('compound task group uses sequential icon when executionType is sequential', async () => {
       const task = new TaskItem('seq-task', vscode.TreeItemCollapsibleState.None, 'npm');
       task.id = 'seq-task-id';

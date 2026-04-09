@@ -7,7 +7,7 @@ const constants: Record<string, any> = {
   // ID prefix for compound tasks to ensure uniqueness and allow for specific handling in tree logic
   // format: `queue:CompoundTaskName` for groups, `queue:CompoundTaskName:TaskId` for items
   // `queue` is used to provide backwards compatibility with existing IDs and logic that may have been built around the concept of "queues" before we settled on "compound tasks" as the feature name.
-  COMPOUND_TASK_ID_KEY: 'queue',
+  COMPOUND_TASK_ID_PREFIX: 'queue',
 
   DEFAULT_TASK_GROUP_SEPARATOR: '',
 
@@ -23,7 +23,7 @@ const constants: Record<string, any> = {
   GLOB_GULP: '{**/gulpfile.js,**/gulpfile.mjs}',
   GLOB_GRUNT: '**/[Gg]runtfile.js',
   GLOB_GRADLE: '**/*.gradle',
-  GLOB_MAKE: '**/[M]akefile',
+  GLOB_MAKE: '**/[Mm]ake[Ff]ile',
   GLOB_NODEJS: '**/package.json',
   GLOB_PNPM: '**/package.{json,yaml}',
   GLOB_PERL: '**/*.pl',
