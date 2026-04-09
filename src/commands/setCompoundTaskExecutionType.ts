@@ -14,7 +14,7 @@ export class SetCompoundTaskExecutionTypeCommand extends BaseCommand {
 
     let compoundTaskName: string | undefined;
 
-    if (item && item.contextValue === 'compoundTask') {
+    if (item && (item.contextValue === 'compoundTask' || item.contextValue === 'favoriteCompoundTask')) {
       compoundTaskName = item.label as string;
     } else {
       const compoundTaskService = CompoundTaskService.getInstance();

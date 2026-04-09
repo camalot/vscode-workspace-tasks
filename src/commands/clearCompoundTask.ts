@@ -12,7 +12,7 @@ export class ClearCompoundTaskCommand extends BaseCommand {
   }
 
   async run(item?: TaskItem): Promise<void> {
-    if (item && item.contextValue === 'compoundTask') {
+    if (item && (item.contextValue === 'compoundTask' || item.contextValue === 'favoriteCompoundTask')) {
       CompoundTaskService.getInstance().clearCompoundTask(item.label as string);
       this.taskTreeDataProvider.refreshLocal();
       return;

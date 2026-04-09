@@ -69,7 +69,30 @@ suite('StopCompoundTaskCommand Test Suite', () => {
   // -------------------------------------------------------------------------
   // run – item with runningCompoundTask contextValue
   // -------------------------------------------------------------------------
+  test('run cancels compound task when given a runningFavoriteCompoundTask item', async () => {
+    const task1 = makeTaskItem('task1');
+    let cancelledCompoundTask: string | undefined;
 
+    (CompoundTaskService as any).instance = {
+      cancelCompoundTask: (name: string) => { cancelledCompoundTask = name; },
+      getCompoundTask: (_name: string) => [task1],
+      getCompoundTaskNames: () => ['MyCompoundTask'],
+      isCompoundTaskRunning: () => true,
+    } as any;
+
+    (TaskStateManager as any).instance = {
+      getTaskId: (item: TaskItem) => item.originalLabel || item.label,
+      getExecution: () => undefined,
+      markTerminated: () => { },
+    } as any;
+
+    const favCompoundItem = makeTaskItem('MyCompoundTask', 'compoundTask');
+    favCompoundItem.contextValue = 'runningFavoriteCompoundTask';
+
+    await cmd.run(favCompoundItem);
+
+    assert.strictEqual(cancelledCompoundTask, 'MyCompoundTask', 'Should cancel by label when given runningFavoriteCompoundTask item');
+  });
   test('run cancels compound task and terminates running tasks when given a runningCompoundTask item', async () => {
     const task1 = makeTaskItem('task1');
     const task2 = makeTaskItem('task2');

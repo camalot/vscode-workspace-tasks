@@ -1359,18 +1359,23 @@
           "group": "inline@1"
         },
         {
-          "command": "workspaceTasks.renameCompoundTask",
-          "when": "viewItem == compoundTask",
-          "group": "inline@2"
+          "command": "workspaceTasks.runCompoundTask",
+          "when": "viewItem == favoriteCompoundTask",
+          "group": "inline@99"
         },
         {
-          "command": "workspaceTasks.clearCompoundTask",
-          "when": "viewItem == compoundTask",
+          "command": "workspaceTasks.renameCompoundTask",
+          "when": "viewItem =~ /[cC]ompound[Tt]ask$/ && !(viewItem =~ /running/)",
           "group": "inline@3"
         },
         {
+          "command": "workspaceTasks.clearCompoundTask",
+          "when": "viewItem =~ /[cC]ompound[Tt]ask$/ && !(viewItem =~ /running/)",
+          "group": "inline@2"
+        },
+        {
           "command": "workspaceTasks.setCompoundTaskExecutionType",
-          "when": "viewItem == compoundTask",
+          "when": "viewItem =~ /[cC]ompound[Tt]ask$/ && !(viewItem =~ /running/)",
           "group": "inline@4"
         },
         {
@@ -1390,22 +1395,37 @@
         },
         {
           "command": "workspaceTasks.runTask",
-          "when": "viewItem =~ /[Tt]ask$/ && !(viewItem =~ /running/) && viewItem != compoundTask",
+          "when": "viewItem =~ /[Tt]ask$/ && !(viewItem =~ /running/) && !(viewItem =~ /[cC]ompound[Tt]ask/) && viewItem != compoundTask",
           "group": "1_run@98"
         },
         {
           "command": "workspaceTasks.runTaskWithArgs",
-          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /running/) && viewItem != compoundTask",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /running/) && !(viewItem =~ /[cC]ompound[Tt]ask/) && viewItem != compoundTask",
           "group": "1_run@99"
         },
         {
+          "command": "workspaceTasks.runCompoundTask",
+          "when": "viewItem == compoundTask || viewItem == favoriteCompoundTask",
+          "group": "1_run@1"
+        },
+        {
+          "command": "workspaceTasks.stopCompoundTask",
+          "when": "viewItem == runningCompoundTask || viewItem == runningFavoriteCompoundTask",
+          "group": "1_run@1"
+        },
+        {
           "command": "workspaceTasks.openFileAtLine",
-          "when": "viewItem =~ /[tT]ask$/ && viewItem != compoundTask",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /[cC]ompound[Tt]ask/) && viewItem != compoundTask",
           "group": "2_open@3"
         },
         {
           "command": "workspaceTasks.addToFavorites",
-          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]avorite)/) && viewItem != compoundTask",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]avorite)/) && !(viewItem =~ /[cC]ompound[Tt]ask/) && viewItem != compoundTask",
+          "group": "3_favorites@1"
+        },
+        {
+          "command": "workspaceTasks.addToFavorites",
+          "when": "viewItem == compoundTask",
           "group": "3_favorites@1"
         },
         {
@@ -1414,8 +1434,13 @@
           "group": "3_favorites@1"
         },
         {
+          "command": "workspaceTasks.removeFromFavorites",
+          "when": "viewItem == favoriteCompoundTask",
+          "group": "3_favorites@1"
+        },
+        {
           "command": "workspaceTasks.addToCompoundTask",
-          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([qQ]ueued)/) && viewItem != compoundTask",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([qQ]ueued)/) && !(viewItem =~ /[cC]ompound[Tt]ask/) && viewItem != compoundTask && viewItem != runningCompoundTask",
           "group": "4_compoundTask@2"
         },
         {
@@ -1429,24 +1454,44 @@
           "group": "4_compoundTask@1"
         },
         {
+          "command": "workspaceTasks.renameCompoundTask",
+          "when": "viewItem == compoundTask || viewItem == favoriteCompoundTask",
+          "group": "compoundTask_manage@1"
+        },
+        {
+          "command": "workspaceTasks.clearCompoundTask",
+          "when": "viewItem == compoundTask || viewItem == favoriteCompoundTask",
+          "group": "compoundTask_manage@2"
+        },
+        {
+          "command": "workspaceTasks.setCompoundTaskExecutionType",
+          "when": "viewItem == compoundTask || viewItem == favoriteCompoundTask",
+          "group": "compoundTask_manage@3"
+        },
+        {
           "command": "workspaceTasks.copyTaskCommand",
-          "when": "viewItem =~ /[tT]ask$/",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /[cC]ompound[Tt]ask/)",
           "group": "5_copy"
         },
         {
           "command": "workspaceTasks.restartTask",
-          "when": "viewItem =~ /running.*[Tt]ask/",
+          "when": "viewItem =~ /running.*[Tt]ask/ && viewItem != runningCompoundTask && viewItem != runningFavoriteCompoundTask",
           "group": "inline@98"
         },
         {
           "command": "workspaceTasks.stopTask",
-          "when": "viewItem =~ /running.*[Tt]ask/",
+          "when": "viewItem =~ /running.*[Tt]ask/ && viewItem != runningCompoundTask && viewItem != runningFavoriteCompoundTask",
           "group": "inline@99"
         },
         {
           "command": "workspaceTasks.stopCompoundTask",
           "when": "viewItem == runningCompoundTask",
-          "group": "inline@1"
+          "group": "inline@99"
+        },
+        {
+          "command": "workspaceTasks.stopCompoundTask",
+          "when": "viewItem == runningFavoriteCompoundTask",
+          "group": "inline@99"
         },
         {
           "command": "workspaceTasks.addToFavorites",
@@ -1454,13 +1499,18 @@
           "group": "inline@1"
         },
         {
+          "command": "workspaceTasks.addToFavorites",
+          "when": "viewItem == compoundTask && config.workspaceTasks.task.actionBar.favorite",
+          "group": "inline@5"
+        },
+        {
           "command": "workspaceTasks.removeFromFavorites",
-          "when": "viewItem =~ /[fF]avorite(Recent)?Task$/ && config.workspaceTasks.task.actionBar.favorite",
+          "when": "viewItem =~ /[fF]avorite(Recent|Compound)?Task$/ && config.workspaceTasks.task.actionBar.favorite",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.addToCompoundTask",
-          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([qQ]ueued)/) && viewItem != compoundTask && config.workspaceTasks.task.actionBar.queue",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([qQ]ueued)/) && !(viewItem =~ /[cC]ompoundTask/) && config.workspaceTasks.task.actionBar.queue",
           "group": "inline@2"
         },
         {
@@ -1475,7 +1525,7 @@
         },
         {
           "command": "workspaceTasks.hideTask",
-          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]iltered)/) && config.workspaceTasks.task.actionBar.hide",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /([fF]iltered)/) && viewItem != runningCompoundTask && config.workspaceTasks.task.actionBar.hide",
           "group": "inline@0"
         },
         {

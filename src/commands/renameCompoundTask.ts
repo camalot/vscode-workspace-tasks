@@ -10,8 +10,8 @@ export class RenameCompoundTaskCommand extends BaseCommand {
 
   async run(item?: TaskItem): Promise<void> {
     const taskTreeDataProvider = TaskTreeDataProvider.getInstance();
-    const target = item; // || treeView.selection[0];
-    if (!target || target.contextValue !== 'compoundTask') {
+    const target = item;
+    if (!target || (target.contextValue !== 'compoundTask' && target.contextValue !== 'favoriteCompoundTask')) {
       return;
     }
 

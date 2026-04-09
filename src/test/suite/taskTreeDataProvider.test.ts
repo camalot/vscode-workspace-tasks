@@ -707,6 +707,31 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.strictEqual(compoundGroup!.label, 'MyCompoundTask');
     });
 
+    test('compound task child items have queuedTask contextValue, not compoundTask', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyCompoundTask', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Should have compound task group');
+      assert.ok(compoundGroup!.children.length > 0, 'Compound task group should have children');
+
+      const childItem = compoundGroup!.children[0];
+      assert.ok(
+        childItem.contextValue === 'queuedTask' || childItem.contextValue?.startsWith('running'),
+        `Compound task child contextValue should be 'queuedTask' or 'runningQueuedTask', got '${childItem.contextValue}'`
+      );
+      assert.notStrictEqual(childItem.contextValue, 'compoundTask', 'Child item should not have compoundTask contextValue');
+    });
+
     test('compound task group uses sequential icon when executionType is sequential', async () => {
       const task = new TaskItem('seq-task', vscode.TreeItemCollapsibleState.None, 'npm');
       task.id = 'seq-task-id';
@@ -745,6 +770,124 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const iconPath = compoundGroup!.iconPath as { light: vscode.Uri; dark: vscode.Uri };
       assert.ok(iconPath.light.fsPath.includes('parallel.svg'), 'Should use parallel icon for light theme');
       assert.ok(iconPath.dark.fsPath.includes('parallel.svg'), 'Should use parallel icon for dark theme');
+    });
+
+    test('favorited compound task group appears in favorites section', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      // Mark the compound task group as a favorite by its ID
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      assert.ok(favGroup, 'Favorites group should exist when a compound task is favorited');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundChild, 'Favorited compound task should appear as child of favorites group');
+      assert.strictEqual(favCompoundChild!.taskType, 'compoundTask');
+    });
+
+    test('favorited compound task group child has queuedTask contextValue', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundChild, 'Favorited compound task should appear in favorites');
+      assert.ok(favCompoundChild!.children.length > 0, 'Favorited compound task should include children');
+      const childItem = favCompoundChild!.children[0];
+      assert.ok(
+        childItem.contextValue === 'queuedTask' || childItem.contextValue?.startsWith('running'),
+        `Favorited compound task child should have queuedTask contextValue, got '${childItem.contextValue}'`
+      );
+    });
+
+    test('favorited compound task group has favoriteCompoundTask contextValue', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['MyFavCompound', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => false;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('MyFavCompound');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      // Original compound task group should have favoriteCompoundTask contextValue
+      const compoundGroup = roots.find((r) => r.taskType === 'compoundTask');
+      assert.ok(compoundGroup, 'Compound task group should still exist in compound section');
+      assert.strictEqual(compoundGroup!.contextValue, 'favoriteCompoundTask');
+
+      // Favorite copy should also have favoriteCompoundTask contextValue
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'MyFavCompound');
+      assert.ok(favCompoundChild, 'Favorited compound task should appear in favorites');
+      assert.strictEqual(favCompoundChild!.contextValue, 'favoriteCompoundTask');
+    });
+
+    test('running favorited compound task has runningFavoriteCompoundTask contextValue in favorites', async () => {
+      const task = new TaskItem('child-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'child-task-id';
+      task.originalLabel = 'child-task';
+
+      stubServicesForOrganize([]);
+      const compoundService = CompoundTaskService.getInstance();
+      (compoundService as any).getAllCompoundTasks = () => new Map([['RunningFav', [task]]]);
+      (compoundService as any).getCompoundTaskExecutionType = (_name: string) => 'sequential';
+      (compoundService as any).isCompoundTaskRunning = (_name: string) => true;
+
+      const favService = FavoritesService.getInstance();
+      (favService as any).isFavorite = (itemOrId: TaskItem | string) => {
+        const id = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+        return typeof id === 'string' && id.includes('RunningFav');
+      };
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const favGroup = roots.find((r) => r.taskType === 'favorites');
+      assert.ok(favGroup, 'Favorites group should exist');
+      const favCompoundChild = favGroup!.children.find((c) => c.label === 'RunningFav');
+      assert.ok(favCompoundChild, 'Running favorited compound task should appear in favorites');
+      assert.strictEqual(favCompoundChild!.contextValue, 'runningFavoriteCompoundTask');
     });
 
     test('root ordering: recent, favorites, compoundTask, workspace', async () => {

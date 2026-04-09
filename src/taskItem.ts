@@ -180,6 +180,10 @@ export class TaskItem extends vscode.TreeItem {
       if (isFiltered) {
         // Add filtered prefix to group context value
         this.contextValue = 'filtered' + this.taskType.charAt(0).toUpperCase() + this.taskType.slice(1);
+      } else if (this.taskType === 'compoundTask') {
+        // Compound task groups can be favorited; reflect that in the context value
+        const isFav = FavoritesService.getInstance().isFavorite(this);
+        this.contextValue = isFav ? 'favoriteCompoundTask' : 'compoundTask';
       } else {
         this.contextValue = this.taskType;
       }

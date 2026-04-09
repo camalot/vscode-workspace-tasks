@@ -12,7 +12,7 @@ export class RunCompoundTaskCommand extends BaseCommand {
   async run(item?: TaskItem): Promise<void> {
     const taskRunner = TaskRunner.getInstance();
 
-    if (item && item.contextValue === 'compoundTask') {
+    if (item && (item.contextValue === 'compoundTask' || item.contextValue === 'favoriteCompoundTask')) {
       taskRunner.runCompoundTask(item.label as string);
       return;
     }

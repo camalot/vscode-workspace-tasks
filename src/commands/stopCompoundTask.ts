@@ -12,7 +12,7 @@ export class StopCompoundTaskCommand extends BaseCommand {
   async run(item?: TaskItem): Promise<void> {
     let compoundTaskName: string | undefined;
 
-    if (item && item.contextValue === 'runningCompoundTask') {
+    if (item && (item.contextValue === 'runningCompoundTask' || item.contextValue === 'runningFavoriteCompoundTask')) {
       compoundTaskName = item.label as string;
     } else {
       const compoundTaskService = CompoundTaskService.getInstance();

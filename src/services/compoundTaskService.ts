@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskStateManager } from '../taskStateManager';
+import { FavoritesService } from './favoritesService';
+import constants from '../libs/constants';
 
 export type CompoundTaskExecutionType = 'sequential' | 'parallel';
 
@@ -341,6 +343,11 @@ export class CompoundTaskService {
       this.compoundTasks.set(newName, tasks);
       this.compoundTaskTypes.set(newName, executionType);
       this.saveCompoundTasks();
+
+      // Update favorites if the compound task group was favorited
+      const oldId = `${constants.COMPOUND_TASK_ID_PREFIX}:${oldName}`;
+      const newId = `${constants.COMPOUND_TASK_ID_PREFIX}:${newName}`;
+      FavoritesService.getInstance().updateFavoriteId(oldId, newId);
     }
   }
 

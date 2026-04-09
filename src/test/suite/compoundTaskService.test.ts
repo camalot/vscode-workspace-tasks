@@ -1,6 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { CompoundTaskService } from '../../services/compoundTaskService';
+import { FavoritesService } from '../../services/favoritesService';
+import { TaskStateManager } from '../../taskStateManager';
 import { TaskItem } from '../../taskItem';
 
 suite('CompoundTaskService Test Suite', () => {
@@ -122,8 +124,8 @@ suite('CompoundTaskService Test Suite', () => {
       label: 'LegacyTask',
       taskType: 'shell'
     }];
-    mockGlobalState.set('compoundTaskItems', legacyCompoundTask);
-    mockGlobalState.set('compoundTaskName', 'LegacyCompoundTask');
+    mockGlobalState.set('queueItems', legacyCompoundTask);
+    mockGlobalState.set('queueName', 'LegacyCompoundTask');
 
     compoundTaskService.initialize(mockContext);
 
@@ -234,6 +236,70 @@ suite('CompoundTaskService Test Suite', () => {
     const newCompoundTask = compoundTaskService.getCompoundTask('NewName');
     assert.ok(newCompoundTask);
     assert.strictEqual(newCompoundTask!.length, 1);
+  });
+
+  test('renameCompoundTask updates favorites when the compound task was favorited', () => {
+    (FavoritesService as any).instance = undefined;
+    (TaskStateManager as any).instance = undefined;
+
+    const fakeTaskStateManager = {
+      normalizeTaskIds: (ids: string[]) => ids || [],
+      normalizeTaskId: (id: string) => id,
+      generatePortableTaskId: (taskItem: TaskItem) => taskItem.label,
+      getTaskId: (taskItem: TaskItem) => taskItem.id || taskItem.label,
+    } as unknown as TaskStateManager;
+    (TaskStateManager as any).instance = fakeTaskStateManager;
+
+    const favService = FavoritesService.getInstance();
+    favService.initialize(mockContext);
+
+    // Simulate the compound task group being favorited with its tree ID
+    const oldId = `${(require('../../libs/constants').default as any).COMPOUND_TASK_ID_PREFIX}:OldName`;
+    const newId = `${(require('../../libs/constants').default as any).COMPOUND_TASK_ID_PREFIX}:NewName`;
+    favService.updateFavoriteId('placeholder', oldId); // seed old id directly
+    (favService as any).favorites.add(oldId);
+    (favService as any).favorites.delete('placeholder');
+
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('Task1', vscode.TreeItemCollapsibleState.None, 'type');
+    compoundTaskService.addToCompoundTask(item, 'OldName');
+
+    compoundTaskService.renameCompoundTask('OldName', 'NewName');
+
+    assert.strictEqual(favService.isFavorite(oldId), false, 'old favorite id should be removed');
+    assert.strictEqual(favService.isFavorite(newId), true, 'new favorite id should be present');
+
+    (FavoritesService as any).instance = undefined;
+    (TaskStateManager as any).instance = undefined;
+  });
+
+  test('renameCompoundTask does not affect favorites when compound task was not favorited', () => {
+    (FavoritesService as any).instance = undefined;
+    (TaskStateManager as any).instance = undefined;
+
+    const fakeTaskStateManager = {
+      normalizeTaskIds: (ids: string[]) => ids || [],
+      normalizeTaskId: (id: string) => id,
+      generatePortableTaskId: (taskItem: TaskItem) => taskItem.label,
+      getTaskId: (taskItem: TaskItem) => taskItem.id || taskItem.label,
+    } as unknown as TaskStateManager;
+    (TaskStateManager as any).instance = fakeTaskStateManager;
+
+    const favService = FavoritesService.getInstance();
+    favService.initialize(mockContext);
+
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('Task1', vscode.TreeItemCollapsibleState.None, 'type');
+    compoundTaskService.addToCompoundTask(item, 'OldName');
+
+    // No favorites set — rename should succeed without error
+    compoundTaskService.renameCompoundTask('OldName', 'NewName');
+
+    const newId = `${(require('../../libs/constants').default as any).COMPOUND_TASK_ID_PREFIX}:NewName`;
+    assert.strictEqual(favService.isFavorite(newId), false, 'new id should not appear in favorites');
+
+    (FavoritesService as any).instance = undefined;
+    (TaskStateManager as any).instance = undefined;
   });
 
   test('renameCompoundTask preserves execution type', () => {
