@@ -554,4 +554,228 @@ suite('CompoundTaskService Test Suite', () => {
     assert.strictEqual(events[0].name, 'Q1');
     assert.strictEqual(events[0].running, false);
   });
+
+  // -------------------------------------------------------------------------
+  // getAllCompoundTasksRaw
+  // -------------------------------------------------------------------------
+
+  test('getAllCompoundTasksRaw returns all compound tasks without workspace filtering', () => {
+    compoundTaskService.initialize(mockContext);
+
+    // Add a task with a URI that is NOT in any workspace folder (so getAllCompoundTasks would filter it out)
+    const item = new TaskItem('GhostTask', vscode.TreeItemCollapsibleState.None, 'shell', vscode.Uri.file('/outside/workspace/file.sh'));
+    compoundTaskService.addToCompoundTask(item, 'GhostCompound');
+
+    const raw = compoundTaskService.getAllCompoundTasksRaw();
+    assert.ok(raw.has('GhostCompound'), 'raw map should include ghost compound task');
+    assert.strictEqual(raw.get('GhostCompound')?.length, 1);
+  });
+
+  test('getAllCompoundTasksRaw returns a copy of the internal map', () => {
+    compoundTaskService.initialize(mockContext);
+
+    const raw1 = compoundTaskService.getAllCompoundTasksRaw();
+    const raw2 = compoundTaskService.getAllCompoundTasksRaw();
+
+    // Should be different Map instances (copies)
+    assert.notStrictEqual(raw1, raw2);
+  });
+
+  // -------------------------------------------------------------------------
+  // purgeInvalidCompoundTasks
+  // -------------------------------------------------------------------------
+
+  test('purgeInvalidCompoundTasks returns empty array when all compound tasks are valid', () => {
+    compoundTaskService.initialize(mockContext);
+
+    // A task without a URI is always considered valid
+    const item = new TaskItem('ValidTask', vscode.TreeItemCollapsibleState.None, 'shell');
+    compoundTaskService.addToCompoundTask(item, 'ValidCompound');
+
+    const purged = compoundTaskService.purgeInvalidCompoundTasks();
+    assert.deepStrictEqual(purged, []);
+    assert.ok(compoundTaskService.getCompoundTask('ValidCompound'), 'valid compound task should remain');
+  });
+
+  test('purgeInvalidCompoundTasks removes compound tasks with no valid workspace items', () => {
+    compoundTaskService.initialize(mockContext);
+
+    // Items with URIs outside any workspace folder will not be valid
+    const item = new TaskItem('GhostTask', vscode.TreeItemCollapsibleState.None, 'shell', vscode.Uri.file('/outside/workspace/file.sh'));
+    compoundTaskService.addToCompoundTask(item, 'GhostCompound');
+
+    const purged = compoundTaskService.purgeInvalidCompoundTasks();
+    assert.ok(purged.includes('GhostCompound'), 'ghost compound task should be purged');
+    assert.strictEqual(compoundTaskService.getCompoundTask('GhostCompound'), undefined, 'should be removed from internal map');
+  });
+
+  test('purgeInvalidCompoundTasks preserves compound tasks that have at least one valid item', () => {
+    compoundTaskService.initialize(mockContext);
+
+    // Item without URI is always valid
+    const validItem = new TaskItem('ValidTask', vscode.TreeItemCollapsibleState.None, 'shell');
+    // Item with external URI (invalid)
+    const invalidItem = new TaskItem('ExternalTask', vscode.TreeItemCollapsibleState.None, 'shell', vscode.Uri.file('/outside/workspace/external.sh'));
+    compoundTaskService.addToCompoundTask(validItem, 'MixedCompound');
+    compoundTaskService.addToCompoundTask(invalidItem, 'MixedCompound');
+
+    const purged = compoundTaskService.purgeInvalidCompoundTasks();
+    assert.ok(!purged.includes('MixedCompound'), 'compound task with at least one valid item should be kept');
+    assert.ok(compoundTaskService.getCompoundTask('MixedCompound'), 'mixed compound task should remain');
+  });
+
+  test('purgeInvalidCompoundTasks persists the removal to storage', () => {
+    compoundTaskService.initialize(mockContext);
+
+    const item = new TaskItem('GhostTask', vscode.TreeItemCollapsibleState.None, 'shell', vscode.Uri.file('/outside/workspace/file.sh'));
+    compoundTaskService.addToCompoundTask(item, 'GhostCompound');
+
+    compoundTaskService.purgeInvalidCompoundTasks();
+
+    const saved = mockGlobalState.get('savedQueues');
+    assert.ok(!saved || !saved['GhostCompound'], 'ghost compound task should be removed from persistent storage');
+  });
+
+  test('purgeInvalidCompoundTasks returns names of purged compound tasks', () => {
+    compoundTaskService.initialize(mockContext);
+
+    const itemA = new TaskItem('GhostA', vscode.TreeItemCollapsibleState.None, 'shell', vscode.Uri.file('/outside/a.sh'));
+    const itemB = new TaskItem('GhostB', vscode.TreeItemCollapsibleState.None, 'shell', vscode.Uri.file('/outside/b.sh'));
+    compoundTaskService.addToCompoundTask(itemA, 'GhostCompoundA');
+    compoundTaskService.addToCompoundTask(itemB, 'GhostCompoundB');
+
+    const purged = compoundTaskService.purgeInvalidCompoundTasks();
+    assert.ok(purged.includes('GhostCompoundA'));
+    assert.ok(purged.includes('GhostCompoundB'));
+    assert.strictEqual(purged.length, 2);
+  });
+
+  // -------------------------------------------------------------------------
+  // isItemDefinitelyNotRunnable
+  // -------------------------------------------------------------------------
+
+  test('isItemDefinitelyNotRunnable returns false for items with a known taskType', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('Build', vscode.TreeItemCollapsibleState.None, 'npm');
+    assert.strictEqual(compoundTaskService.isItemDefinitelyNotRunnable(item), false);
+  });
+
+  test('isItemDefinitelyNotRunnable returns false for shell taskType', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('Run', vscode.TreeItemCollapsibleState.None, 'shell');
+    assert.strictEqual(compoundTaskService.isItemDefinitelyNotRunnable(item), false);
+  });
+
+  test('isItemDefinitelyNotRunnable returns true for items with an unrecognized taskType', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('Queue', vscode.TreeItemCollapsibleState.None, 'queue');
+    assert.strictEqual(compoundTaskService.isItemDefinitelyNotRunnable(item), true);
+  });
+
+  test('isItemDefinitelyNotRunnable returns true for items with an empty taskType and no taskSource', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('Legacy', vscode.TreeItemCollapsibleState.None, '');
+    assert.strictEqual(compoundTaskService.isItemDefinitelyNotRunnable(item), true);
+  });
+
+  test('isItemDefinitelyNotRunnable returns false when taskSource is set (workspace task resolver)', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('WorkspaceTask', vscode.TreeItemCollapsibleState.None, 'unknown-type');
+    (item as any).taskSource = 'Workspace';
+    assert.strictEqual(compoundTaskService.isItemDefinitelyNotRunnable(item), false);
+  });
+
+  // -------------------------------------------------------------------------
+  // getInvalidItemsByCompoundTask
+  // -------------------------------------------------------------------------
+
+  test('getInvalidItemsByCompoundTask returns empty map when all items are in workspace or have no URI', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('ValidTask', vscode.TreeItemCollapsibleState.None, 'npm');
+    compoundTaskService.addToCompoundTask(item, 'ValidCompound');
+
+    const result = compoundTaskService.getInvalidItemsByCompoundTask();
+    assert.strictEqual(result.size, 0);
+  });
+
+  test('getInvalidItemsByCompoundTask returns items with URIs outside the workspace', () => {
+    compoundTaskService.initialize(mockContext);
+    const externalItem = new TaskItem('ExternalTask', vscode.TreeItemCollapsibleState.None, 'shell', vscode.Uri.file('/outside/workspace/file.sh'));
+    compoundTaskService.addToCompoundTask(externalItem, 'MyCompound');
+
+    const result = compoundTaskService.getInvalidItemsByCompoundTask();
+    assert.ok(result.has('MyCompound'));
+    assert.strictEqual(result.get('MyCompound')?.length, 1);
+    assert.strictEqual(result.get('MyCompound')?.[0].label, 'ExternalTask');
+  });
+
+  test('getInvalidItemsByCompoundTask does not include items without a URI', () => {
+    compoundTaskService.initialize(mockContext);
+    // No-URI item is always valid (workspace-independent)
+    const noUriItem = new TaskItem('GlobalTask', vscode.TreeItemCollapsibleState.None, 'shell');
+    compoundTaskService.addToCompoundTask(noUriItem, 'MyCompound');
+
+    const result = compoundTaskService.getInvalidItemsByCompoundTask();
+    assert.strictEqual(result.size, 0);
+  });
+
+  // -------------------------------------------------------------------------
+  // purgeUnrunnableItems
+  // -------------------------------------------------------------------------
+
+  test('purgeUnrunnableItems returns empty map when all items have known taskTypes', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('Build', vscode.TreeItemCollapsibleState.None, 'npm');
+    compoundTaskService.addToCompoundTask(item, 'MyCompound');
+
+    const result = compoundTaskService.purgeUnrunnableItems();
+    assert.strictEqual(result.size, 0);
+    assert.strictEqual(compoundTaskService.getCompoundTask('MyCompound')?.length, 1, 'valid item should remain');
+  });
+
+  test('purgeUnrunnableItems removes items with unrecognized taskType', () => {
+    compoundTaskService.initialize(mockContext);
+    const badItem = new TaskItem('Queue', vscode.TreeItemCollapsibleState.None, 'queue');
+    const goodItem = new TaskItem('Build', vscode.TreeItemCollapsibleState.None, 'npm');
+    compoundTaskService.addToCompoundTask(badItem, 'MyCompound');
+    compoundTaskService.addToCompoundTask(goodItem, 'MyCompound');
+
+    const result = compoundTaskService.purgeUnrunnableItems();
+    assert.ok(result.has('MyCompound'), 'compound task should appear in result');
+    assert.ok(result.get('MyCompound')?.includes('Queue'), 'Queue item label should be in removed list');
+    assert.strictEqual(compoundTaskService.getCompoundTask('MyCompound')?.length, 1, 'only the good item should remain');
+    assert.strictEqual(compoundTaskService.getCompoundTask('MyCompound')?.[0].label, 'Build');
+  });
+
+  test('purgeUnrunnableItems deletes compound task when all its items are unrunnable', () => {
+    compoundTaskService.initialize(mockContext);
+    const badItem = new TaskItem('Queue', vscode.TreeItemCollapsibleState.None, 'queue');
+    compoundTaskService.addToCompoundTask(badItem, 'GhostCompound');
+
+    const result = compoundTaskService.purgeUnrunnableItems();
+    assert.ok(result.has('GhostCompound'));
+    assert.strictEqual(compoundTaskService.getCompoundTask('GhostCompound'), undefined, 'compound task should be deleted after all items removed');
+  });
+
+  test('purgeUnrunnableItems persists removal to storage', () => {
+    compoundTaskService.initialize(mockContext);
+    const badItem = new TaskItem('LegacyTask', vscode.TreeItemCollapsibleState.None, 'old-type');
+    compoundTaskService.addToCompoundTask(badItem, 'LegacyCompound');
+
+    compoundTaskService.purgeUnrunnableItems();
+
+    const saved = mockGlobalState.get('savedQueues');
+    assert.ok(!saved || !saved['LegacyCompound'], 'empty compound task should be removed from persistent storage');
+  });
+
+  test('purgeUnrunnableItems does not remove items that have a taskSource even with unknown taskType', () => {
+    compoundTaskService.initialize(mockContext);
+    const item = new TaskItem('WorkspaceResolvable', vscode.TreeItemCollapsibleState.None, 'custom-type');
+    (item as any).taskSource = 'Workspace';
+    compoundTaskService.addToCompoundTask(item, 'MyCompound');
+
+    const result = compoundTaskService.purgeUnrunnableItems();
+    assert.strictEqual(result.size, 0, 'item with taskSource should not be removed');
+    assert.strictEqual(compoundTaskService.getCompoundTask('MyCompound')?.length, 1, 'item should remain');
+  });
 });

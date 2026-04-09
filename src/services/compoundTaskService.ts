@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskStateManager } from '../taskStateManager';
 import { FavoritesService } from './favoritesService';
+import { LoggerService } from './loggerService';
+import { KNOWN_TASK_TYPES } from '../taskFactory';
 import constants from '../libs/constants';
 
 export type CompoundTaskExecutionType = 'sequential' | 'parallel';
@@ -31,6 +33,7 @@ export class CompoundTaskService {
   private compoundTaskTypes: Map<string, CompoundTaskExecutionType> = new Map();
   private runningCompoundTasks: Map<string, CompoundTaskCancellationToken> = new Map();
   private context: vscode.ExtensionContext | undefined;
+  private readonly logger = LoggerService.getInstance();
   // The storage key remains as "savedQueues" for backwards compatibility with the old format and to avoid breaking existing data, but the feature is now called "compound tasks" in the UI and code.
   private readonly STORAGE_KEY = 'savedQueues';
 
@@ -64,20 +67,31 @@ export class CompoundTaskService {
         }
     }
 
+    this.logger.debug(`[CompoundTaskService] Loading compound tasks from ${sourceIsGlobal ? 'globalState' : 'workspaceState'}.`);
+
     let hasMigration = sourceIsGlobal; // Valid reason to save back to workspaceState
 
     if (compoundTasksToLoad) {
+      const keys = Object.keys(compoundTasksToLoad);
+      this.logger.debug(`[CompoundTaskService] Found ${keys.length} compound task(s) in storage: [${keys.join(', ')}]`);
+
       Object.entries(compoundTasksToLoad).forEach(([compoundTaskName, value]) => {
         // Migrate from old format (array) to new format (SerializedCompoundTask object)
         let serializedCompoundTask: SerializedCompoundTask;
         if (Array.isArray(value)) {
           serializedCompoundTask = { executionType: 'sequential', items: value as SerializedTaskItem[] };
           hasMigration = true;
+          this.logger.debug(`[CompoundTaskService] Migrating compound task '${compoundTaskName}' from legacy array format (${serializedCompoundTask.items.length} items).`);
         } else {
           serializedCompoundTask = value as SerializedCompoundTask;
         }
 
         this.compoundTaskTypes.set(compoundTaskName, serializedCompoundTask.executionType ?? 'sequential');
+
+        this.logger.debug(`[CompoundTaskService] Loading compound task '${compoundTaskName}': ${serializedCompoundTask.items.length} item(s), executionType='${serializedCompoundTask.executionType ?? 'sequential'}'.`);
+        serializedCompoundTask.items.forEach((item, idx) => {
+          this.logger.debug(`[CompoundTaskService]   Item[${idx}]: id='${item.id}', label='${item.originalLabel || item.label}', taskType='${item.taskType}', resourceUri='${item.resourceUri ?? '(none)'}'`);
+        });
 
         // Track if any IDs were migrated during deserialization
         const originalIds = serializedCompoundTask.items.map(q => q.id);
@@ -86,6 +100,7 @@ export class CompoundTaskService {
 
         if (JSON.stringify(originalIds) !== JSON.stringify(newIds)) {
           hasMigration = true;
+          this.logger.debug(`[CompoundTaskService] ID migration detected in '${compoundTaskName}'. Old IDs: [${originalIds.join(', ')}], New IDs: [${newIds.join(', ')}]`);
         }
 
         this.compoundTasks.set(compoundTaskName, deserializedTasks);
@@ -96,9 +111,12 @@ export class CompoundTaskService {
       const legacyCompoundTasks = context.globalState.get<SerializedTaskItem[]>('queueItems', []);
       if (legacyCompoundTasks.length > 0) {
         const legacyName = context.globalState.get<string>('queueName', 'Compound Task');
+        this.logger.debug(`[CompoundTaskService] Migrating legacy 'queueItems' to compound task '${legacyName}' with ${legacyCompoundTasks.length} item(s).`);
         this.compoundTasks.set(legacyName, this.deserializeTasks(legacyCompoundTasks));
         this.compoundTaskTypes.set(legacyName, 'sequential');
         hasMigration = true;
+      } else {
+        this.logger.debug('[CompoundTaskService] No compound tasks found in storage.');
       }
     }
 
@@ -149,21 +167,147 @@ export class CompoundTaskService {
   }
 
   public getAllCompoundTasks(): Map<string, TaskItem[]> {
-    // Filter tasks to only include those in the current workspace or with accessible files
+    // Filter tasks to only include those in the current workspace or with accessible files.
+    // Use taskFileUri only — resourceUri is a virtual workspace-tasks:// decoration URI set by
+    // updateContextValue() and is never a real filesystem path.
     const filteredCompoundTasks = new Map<string, TaskItem[]>();
     for (const [name, tasks] of this.compoundTasks) {
       const validTasks = tasks.filter((task) => {
-        const uri = task.taskFileUri || task.resourceUri;
-        if (!uri) { return true; } // Keep tasks without URI (e.g. some virtual tasks)
+        const uri = task.taskFileUri;
+        if (!uri) { return true; } // Keep tasks without a real file URI (e.g. workspace-level tasks)
         // Check if file exists and is in workspace
         const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
         return !!wsFolder;
       });
       if (validTasks.length > 0) {
         filteredCompoundTasks.set(name, validTasks);
+      } else {
+        this.logger.debug(`[CompoundTaskService] Compound task '${name}' has ${tasks.length} stored item(s) but none are valid in the current workspace — it will not be shown in the UI.`);
+        tasks.forEach((task, idx) => {
+          const uri = task.taskFileUri;
+          this.logger.debug(`[CompoundTaskService]   Item[${idx}]: label='${task.originalLabel || task.label}', taskType='${task.taskType}', uri='${uri?.toString() ?? '(none)'}', inWorkspace=${uri ? !!vscode.workspace.getWorkspaceFolder(uri) : false}`);
+        });
       }
     }
     return filteredCompoundTasks;
+  }
+
+  /**
+   * Returns all stored compound tasks without workspace filtering.
+   * Includes compound tasks that have no valid tasks in the current workspace (ghost tasks).
+   */
+  public getAllCompoundTasksRaw(): Map<string, TaskItem[]> {
+    return new Map(this.compoundTasks);
+  }
+
+  /**
+   * Removes compound tasks from storage that have no valid tasks in the current workspace.
+   * This clears "ghost" compound tasks that are stored but invisible in the UI.
+   * @returns The names of compound tasks that were purged.
+   */
+  public purgeInvalidCompoundTasks(): string[] {
+    const purged: string[] = [];
+    for (const [name, tasks] of this.compoundTasks) {
+      const hasValidTask = tasks.some((task) => {
+        const uri = task.taskFileUri; // taskFileUri is the real file path; resourceUri is a virtual decoration URI
+        if (!uri) { return true; } // No real file URI → workspace-independent task, always valid
+        return !!vscode.workspace.getWorkspaceFolder(uri);
+      });
+      if (!hasValidTask) {
+        this.logger.debug(`[CompoundTaskService] Purging invalid compound task '${name}' (${tasks.length} stored item(s), none valid in workspace).`);
+        purged.push(name);
+      }
+    }
+    for (const name of purged) {
+      this.compoundTasks.delete(name);
+      this.compoundTaskTypes.delete(name);
+    }
+    if (purged.length > 0) {
+      this.saveCompoundTasks();
+      this.logger.debug(`[CompoundTaskService] Purged ${purged.length} invalid compound task(s): [${purged.join(', ')}]`);
+    }
+    return purged;
+  }
+
+  /**
+   * Returns a diagnostic map of compound task name → items that are stored but cannot be run
+   * because their URI is outside the current workspace.
+   * Items with no URI are not included (they are considered workspace-independent).
+   */
+  public getInvalidItemsByCompoundTask(): Map<string, TaskItem[]> {
+    const result = new Map<string, TaskItem[]>();
+    for (const [name, tasks] of this.compoundTasks) {
+      const invalid = tasks.filter((task) => {
+        const uri = task.taskFileUri; // taskFileUri is the real file path; resourceUri is a virtual decoration URI
+        return !!uri && !vscode.workspace.getWorkspaceFolder(uri);
+      });
+      if (invalid.length > 0) {
+        result.set(name, invalid);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Returns whether a stored task item is definitely not runnable.
+   * An item is considered definitely not runnable if:
+   *  - It has no native vscode.Task set
+   *  - It has no taskSource (to resolve via workspace tasks)
+   *  - Its taskType is not in the set of task types handled by createTaskForItem
+   */
+  public isItemDefinitelyNotRunnable(item: TaskItem): boolean {
+    if (item.task instanceof vscode.Task) { return false; }
+    if ((item as any).taskSource) { return false; }
+    const taskType = item.taskType || '';
+    return !KNOWN_TASK_TYPES.has(taskType);
+  }
+
+  /**
+   * Automatically removes items from within compound tasks that are definitively not runnable
+   * (their taskType is not handled by any task provider and they have no taskSource).
+   * Items with out-of-workspace URIs are NOT removed automatically by this method —
+   * use getInvalidItemsByCompoundTask() and removeItemFromCompoundTask() for those.
+   * @returns Map of compound task name → labels of removed items.
+   */
+  public purgeUnrunnableItems(): Map<string, string[]> {
+    const removedByTask = new Map<string, string[]>();
+    const nowEmptyTasks: string[] = [];
+
+    for (const [name, tasks] of this.compoundTasks) {
+      const validItems: TaskItem[] = [];
+      const removedLabels: string[] = [];
+
+      for (const task of tasks) {
+        if (this.isItemDefinitelyNotRunnable(task)) {
+          const label = task.originalLabel || (task.label as string);
+          this.logger.debug(`[CompoundTaskService] Removing definitely-unrunnable item '${label}' from compound task '${name}': taskType='${task.taskType || '(empty)'}' is not a recognized task type.`);
+          removedLabels.push(label);
+        } else {
+          validItems.push(task);
+        }
+      }
+
+      if (removedLabels.length > 0) {
+        removedByTask.set(name, removedLabels);
+        this.compoundTasks.set(name, validItems);
+        if (validItems.length === 0) {
+          nowEmptyTasks.push(name);
+        }
+      }
+    }
+
+    for (const name of nowEmptyTasks) {
+      this.compoundTasks.delete(name);
+      this.compoundTaskTypes.delete(name);
+      this.logger.debug(`[CompoundTaskService] Compound task '${name}' became empty after purging unrunnable items and has been removed.`);
+    }
+
+    if (removedByTask.size > 0) {
+      this.saveCompoundTasks();
+      this.logger.debug(`[CompoundTaskService] Purged unrunnable items from ${removedByTask.size} compound task(s).`);
+    }
+
+    return removedByTask;
   }
 
   private deserializeTasks(serialized: SerializedTaskItem[]): TaskItem[] {
@@ -273,12 +417,14 @@ export class CompoundTaskService {
       const fullLabel = item.originalLabel || item.label;
 
       // Reconstruct the item to ensure we store a clean copy with the full label
-      // Use taskFileUri if available to ensure we store the real file path, not the decoration URI
+      // Use taskFileUri only (the real file path). Do NOT fall back to resourceUri which
+      // is a virtual workspace-tasks:// decoration URI and would be misinterpreted as an
+      // out-of-workspace file path by purgeInvalidCompoundTasks / getInvalidItemsByCompoundTask.
       const compoundTaskItem = new TaskItem(
         fullLabel,
         vscode.TreeItemCollapsibleState.None,
         item.taskType,
-        item.taskFileUri || item.resourceUri,
+        item.taskFileUri,
         item.command,
       );
       if (item.taskFileUri) {
@@ -290,6 +436,8 @@ export class CompoundTaskService {
       // Ensure originalLabel is set consistently
       compoundTaskItem.originalLabel = fullLabel;
       compoundTaskItem.metadata = item.metadata;
+      // Preserve taskSource so isItemDefinitelyNotRunnable can detect workspace-resolvable tasks
+      compoundTaskItem.taskSource = item.taskSource;
 
       // Set context value for compound task
       compoundTaskItem.contextValue = 'queuedTask';

@@ -408,6 +408,11 @@
         "icon": "$(clear-all)"
       },
       {
+        "command": "workspaceTasks.purgeInvalidCompoundTasks",
+        "title": "%command.purgeInvalidCompoundTasks%",
+        "icon": "$(warning)"
+      },
+      {
         "command": "workspaceTasks.removeFromCompoundTask",
         "title": "%command.removeFromCompoundTask%",
         "icon": "$(trash)"

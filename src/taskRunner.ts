@@ -48,6 +48,8 @@ export class TaskRunner {
     // Delegate task creation to the Task Factory to centralize logic and make it testable
     const created = await createTaskForItem(item, args);
     if (!created || !created.task) {
+      const itemUri = (item.taskFileUri || item.resourceUri)?.toString() ?? '(none)';
+      this.logger.debug(`[TaskRunner] Could not create runnable task for '${taskLabel}': taskType='${item.taskType}', id='${item.id ?? '(none)'}', uri='${itemUri}', contextValue='${item.contextValue ?? '(none)'}'`);
       vscode.window.showWarningMessage(`No runnable task could be created for '${taskLabel}'.`);
       return;
     }
@@ -136,6 +138,12 @@ export class TaskRunner {
 
     const executionType = CompoundTaskService.getInstance().getCompoundTaskExecutionType(compoundTaskName);
 
+    this.logger.debug(`[TaskRunner] Running compound task '${compoundTaskName}' (${executionType}) with ${compoundTask.length} item(s):`);
+    compoundTask.forEach((item, idx) => {
+      const uri = (item.taskFileUri || item.resourceUri)?.toString() ?? '(none)';
+      this.logger.debug(`[TaskRunner]   Item[${idx}]: label='${item.originalLabel || item.label}', taskType='${item.taskType}', id='${item.id ?? '(none)'}', uri='${uri}'`);
+    });
+
     let startIndex = 0;
     if (startItem) {
       const startId = TaskStateManager.getInstance().getTaskId(startItem);
@@ -153,6 +161,14 @@ export class TaskRunner {
         await Promise.all(
           tasksToRun.map(async (item) => {
             if (token.cancelled) { return; }
+            if (CompoundTaskService.getInstance().isItemDefinitelyNotRunnable(item)) {
+              const itemLabel = item.originalLabel || item.label;
+              this.logger.warn(`[TaskRunner] Skipping unrunnable item '${itemLabel}' in compound task '${compoundTaskName}': taskType='${item.taskType || '(empty)'}'.`);
+              vscode.window.showWarningMessage(
+                `Compound task '${compoundTaskName}': item '${itemLabel}' has an unrecognized task type and will be skipped. Run "Purge Invalid Compound Tasks" from the Command Palette to clean up storage.`,
+              );
+              return;
+            }
             try {
               await this.runTask(item);
               await this.waitForTask(item);
@@ -164,6 +180,14 @@ export class TaskRunner {
       } else {
         for (const item of tasksToRun) {
           if (token.cancelled) { break; }
+          if (CompoundTaskService.getInstance().isItemDefinitelyNotRunnable(item)) {
+            const itemLabel = item.originalLabel || item.label;
+            this.logger.warn(`[TaskRunner] Skipping unrunnable item '${itemLabel}' in compound task '${compoundTaskName}': taskType='${item.taskType || '(empty)'}'.`);
+            vscode.window.showWarningMessage(
+              `Compound task '${compoundTaskName}': item '${itemLabel}' has an unrecognized task type and will be skipped. Run "Purge Invalid Compound Tasks" from the Command Palette to clean up storage.`,
+            );
+            continue;
+          }
           try {
             await this.runTask(item);
             // runTask starts execution but returns effectively immediately after launch.

@@ -19,7 +19,9 @@ export class RunCompoundTaskCommand extends BaseCommand {
 
     const compoundTaskService = CompoundTaskService.getInstance();
 
-    const compoundTasks = compoundTaskService.getCompoundTaskNames();
+    // Use the workspace-filtered map so ghost compound tasks (those with no valid items
+    // in the current workspace) do not appear in the command palette list.
+    const compoundTasks = Array.from(compoundTaskService.getAllCompoundTasks().keys());
     if (compoundTasks.length === 0) {
       vscode.window.showInformationMessage('No compound tasks to run.');
       return;

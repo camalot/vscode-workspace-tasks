@@ -520,6 +520,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -543,6 +544,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -568,6 +570,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -598,6 +601,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -620,6 +624,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -646,6 +651,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'parallel',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -672,6 +678,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'parallel',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -696,6 +703,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'parallel',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -725,6 +733,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => { token = { cancelled: false }; return token; },
       markCompoundTaskStopped: (_name: string) => { },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -752,6 +761,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => { runningMarked = true; return { cancelled: false }; },
       markCompoundTaskStopped: (_name: string) => { stoppedMarked = true; },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 
@@ -772,6 +782,7 @@ suite('TaskRunner Test Suite', () => {
       getCompoundTaskExecutionType: (_name: string) => 'sequential',
       markCompoundTaskRunning: (_name: string) => ({ cancelled: false }),
       markCompoundTaskStopped: (_name: string) => { stoppedMarked = true; },
+      isItemDefinitelyNotRunnable: (_item: any) => false,
     } as any;
     (CompoundTaskService as any).instance = fakeCompoundTaskService;
 

@@ -32,6 +32,7 @@ import * as toggleShowHidden from './toggleShowHidden';
 import * as resetFilteredTasks from './resetFilteredTasks';
 import * as copyTaskCommand from './copyTaskCommand';
 import * as setCompoundTaskExecutionType from './setCompoundTaskExecutionType';
+import * as purgeInvalidCompoundTasks from './purgeInvalidCompoundTasks';
 
 import { LoggerService } from '../services/loggerService';
 
@@ -72,6 +73,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
     toggleShowHidden,
     unhideTask,
     unhideGroup,
+    purgeInvalidCompoundTasks,
   ];
 
   for (const mod of modules) {

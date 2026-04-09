@@ -8,6 +8,7 @@
   "command.addToCompoundTask": "Add to Compound Task (Queue)",
   "command.runCompoundTask": "Run Compound Task (Queue)",
   "command.clearCompoundTask": "Clear Compound Task (Queue)",
+  "command.purgeInvalidCompoundTasks": "Purge Invalid Compound Tasks (Queue) from Storage",
   "command.removeFromRecentTasks": "Remove from Recent Tasks",
   "command.clearRecentTasks": "Clear Recent Tasks",
   "command.removeFromCompoundTask": "Remove from Compound Task (Queue)",

@@ -84,3 +84,4 @@ See the [Getting Started guide](getting-started) for full installation and setup
 | [Custom Workspace Tasks](features/custom-workspace-tasks) | Define reusable task templates |
 | [Requirements](getting-started/requirements) | System requirements and tool dependencies |
 | [Contributing](contributing) | How to contribute to the project |
+| [Troubleshooting](troubleshooting) | Diagnose and resolve common issues |
