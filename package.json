@@ -1355,12 +1355,7 @@
       "view/item/context": [
         {
           "command": "workspaceTasks.runCompoundTask",
-          "when": "viewItem == compoundTask",
-          "group": "inline@1"
-        },
-        {
-          "command": "workspaceTasks.runCompoundTask",
-          "when": "viewItem == favoriteCompoundTask",
+          "when": "viewItem == compoundTask || viewItem == favoriteCompoundTask",
           "group": "inline@99"
         },
         {
