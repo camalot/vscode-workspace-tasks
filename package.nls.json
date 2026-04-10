@@ -77,6 +77,7 @@
   "config.workspaceTasks.enabledTaskTypes.cargo-make": "Cargo Make",
   "config.workspaceTasks.enabledTaskTypes.deno": "Deno",
   "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
+  "config.workspaceTasks.enabledTaskTypes.eslint": "ESLint",
   "config.workspaceTasks.enabledTaskTypes.github-actions": "GitHub Actions",
   "config.workspaceTasks.enabledTaskTypes.go": "Go",
   "config.workspaceTasks.enabledTaskTypes.gradle": "Gradle",
@@ -99,6 +100,7 @@
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
   "config.workspaceTasks.enabledTaskTypes.venv": "Virtual Environment",
   "config.workspaceTasks.enabledTaskTypes.vscode": "Visual Studio Code",
+  "config.workspaceTasks.enabledTaskTypes.webpack": "Webpack",
   "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
 
   "config.workspaceTasks.shellEnabledTaskTypes": "Supported Shell Task Types",

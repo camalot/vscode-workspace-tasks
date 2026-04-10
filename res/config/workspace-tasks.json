@@ -425,6 +425,7 @@
   },
   "docker-compose": {
     "version": "2.0.0",
+    "taskType": "docker",
     "globs": {
       "include": [
         "**/docker-compose.yml"
@@ -464,6 +465,7 @@
   },
   "dockerfile": {
     "version": "2.0.0",
+    "taskType": "docker",
     "globs": {
       "include": [
         "{**/Dockerfile,**/dockerfile,**/*.dockerfile,**/Dockerfile.*}"

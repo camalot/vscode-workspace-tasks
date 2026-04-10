@@ -26,6 +26,7 @@ export class TaskConfigService {
       ant: 'ant',
       cake: 'cake',
       dockerfile: 'docker',
+      'docker-compose': 'docker',
       composer: 'composer',
       'github-actions': 'github-actions',
       'github-action': 'github-actions',

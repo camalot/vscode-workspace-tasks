@@ -29,6 +29,7 @@ interface LanguageTaskConfig {
     exclude?: string[];
   };
   iconUri?: string | { dark: string; light: string };
+  taskType?: string;
   inputs: TaskInput[];
   tasks: FileTaskDefinition[];
 }

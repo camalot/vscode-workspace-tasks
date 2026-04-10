@@ -33,17 +33,20 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
 
     const providers = await service.getProviders();
     for (const provider of providers) {
-      // Check if this specific provider type is enabled
-      if (!TaskConfigService.getInstance().isTaskTypeEnabled(provider)) {
-        this.logger.debug(`Provider ${provider} is disabled. Skipping.`);
-        continue;
-      }
-
       const config = service.getLanguageConfig(provider);
       if (!config) {
         this.logger.warn(`No configuration found for provider: ${provider}. Skipping.`);
         continue;
       }
+
+      // Check if this specific provider type is enabled.
+      // Use the taskType from the config if available, otherwise fall back to the provider key.
+      const effectiveType = config.taskType || provider;
+      if (!TaskConfigService.getInstance().isTaskTypeEnabled(effectiveType)) {
+        this.logger.debug(`Provider ${provider} (type: ${effectiveType}) is disabled. Skipping.`);
+        continue;
+      }
+
       // Ensure we await the tasks definition since getTasks is async
       const taskDefs = await service.getTasks(provider);
 

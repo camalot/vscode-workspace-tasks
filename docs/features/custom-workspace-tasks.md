@@ -157,6 +157,9 @@ Filenames with unrecognized extensions fall back to the default task group icon.
   - A string path to an image file (absolute, or relative to the extension root)
   - `{ "light": "...", "dark": "..." }` — explicit light/dark image paths
   - A well-known filename (e.g. `"tsconfig.json"`) for file icon theme matching
+- **taskType** (optional) - The `workspaceTasks.enabledTaskTypes` setting key that controls whether this
+  provider is shown in the tree. If omitted, the top-level key name is used. This is useful when multiple
+  provider keys share a single toggle — for example, both `dockerfile` and `docker-compose` use `"taskType": "docker"`.
 - **inputs** - Array of input definitions
   - **id** - Unique input identifier
   - **type** - `promptString` or `pickString`
