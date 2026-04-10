@@ -298,4 +298,79 @@ suite('ShellTaskProvider Test Suite', () => {
     const pyTask = tasks.find((t) => t.resourceUri?.fsPath === noShebangUri.fsPath);
     assert.ok(!pyTask, 'Should not produce a task for python when the python type is disabled');
   });
+
+  // ── Phase 1: Parallel shebang reads ──────────────────────────────────────────
+
+  test('shebang checks for multiple files are all performed and all tasks produced', async () => {
+    const filesService = TaskFilesService.getInstance();
+    const noShebangUri = shellUri('no-shebang.py');
+    const withShebangUri = shellUri('with-shebang.py');
+
+    filesService.findFiles = async (patterns: string[]) => {
+      if (patterns.some((p) => p.includes('.py'))) {
+        return [noShebangUri, withShebangUri];
+      }
+      return [];
+    };
+
+    const provider = new ShellTaskProvider();
+    Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
+
+    let shebangCheckCount = 0;
+    const originalCheck = (provider as any).checkForShebang.bind(provider);
+    (provider as any).checkForShebang = async (uri: vscode.Uri) => {
+      shebangCheckCount++;
+      return originalCheck(uri);
+    };
+
+    const tasks = await provider.getTasks();
+
+    assert.strictEqual(shebangCheckCount, 2, 'checkForShebang should be called once per python file');
+    const pyTasks = tasks.filter((t) => t.resourceUri?.fsPath.endsWith('.py'));
+    assert.strictEqual(pyTasks.length, 2, 'Both python files should produce tasks regardless of resolution order');
+  });
+
+  test('a failed shebang check does not abort the batch — remaining files still produce tasks', async () => {
+    const filesService = TaskFilesService.getInstance();
+    const goodUri = shellUri('no-shebang.py');
+    const badUri = vscode.Uri.file('/nonexistent/path/bad.py');
+
+    filesService.findFiles = async (patterns: string[]) => {
+      if (patterns.some((p) => p.includes('.py'))) {
+        return [badUri, goodUri];
+      }
+      return [];
+    };
+
+    const provider = new ShellTaskProvider();
+    Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
+
+    const tasks = await provider.getTasks();
+
+    // bad.py cannot be read but should not block good.py from producing a task
+    const goodTask = tasks.find((t) => t.resourceUri?.fsPath === goodUri.fsPath);
+    assert.ok(goodTask, 'Should produce a task for the readable file even when another file fails');
+  });
+
+  // ── Phase 1: Cross-type deduplication preserves deterministic order ────────
+
+  test('cross-type deduplication assigns .sh file to bash (higher precedence than sh)', async () => {
+    const filesService = TaskFilesService.getInstance();
+    const shUri = shellUri('no-shebang.sh');
+
+    filesService.findFiles = async (patterns: string[]) => {
+      if (patterns.some((p) => p.includes('.sh'))) {
+        return [shUri];
+      }
+      return [];
+    };
+
+    const provider = new ShellTaskProvider();
+    Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
+    const tasks = await provider.getTasks();
+
+    const matching = tasks.filter((t) => t.resourceUri?.fsPath === shUri.fsPath);
+    assert.strictEqual(matching.length, 1, 'Same file should only appear once even with parallel processing');
+    assert.strictEqual(matching[0].metadata?.subType, 'bash', 'bash should win over sh (bash is first in BUILT_IN_SHELLS)');
+  });
 });

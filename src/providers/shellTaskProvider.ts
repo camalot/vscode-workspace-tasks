@@ -80,50 +80,102 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     const filesService = TaskFilesService.getInstance();
     const processedFiles = new Set<string>();
 
-    // 1. Process Built-in Types
-    for (const [type, def] of Object.entries(BUILT_IN_SHELLS)) {
-      if (enabledTypes[type]) {
+    const totalStart = Date.now();
+    this.logger.debug('[ShellTaskProvider] Starting shell task discovery');
+
+    // 1. Process Built-in Types — all types run concurrently (Phase 1, Steps 1.1–1.2)
+    type TypeBatch = {
+      type: string;
+      def: ShellConfig;
+      interpreter: string;
+      items: { file: vscode.Uri; hasShebang: boolean }[];
+      elapsedMs: number;
+      fileCount: number;
+    };
+
+    const typeResults = await Promise.allSettled(
+      Object.entries(BUILT_IN_SHELLS).map(async ([type, def]): Promise<TypeBatch> => {
+        if (!enabledTypes[type]) {
+          this.logger.debug(`[ShellTaskProvider] Skipping disabled shell type: ${type}`);
+          return { type, def, interpreter: '', items: [], elapsedMs: 0, fileCount: 0 };
+        }
+
+        const typeStart = Date.now();
+        this.logger.debug(`[ShellTaskProvider] Processing shell type: ${type} (extensions: ${def.extensions.join(', ')})`);
+
         const interpreter = shellPaths[type] || def.defaultInterpreter;
-
-        // Construct glob pattern for this type
         const patterns = def.extensions.map((ext) => `**/*.${ext}`);
-
-        // Find files
         const files = await filesService.findFiles(patterns, [constants.GLOB_SHELL_EXCLUDE]);
 
-        for (const file of files) {
-          if (processedFiles.has(file.fsPath)) {
-            continue;
-          } // Avoid duplicates if extensions overlap
+        this.logger.debug(`[ShellTaskProvider] Found ${files.length} candidate file(s) for shell type: ${type}`);
 
-          let effectiveInterpreter = interpreter;
-          let usesShebang = false;
+        // Step 1.1: parallelize shebang checks within this shell type
+        const checkResults = await Promise.allSettled(
+          files.map(async (file) => ({
+            file,
+            hasShebang: def.requireShebang || def.useShebang ? await this.checkForShebang(file) : false,
+          })),
+        );
 
-          // Check shebang when required or when shebang execution is supported
-          if (def.requireShebang || def.useShebang) {
-            const hasShebang = await this.checkForShebang(file);
+        const items = checkResults
+          .filter(
+            (r): r is PromiseFulfilledResult<{ file: vscode.Uri; hasShebang: boolean }> => r.status === 'fulfilled',
+          )
+          .map((r) => r.value);
 
-            // Skip the file if a shebang is mandatory but absent
-            if (def.requireShebang && !hasShebang) {
-              continue;
-            }
+        const elapsedMs = Date.now() - typeStart;
+        this.logger.debug(`[ShellTaskProvider] Finished shell type: ${type} — ${items.length} file(s) resolved in ${elapsedMs}ms`);
 
-            // When shebang execution is enabled and the file has a shebang, run it
-            // directly so the OS can invoke the correct interpreter from the shebang line
-            if (def.useShebang && hasShebang) {
-              effectiveInterpreter = '';
-              usesShebang = true;
-            }
-          }
+        return { type, def, interpreter, items, elapsedMs, fileCount: files.length };
+      }),
+    );
 
-          processedFiles.add(file.fsPath);
-          tasks.push(this.createShellTaskItem(file, effectiveInterpreter, type, usesShebang));
-        }
+    // Step 1.3: cross-type deduplication in the same deterministic order as BUILT_IN_SHELLS
+    for (const result of typeResults) {
+      if (result.status === 'rejected') {
+        this.logger.warn(`[ShellTaskProvider] A shell type batch failed: ${result.reason}`);
+        continue;
       }
+      const { type, def, interpreter, items, elapsedMs, fileCount } = result.value;
+
+      if (!enabledTypes[type]) {
+        continue;
+      }
+
+      let typeTaskCount = 0;
+      for (const { file, hasShebang } of items) {
+        // Avoid duplicates if extensions overlap across types
+        if (processedFiles.has(file.fsPath)) {
+          continue;
+        }
+
+        // Skip the file if a shebang is mandatory but absent
+        if (def.requireShebang && !hasShebang) {
+          continue;
+        }
+
+        let effectiveInterpreter = interpreter;
+        let usesShebang = false;
+
+        // When shebang execution is enabled and the file has a shebang, run it
+        // directly so the OS can invoke the correct interpreter from the shebang line
+        if (def.useShebang && hasShebang) {
+          effectiveInterpreter = '';
+          usesShebang = true;
+        }
+
+        processedFiles.add(file.fsPath);
+        tasks.push(this.createShellTaskItem(file, effectiveInterpreter, type, usesShebang));
+        typeTaskCount++;
+      }
+
+      this.logger.info(`[ShellTaskProvider] ${type}: ${typeTaskCount} task(s) from ${fileCount} file(s) in ${elapsedMs}ms`);
     }
 
     // 2. Process "Other" / Additional Extensions
     if (enabledTypes['other']) {
+      const otherStart = Date.now();
+      let otherCount = 0;
       for (const [ext, interpreter] of Object.entries(additional)) {
         let extClean = ext;
         if (extClean.startsWith('.')) {
@@ -140,9 +192,14 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
           // For custom types, we assume 'shell' as sub-type or derived from extension
           const ext = path.extname(file.fsPath).replace('.', '');
           tasks.push(this.createShellTaskItem(file, interpreter, ext || 'shell'));
+          otherCount++;
         }
       }
+      this.logger.info(`[ShellTaskProvider] other: ${otherCount} task(s) in ${Date.now() - otherStart}ms`);
     }
+
+    const totalMs = Date.now() - totalStart;
+    this.logger.info(`[ShellTaskProvider] Completed — ${tasks.length} total shell task(s) loaded in ${totalMs}ms`);
 
     return tasks;
   }
