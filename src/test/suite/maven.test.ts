@@ -8,6 +8,7 @@ suite('MavenTaskProvider Test Suite', () => {
   let originalFindFiles: any;
   let originalFs: any;
   let originalAsRelativePath: any;
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
 
   const STANDARD_GOALS = ['clean', 'validate', 'compile', 'test', 'package', 'verify', 'install', 'site', 'deploy'];
 
@@ -22,6 +23,15 @@ suite('MavenTaskProvider Test Suite', () => {
       if (typeof uri === 'string') { return uri; }
       return uri.fsPath;
     };
+
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
   });
 
   teardown(() => {
@@ -29,6 +39,7 @@ suite('MavenTaskProvider Test Suite', () => {
     filesService.findFiles = originalFindFiles;
     (vscode.workspace as any).asRelativePath = originalAsRelativePath;
     Object.defineProperty(vscode.workspace, 'fs', { value: originalFs, writable: true, configurable: true });
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
 
   test('uses correct type', () => {

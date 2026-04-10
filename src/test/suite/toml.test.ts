@@ -1,7 +1,25 @@
 import * as assert from 'assert';
+import * as vscode from 'vscode';
 import { PipenvTaskProvider } from '../../providers/pipenvTaskProvider';
 
 suite('TOML Provider', () => {
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+
+  setup(() => {
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
+  });
+
+  teardown(() => {
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+  });
+
   /*
   test('skips files when parser unavailable', async function () {
     // Temporarily stub dynamic import helper to simulate parser unavailable

@@ -9,6 +9,7 @@ suite('DenoTaskProvider Test Suite', () => {
   let originalOpenTextDocument: any;
   let originalAsRelativePath: any;
   let originalShouldIgnore: any;
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
 
   setup(() => {
     const filesService = TaskFilesService.getInstance();
@@ -23,6 +24,15 @@ suite('DenoTaskProvider Test Suite', () => {
       if (typeof uri === 'string') { return uri; }
       return uri.fsPath;
     };
+
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
   });
 
   teardown(() => {
@@ -31,6 +41,7 @@ suite('DenoTaskProvider Test Suite', () => {
     filesService.shouldIgnore = originalShouldIgnore;
     (vscode.workspace as any).openTextDocument = originalOpenTextDocument;
     (vscode.workspace as any).asRelativePath = originalAsRelativePath;
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
 
   test('uses correct type', () => {

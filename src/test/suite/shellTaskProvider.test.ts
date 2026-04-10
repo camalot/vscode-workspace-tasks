@@ -4,9 +4,11 @@ import * as vscode from 'vscode';
 import { ShellTaskProvider } from '../../providers/shellTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
 
-// Helper to build a file URI from the task-files/shell directory
+// Helper to build a file URI from the task-files/shell directory.
+// The compiled tests run from out/test/suite but task-files live in src/test/task-files,
+// so we navigate up from the compiled directory to the source fixtures.
 function shellUri(filename: string): vscode.Uri {
-  return vscode.Uri.file(path.resolve(__dirname, '../task-files/shell', filename));
+  return vscode.Uri.file(path.resolve(__dirname, '../../../src/test/task-files/shell', filename));
 }
 
 suite('ShellTaskProvider Test Suite', () => {
@@ -112,7 +114,7 @@ suite('ShellTaskProvider Test Suite', () => {
     assert.ok(tasks.length > 0, 'Should produce at least one task for the python file without shebang');
     const pyTask = tasks.find((t) => t.resourceUri?.fsPath === noShebangUri.fsPath);
     assert.ok(pyTask, 'Should find a task for no-shebang.py');
-    assert.strictEqual(pyTask?.metadata?.interpreter, 'python', 'Should use default interpreter');
+    assert.strictEqual(pyTask?.metadata?.interpreter, 'python3', 'Should use default interpreter');
     assert.strictEqual(pyTask?.metadata?.useShebang, false, 'useShebang should be false when no shebang present');
   });
 

@@ -145,14 +145,40 @@ class TestableTaskTreeDataProvider extends TaskTreeDataProvider {
 
 suite('TaskTreeDataProvider Test Suite', () => {
   let ctx: vscode.ExtensionContext;
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
 
   setup(() => {
     resetSingletons();
     ctx = createMockContext();
+
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from affecting tests.
+    // Notably: groups.compoundTasks.enabled is true in settings.json which changes tree structure.
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return {
+          get: <T>(key: string, def?: T): T => {
+            // Return sensible defaults that match code defaults, not workspace overrides
+            if (key === 'groups.compoundTasks.enabled') { return false as unknown as T; }
+            if (key === 'groups.enabled') { return true as unknown as T; }
+            if (key === 'groups.useParentFolder') { return false as unknown as T; }
+            if (key === 'groups.recentTasks.enabled') { return false as unknown as T; }
+            if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return true as unknown as T; }
+            if (key === 'groups.taskSeparator') { return '-' as unknown as T; }
+            if (key === 'groups.expanded') {
+              return { favorites: true, compoundTask: true, recent: true } as unknown as T;
+            }
+            return def as T;
+          },
+        };
+      }
+      return originalGetConfiguration(section);
+    };
   });
 
   teardown(() => {
     resetSingletons();
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
 
   // ── Instance management ──────────────────────────────────────────────────

@@ -4,9 +4,11 @@ import * as vscode from 'vscode';
 import { TaskItem } from '../../taskItem';
 import { createTaskForItem } from '../../taskFactory';
 
-// Helper to build a file URI from the task-files/shell directory
+// Helper to build a file URI from the task-files/shell directory.
+// The compiled tests run from out/test/suite but task-files live in src/test/task-files,
+// so we navigate up from the compiled directory to the source fixtures.
 function shellUri(filename: string): vscode.Uri {
-  return vscode.Uri.file(path.resolve(__dirname, '../task-files/shell', filename));
+  return vscode.Uri.file(path.resolve(__dirname, '../../../src/test/task-files/shell', filename));
 }
 
 suite('TaskFactory Shell Tests', () => {
@@ -63,8 +65,9 @@ suite('TaskFactory Shell Tests', () => {
     const exec = created?.task.execution as vscode.ShellExecution;
     assert.ok(exec, 'Task should have ShellExecution');
 
-    // When no interpreter the command is the quoted file path
-    const cmd = typeof exec.command === 'string' ? exec.command : '';
+    // When no interpreter, the factory uses the commandLine form of ShellExecution.
+    // exec.commandLine holds the quoted script path; exec.command is undefined in this form.
+    const cmd = typeof exec.commandLine === 'string' ? exec.commandLine : '';
     assert.ok(cmd.includes('with-shebang.py'), 'Command should include the script path');
     // Interpreter should NOT appear as a separate prefix executable
     assert.ok(!cmd.includes('python'), 'Command should not contain an explicit interpreter');
