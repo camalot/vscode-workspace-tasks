@@ -12,10 +12,22 @@ suite('RecentTasksService Test Suite', () => {
     let onDidChangeConfiguration: vscode.EventEmitter<vscode.ConfigurationChangeEvent>;
     let onDidStartTask: vscode.EventEmitter<vscode.TaskStartEvent>;
     let executeCommandStub: any;
+    let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+    let originalOnDidChangeConfiguration: typeof vscode.workspace.onDidChangeConfiguration;
+    let mockConfigValues: Record<string, unknown>;
+    let capturedConfigChangeHandlers: Array<(e: vscode.ConfigurationChangeEvent) => void>;
 
     // Helper to reset singleton
     const resetSingleton = () => {
         (RecentTasksService as any).instance = undefined;
+    };
+
+    // Fire a fake onDidChangeConfiguration event for the given fully-qualified section key
+    const fireConfigChange = (section: string) => {
+        const event: vscode.ConfigurationChangeEvent = {
+            affectsConfiguration: (cfg: string) => cfg === section || section.startsWith(cfg + '.'),
+        };
+        capturedConfigChangeHandlers.forEach((h) => h(event));
     };
 
     setup(() => {
@@ -23,6 +35,8 @@ suite('RecentTasksService Test Suite', () => {
         mockWorkspaceState = new Map();
         onDidChangeConfiguration = new vscode.EventEmitter();
         onDidStartTask = new vscode.EventEmitter();
+        mockConfigValues = {};
+        capturedConfigChangeHandlers = [];
 
         mockContext = {
             subscriptions: [],
@@ -36,18 +50,36 @@ suite('RecentTasksService Test Suite', () => {
             },
         } as unknown as vscode.ExtensionContext;
 
-        // Mock vscode.workspace.onDidChangeConfiguration
-        // We can't easily mock vscode.* directly if we are running in the extension host environment primarily.
-        // However, RecentTasksService attaches listeners in initialize.
-        // If we want to unit test logic without relying on VS Code firing events,
-        // we might invoke the handlers directly via (service as any).handleTaskStart(...)
-        // But for coverage, we want to exercise the paths.
+        // Mock vscode.workspace.getConfiguration so tests return known values
+        // without writing to real VS Code settings.
+        originalGetConfiguration = vscode.workspace.getConfiguration;
+        (vscode.workspace as any).getConfiguration = (section?: string) => {
+            if (section === 'workspaceTasks') {
+                return {
+                    get: <T>(key: string, defaultValue?: T): T =>
+                        (Object.prototype.hasOwnProperty.call(mockConfigValues, key)
+                            ? mockConfigValues[key]
+                            : defaultValue) as T,
+                };
+            }
+            return originalGetConfiguration(section);
+        };
 
-        // We can stub external dependencies: TaskCacheService and TaskStateManager
+        // Mock vscode.workspace.onDidChangeConfiguration to capture handlers so
+        // tests can fire config-change events synchronously without touching real settings.
+        originalOnDidChangeConfiguration = vscode.workspace.onDidChangeConfiguration;
+        (vscode.workspace as any).onDidChangeConfiguration = (
+            listener: (e: vscode.ConfigurationChangeEvent) => void,
+        ) => {
+            capturedConfigChangeHandlers.push(listener);
+            return { dispose: () => {} };
+        };
     });
 
     teardown(() => {
         resetSingleton();
+        (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+        (vscode.workspace as any).onDidChangeConfiguration = originalOnDidChangeConfiguration;
         mockContext.subscriptions.forEach(sub => sub.dispose());
         onDidChangeConfiguration.dispose();
         onDidStartTask.dispose();
@@ -207,11 +239,9 @@ suite('RecentTasksService Test Suite', () => {
         recentTasksService.remove({} as any);
     });
 
-    test('invalid maxRecentTasks config defaults to 20', async function() {
-        this.timeout(60000);
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
-        // Clear value to force default behavior (if package.json doesn't specify it, it's undefined)
-        await config.update('recentTasks.maxItems', undefined, vscode.ConfigurationTarget.Global);
+    test('invalid maxRecentTasks config defaults to 20', () => {
+        // Default: no maxItems configured — service should cap at 20
+        delete mockConfigValues['recentTasks.maxItems'];
 
         recentTasksService = RecentTasksService.getInstance();
         recentTasksService.initialize(mockContext);
@@ -230,32 +260,28 @@ suite('RecentTasksService Test Suite', () => {
         };
 
         try {
-             // Add 25 tasks
+             // Add 25 tasks — should be capped at default 20
              for(let i=0; i<25; i++) {
                   recentTasksService.addRecentTask(`task${i}`);
              }
-
-             // Should be capped at 20
              assert.strictEqual(recentTasksService.getRecentTasks().length, 20);
 
-             // Now update to something valid (10)
-             await config.update('recentTasks.maxItems', 10, vscode.ConfigurationTarget.Global);
-             await new Promise(resolve => setTimeout(resolve, 200));
+             // Simulate config update to 10 by setting mock value and firing the event
+             mockConfigValues['recentTasks.maxItems'] = 10;
+             fireConfigChange('workspaceTasks.recentTasks.maxItems');
              assert.strictEqual(recentTasksService.getRecentTasks().length, 10);
 
-             // Now update to undefined (should revert to 20)
-             // But valid tasks count is 10. We can add more to check limit.
-             await config.update('recentTasks.maxItems', undefined, vscode.ConfigurationTarget.Global);
-             await new Promise(resolve => setTimeout(resolve, 200));
+             // Simulate removing config (revert to default 20)
+             delete mockConfigValues['recentTasks.maxItems'];
+             fireConfigChange('workspaceTasks.recentTasks.maxItems');
 
              for(let i=100; i<125; i++) {
                   recentTasksService.addRecentTask(`task${i}`);
              }
              assert.strictEqual(recentTasksService.getRecentTasks().length, 20);
 
-             // Test no change (same value)
-             await config.update('recentTasks.maxItems', undefined, vscode.ConfigurationTarget.Global);
-             await new Promise(resolve => setTimeout(resolve, 200));
+             // No-op: fire event when value hasn't changed
+             fireConfigChange('workspaceTasks.recentTasks.maxItems');
 
         } finally {
              (stateManager as any).normalizeTaskId = originalNormalize;
@@ -315,9 +341,9 @@ suite('RecentTasksService Test Suite', () => {
         }
     });
 
-    test('Configuration change updates maxRecentTasks', async () => {
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
-        const originalMaxItems = config.get('recentTasks.maxItems');
+    test('Configuration change updates maxRecentTasks', () => {
+        // Start with no configured maxItems — defaults to 20
+        delete mockConfigValues['recentTasks.maxItems'];
 
         // Mock dependencies
         const stateManager = TaskStateManager.getInstance();
@@ -343,24 +369,17 @@ suite('RecentTasksService Test Suite', () => {
 
             assert.strictEqual(recentTasksService.getRecentTasks().length, 3);
 
-            // Update configuration to 2
-            await config.update('recentTasks.maxItems', 2, vscode.ConfigurationTarget.Global);
+            // Simulate config change to maxItems = 2 and fire the event synchronously
+            mockConfigValues['recentTasks.maxItems'] = 2;
+            fireConfigChange('workspaceTasks.recentTasks.maxItems');
 
-            // Wait for event listener to process
-            // We can wait a small amount of time or poll
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Should be trimmed to 2
+            // Should be trimmed to 2 immediately (no async wait required)
             const tasks = recentTasksService.getRecentTasks();
             assert.strictEqual(tasks.length, 2);
             assert.strictEqual(tasks[0].id, 'task3');
             assert.strictEqual(tasks[1].id, 'task2'); // task1 should be removed (oldest)
 
         } finally {
-            // Restore config
-            await config.update('recentTasks.maxItems', originalMaxItems, vscode.ConfigurationTarget.Global);
-
-            // Restore mocks
             (stateManager as any).normalizeTaskId = originalNormalize;
             (cacheService as any).getTaskById = originalGetTaskById;
         }

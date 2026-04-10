@@ -8,10 +8,50 @@ suite('TaskFilesService Test Suite', () => {
     let disposables: vscode.Disposable[] = [];
     let workspaceRoot: vscode.Uri;
     let testFolder: vscode.Uri;
+    let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+    let originalOnDidChangeConfiguration: typeof vscode.workspace.onDidChangeConfiguration;
+    let mockConfigValues: Record<string, unknown>;
+    let capturedConfigChangeHandlers: Array<(e: vscode.ConfigurationChangeEvent) => void | Promise<void>>;
+
+    // Synchronously fire a fake configuration-change event to all captured handlers.
+    // Returns a promise that resolves once every async handler finishes.
+    const fireConfigChange = async (section: string): Promise<void> => {
+        const event: vscode.ConfigurationChangeEvent = {
+            affectsConfiguration: (cfg: string) => cfg === section || section.startsWith(cfg + '.'),
+        };
+        await Promise.all(capturedConfigChangeHandlers.map((h) => h(event)));
+    };
 
     setup(async function(this: Mocha.Context) {
         this.timeout(60000);
         service = TaskFilesService.getInstance();
+        mockConfigValues = {};
+        capturedConfigChangeHandlers = [];
+
+        // Install mocks BEFORE service.initialize() so the service registers with the mock handler
+        originalGetConfiguration = vscode.workspace.getConfiguration;
+        (vscode.workspace as any).getConfiguration = (section?: string) => {
+            if (section === 'workspaceTasks') {
+                return {
+                    get: <T>(key: string, defaultValue?: T): T =>
+                        (Object.prototype.hasOwnProperty.call(mockConfigValues, key)
+                            ? mockConfigValues[key]
+                            : defaultValue) as T,
+                };
+            }
+            return originalGetConfiguration(section);
+        };
+
+        originalOnDidChangeConfiguration = vscode.workspace.onDidChangeConfiguration;
+        (vscode.workspace as any).onDidChangeConfiguration = (
+            listener: (e: vscode.ConfigurationChangeEvent) => void | Promise<void>,
+        ) => {
+            capturedConfigChangeHandlers.push(listener);
+            return { dispose: () => {
+                const idx = capturedConfigChangeHandlers.indexOf(listener);
+                if (idx !== -1) { capturedConfigChangeHandlers.splice(idx, 1); }
+            } };
+        };
 
         // Find workspace root
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
@@ -29,7 +69,7 @@ suite('TaskFilesService Test Suite', () => {
         } catch { }
         await vscode.workspace.fs.createDirectory(testFolder);
 
-        // Initialize service
+        // Initialize service (registers its configWatcher with the mock onDidChangeConfiguration)
         const context = { subscriptions: [] } as any;
         await service.initialize(context);
     });
@@ -40,15 +80,9 @@ suite('TaskFilesService Test Suite', () => {
             await vscode.workspace.fs.delete(testFolder, { recursive: true, useTrash: false });
         } catch { }
 
-        // Reset configuration
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
-        await config.update('exclude', undefined, vscode.ConfigurationTarget.Workspace);
-        await config.update('taskDiscovery.fetchDepth', undefined, vscode.ConfigurationTarget.Workspace);
-        // Wait for any onDidChangeConfiguration handlers (e.g. initialize()) to settle
-        // before the next test starts. Without this, a deferred initialize() triggered by
-        // the config reset can clear ignoreFiles mid-test.
-        // Use a longer wait on CI where file-system and config handlers can be slower.
-        await new Promise(r => setTimeout(r, 1500));
+        // Restore mocked APIs; no real config was written so no cleanup needed
+        (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+        (vscode.workspace as any).onDidChangeConfiguration = originalOnDidChangeConfiguration;
 
         disposables.forEach(d => d.dispose());
     });
@@ -77,28 +111,19 @@ suite('TaskFilesService Test Suite', () => {
     });
 
     test('shouldIgnore - Respects workspaceTasks.exclude configuration', async function() {
-        this.timeout(60000); // Increase timeout
+        this.timeout(60000);
         // Create file that should correspond to new exclude rule
         const fileUri = await createFile('dist/output.js');
         // Initial state check
         assert.strictEqual(service.shouldIgnore(fileUri), false, 'Initially should allow');
 
-        // Update config
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
-        await config.update('exclude', ['**/dist/**'], vscode.ConfigurationTarget.Workspace);
+        // Update mocked config and fire the event synchronously so the service
+        // calls initialize() internally and picks up the new exclude pattern.
+        mockConfigValues['exclude'] = ['**/dist/**'];
+        await fireConfigChange('workspaceTasks.exclude');
 
-        // Poll until the config change propagates (initialize() is async; fixed sleeps are flaky on CI).
-        let ignored = false;
-        for (let i = 0; i < 75; i++) {
-            if (service.shouldIgnore(fileUri)) {
-                ignored = true;
-                break;
-            }
-            await new Promise(r => setTimeout(r, 200));
-        }
-
-        // Verify
-        assert.strictEqual(ignored, true, 'Should ignore after config update');
+        // Verify immediately — no polling needed because fireConfigChange awaits the handler
+        assert.strictEqual(service.shouldIgnore(fileUri), true, 'Should ignore after config update');
     });
 
 
@@ -186,7 +211,6 @@ suite('TaskFilesService Test Suite', () => {
 
     test('filterByDepth - Respects fetchDepth configuration', async function() {
         this.timeout(60000);
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
 
         // Create nested structure
         // root/depth0.txt
@@ -212,27 +236,45 @@ suite('TaskFilesService Test Suite', () => {
         const d1 = getDepth(depth1File);
         const d2 = getDepth(depth2File);
 
-        // 1. Unset limit (null)
-        await config.update('taskDiscovery.fetchDepth', null, vscode.ConfigurationTarget.Workspace);
-        // Force refresh config? filterByDepth reads config on invocation
-        let filtered = (service as any).filterByDepth(uris);
-        assert.strictEqual(filtered.length, 3, 'Should find all 3 files without depth limit');
+        // Mock getConfiguration so filterByDepth reads a known fetchDepth without touching real settings
+        const originalGetConfig = vscode.workspace.getConfiguration;
+        let fetchDepthValue: number | null = null;
+        (vscode.workspace as any).getConfiguration = (section?: string) => {
+            if (section === 'workspaceTasks') {
+                return {
+                    get: <T>(key: string, defaultValue?: T): T => {
+                        if (key === 'taskDiscovery.fetchDepth') { return fetchDepthValue as unknown as T; }
+                        return defaultValue as T;
+                    },
+                };
+            }
+            return originalGetConfig(section);
+        };
 
-        // 2. Limit to depth of depth0File
-        await config.update('taskDiscovery.fetchDepth', d0, vscode.ConfigurationTarget.Workspace);
-        filtered = (service as any).filterByDepth(uris);
-        assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth0File.toString()), 'Should include depth0');
-        // If d1 > d0, it should be excluded
-        if (d1 > d0) {
-            assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should exclude depth1');
-        }
+        try {
+            // 1. Unset limit (null) — filterByDepth reads config on each invocation
+            fetchDepthValue = null;
+            let filtered = (service as any).filterByDepth(uris);
+            assert.strictEqual(filtered.length, 3, 'Should find all 3 files without depth limit');
 
-        // 3. Limit to depth of depth1File
-        await config.update('taskDiscovery.fetchDepth', d1, vscode.ConfigurationTarget.Workspace);
-        filtered = (service as any).filterByDepth(uris);
-        assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should include depth1');
-        if (d2 > d1) {
-            assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth2File.toString()), 'Should exclude depth2');
+            // 2. Limit to depth of depth0File
+            fetchDepthValue = d0;
+            filtered = (service as any).filterByDepth(uris);
+            assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth0File.toString()), 'Should include depth0');
+            // If d1 > d0, it should be excluded
+            if (d1 > d0) {
+                assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should exclude depth1');
+            }
+
+            // 3. Limit to depth of depth1File
+            fetchDepthValue = d1;
+            filtered = (service as any).filterByDepth(uris);
+            assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should include depth1');
+            if (d2 > d1) {
+                assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth2File.toString()), 'Should exclude depth2');
+            }
+        } finally {
+            (vscode.workspace as any).getConfiguration = originalGetConfig;
         }
     });
 

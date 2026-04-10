@@ -6,6 +6,8 @@ suite('LoggerService Test Suite', () => {
   let logger: LoggerService;
   let originalAppendLine: any;
   let loggedMessages: string[] = [];
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+  let mockDebug = false;
 
   setup(() => {
     logger = LoggerService.getInstance();
@@ -21,18 +23,32 @@ suite('LoggerService Test Suite', () => {
     // Reset/Ensure log level setup
     // We can't easily reset singleton, but we can reset config or force update
     loggedMessages = [];
+
+    // Mock getConfiguration to return known values so tests don't write real VS Code settings
+    mockDebug = false;
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return {
+          get: <T>(key: string, defaultValue?: T): T => {
+            if (key === 'debug') { return mockDebug as unknown as T; }
+            return defaultValue as T;
+          },
+        };
+      }
+      return originalGetConfiguration(section);
+    };
   });
 
-  teardown(async () => {
+  teardown(() => {
     // Restore original method
     const outputChannel = (logger as any).outputChannel as vscode.OutputChannel;
     if (originalAppendLine) {
       outputChannel.appendLine = originalAppendLine;
     }
 
-    // Restore configuration if changed
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    await config.update('debug', undefined, vscode.ConfigurationTarget.Global);
+    // Restore mocked getConfiguration
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
 
   test('getInstance returns singleton', () => {
@@ -55,11 +71,8 @@ suite('LoggerService Test Suite', () => {
     assert.strictEqual(contextMock.subscriptions.length, 2); // OutputChannel and ConfigurationListener
   });
 
-  test('Debug logs are ignored by default (LogLevel.Info)', async () => {
-    // Ensure debug is false
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    await config.update('debug', false, vscode.ConfigurationTarget.Global);
-    // Force update internal state since we might have changed it externally or it's watching
+  test('Debug logs are ignored by default (LogLevel.Info)', () => {
+    // mockDebug is false by default (set in setup) — force the logger to read it
     (logger as any).updateConfiguration();
 
     logger.debug('This is a debug message');
@@ -92,13 +105,9 @@ suite('LoggerService Test Suite', () => {
     assert.ok(loggedMessages[0].includes('Something went wrong'));
   });
 
-  test('Debug logs are written when debug is enabled', async () => {
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    await config.update('debug', true, vscode.ConfigurationTarget.Global);
-
-    // Wait for configuration change to propagate or force update
-    // The listener in LoggerService should pick it up, but it's async.
-    // We can manually force update for deterministic test
+  test('Debug logs are written when debug is enabled', () => {
+    // Enable debug via the mock then force the logger to re-read it
+    mockDebug = true;
     (logger as any).updateConfiguration();
 
     logger.debug('Debug message visible');
