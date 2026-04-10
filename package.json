@@ -729,6 +729,7 @@
         "workspaceTasks.task.presentationOptions": {
           "type": "object",
           "additionalProperties": false,
+          "markdownDescription": "%config.workspaceTasks.task.presentationOptions.markdown%",
           "properties": {
             "reveal": {
               "type": "string",
