@@ -11,20 +11,31 @@ interface ShellConfig {
   extensions: string[];
   configKey: string;
   defaultInterpreter: string;
-  checkShebang?: boolean;
+  /**
+   * When true, only files that contain a shebang line (`#!`) are included as tasks.
+   * Defaults to false — all files with matching extensions are included regardless.
+   */
+  requireShebang?: boolean;
+  /**
+   * When true, files that contain a shebang line (`#!`) are executed directly by the OS
+   * (e.g. `./script.py`), letting the kernel invoke the interpreter named in the shebang.
+   * The configured interpreter is still used for files that do not have a shebang.
+   * Defaults to false.
+   */
+  useShebang?: boolean;
 }
 
 const BUILT_IN_SHELLS: Record<string, ShellConfig> = {
-  bash: { extensions: ['sh', 'bash'], configKey: 'bash', defaultInterpreter: 'bash', checkShebang: true },
-  zsh: { extensions: ['zsh'], configKey: 'zsh', defaultInterpreter: 'zsh', checkShebang: true },
-  fish: { extensions: ['fish'], configKey: 'fish', defaultInterpreter: 'fish', checkShebang: false },
-  pwsh: { extensions: ['ps1'], configKey: 'pwsh', defaultInterpreter: 'pwsh', checkShebang: false },
-  batch: { extensions: ['bat', 'cmd'], configKey: 'batch', defaultInterpreter: 'cmd.exe', checkShebang: false },
-  python: { extensions: ['py'], configKey: 'python', defaultInterpreter: 'python', checkShebang: true },
-  perl: { extensions: ['pl'], configKey: 'perl', defaultInterpreter: 'perl', checkShebang: true },
-  ruby: { extensions: ['rb'], configKey: 'ruby', defaultInterpreter: 'ruby', checkShebang: true },
-  sh: { extensions: ['sh'], configKey: 'sh', defaultInterpreter: 'sh', checkShebang: true },
-  nushell: { extensions: ['nu'], configKey: 'nushell', defaultInterpreter: 'nu', checkShebang: false },
+  bash: { extensions: ['sh', 'bash'], configKey: 'bash', defaultInterpreter: 'bash', requireShebang: false, useShebang: true },
+  zsh: { extensions: ['zsh'], configKey: 'zsh', defaultInterpreter: 'zsh', requireShebang: false, useShebang: true },
+  fish: { extensions: ['fish'], configKey: 'fish', defaultInterpreter: 'fish', requireShebang: false, useShebang: false },
+  pwsh: { extensions: ['ps1'], configKey: 'pwsh', defaultInterpreter: 'pwsh', requireShebang: false, useShebang: false },
+  batch: { extensions: ['bat', 'cmd'], configKey: 'batch', defaultInterpreter: 'cmd.exe', requireShebang: false, useShebang: false },
+  python: { extensions: ['py'], configKey: 'python', defaultInterpreter: 'python3', requireShebang: false, useShebang: true },
+  perl: { extensions: ['pl'], configKey: 'perl', defaultInterpreter: 'perl', requireShebang: false, useShebang: true },
+  ruby: { extensions: ['rb'], configKey: 'ruby', defaultInterpreter: 'ruby', requireShebang: false, useShebang: true },
+  sh: { extensions: ['sh'], configKey: 'sh', defaultInterpreter: 'sh', requireShebang: false, useShebang: true },
+  nushell: { extensions: ['nu'], configKey: 'nushell', defaultInterpreter: 'nu', requireShebang: false, useShebang: false },
 };
 
 export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider {
@@ -85,16 +96,28 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
             continue;
           } // Avoid duplicates if extensions overlap
 
-          // Check Shebang if required
-          if (def.checkShebang) {
+          let effectiveInterpreter = interpreter;
+          let usesShebang = false;
+
+          // Check shebang when required or when shebang execution is supported
+          if (def.requireShebang || def.useShebang) {
             const hasShebang = await this.checkForShebang(file);
-            if (!hasShebang) {
+
+            // Skip the file if a shebang is mandatory but absent
+            if (def.requireShebang && !hasShebang) {
               continue;
+            }
+
+            // When shebang execution is enabled and the file has a shebang, run it
+            // directly so the OS can invoke the correct interpreter from the shebang line
+            if (def.useShebang && hasShebang) {
+              effectiveInterpreter = '';
+              usesShebang = true;
             }
           }
 
           processedFiles.add(file.fsPath);
-          tasks.push(this.createShellTaskItem(file, interpreter, type));
+          tasks.push(this.createShellTaskItem(file, effectiveInterpreter, type, usesShebang));
         }
       }
     }
@@ -131,7 +154,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     return [];
   }
 
-  private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string): TaskItem {
+  private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string, useShebang = false): TaskItem {
     const filename = path.basename(resourceUri.fsPath);
     const iconPath = TaskIconService.getInstance().getTaskIcon(subType) || vscode.ThemeIcon.File;
 
@@ -153,6 +176,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     item.metadata = {
       interpreter: interpreter,
       subType: subType,
+      useShebang: useShebang,
     };
 
     return item;
