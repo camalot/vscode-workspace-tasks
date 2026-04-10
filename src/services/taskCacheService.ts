@@ -17,6 +17,10 @@ export class TaskCacheService {
   private providerTasks: Map<string, TaskItem[]> = new Map();
   private taskMap: Map<string, TaskItem> = new Map();
 
+  private loadingProviders: Set<string> = new Set();
+  private _onDidLoadingStateChange = new vscode.EventEmitter<void>();
+  public readonly onDidLoadingStateChange: vscode.Event<void> = this._onDidLoadingStateChange.event;
+
   private _onDidUpdate: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   public readonly onDidUpdate: vscode.Event<void> = this._onDidUpdate.event;
 
@@ -28,6 +32,18 @@ export class TaskCacheService {
 
   public initialize(context: vscode.ExtensionContext): TaskCacheService {
     this.context = context;
+    // After the file cache completes its first workspace scan, check whether the scan returned
+    // zero files despite patterns being registered. If so, trigger one catch-up invalidation.
+    // This guards against the startup race where VS Code's workspace indexer hadn't finished
+    // when the initial refresh ran, causing all providers to see 0 files.
+    const disposable = TaskFilesService.getInstance().onDidInitialScanComplete(() => {
+      const filesService = TaskFilesService.getInstance();
+      if (filesService.getCachedPathCount() === 0 && filesService.hasRegisteredPatterns()) {
+        filesService.invalidateCache();
+        // invalidateCache() already calls refresh() internally.
+      }
+    });
+    context.subscriptions.push(disposable);
     return this;
   }
 
@@ -46,10 +62,30 @@ export class TaskCacheService {
     return this.providers;
   }
 
+  public isLoading(): boolean {
+    return this.loadingProviders.size > 0;
+  }
+
+  public getLoadingProviders(): ReadonlySet<string> {
+    return this.loadingProviders;
+  }
+
+  public hasTasksForProviderType(type: string): boolean {
+    const tasks = this.providerTasks.get(type);
+    return tasks !== undefined && tasks.length > 0;
+  }
+
   public async refreshProvider(type: string): Promise<void> {
     const provider = this.providers.find((p) => (p as any).type === type);
     if (!provider) {
       return;
+    }
+
+    const wasIdle = this.loadingProviders.size === 0;
+    this.loadingProviders.add(type);
+    // Only fire when transitioning from idle → loading (first provider starts)
+    if (wasIdle) {
+      this._onDidLoadingStateChange.fire();
     }
 
     try {
@@ -68,6 +104,12 @@ export class TaskCacheService {
     } catch (e) {
       this.logger.error(`[TaskCacheService] Error refreshing provider ${type}`, e);
       this.providerTasks.set(type, []);
+    } finally {
+      this.loadingProviders.delete(type);
+      // Only fire when transitioning from loading → idle (last provider finishes)
+      if (this.loadingProviders.size === 0) {
+        this._onDidLoadingStateChange.fire();
+      }
     }
     this.rebuildCache();
     this._onDidUpdate.fire();
@@ -147,34 +189,61 @@ export class TaskCacheService {
     this.rebuildCache();
     this._onDidUpdate.fire();
 
-    const promises = this.providers.map(async (provider) => {
-      const type = (provider as any).type;
-      if (type) {
-        const start = Date.now();
-        try {
-          let tasks = await provider.getTasks();
-          tasks = tasks.filter((item) => {
-            if (!item.taskFileUri) {
-              return true;
-            }
-            return !TaskFilesService.getInstance().shouldIgnoreTask(
-              item.taskFileUri,
-              item.originalLabel || String(item.label)
-            );
-          });
-          this.providerTasks.set(type, tasks);
-          this.rebuildCache();
-          this._onDidUpdate.fire();
-        } catch (e) {
-          const duration = Date.now() - start;
-          this.logger.error(`[TaskCacheService] Error refreshing provider ${type} (took ${duration}ms)`, e);
-          this.providerTasks.set(type, []);
+    return vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Loading workspace tasks…',
+        cancellable: false,
+      },
+      async (progress) => {
+        // Pre-register all provider types as loading up front, then fire a single event.
+        // This avoids a separate tree refresh per provider and prevents the extension
+        // host becoming unresponsive due to dozens of rapid organiseTasks() runs.
+        for (const provider of this.providers) {
+          const type = (provider as any).type;
+          if (type) {
+            this.loadingProviders.add(type);
+          }
         }
-      }
-    });
+        if (this.loadingProviders.size > 0) {
+          this._onDidLoadingStateChange.fire();
+        }
 
-    await Promise.all(promises);
-    return this.allTasks;
+        const promises = this.providers.map(async (provider) => {
+          const type = (provider as any).type;
+          if (type) {
+            progress.report({ message: type });
+            const start = Date.now();
+            try {
+              let tasks = await provider.getTasks();
+              tasks = tasks.filter((item) => {
+                if (!item.taskFileUri) {
+                  return true;
+                }
+                return !TaskFilesService.getInstance().shouldIgnoreTask(
+                  item.taskFileUri,
+                  item.originalLabel || String(item.label)
+                );
+              });
+              this.providerTasks.set(type, tasks);
+              this.loadingProviders.delete(type);
+              this.rebuildCache();
+              this._onDidUpdate.fire();
+            } catch (e) {
+              const duration = Date.now() - start;
+              this.logger.error(`[TaskCacheService] Error refreshing provider ${type} (took ${duration}ms)`, e);
+              this.providerTasks.set(type, []);
+              this.loadingProviders.delete(type);
+            }
+          }
+        });
+
+        await Promise.all(promises);
+        // Fire one final state-change after all providers are done
+        this._onDidLoadingStateChange.fire();
+        return this.allTasks;
+      }
+    );
   }
 
   public getTasksForFile(uri: vscode.Uri): TaskItem[] {

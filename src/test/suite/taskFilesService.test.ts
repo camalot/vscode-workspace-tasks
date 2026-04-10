@@ -1053,4 +1053,81 @@ package.json@build`;
         assert.strictEqual(service.shouldIgnore(pkgUri), false,
             'Rule removed after awaiting loadIgnoreFile and re-invalidating');
     });
+
+    // ── onDidInitialScanComplete (Phase 3 Pre-condition A) ────────────────────
+
+    suite('onDidInitialScanComplete', () => {
+        test('fires once after the first successful _doBuildCache', async () => {
+            // Reset the initialScanFired flag so we can observe the event freshly
+            (service as any).initialScanFired = false;
+            (service as any).cachedPaths = null;
+            (service as any).cacheInvalidated = true;
+
+            let firedCount = 0;
+            const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
+            disposables.push(disposable);
+
+            // Run a cache build by calling findFiles
+            await service.findFiles(['**/package.json']);
+
+            // The event is scheduled via queueMicrotask — wait for it
+            await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+            assert.strictEqual(firedCount, 1, 'onDidInitialScanComplete should fire exactly once after first build');
+        });
+
+        test('fires only once even if cache is rebuilt multiple times', async () => {
+            (service as any).initialScanFired = false;
+            (service as any).cachedPaths = null;
+            (service as any).cacheInvalidated = true;
+
+            let firedCount = 0;
+            const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
+            disposables.push(disposable);
+
+            // First build
+            await service.findFiles(['**/package.json']);
+            await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+            // Invalidate and trigger a second build (simulate file change)
+            (service as any).initialScanFired = true; // keep it true — only first scan fires event
+            (service as any).cacheInvalidated = true;
+            (service as any).cachedPaths = null;
+            await service.findFiles(['**/package.json']);
+            await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+            assert.strictEqual(firedCount, 1, 'onDidInitialScanComplete should only fire once regardless of rebuilds');
+        });
+
+        test('does not fire until a cache build actually completes', async () => {
+            (service as any).initialScanFired = false;
+
+            let fired = false;
+            const disposable = service.onDidInitialScanComplete(() => { fired = true; });
+            disposables.push(disposable);
+
+            // Before any build, event should not have fired
+            assert.strictEqual(fired, false, 'Event should not fire before a cache build runs');
+        });
+
+        test('getCachedPathCount returns 0 when cache not built', () => {
+            (service as any).cachedPaths = null;
+            assert.strictEqual(service.getCachedPathCount(), 0);
+        });
+
+        test('getCachedPathCount returns the size of cachedPaths', () => {
+            (service as any).cachedPaths = new Set(['/a', '/b', '/c']);
+            assert.strictEqual(service.getCachedPathCount(), 3);
+        });
+
+        test('hasRegisteredPatterns returns false when no patterns registered', () => {
+            (service as any).registeredPatterns = new Set();
+            assert.strictEqual(service.hasRegisteredPatterns(), false);
+        });
+
+        test('hasRegisteredPatterns returns true when patterns are registered', () => {
+            (service as any).registeredPatterns = new Set(['**/package.json']);
+            assert.strictEqual(service.hasRegisteredPatterns(), true);
+        });
+    });
 });

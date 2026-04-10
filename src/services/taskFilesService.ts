@@ -77,6 +77,19 @@ export class TaskFilesService {
   private cacheInvalidated = true;
   private buildCacheInFlight: Promise<void> | null = null;
   private cacheGeneration = 0;
+  private initialScanFired = false;
+  private _onDidInitialScanComplete = new vscode.EventEmitter<void>();
+  public readonly onDidInitialScanComplete: vscode.Event<void> = this._onDidInitialScanComplete.event;
+
+  /** Returns the number of files in the current valid cache, or 0 if the cache is empty/unbuilt. */
+  public getCachedPathCount(): number {
+    return this.cachedPaths?.size ?? 0;
+  }
+
+  /** Returns true if any file patterns have been registered with the service. */
+  public hasRegisteredPatterns(): boolean {
+    return this.registeredPatterns.size > 0;
+  }
 
   private constructor() {
     this.globalIgnore = ignore();
@@ -163,12 +176,20 @@ export class TaskFilesService {
       this.logger.debug(
         `[TaskFilesService] Cache built with ${this.cachedPaths.size} files from combined pattern: ${combinedPattern} in ${cacheBuildDurationMs}ms`,
       );
+      if (!this.initialScanFired) {
+        this.initialScanFired = true;
+        queueMicrotask(() => this._onDidInitialScanComplete.fire());
+      }
     } catch (err) {
       const cacheBuildDurationMs = Date.now() - cacheBuildStartMs;
       this.logger.error(`[TaskFilesService] Error building cache after ${cacheBuildDurationMs}ms: ${err}`);
       if (generation !== this.cacheGeneration) { return; }
       this.cachedPaths = new Set();
       this.cacheInvalidated = false;
+      if (!this.initialScanFired) {
+        this.initialScanFired = true;
+        queueMicrotask(() => this._onDidInitialScanComplete.fire());
+      }
     }
   }
 
