@@ -162,7 +162,39 @@ if (nativeDef.type === 'process') {
 return new vscode.Task(task.definition, scope, task.name, 'workspace-tasks', execution);
 ```
 
-`provideTasks()` returns `[]` (no discovery; stubs live in tasks.json).
+**Environment variable injection** — After building the task, env variables and secrets from
+the `TaskEnvService` (task-environment-variables feature) must be merged into the execution.
+The injection must use the **underlying** task's identity (type, label, `taskFileUri`), not the
+`workspace-tasks` stub, so that `workspaceTasks.taskEnv` rules match correctly:
+
+```ts
+// Build underlyingTaskItem from the resolved alias source
+const underlyingTaskItem = buildTaskItemFromAlias(nativeDef /* or workspaceTasksDef */);
+const envMap = await TaskEnvService.getInstance().resolveTaskEnv(underlyingTaskItem);
+if (envMap.size > 0) {
+  const mergedEnv = Object.fromEntries([...envMap.entries()].map(([k, v]) => [k, v.value]));
+  // Re-wrap execution with env merged in
+  if (execution instanceof vscode.ShellExecution) {
+    execution = new vscode.ShellExecution(
+      execution.commandLine ?? execution.command,
+      { ...execution.options, env: { ...(execution.options?.env ?? {}), ...mergedEnv } }
+    );
+  } else if (execution instanceof vscode.ProcessExecution) {
+    execution = new vscode.ProcessExecution(
+      execution.process, execution.args,
+      { ...execution.options, env: { ...(execution.options?.env ?? {}), ...mergedEnv } }
+    );
+  }
+}
+
+return new vscode.Task(task.definition, scope, task.name, 'workspace-tasks', execution);
+```
+
+`envFiles` and `secretFiles` at all levels (global, `.workspace-tasks.json` block, per-task, and
+`workspaceTasks.taskEnv` rules) use the `IEnvFileReference` type — a single string, an array of
+strings, or an `{ include: string[], exclude?: string[] }` object — and are all handled
+transparently by `TaskEnvFileResolver.resolveFileReferences()`. No special handling is needed in
+`WorkspaceAliasTaskProvider` beyond passing the correct `underlyingTaskItem`.
 
 ### `src/providers/index.ts`
 
@@ -278,6 +310,10 @@ Add test group for alias methods (same as original plan):
 - `resolveTask()` checks `.workspace-tasks.json` first (takes priority over native task with same alias)
 - `resolveTask()` returns `undefined` when alias not found in either source
 - `resolveTask()` sets correct task scope from workspace folder URI
+- `resolveTask()` merges env vars from `TaskEnvService` using the underlying task's identity
+- `resolveTask()` matching uses the underlying task `taskType` (e.g. `"npm"`), not `"workspace-tasks"`
+- When `TaskEnvService.resolveTaskEnv()` returns a non-empty map, `execution.options.env` is set on the returned task
+- When `TaskEnvService.resolveTaskEnv()` returns an empty map, `execution.options.env` is unchanged
 
 ### NEW `src/test/suite/taskAliasService.test.ts`
 
@@ -297,10 +333,12 @@ Add test group for alias methods (same as original plan):
 ```
 1. WorkspaceTasksService.initialize(context)
 2. NativeTaskAliasService.getInstance().loadFromWorkspaceFolders()
-3. TaskAliasService.getInstance().syncAliasStubs()
-4. vscode.tasks.registerTaskProvider('workspace-tasks', new WorkspaceAliasTaskProvider())
-5. File-watcher hook: on .vscode/tasks.json change → invalidate NativeTaskAliasService → reload → syncAliasStubs
-6. File-watcher hook: on .workspace-tasks.json change → syncAliasStubs (WorkspaceTasksService already reloads)
+3. TaskEnvService.getInstance().initialize(context)   // env/secrets feature dependency
+4. TaskAliasService.getInstance().syncAliasStubs()
+5. vscode.tasks.registerTaskProvider('workspace-tasks', new WorkspaceAliasTaskProvider())
+6. File-watcher hook: on .vscode/tasks.json change → invalidate NativeTaskAliasService → reload → syncAliasStubs
+7. File-watcher hook: on .workspace-tasks.json change → syncAliasStubs (WorkspaceTasksService already reloads)
+8. Subscribe to TaskEnvService.onDidChangeEnvSources to invalidate any cached resolved tasks
 ```
 
 ## Phase 7: Documentation
@@ -325,8 +363,8 @@ Add test group for alias methods (same as original plan):
 | `src/services/workspaceTasksService.ts` | Add `alias?` to `FileTaskDefinition`; add `findTaskByAlias`, `getRawTaskCommand` |
 | `src/services/nativeTaskAliasService.ts` | **NEW**: reads native tasks.json files, indexes by alias, resolves commands |
 | `src/services/taskAliasService.ts` | **NEW**: auto-injects stubs into tasks.json from both alias sources |
-| `src/providers/workspaceAliasTaskProvider.ts` | **NEW**: `vscode.TaskProvider` with two-stage alias lookup |
-| `src/providers/index.ts` | Register `WorkspaceAliasTaskProvider`; wire `NativeTaskAliasService` reload on file change |
+| `src/providers/workspaceAliasTaskProvider.ts` | **NEW**: `vscode.TaskProvider` with two-stage alias lookup + `TaskEnvService` injection |
+| `src/providers/index.ts` | Register `WorkspaceAliasTaskProvider`; wire `NativeTaskAliasService` reload on file change; init `TaskEnvService` |
 | `package.json` | Add `contributes.taskDefinitions` |
 | `src/test/suite/workspaceTasksService.test.ts` | Add alias method tests |
 | `src/test/suite/nativeTaskAliasService.test.ts` | **NEW** |
