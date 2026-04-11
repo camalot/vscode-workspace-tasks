@@ -4,6 +4,7 @@ export interface ITaskExecutionRecord {
   id: string; // Unique ID for this execution (e.g. uuid or timestamp based)
   taskName: string;
   taskSource: string; // "npm", "workspace", etc.
+  scope: string; // Workspace folder name, or TaskScope value as string (e.g. "1"), or "global"
   definition: vscode.TaskDefinition;
   startTime: number;
   endTime?: number;
@@ -104,6 +105,7 @@ export class TaskHistoryService {
       id: Date.now().toString() + Math.random().toString().substring(2, 5),
       taskName: task.name,
       taskSource: task.source,
+      scope: typeof task.scope === 'object' ? (task.scope as vscode.WorkspaceFolder).name : (task.scope?.toString() || 'global'),
       definition: task.definition,
       startTime: Date.now(),
       status: 'Running'

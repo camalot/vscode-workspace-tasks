@@ -14,6 +14,7 @@ import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
 import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
+import { TaskMetricsService } from './services/taskMetricsService';
 import { loadCommands } from './commands/index';
 import { findTerminalForTask } from './commands/stopTask';
 import { registerTaskProviders } from './providers/index';
@@ -39,6 +40,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Initialize the view based on persisted preference
   await taskHistoryTreeDataProvider.initializeView();
+
+  // Initialize TaskMetricsService now that TaskHistoryService is ready
+  TaskMetricsService.getInstance().initialize(context);
 
   context.subscriptions.push(
     historyTreeView,

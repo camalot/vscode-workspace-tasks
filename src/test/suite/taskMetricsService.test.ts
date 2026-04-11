@@ -12,7 +12,8 @@ function makeRecord(overrides: Partial<ITaskExecutionRecord> = {}): ITaskExecuti
     id: 'test-id',
     taskName: 'build',
     taskSource: 'npm',
-    definition: { type: 'npm', scope: 'workspace' },
+    scope: 'workspace',
+    definition: { type: 'npm' },
     startTime: Date.now(),
     endTime: Date.now() + 1000,
     duration: 1000,
@@ -142,7 +143,7 @@ suite('TaskMetricsService Test Suite', () => {
   test('scope=workspace: getMetrics returns data', () => {
     const rec = makeRecord({ status: 'Success', exitCode: 0, duration: 500 });
     fireHistoryRecord(rec);
-    const key = `${rec.taskSource}:${rec.taskName}:${rec.definition.scope}`;
+    const key = `${rec.taskSource}:${rec.taskName}:${rec.scope}`;
     const metrics = service.getMetrics(key);
     assert.ok(metrics !== undefined);
     assert.strictEqual(metrics!.totalExecutions, 1);
@@ -247,7 +248,7 @@ suite('TaskMetricsService Test Suite', () => {
   test('clearMetrics removes single task', () => {
     const rec = makeRecord({ status: 'Success', exitCode: 0, duration: 100 });
     fireHistoryRecord(rec);
-    const key = `${rec.taskSource}:${rec.taskName}:${rec.definition.scope}`;
+    const key = `${rec.taskSource}:${rec.taskName}:${rec.scope}`;
     assert.ok(service.getMetrics(key) !== undefined);
     service.clearMetrics(key);
     assert.strictEqual(service.getMetrics(key), undefined);
@@ -259,7 +260,7 @@ suite('TaskMetricsService Test Suite', () => {
     const rec = makeRecord({ status: 'Success', exitCode: 0, duration: 100 });
     fireHistoryRecord(rec);
     fired = false; // reset after initial fire
-    const key = `${rec.taskSource}:${rec.taskName}:${rec.definition.scope}`;
+    const key = `${rec.taskSource}:${rec.taskName}:${rec.scope}`;
     service.clearMetrics(key);
     assert.strictEqual(fired, true);
   });

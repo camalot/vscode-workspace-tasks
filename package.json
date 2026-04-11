@@ -477,6 +477,16 @@
         "command": "workspaceTasks.copyTaskCommand",
         "title": "%command.copyTaskCommand%",
         "icon": "$(copy)"
+      },
+      {
+        "command": "workspaceTasks.metrics.clearTask",
+        "title": "%command.metrics.clearTask%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "workspaceTasks.metrics.clearAll",
+        "title": "%command.metrics.clearAll%",
+        "icon": "$(clear-all)"
       }
     ],
     "configuration": {
@@ -1522,6 +1532,11 @@
           "command": "workspaceTasks.copyTaskCommand",
           "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /[cC]ompound[Tt]ask/)",
           "group": "5_copy"
+        },
+        {
+          "command": "workspaceTasks.metrics.clearTask",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /[cC]ompound[Tt]ask/) && config.workspaceTasks.metrics.scope != 'disabled'",
+          "group": "z_metrics@1"
         },
         {
           "command": "workspaceTasks.restartTask",

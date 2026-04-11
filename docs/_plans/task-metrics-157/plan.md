@@ -63,13 +63,29 @@ Computed (not stored, derived at read time in `TaskMetricsAggregator`):
 2. Handle `onDidChangeConfiguration` in `TaskMetricsService` to reload/migrate data if scope changes
 3. When `retentionDays > 0`, prune records older than N days on service init
 
-### Phase 3: Commands
+### Phase 3: Commands ✅ COMPLETE
 
-1. Create `src/commands/clearTaskMetricsCommand.ts` — two commands:
-   - `workspaceTasks.metrics.clearAll` — prompts confirmation, clears all metrics data from active store(s)
-   - `workspaceTasks.metrics.clearTask` — takes `TaskItem` argument from context menu, clears single task metrics
-2. Register commands in `package.json` `contributes.commands` and `contributes.menus.view/item/context` (taskItem context menu group "metrics")
-3. Wire both commands in `extension.ts` activate()
+**Implementation notes / changes from original plan:**
+
+- `ITaskExecutionRecord` gained a required `scope: string` field (populated from `task.scope` in `handleTaskStart`), making the key derivation in `TaskMetricsService.getTaskKey()` simpler and explicit.
+- `buildMetricsKey(item: TaskItem)` in the command uses `item.task?.name ?? item.label` (not just `item.label`) so it matches `task.name` even when the tree label strips a path suffix (e.g. NPM tasks).
+- `src/taskTreeDataProvider.ts`: recent-task copies (both flat and grouped paths) and favorite-task copies now propagate `copy.task = t.task` / `favTask.task = item.task` so that `buildMetricsKey` has access to the underlying `vscode.Task`.
+- Context menu `when` clause uses single-quoted string literal: `config.workspaceTasks.metrics.scope != 'disabled'`.
+- Test file: `src/test/suite/clearTaskMetricsCommand.test.ts` (7 tests, all passing).
+
+**Files changed:**
+
+1. `src/services/taskHistoryService.ts` — added `scope` field to `ITaskExecutionRecord`; populate it in `handleTaskStart`
+2. `src/services/taskMetricsService.ts` — simplified `getTaskKey()` to use `record.scope`
+3. `src/commands/clearTaskMetricsCommand.ts` — new file with `MetricsClearTaskCommand` and `MetricsClearAllCommand`
+4. `src/commands/index.ts` — import + register `clearTaskMetrics` module
+5. `src/extension.ts` — import `TaskMetricsService`; call `TaskMetricsService.getInstance().initialize(context)` after history service init
+6. `src/taskTreeDataProvider.ts` — propagate `task` field to recent-task and favorite-task copies
+7. `package.json` — 2 new commands (`metrics.clearTask`, `metrics.clearAll`); 1 context menu entry
+8. `package.nls.json` — 2 NLS strings for new commands
+9. `src/test/suite/clearTaskMetricsCommand.test.ts` — new file with 7 tests
+10. `src/test/suite/taskMetricsService.test.ts` — updated `makeRecord()` to include `scope` field; updated key derivation assertions
+11. `src/test/suite/taskMetricsAggregator.test.ts` — updated `makeRecord()` to include `scope` field
 
 ### Phase 4: Display — Enrich History Webview
 

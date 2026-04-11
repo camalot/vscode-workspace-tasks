@@ -98,11 +98,7 @@ export class TaskMetricsService {
 
   /** Derives a stable key from an execution record matching TaskHistoryService convention. */
   private getTaskKey(record: ITaskExecutionRecord): string {
-    const scope =
-      record.definition?.scope !== undefined
-        ? String(record.definition.scope)
-        : 'global';
-    return `${record.taskSource}:${record.taskName}:${scope}`;
+    return `${record.taskSource}:${record.taskName}:${record.scope}`;
   }
 
   // ---------------------------------------------------------------------------

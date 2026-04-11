@@ -410,6 +410,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         favTask.taskFileUri = item.taskFileUri;
         favTask.taskSource = item.taskSource;
         favTask.taskOrigin = item.taskOrigin;
+        favTask.task = item.task;
 
         // Clone children if any (deep clone not strictly necessary if we rebuild tree, but favorites structure uses specific parent)
         // For favorites, we might want to flatten or keep structure.
@@ -963,6 +964,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             copy.taskFileUri = t.taskFileUri;
             copy.taskSource = t.taskSource;
             copy.taskOrigin = t.taskOrigin;
+            copy.task = t.task;
             copy.description = t.description; // Preserve description (folder name etc)
             copy.parent = typeItem;
             copy.id = `recent:${t.id}`;
@@ -1007,6 +1009,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           copy.taskFileUri = t.taskFileUri;
           copy.taskSource = t.taskSource;
           copy.taskOrigin = t.taskOrigin;
+          copy.task = t.task;
           copy.description = t.description;
           copy.parent = recentGroup;
 
