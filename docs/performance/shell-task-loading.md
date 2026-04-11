@@ -93,6 +93,7 @@ The key observation: every shell type completes in ~14,500–15,300 ms. Since al
 **Fix:** Introduced an `mtime`-keyed in-memory shebang cache shared across all shell types. On a cache miss, the file is read and the shebang line is stored keyed by `(path, mtime)`. On a cache hit, the file is not opened at all.
 
 Additional changes in this phase:
+
 - Suppressed the redundant `other: 0 task(s) in 0ms` log line that appeared even when no "other" shell type was active.
 - Tightened the shebang-check logic to avoid unnecessary reads for types that don't require shebang validation (batch, pwsh, etc.).
 
@@ -100,7 +101,7 @@ Additional changes in this phase:
 
 From `results-phase2.log` (warm session after Phase 2):
 
-```
+```text
 [ShellTaskProvider] bash: 12 task(s) from 12 file(s) in 15186ms (0 shebang reads, 12 cache hits)
 [ShellTaskProvider] sh:    0 task(s) from 12 file(s) in 15184ms (12 shebang reads, 0 cache hits)
 ```
@@ -115,15 +116,15 @@ From `results-phase2.log` (warm session after Phase 2):
 
 **Problem:** Three structural issues remained:
 
-1. **Race condition:** If `onDidInitialScanComplete` fired before `ShellTaskProvider` completed its registration, the first tree refresh would miss shell tasks entirely, causing a stale display until the next refresh.
+1. **Race condition:** If the initial scan completed before the cache refresh and tree update were coordinated, the first tree refresh could miss shell tasks entirely, causing a stale display until the next refresh.
 2. **No loading feedback:** While the ~15,000 ms FS scan ran, the task tree showed nothing or stale content — users had no indication that loading was in progress.
 3. **`other` type spam:** The synthetic `other` shell type (for scripts whose shebang doesn't match a known type) emitted log entries even when it produced 0 tasks.
 
-**Fixes:**
+ **Fixes:**
 
-- **Race fix:** Changed the initial scan completion handler to await `ShellTaskProvider` readiness before emitting the tree-refresh event.
-- **Loading state events:** `ShellTaskProvider` now emits `onLoadingStart` and `onLoadingEnd` events that the tree view subscribes to, showing a spinner while discovery runs.
-- **withProgress:** Wrapped the shell discovery loop in `vscode.window.withProgress` to display a notification-area progress indicator during long scans.
+- **Race fix:** Coordinated the initial scan completion path with the cache refresh / tree refresh flow so the first refresh waits for shell task data to be available.
+- **Loading state:** Loading state is now driven during `TaskCacheService.refresh()` and reflected by the tree provider, so the view can show a spinner while discovery runs.
+- **withProgress:** Wrapped the refresh flow in `vscode.window.withProgress` to display a notification-area progress indicator during long scans.
 - **`other` suppression:** The `other` type log line is now suppressed when it produces 0 tasks.
 
 **Result:**
