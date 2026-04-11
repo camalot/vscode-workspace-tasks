@@ -12,7 +12,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ---
 
-**v1.6.0** 83.78% performance improvement of task discovery in large workspaces.
+**v1.6.0** 98.5% performance improvement of task discovery in large workspaces.
 
 ---
 

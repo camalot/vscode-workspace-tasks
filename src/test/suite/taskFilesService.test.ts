@@ -488,6 +488,11 @@ ignore.me
         //
         // The fix (while-loop in findFiles) retries buildCache() until cachedPaths
         // is non-null so the error never reaches the caller.
+        //
+        // The mock below replicates step 3 by calling markCacheStale() and then
+        // returning early (without calling the real _doBuildCache) on the first
+        // invocation, leaving cachedPaths === null.  On the second invocation it
+        // delegates to the real implementation, which succeeds.
 
         service.registerPatterns(['**/race-condition-test/**/*.txt']);
         service.invalidateCache();
@@ -498,10 +503,13 @@ ignore.me
         (service as any)._doBuildCache = async () => {
             buildCount++;
             if (buildCount === 1) {
-                // Simulate markCacheStale() firing mid-build (e.g. from a watcher).
-                // Calling invalidateCache() here increments cacheGeneration so the
-                // FIRST _doBuildCache call will detect a mismatch and return early.
+                // Simulate markCacheStale() firing mid-build (e.g. from a file-watcher event).
+                // This increments cacheGeneration and clears cachedPaths/cacheInvalidated.
+                // The real _doBuildCache detects the generation mismatch and returns early
+                // WITHOUT populating cachedPaths.  We replicate that abort by returning here
+                // so that cachedPaths remains null, which drives the while-loop retry in findFiles().
                 (service as any).markCacheStale();
+                return;
             }
             return original_doBuildCache();
         };
