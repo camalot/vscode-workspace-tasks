@@ -759,7 +759,10 @@ export class TaskFilesService {
       // Check rules in reverse definition order (last match wins)
       for (let i = ignoreFile.taskRules.length - 1; i >= 0; i--) {
         const rule = ignoreFile.taskRules[i];
-        if (rule.taskName === taskName || rule.taskName === '*') {
+        const taskNameMatches = rule.taskName === taskName
+          || rule.taskName === '*'
+          || micromatch.isMatch(taskName, rule.taskName, { dot: true });
+        if (taskNameMatches) {
           if (micromatch.isMatch(relativePath, rule.filePattern, { dot: true })) {
             return !rule.negated;
           }
