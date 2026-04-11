@@ -24,7 +24,7 @@ All 10 shell types started concurrently (Phase 1 working) but every type waited 
 
 ### 2. `bash` and `sh` both shebang-check the same 12 files — 12 reads are wasted every refresh
 
-```
+```text
 bash: 12 task(s) from 12 file(s) in 15050ms
 sh:   0 task(s) from 12 file(s) in 15290ms
 ```

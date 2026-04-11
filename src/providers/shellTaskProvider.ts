@@ -73,6 +73,22 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     const enabledTypes = config.get<Record<string, boolean>>('shellEnabledTaskTypes') || {};
     const additional = config.get<Record<string, string>>('shellAdditionalExtensions') || {};
 
+    // Register individual per-extension patterns (e.g. '**/*.sh', '**/*.bash') in addition to
+    // the combined brace-glob stored in filePattern. TaskFilesService's coverage check is exact
+    // string equality, so '**/*.{sh,bash,...}' does not cover '**/*.sh' lookups issued by
+    // _processShellType. Returning them here ensures providers/index.ts registers them all,
+    // converting every _processShellType findFiles call into a cache hit on warm reload.
+    const seen = new Set<string>(patterns);
+    for (const def of Object.values(BUILT_IN_SHELLS)) {
+      for (const ext of def.extensions) {
+        const p = `**/*.${ext}`;
+        if (!seen.has(p)) {
+          seen.add(p);
+          patterns.push(p);
+        }
+      }
+    }
+
     if (enabledTypes['other']) {
       for (const [ext] of Object.entries(additional)) {
         let extClean = ext;

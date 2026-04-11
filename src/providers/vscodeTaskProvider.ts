@@ -180,6 +180,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     if (!this.enabled) {
       return [];
     }
+    const start = Date.now();
     const tasks: TaskItem[] = [];
     const taskTextByFile = new Map<string, string>();
     const dependsOnByFile = new Map<string, Map<string, string[]>>();
@@ -434,6 +435,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
       }
     }
 
+    this.logger.info(`[VscodeTaskProvider] getSystemTasks() completed: ${tasks.length} task(s) in ${Date.now() - start}ms`);
     return tasks;
   }
 

@@ -72,6 +72,47 @@ suite('ShellTaskProvider Test Suite', () => {
     assert.strictEqual(provider.type, 'shell');
   });
 
+  // ── getFilePatterns — Fix 7 individual pattern registration ──────────────
+
+  test('getFilePatterns includes individual per-extension patterns for all built-in shell types', () => {
+    const provider = new ShellTaskProvider();
+    const patterns = provider.getFilePatterns();
+    const expectedIndividual = [
+      '**/*.sh', '**/*.bash', '**/*.zsh', '**/*.fish',
+      '**/*.ps1', '**/*.bat', '**/*.cmd',
+      '**/*.py', '**/*.pl', '**/*.rb', '**/*.nu',
+    ];
+    for (const expected of expectedIndividual) {
+      assert.ok(patterns.includes(expected), `Expected getFilePatterns() to contain '${expected}'`);
+    }
+  });
+
+  test('getFilePatterns contains no duplicate patterns', () => {
+    const provider = new ShellTaskProvider();
+    const patterns = provider.getFilePatterns();
+    const seen = new Set<string>();
+    for (const p of patterns) {
+      assert.ok(!seen.has(p), `Duplicate pattern found in getFilePatterns(): '${p}'`);
+      seen.add(p);
+    }
+  });
+
+  test('getFilePatterns includes combined brace-glob as first entry', () => {
+    const provider = new ShellTaskProvider();
+    const patterns = provider.getFilePatterns();
+    assert.ok(patterns.length > 0, 'getFilePatterns() should return at least one pattern');
+    assert.ok(patterns[0].startsWith('**/*.{'), `First pattern should be the combined brace-glob, got: '${patterns[0]}'`);
+  });
+
+  test('getFilePatterns includes additional extension patterns when other is enabled', () => {
+    (mockConfig as any).shellEnabledTaskTypes = { ...((mockConfig as any).shellEnabledTaskTypes), other: true };
+    (mockConfig as any).shellAdditionalExtensions = { '.lua': 'lua', 'groovy': 'groovy' };
+    const provider = new ShellTaskProvider();
+    const patterns = provider.getFilePatterns();
+    assert.ok(patterns.includes('**/*.lua'), 'Expected additional extension **/*.lua');
+    assert.ok(patterns.includes('**/*.groovy'), 'Expected additional extension **/*.groovy');
+  });
+
   // ── Disabled provider ─────────────────────────────────────────────────────
 
   test('getTasks returns empty array when disabled', async () => {

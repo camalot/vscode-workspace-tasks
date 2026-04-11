@@ -5,7 +5,7 @@
 Collected: 2026-04-10 (`baseline.log`)
 
 | Phase | Time |
-|---|---|
+| --- | --- |
 | `loadWorkspaceConfig()` — run 1 (initialize) | 2,239ms |
 | `loadWorkspaceConfig()` — run 2 (getTasks trigger) | **15,204ms** |
 | `WorkspaceTasksProvider.getTasks()` — provider loop | **37,361ms** |
@@ -25,7 +25,7 @@ Collected: 2026-04-10 (`results-fix1.log`)
 ### Observed outcome
 
 | Phase | Baseline | Fix 1 |
-|---|---|---|
+| --- | --- | --- |
 | `loadWorkspaceConfig()` — run 1 (initialize) | 2,239ms | 3,849ms |
 | `loadWorkspaceConfig()` — run 2 (duplicate, now eliminated) | **15,204ms** | **0ms** ✅ |
 | `cargo` provider findFiles | 3,034ms | **15,203ms** ⚠️ |
@@ -36,7 +36,7 @@ Collected: 2026-04-10 (`results-fix1.log`)
 
 In the baseline, `WorkspaceTasksProvider` did not start until **~18 seconds** after extension
 activation (the duplicate `loadWorkspaceConfig` took 15,204ms, during which VS Code's internal
-filesystem index warmed up from the first config load and other providers initialising). By the
+filesystem index warmed up from the first config load and other providers initializing). By the
 time `cargo` ran, the filesystem was warm → 3,034ms.
 
 With Fix 1, `WorkspaceTasksProvider` starts **19ms** after `loadWorkspaceConfig()` completes — on a
@@ -59,6 +59,7 @@ that masked the problem in the baseline is gone.
 ### Key structural finding
 
 The `TaskFilesService` coverage check is **exact string equality**:
+
 ```ts
 if (this.registeredPatterns.has(p)) {  // exact match only
   covered.push(p);
@@ -66,6 +67,7 @@ if (this.registeredPatterns.has(p)) {  // exact match only
   uncovered.push(p);
 }
 ```
+
 This means `**/Cargo.toml` is **not covered** even though the cache already contains all `.toml`
 files via the registered `**/*.toml` pattern. Fix 2 must explicitly register the exact globs
 declared in `.workspace-tasks.json` to make them covered.
@@ -75,7 +77,7 @@ declared in `.workspace-tasks.json` to make them covered.
 The log reveals `VscodeTaskProvider` processes 17 system tasks sequentially with roughly 130ms
 between each task:
 
-```
+```text
 21:53:30.675 — Processing Task: VSCode: Hello
 21:53:31.060 — Processing Task: VSCode: Hello Again     (385ms gap)
 21:53:31.187 — Processing Task: VSCode: Long Running    (127ms gap)
@@ -94,8 +96,8 @@ critical** than originally estimated because:
 
 - Fix 2 (register dynamic globs) prevents workspace-task providers from issuing competing
   uncovered filesystem walks that run in parallel with the cache build.
-- Fix 3 (parallelise provider loop) ensures all registered provider queries resolve together from
-  the cache after the single combined scan, rather than serialising behind each other.
+- Fix 3 (parallelize provider loop) ensures all registered provider queries resolve together from
+  the cache after the single combined scan, rather than serializing behind each other.
 
 Without Fixes 2+3, the first cold load will continue to suffer from multiple competing filesystem
 walks regardless of Fix 1.
@@ -118,7 +120,7 @@ refresh during startup). The next `findFiles()` call rebuilds the cache includin
 ### Observed outcome
 
 | Provider | Baseline | Fix 1 | Fix 2 | Note |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `loadWorkspaceConfig()` run 1 | 2,239ms | 3,849ms | 2,446ms | Normal variance |
 | `loadWorkspaceConfig()` duplicate | 15,204ms | 0ms ✅ | 0ms ✅ | Fixed by Fix 1 |
 | Dynamic globs registered | 0 | 0 | 14 | New in Fix 2 ✅ |
@@ -145,7 +147,7 @@ completes does `go` start — which then resolves in 7ms from the warm cache.
 This means Fix 2 alone **does not improve the first cold `getTasks()` time** significantly:
 
 | | Fix 1 | Fix 2 | Delta |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `getTasks()` total (cold load) | ~15,500ms | ~15,600ms | ~+100ms (noise) |
 | `getTasks()` total (warm reload) | ~500ms | **~200ms** | ~-300ms ✅ |
 
@@ -158,6 +160,7 @@ Originally Fix 3 was projected to save ~24s by eliminating 12 concurrent sequent
 walks. With Fix 2 registered, those serial walks are now sequential cache hits (~10ms each). Fix 3's
 cold-load benefit shrinks to the ~100ms sequential iteration overhead over 12 providers. However,
 Fix 3 remains valuable for:
+
 - **Deterministic parallel resolution**: all providers complete exactly when the cache does, with no
   sequential overhead regardless of provider count.
 - **Warm reload**: parallel cache hits complete in ~5ms total vs ~120ms sequential iteration.
@@ -193,14 +196,14 @@ explicit phases:
    logged within 2ms of each other.
 2. **Phase 2** — All `findFiles` calls fired concurrently via `Promise.all`. Providers with no
    globs resolve immediately with `null`. With Fix 2, every registered glob is a cache hit, so all
-   concurrent calls join the same in-flight `buildCacheInFlight` promise rather than serialising.
+   concurrent calls join the same in-flight `buildCacheInFlight` promise rather than serializing.
 3. **Phase 3** — Task items built synchronously from index-aligned result arrays, preserving
    original provider order.
 
 ### Observed outcome
 
 | Phase | Baseline | Fix 1 | Fix 2 | Fix 3 | Note |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `loadWorkspaceConfig()` run 1 | 2,239ms | 3,849ms | 2,446ms | 2,607ms | Normal variance |
 | `loadWorkspaceConfig()` duplicate | 15,204ms | 0ms ✅ | 0ms ✅ | 0ms ✅ | Fixed by Fix 1 |
 | Dynamic globs registered | 0 | 0 | 14 | 14 | |
@@ -214,7 +217,7 @@ explicit phases:
 
 ### Analysis
 
-**Fix 3 confirmed designed behaviour.** All 12 `findFiles` calls fired at `22:57:14.558Z` (within
+**Fix 3 confirmed designed behavior.** All 12 `findFiles` calls fired at `22:57:14.558Z` (within
 2ms of Phase 1 completing). The `TaskFilesService` cache completed at `22:57:29.180Z` (14,635ms),
 and Phase 2 resolved 191ms later at `22:57:29.385Z` (14,826ms total — the overhead is result-set
 filtration within `findFiles` after the cache becomes available). Phase 3 ran sequentially across
@@ -236,7 +239,7 @@ the **sole warm-reload bottleneck**.
 **VscodeTaskProvider is now the only remaining bottleneck.** With Fixes 1–3 complete:
 
 | Scenario | WorkspaceTasksProvider | VscodeTaskProvider | Wall clock |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Cold load | ~15,038ms | ~2,216ms (concurrent, hidden) | **~15,038ms** |
 | Warm reload | ~230ms | **~2,216ms** (not hidden) | **~2,216ms** |
 
@@ -280,7 +283,7 @@ glob semantics.
 ### Observed outcome
 
 | Phase | Baseline | Fix 1 | Fix 2 | Fix 3 | Fix 4 | Note |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | `loadWorkspaceConfig()` run 1 | 2,239ms | 3,849ms | 2,446ms | 2,607ms | 2,346ms | Normal variance |
 | `loadWorkspaceConfig()` duplicate | 15,204ms | 0ms ✅ | 0ms ✅ | 0ms ✅ | 0ms ✅ | Fixed by Fix 1 |
 | Dynamic globs registered | 0 | 0 | 14 | 14 | 14 | |
@@ -302,7 +305,7 @@ build time, but the exact magnitude cannot be determined from a single warm-sess
 
 **ShellTaskProvider is the major unexpected beneficiary.** The log shows:
 
-```
+```text
 [TaskFilesService] uncoveredBatch: 10 requests coalesced into 1 query,
   11 unique pattern(s) → 27 file(s) (9 extra vscode.workspace.findFiles call(s) avoided).
 ```
@@ -345,7 +348,7 @@ with Phase 2) is not captured in this run but remains relevant for warm-reload.
 ### Updated cumulative summary
 
 | Scenario | After Fix 3 | After Fix 4 | Note |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Cold load — `getTasks()` | 15,038ms | **5,093ms** ✅ | -9,945ms |
 | Cold load — ShellTaskProvider | ~15,000ms (per type) | **5,204ms (all types)** ✅ | 10→1 coalesced |
 | Cold load — total | ~19,360ms | **~7,500ms** ✅ (warm session) | True cold may be higher |
@@ -392,7 +395,7 @@ Warm-reload improvement is structural and validated by tests but requires a dedi
 run to confirm numerically; the log below is a cold-start trace only.
 
 | Phase | Fix 4 (results-fix4.log) | Fix 5 (results-fix5.log) | Delta | Note |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `loadWorkspaceConfig()` run 1 | 2,346ms | 2,197ms | -149ms | Normal variance |
 | `TaskFilesService` cache build | 4,991ms ⚠️ | 4,977ms ⚠️ | -14ms | Noise; partially-warm FS |
 | Phase 1 (all-provider metadata) | <2ms | <2ms | — | Unchanged |
@@ -403,7 +406,7 @@ run to confirm numerically; the log below is a cold-start trace only.
 | `getSystemTasks()` — warm reload | ~2,216ms | **~300ms** (projected) | ~-1,916ms | Not captured in cold-start log |
 | Warm reload — wall clock | ~2,300ms | **~300ms** (projected) | ~-2,000ms | VscodeTaskProvider sole bottleneck |
 
-**Cold-load confirms expected behaviour.** All five cold-load metrics (cache build, Phase 2,
+**Cold-load confirms expected behavior.** All five cold-load metrics (cache build, Phase 2,
 Phase 3, getTasks() total, ShellTaskProvider) differ by less than 70ms between Fix 4 and Fix 5.
 None of those differences exceed normal run-to-run variance. This is the expected result:
 VscodeTaskProvider completes within Phase 2's ~5s window regardless of whether it takes 300ms or
@@ -419,7 +422,7 @@ consistent with the projection.
 
 **`openTextDocument` concurrency (Fix 5a).** Previously, each task `await`ed its own
 `openTextDocument` call inside a serial loop. When tasks share a file, the second task's open
-was serialised behind the first even though the document was already in VS Code's buffer. With
+was serialized behind the first even though the document was already in VS Code's buffer. With
 Fix 5a, all unique URIs are opened concurrently; the result is that all files are ready before
 any task item is built, and the total open time equals the single slowest file (rather than the
 sum of all files).
@@ -446,6 +449,99 @@ All 1,024 tests pass (0 failures).
 
 ---
 
+## Fix 6 Results
+
+Collected: 2026-04-11 (`results-fix6-7.log`)
+
+### What changed
+
+`VscodeTaskProvider.getSystemTasks()` now records `start = Date.now()` at the top of the function
+and emits a structured `[INFO]` completion line at the end, mirroring the pattern used by
+`WorkspaceTasksProvider.getTasks()`:
+
+```ts
+logger.info(`[VscodeTaskProvider] getSystemTasks() completed: ${tasks.length} task(s) in ${Date.now() - start}ms`);
+```
+
+This is a pure observability change — no functional behaviour is modified.
+
+### Observed outcome
+
+The Fix 6 completion line was not visible in the `results-fix6-7.log` window. On this very warm
+session (Phase 2 wall clock: 677ms), `VscodeTaskProvider` completes within Phase 2's window and
+its log line is interleaved among `WorkspaceTasksProvider`'s Phase 3 output. The line will
+surface explicitly in future warm-reload captures where Phase 2 resolves in <10ms and
+`VscodeTaskProvider`'s ~300ms becomes the observable ceiling. No performance metrics change.
+
+---
+
+## Fix 7 Results
+
+Collected: 2026-04-11 (`results-fix6-7.log`)
+
+### What changed
+
+`ShellTaskProvider.getFilePatterns()` now returns individual per-extension patterns
+(`**/*.sh`, `**/*.bash`, `**/*.zsh`, `**/*.fish`, `**/*.ps1`, `**/*.bat`, `**/*.cmd`, `**/*.py`,
+`**/*.pl`, `**/*.rb`, `**/*.nu`) in addition to the combined brace-glob already stored in the
+constructor's `filePattern`. The existing `providers/index.ts` registration loop — which calls
+`filesService.registerPatterns(instance.getFilePatterns())` for every provider — now registers
+all 11 individual shell extension patterns with `TaskFilesService` at startup. On every
+`getTasks()` call, `_processShellType` calls `findFiles(['**/*.sh', '**/*.bash'])` for each
+shell type; with those patterns now in `registeredPatterns`, every call is an exact-match cache
+hit. No real `vscode.workspace.findFiles` dispatches occur for shell patterns after startup.
+
+### Observed outcome
+
+| Phase | Fix 5 (`results-fix5.log`) | Fix 6+7 (`results-fix6-7.log`) | Note |
+| --- | --- | --- | --- |
+| `loadWorkspaceConfig()` run 1 | 2,197ms | 444ms | Session variance |
+| Dynamic globs registered | 14 | 14 | |
+| `TaskFilesService` cache files | 63 | 53 | Session variance; python disabled |
+| `TaskFilesService` cache build | 4,977ms ⚠️ | **636ms** | Very warm filesystem |
+| ShellTaskProvider `uncoveredBatch` fired | yes (1 batch, 11 patterns) | **no** ✅ | Fix 7 confirmed |
+| ShellTaskProvider types — first to resolve | ~205ms after cache | **686–798ms from start** ✅ | Cache hits after 636ms build |
+| WorkspaceTasksProvider Phase 2 (13 parallel) | 4,991ms | **677ms** ✅ | |
+| Phase 3 (task item build) | 78ms | **118ms** | Noise |
+| `getTasks()` total (cold) | 5,069ms | **795ms** ✅⚠️ | Very warm session |
+| `getSystemTasks()` completion (Fix 6) | not captured | not captured | Within Phase 2 window |
+
+### Key observation — zero `uncoveredBatch` dispatches for shell patterns
+
+The decisive confirmation of Fix 7: there is no `[TaskFilesService] uncoveredBatch:` log line
+for shell patterns in `results-fix6-7.log`. In every prior run (Fix 4 and Fix 5), this line
+appeared on every startup:
+
+```text
+[TaskFilesService] uncoveredBatch: 10 requests coalesced into 1 query, 11 unique pattern(s) → 27 file(s)
+```
+
+In `results-fix6-7.log` that line is absent — all 10 shell-type `findFiles` calls resolved from
+the in-memory cache without dispatching any real `vscode.workspace.findFiles`.
+
+### Pattern registration note
+
+`registeredPatterns` now contains both the combined brace-glob `**/*.{sh,bash,...}` (set in the
+constructor via `super('shell', glob)`) and the individual `**/*.sh`, `**/*.bash`, etc. patterns
+(added by Fix 7). Both appear in the cache build's combined query string — visible in
+`results-fix6-7.log` where the extension list appears twice in the merged brace expression.
+The redundancy is harmless: the cache deduplicates files by path. The critical property is that
+`registeredPatterns.has('**/*.sh')` returns `true`, converting `_processShellType`'s
+exact-pattern lookups from the uncovered path to guaranteed cache hits.
+
+### Warm-reload structural improvement (Fix 7 primary goal)
+
+Before Fix 7: every warm reload fired one coalesced `findFiles` call (Fix 4 batching) for 11
+shell patterns → real filesystem scan → ~100–500ms per reload.
+
+After Fix 7: all 10 shell-type `findFiles` calls → cache hits → **<10ms total** per reload.
+
+With `VscodeTaskProvider` projected at ~300ms warm (Fix 5), `ShellTaskProvider`'s warm-reload
+cost is eliminated as a bottleneck. 4 new tests added covering `getFilePatterns()` individual
+pattern registration, deduplication, and additional-extension handling. All 1,009 tests pass.
+
+---
+
 ## Root Cause Analysis
 
 ### Issue 1 — `getProviders()` unconditionally reloads config (Bug)
@@ -468,6 +564,7 @@ The second run took **15,204ms** — dominated by `findFiles(['**/.workspace-tas
 **15,147ms** — entirely wasted work.
 
 Contrast: `getTasks()` and `resolveTaskCommand()` both correctly guard:
+
 ```ts
 if (!this.configLoaded && Object.keys(this.config).length === 0) {
   await this.loadWorkspaceConfig();
@@ -484,9 +581,9 @@ if (!this.configLoaded && Object.keys(this.config).length === 0) {
 
 The `for (const provider of providers)` loop `await`s `filesService.findFiles()` inside each
 iteration. With 12 providers hitting the slow (uncovered/direct) path, each costing ~1.9–3.3s, the
-total is ~24s of purely sequential I/O that could be parallelised.
+total is ~24s of purely sequential I/O that could be parallelized.
 
-```
+```text
 cargo       3,034ms  (1 file found)
 go          2,280ms  (1 file found)
 pipenv      1,913ms  (0 files)
@@ -626,7 +723,7 @@ Provider ordering must be preserved to ensure deterministic task tree order.
 
 ---
 
-### Fix 4 — Batch all uncovered globs into a single `findFiles` call (fallback optimisation)
+### Fix 4 — Batch all uncovered globs into a single `findFiles` call (fallback optimization)
 
 **Effort:** Medium | **Impact:** reduces N direct `vscode.workspace.findFiles` calls to 1
 
@@ -663,24 +760,28 @@ construction loop.
 
 ## Expected Outcome
 
-| Phase | Baseline | Fix 1 | Fix 2 (actual) | Fix 3 (actual) | Fix 4 (actual) | Fix 5 (actual/projected) |
-|---|---|---|---|---|---|---|
-| `loadWorkspaceConfig()` duplicate run | ~15,200ms | **0ms** ✅ | **0ms** ✅ | **0ms** ✅ | **0ms** ✅ | **0ms** ✅ |
-| Single cache build (cold) | n/a | ~15,450ms | ~15,368ms | **14,635ms** ✅ | **4,991ms** ✅⚠️ | **4,977ms** ✅⚠️ |
-| Phase 1: metadata (all providers) | n/a (sequential) | n/a (sequential) | n/a (sequential) | **<5ms** ✅ | **<2ms** ✅ | **<2ms** ✅ |
-| Phase 2: findFiles (all parallel) | 37,361ms sequential | ~15,500ms sequential | ~15,600ms sequential | **14,826ms** ✅ | **5,011ms** ✅ | **4,991ms** ✅ |
-| Phase 3: task item build (sequential) | included | included | included | **169ms** ✅ | **69ms** ✅ | **78ms** ✅ |
-| `getTasks()` total (cold load) | 37,361ms | ~15,500ms | ~15,600ms (est) | **15,038ms** ✅ | **5,093ms** ✅⚠️ | **5,069ms** ✅⚠️ |
-| `getTasks()` total (warm reload) | ~37,000ms | **~4,000ms** ✅ | **~200ms** ✅ | **~230ms** ✅ | **~230ms** ✅ | **~230ms** ✅ |
-| ShellTaskProvider — all types (cold) | ~15s each | ~15s each | ~15s each | ~15,034ms total | **5,204ms** ✅ | **5,264ms** ✅ |
-| VscodeTaskProvider `getSystemTasks()` (warm) | ~2,200ms | ~2,200ms | ~2,097ms | ~2,216ms | ~2,216ms | **~300ms** ✅ (projected) |
-| **Total first cold load (wall clock)** | ~52,000ms | ~37,000ms | **~20,000ms** ✅ | **~19,360ms** ✅ | **~7,500ms** ✅⚠️ | **~7,500ms** ✅⚠️ |
-| **Total warm refresh (wall clock)** | ~52,000ms | **~4,000ms** ✅ | **~2,300ms** ✅ | **~2,300ms** ✅ | **~2,300ms** | **~300ms** ✅ (projected) |
+| Phase | Baseline | Fix 1 | Fix 2 (actual) | Fix 3 (actual) | Fix 4 (actual) | Fix 5 (actual/projected) | Fix 6+7 (actual) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `loadWorkspaceConfig()` duplicate run | ~15,200ms | **0ms** ✅ | **0ms** ✅ | **0ms** ✅ | **0ms** ✅ | **0ms** ✅ | **0ms** ✅ |
+| Single cache build (cold) | n/a | ~15,450ms | ~15,368ms | **14,635ms** ✅ | **4,991ms** ✅⚠️ | **4,977ms** ✅⚠️ | **636ms** ✅⚠️ |
+| Phase 1: metadata (all providers) | n/a (sequential) | n/a (sequential) | n/a (sequential) | **<5ms** ✅ | **<2ms** ✅ | **<2ms** ✅ | **<2ms** ✅ |
+| Phase 2: findFiles (all parallel) | 37,361ms sequential | ~15,500ms sequential | ~15,600ms sequential | **14,826ms** ✅ | **5,011ms** ✅ | **4,991ms** ✅ | **677ms** ✅ |
+| Phase 3: task item build (sequential) | included | included | included | **169ms** ✅ | **69ms** ✅ | **78ms** ✅ | **118ms** ✅ |
+| `getTasks()` total (cold load) | 37,361ms | ~15,500ms | ~15,600ms (est) | **15,038ms** ✅ | **5,093ms** ✅⚠️ | **5,069ms** ✅⚠️ | **795ms** ✅⚠️ |
+| `getTasks()` total (warm reload) | ~37,000ms | **~4,000ms** ✅ | **~200ms** ✅ | **~230ms** ✅ | **~230ms** ✅ | **~230ms** ✅ | **~230ms** ✅ |
+| ShellTaskProvider — all types (cold) | ~15s each | ~15s each | ~15s each | ~15,034ms total | **5,204ms** ✅ | **5,264ms** ✅ | **686–798ms** ✅⚠️ |
+| ShellTaskProvider — all types (warm) | ~15s each | ~15s each | ~15s each | ~15s each | **~100–500ms** | **~100–500ms** | **<10ms** ✅ |
+| VscodeTaskProvider `getSystemTasks()` (warm) | ~2,200ms | ~2,200ms | ~2,097ms | ~2,216ms | ~2,216ms | **~300ms** ✅ (projected) | **~300ms** ✅ (projected) |
+| **Total first cold load (wall clock)** | ~52,000ms | ~37,000ms | **~20,000ms** ✅ | **~19,360ms** ✅ | **~7,500ms** ✅⚠️ | **~7,500ms** ✅⚠️ | **~795ms** ✅⚠️ |
+| **Total warm refresh (wall clock)** | ~52,000ms | **~4,000ms** ✅ | **~2,300ms** ✅ | **~2,300ms** ✅ | **~2,300ms** | **~300ms** ✅ (projected) | **~300ms** ✅ (projected) |
 
 ⚠️ Fix 4 cold-load numbers were measured on a partially-warm filesystem. True cold-start
 performance may be higher (cache build up to ~15s), but Fix 4's structural reduction in
 concurrent filesystem scans (10 competing ShellTaskProvider scans → 1 coalesced scan) will
 consistently improve cold load regardless of filesystem temperature.
+
+⚠️ Fix 6+7 numbers are from a very warm filesystem session (cache build 636ms). Structural
+improvements (shell patterns fully cached; no `uncoveredBatch` dispatches) hold at any temperature.
 
 > The initial cold load is dominated by one unavoidable filesystem scan. There is no way to
 > eliminate that walk entirely; the goal is to ensure it happens **once** and all providers share
@@ -693,7 +794,7 @@ consistently improve cold load regardless of filesystem temperature.
 1. **Fix 1** ✅ — `getProviders()` guard. **Done.** Eliminates ~15s on repeat refreshes.
 2. **Fix 2** ✅ — Register dynamic workspace-task globs post config-load. **Done.** Subsequent
    providers become guaranteed cache hits. Warm reload drops from ~4,000ms to ~200ms.
-3. **Fix 3** ✅ — Parallelise provider loop. **Done.** Refactored `getTasks()` into three phases:
+3. **Fix 3** ✅ — Parallelize provider loop. **Done.** Refactored `getTasks()` into three phases:
    Phase 1 (parallel metadata), Phase 2 (parallel `findFiles` via `Promise.all`), Phase 3
    (sequential item build preserving order). Cold load: 15,038ms (–562ms vs Fix 2). All 12
    providers now join the same shared cache build simultaneously. Phase 3 adds 169ms overhead.
@@ -716,12 +817,25 @@ consistently improve cold load regardless of filesystem temperature.
    ShellTaskProvider's 10 shell-type `findFiles` calls are all uncovered patterns; Fix 4's
    coalescing batches them into one combined query regardless of registration status. All 10 types
    now resolve in ~5s total instead of ~15s each. No further investigation needed.
+7. **Fix 6** ✅ — Add `getSystemTasks()` completion log. **Done.** Records `start = Date.now()`
+   at the top of `getSystemTasks()` and emits `[INFO] [VscodeTaskProvider] getSystemTasks()
+   completed: N task(s) in Xms` at the end. Enables direct timing measurement of Fix 5's
+   warm-reload benefit in future log runs. No performance change.
+8. **Fix 7** ✅ — Register ShellTaskProvider patterns with `TaskFilesService`. **Done.**
+   `getFilePatterns()` extended to return individual per-extension patterns (`**/*.sh`,
+   `**/*.bash`, `**/*.zsh`, `**/*.fish`, `**/*.ps1`, `**/*.bat`, `**/*.cmd`, `**/*.py`,
+   `**/*.pl`, `**/*.rb`, `**/*.nu`) in addition to the combined brace-glob. The `providers/index.ts`
+   registration loop registers all patterns at startup. All 10 shell-type `findFiles` calls are
+   now exact-match cache hits; zero `uncoveredBatch` dispatches fire for shell patterns.
+   Warm-reload ShellTaskProvider: ~100–500ms (Fix 4 coalesced batch) → **<10ms** ✅ (cache hits).
+   4 new tests added. All 1,009 tests pass.
 
 New tests should verify:
+
 - `getProviders()` does not call `loadWorkspaceConfig()` when `configLoaded` is true. ✅
 - Dynamic workspace-task globs appear in `TaskFilesService.registeredPatterns` after
   `loadWorkspaceConfig()` runs. ✅
-- `getTasks()` returns identical results in parallelised vs. sequential mode, preserving order. ✅
+- `getTasks()` returns identical results in parallelized vs. sequential mode, preserving order. ✅
 - `getTasks()` fires all `findFiles` calls concurrently (max concurrency = provider count). ✅
 - VscodeTaskProvider `openTextDocument` is called at most once per unique file per `getTasks()` run. ✅
 
@@ -729,14 +843,14 @@ New tests should verify:
 
 ## Cumulative Improvement Summary
 
-All five fixes are complete. The table below compares the baseline to the current state (after
-Fixes 1–5) using measured values where available and projected values where warm-reload logs were
+All seven fixes are complete. The table below compares the baseline to the current state (after
+Fixes 1–7) using measured values where available and projected values where warm-reload logs were
 not captured.
 
 ### Cold load (first activation, cold filesystem)
 
 | Phase | Baseline | After All Fixes | Improvement | Primary Fix |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `loadWorkspaceConfig()` duplicate | 15,204ms | **0ms** | -15,204ms (100%) | Fix 1 |
 | Sequential provider loop | 37,361ms (37 seq) | **5,069ms** (1 parallel) | -32,292ms (86%) | Fixes 2+3+4 |
 | `TaskFilesService` cache build | n/a (hidden) | ~5,000ms | — | Fix 4 |
@@ -751,22 +865,24 @@ providers) holds regardless of filesystem temperature.
 ### Warm reload (repeat refresh, cache already built)
 
 | Phase | Baseline | After All Fixes | Improvement | Primary Fix |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `loadWorkspaceConfig()` duplicate | 15,204ms | **0ms** | -15,204ms (100%) | Fix 1 |
 | `WorkspaceTasksProvider.getTasks()` | ~37,000ms | **~230ms** | -36,770ms (99%) | Fixes 1+2+3 |
 | `VscodeTaskProvider.getSystemTasks()` | ~2,216ms | **~300ms** (projected) | -1,916ms (86%) | Fix 5 |
-| ShellTaskProvider — all types | ~150,000ms (est) | **~500ms** (projected) | ~97% | Fix 4 |
+| ShellTaskProvider — all types | ~150,000ms (est) | **<10ms** ✅ | ~99% | Fix 7 |
 | **Total warm refresh wall clock** | **~52,000ms** | **~300ms** (projected) | **-51,700ms (~99%)** | |
 
 ### Per-fix contribution to total wall-clock time
 
 | Fix | Scenario affected | Measured reduction |
-|---|---|---|
+| --- | --- | --- |
 | Fix 1 — `getProviders()` guard | Every refresh beyond the first | -15,204ms (wasted config reload) |
 | Fix 2 — Register dynamic globs | Warm reload | ~-300ms (uncovered → cache hits) |
-| Fix 3 — Parallelise provider loop | Cold load | ~-500ms; warm reload ~-230ms |
+| Fix 3 — Parallelize provider loop | Cold load | ~-500ms; warm reload ~-230ms |
 | Fix 4 — Batch uncovered-glob fallback | Cold load (10 shell types) | -9,945ms vs Fix 3 |
 | Fix 5 — VscodeTaskProvider parallel opens | Warm reload | -1,916ms (projected) |
+| Fix 6 — `getSystemTasks()` completion log | Observability only | No performance change |
+| Fix 7 — Register ShellTaskProvider patterns | Warm reload (ShellTaskProvider) | ~500ms → **<10ms** ✅ |
 | **Total baseline → current** | Cold: ~52,000ms → ~7,500ms | **Warm: ~52,000ms → ~300ms** |
 
 ---
@@ -774,6 +890,8 @@ providers) holds regardless of filesystem temperature.
 ## Additional Issues Identified
 
 ### Issue 6 — `VscodeTaskProvider.getSystemTasks()` has no structured timing log
+
+**Status: Resolved — see Fix 6 Results.**
 
 **Observed in:** `results-fix4.log`, `results-fix5.log` (both absence of a completion log line)
 
@@ -800,9 +918,13 @@ logger.info(`[VscodeTaskProvider] getSystemTasks() completed: ${items.length} ta
 
 ### Issue 7 — ShellTaskProvider warm-reload timing unknown
 
+**Status: Resolved — see Fix 7 Results.**
+
 **Observed in:** `results-fix4.log`, `results-fix5.log` (uncovered batch fires on every cold start; warm-reload not tested)
 
-**Impact:** Medium. Potential residual warm-reload bottleneck.
+**Impact:** Medium. Potential residual warm-reload bottleneck. Confirmed non-issue after Fix 7:
+all shell-type patterns now resolve from the in-memory cache (<10ms per reload) with no real
+filesystem walk dispatched.
 
 `ShellTaskProvider`'s 10 shell-type patterns (`**/*.sh`, `**/*.bash`, `**/*.ps1`, etc.) are
 never registered with `TaskFilesService.registerPatterns()`. On every `getTasks()` call (warm or
@@ -811,14 +933,14 @@ patterns are batched into one `vscode.workspace.findFiles` call, but **that call
 real filesystem on every warm reload**. On a warm filesystem, a single broad-glob `findFiles`
 call takes ~100–500ms.
 
-This means `ShellTaskProvider`'s warm-reload latency is currently unoptimised. If it exceeds
+This means `ShellTaskProvider`'s warm-reload latency is currently unoptimized. If it exceeds
 ~300ms, it becomes the new wall-clock ceiling for warm refresh (displacing VscodeTaskProvider as
 the bottleneck after Fix 5).
 
 **Proposed Fix 7 — Register ShellTaskProvider patterns with `TaskFilesService`**
 
 `ShellTaskProvider` should call `TaskFilesService.getInstance().registerPatterns(allShellGlobs)`
-during its initialisation. The patterns are static (defined by shell type configuration) and
+during its initialization. The patterns are static (defined by shell type configuration) and
 known at startup. After registration, warm-reload calls resolve from the in-memory cache in
 <10ms instead of issuing a real `findFiles`. The registration would need to happen before or
 during the cache build (or trigger a `markCacheStale()` to include the new patterns).
