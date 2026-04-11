@@ -474,6 +474,48 @@ ignore.me
         assert.strictEqual(relevant.length, 2, 'Should find both files after cache invalidated');
     });
 
+    test('findFiles does not throw when markCacheStale interrupts an in-flight build (generation mismatch)', async () => {
+        // Regression test for: "object null is not iterable" in GitHub Actions CI.
+        //
+        // Race condition:
+        //   1. findFiles() starts buildCache(), which starts _doBuildCache()
+        //   2. markCacheStale() fires (e.g. via a file-watcher event) during the
+        //      async awaits inside _doBuildCache, incrementing cacheGeneration and
+        //      setting cachedPaths = null.
+        //   3. _doBuildCache detects the generation mismatch and returns early
+        //      WITHOUT setting cachedPaths.
+        //   4. findFiles() resumes with cachedPaths still null → Array.from(null) throws.
+        //
+        // The fix (while-loop in findFiles) retries buildCache() until cachedPaths
+        // is non-null so the error never reaches the caller.
+
+        service.registerPatterns(['**/race-condition-test/**/*.txt']);
+        service.invalidateCache();
+
+        const original_doBuildCache = (service as any)._doBuildCache.bind(service);
+        let buildCount = 0;
+
+        (service as any)._doBuildCache = async () => {
+            buildCount++;
+            if (buildCount === 1) {
+                // Simulate markCacheStale() firing mid-build (e.g. from a watcher).
+                // Calling invalidateCache() here increments cacheGeneration so the
+                // FIRST _doBuildCache call will detect a mismatch and return early.
+                (service as any).markCacheStale();
+            }
+            return original_doBuildCache();
+        };
+
+        try {
+            // Must NOT throw despite the first build aborting without setting cachedPaths.
+            const result = await service.findFiles(['**/race-condition-test/**/*.txt']);
+            assert.ok(Array.isArray(result), 'findFiles should return an array, not throw');
+            assert.ok(buildCount >= 2, `Expected at least 2 _doBuildCache calls (got ${buildCount}); first should abort, second should succeed`);
+        } finally {
+            (service as any)._doBuildCache = original_doBuildCache;
+        }
+    });
+
     test('rebuildRegisteredPatterns - clears and repopulates from TaskCacheService providers', () => {
         const { TaskCacheService } = require('../../services/taskCacheService');
         const cacheService = TaskCacheService.getInstance();

@@ -255,11 +255,15 @@ export class TaskFilesService {
 
     // Serve covered patterns from the cache
     if (covered.length > 0 && this.registeredPatterns.size > 0) {
-      if (this.cacheInvalidated || this.cachedPaths === null) {
+      // Loop to handle the rare race where markCacheStale() increments cacheGeneration
+      // while _doBuildCache() is awaiting, causing that build to detect a mismatch
+      // and return early without setting cachedPaths. Without the loop, findFiles()
+      // would resume with cachedPaths === null and throw "object null is not iterable".
+      while (this.cacheInvalidated || this.cachedPaths === null) {
         await this.buildCache();
       }
 
-      const allPaths = Array.from(this.cachedPaths!);
+      const allPaths = Array.from(this.cachedPaths);
 
       // Normalize to forward-slashes for micromatch (Windows-safe)
       const allPathsNormalized = allPaths.map(p => p.replace(/\\/g, '/'));

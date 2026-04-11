@@ -44,6 +44,7 @@ export class TaskConfigService {
       pwsh: 'pwsh',
       python: 'python',
       shell: 'shell',
+      typescript: 'typescript',
       venv: 'venv',
       workspace: 'workspace',
       'workspace-task': 'workspace',
