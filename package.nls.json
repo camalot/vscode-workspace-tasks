@@ -199,6 +199,22 @@
   "config.workspaceTasks.recentTasks.maxItems.description": "Maximum number of recent tasks to display.",
   "config.workspaceTasks.recentTasks.maxItems.markdown": "Maximum number of recent tasks to display in the Recent Tasks group. Once the limit is reached, the oldest tasks will drop off the list. Set to 0 to disable the Recent Tasks group. [read more](https://camalot.github.io/vscode-workspace-tasks/features/favorites.html#workspacetasksrecenttasksmaxitems)",
 
+  "config.workspaceTasks.metrics.scope": "Task Metrics Scope",
+  "config.workspaceTasks.metrics.scope.description": "Where task execution metrics are stored.",
+  "config.workspaceTasks.metrics.scope.markdown": "Controls where task execution metrics are persisted. `workspace` stores metrics per-workspace, `global` stores them across all workspaces, `both` writes to both stores, and `disabled` turns off metrics collection entirely. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/metrics.html#workspacetasksmetricsscope)",
+  "config.workspaceTasks.metrics.scope.workspace": "Store metrics in workspace state (per-workspace)",
+  "config.workspaceTasks.metrics.scope.global": "Store metrics in global state (shared across workspaces)",
+  "config.workspaceTasks.metrics.scope.both": "Write metrics to both workspace and global state",
+  "config.workspaceTasks.metrics.scope.disabled": "Disable metrics collection",
+
+  "config.workspaceTasks.metrics.maxDurationSamples": "Max Duration Samples",
+  "config.workspaceTasks.metrics.maxDurationSamples.description": "Maximum number of recent task duration samples to retain for statistics.",
+  "config.workspaceTasks.metrics.maxDurationSamples.markdown": "The number of most-recent task duration samples (in ms) to keep per task for computing median, p95, and trend statistics. Must be between 10 and 1000. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/metrics.html#workspacetasksmetricsmaxdurationsamples)",
+
+  "config.workspaceTasks.metrics.retentionDays": "Metrics Retention Days",
+  "config.workspaceTasks.metrics.retentionDays.description": "Number of days to retain task metrics. Set to 0 for no limit.",
+  "config.workspaceTasks.metrics.retentionDays.markdown": "Task metrics for tasks that have not run within this many days will be pruned when the extension starts. Set to `0` (the default) to keep metrics indefinitely. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/metrics.html#workspacetasksmetricsretentiondays)",
+
   "config.workspaceTasks.compoundTasks.defaultExecutionType": "Default Compound Task Execution Type",
   "config.workspaceTasks.compoundTasks.defaultExecutionType.markdown": "Specify the default execution type for compound tasks (previously called 'Queues'). Options are 'sequential' or 'parallel'.",
 

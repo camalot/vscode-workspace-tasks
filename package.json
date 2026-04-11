@@ -611,6 +611,42 @@
           "description": "%config.workspaceTasks.recentTasks.maxItems.description%",
           "markdownDescription": "%config.workspaceTasks.recentTasks.maxItems.markdown%"
         },
+        "workspaceTasks.metrics.scope": {
+          "title": "%config.workspaceTasks.metrics.scope%",
+          "type": "string",
+          "enum": [
+            "workspace",
+            "global",
+            "both",
+            "disabled"
+          ],
+          "enumDescriptions": [
+            "%config.workspaceTasks.metrics.scope.workspace%",
+            "%config.workspaceTasks.metrics.scope.global%",
+            "%config.workspaceTasks.metrics.scope.both%",
+            "%config.workspaceTasks.metrics.scope.disabled%"
+          ],
+          "default": "workspace",
+          "description": "%config.workspaceTasks.metrics.scope.description%",
+          "markdownDescription": "%config.workspaceTasks.metrics.scope.markdown%"
+        },
+        "workspaceTasks.metrics.maxDurationSamples": {
+          "title": "%config.workspaceTasks.metrics.maxDurationSamples%",
+          "type": "integer",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 1000,
+          "description": "%config.workspaceTasks.metrics.maxDurationSamples.description%",
+          "markdownDescription": "%config.workspaceTasks.metrics.maxDurationSamples.markdown%"
+        },
+        "workspaceTasks.metrics.retentionDays": {
+          "title": "%config.workspaceTasks.metrics.retentionDays%",
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "description": "%config.workspaceTasks.metrics.retentionDays.description%",
+          "markdownDescription": "%config.workspaceTasks.metrics.retentionDays.markdown%"
+        },
         "workspaceTasks.groups.taskSeparator": {
           "title": "%config.workspaceTasks.groups.taskSeparator%",
           "type": "string",
