@@ -1,3 +1,43 @@
+## [1.6.0] - 2026-04-11
+
+### 🚀 Features
+
+- Improvements in shell task loading [Phase 1]
+
+
+### 🐛 Bug Fixes
+
+- Some task type enable/disable settings are missing #154
+
+- Added better support for scripts with and without shebang #152
+
+- Update tests to mock the getConfiguration so the workspace can have defined settings for the project
+
+
+### 📚 Documentation
+
+- Added links to documentation for settings descriptions.
+
+- Documented how the shebang processing works for interpreters
+
+
+### ⚡ Performance
+
+- Improvements on overall loading of tasks
+
+- Additional improvements to loading performance of tasks
+
+- Final steps of planned task loading improvements
+
+
+### 🧪 Testing
+
+- Defined mocking of vscode.workspace.getConfiguration
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.5.0...v1.6.0
+
 ## [1.5.0] - 2026-04-09
 
 ### 🚀 Features

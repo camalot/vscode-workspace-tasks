@@ -13,6 +13,8 @@ This section documents the performance investigations and improvements made to t
 
 ---
 
+{% include _v160_perf.md %}
+
 ## Test Dataset
 
 All performance measurements were taken against the **sample-workspace-tasks** project — a comprehensive multi-language workspace representative of a real-world monorepo.
