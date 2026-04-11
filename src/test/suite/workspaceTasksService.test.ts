@@ -18,11 +18,14 @@ suite('WorkspaceTasksService Test Suite', () => {
     let originalTaskFilesFindFiles: any;
     let originalFsExistsSyncDescriptor: PropertyDescriptor | undefined;
     let originalFsReadFile: any;
+    let originalRegisteredPatterns: Set<string>;
+    let originalMarkCacheStale: any;
 
     setup(() => {
         service = WorkspaceTasksService.getInstance();
         // Reset config implementation detail
         (service as any).config = {};
+        (service as any).configLoaded = false;
         // Clear context so it doesn't try to load defaults
         (service as any).context = undefined;
 
@@ -49,6 +52,12 @@ suite('WorkspaceTasksService Test Suite', () => {
         const taskFilesService = TaskFilesService.getInstance();
         originalTaskFilesFindFiles = taskFilesService.findFiles;
         taskFilesService.findFiles = async () => [];
+
+        // Save and reset TaskFilesService registered patterns and markCacheStale
+        originalRegisteredPatterns = new Set((taskFilesService as any).registeredPatterns);
+        (taskFilesService as any).registeredPatterns = new Set<string>();
+        originalMarkCacheStale = taskFilesService.markCacheStale.bind(taskFilesService);
+        taskFilesService.markCacheStale = () => { /* no-op in tests */ };
 
         // Default mocks
         vscode.workspace.findFiles = async () => [];
@@ -92,11 +101,147 @@ suite('WorkspaceTasksService Test Suite', () => {
         // Restore TaskFilesService.findFiles
         const taskFilesService = TaskFilesService.getInstance();
         taskFilesService.findFiles = originalTaskFilesFindFiles;
+
+        // Restore TaskFilesService registered patterns and markCacheStale
+        (taskFilesService as any).registeredPatterns = originalRegisteredPatterns;
+        taskFilesService.markCacheStale = originalMarkCacheStale;
     });
 
     test('getProviders returns empty array initially', async () => {
         const providers = await service.getProviders();
         assert.deepStrictEqual(providers, []);
+    });
+
+    test('getProviders does not reload config when configLoaded is true', async () => {
+        let loadCount = 0;
+        const originalLoad = (service as any).loadWorkspaceConfig.bind(service);
+        (service as any).loadWorkspaceConfig = async () => {
+            loadCount++;
+            return originalLoad();
+        };
+
+        // Pre-populate config and mark as loaded
+        (service as any).config = { myLang: { tasks: [], inputs: [], version: '1.0' } };
+        (service as any).configLoaded = true;
+
+        await service.getProviders();
+        await service.getProviders();
+
+        assert.strictEqual(loadCount, 0, 'loadWorkspaceConfig should not be called when configLoaded is true');
+    });
+
+    test('getProviders calls loadWorkspaceConfig when configLoaded is false', async () => {
+        let loadCount = 0;
+        const originalLoad = (service as any).loadWorkspaceConfig.bind(service);
+        (service as any).loadWorkspaceConfig = async () => {
+            loadCount++;
+            return originalLoad();
+        };
+
+        (service as any).configLoaded = false;
+
+        await service.getProviders();
+
+        assert.strictEqual(loadCount, 1, 'loadWorkspaceConfig should be called once when configLoaded is false');
+    });
+
+    test('loadWorkspaceConfig registers dynamic globs with TaskFilesService', async () => {
+        const mockUri = vscode.Uri.file('/test/.workspace-tasks.json');
+        const taskFilesService = TaskFilesService.getInstance();
+
+        taskFilesService.findFiles = async (patterns) => {
+            if (patterns.includes('**/.workspace-tasks.json')) {
+                return [mockUri];
+            }
+            return [];
+        };
+
+        const configData = {
+            'cargo': {
+                'globs': { 'include': ['**/Cargo.toml'] },
+                'tasks': [],
+                'inputs': []
+            },
+            'go': {
+                'globs': { 'include': ['**/go.mod'] },
+                'tasks': [],
+                'inputs': []
+            },
+            'noGlobs': {
+                'tasks': [],
+                'inputs': []
+            }
+        };
+
+        const mockFs = {
+            ...vscode.workspace.fs,
+            readFile: async (uri: vscode.Uri) => {
+                if (uri.fsPath === mockUri.fsPath) {
+                    return Buffer.from(JSON.stringify(configData));
+                }
+                return new Uint8Array();
+            }
+        };
+        Object.defineProperty(vscode.workspace, 'fs', { value: mockFs, writable: true, configurable: true });
+
+        let markCacheStaleCallCount = 0;
+        taskFilesService.markCacheStale = () => { markCacheStaleCallCount++; };
+
+        // Capture patterns registered during load
+        const registeredDuringLoad: string[] = [];
+        const realRegisterPatterns = taskFilesService.registerPatterns.bind(taskFilesService);
+        taskFilesService.registerPatterns = (patterns: string[]) => {
+            registeredDuringLoad.push(...patterns);
+            realRegisterPatterns(patterns);
+        };
+
+        await service.getProviders();
+
+        assert.ok(registeredDuringLoad.includes('**/.workspace-tasks.json'), 'Should register the config file glob');
+        assert.ok(registeredDuringLoad.includes('**/Cargo.toml'), 'Should register cargo include glob');
+        assert.ok(registeredDuringLoad.includes('**/go.mod'), 'Should register go include glob');
+        assert.strictEqual(markCacheStaleCallCount, 1, 'Should call markCacheStale() exactly once after config load');
+    });
+
+    test('loadWorkspaceConfig deduplicates registered globs', async () => {
+        const mockUri = vscode.Uri.file('/test/.workspace-tasks.json');
+        const taskFilesService = TaskFilesService.getInstance();
+
+        taskFilesService.findFiles = async (patterns) => {
+            if (patterns.includes('**/.workspace-tasks.json')) {
+                return [mockUri];
+            }
+            return [];
+        };
+
+        // Two providers sharing the same glob pattern
+        const configData = {
+            'providerA': { 'globs': { 'include': ['**/shared.json'] }, 'tasks': [], 'inputs': [] },
+            'providerB': { 'globs': { 'include': ['**/shared.json'] }, 'tasks': [], 'inputs': [] }
+        };
+
+        const mockFs = {
+            ...vscode.workspace.fs,
+            readFile: async (uri: vscode.Uri) => {
+                if (uri.fsPath === mockUri.fsPath) {
+                    return Buffer.from(JSON.stringify(configData));
+                }
+                return new Uint8Array();
+            }
+        };
+        Object.defineProperty(vscode.workspace, 'fs', { value: mockFs, writable: true, configurable: true });
+
+        const registeredDuringLoad: string[] = [];
+        const realRegisterPatterns = taskFilesService.registerPatterns.bind(taskFilesService);
+        taskFilesService.registerPatterns = (patterns: string[]) => {
+            registeredDuringLoad.push(...patterns);
+            realRegisterPatterns(patterns);
+        };
+
+        await service.getProviders();
+
+        const sharedGlobOccurrences = registeredDuringLoad.filter(g => g === '**/shared.json').length;
+        assert.strictEqual(sharedGlobOccurrences, 1, 'Duplicate globs should be deduplicated before registering');
     });
 
     test('Loads configuration from found files', async () => {

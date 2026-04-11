@@ -1,0 +1,73 @@
+[2026-04-10T19:10:08.815Z] [DEBUG] Workspace Tasks extension activating...
+[2026-04-10T19:10:12.938Z] [DEBUG] [ShellTaskProvider] Starting shell task discovery
+[2026-04-10T19:10:12.938Z] [DEBUG] [ShellTaskProvider] Processing shell type: bash (extensions: sh, bash)
+[2026-04-10T19:10:12.938Z] [DEBUG] [ShellTaskProvider] Processing shell type: zsh (extensions: zsh)
+[2026-04-10T19:10:12.939Z] [DEBUG] [ShellTaskProvider] Processing shell type: fish (extensions: fish)
+[2026-04-10T19:10:12.939Z] [DEBUG] [ShellTaskProvider] Processing shell type: pwsh (extensions: ps1)
+[2026-04-10T19:10:12.939Z] [DEBUG] [ShellTaskProvider] Processing shell type: batch (extensions: bat, cmd)
+[2026-04-10T19:10:12.939Z] [DEBUG] [ShellTaskProvider] Processing shell type: python (extensions: py)
+[2026-04-10T19:10:12.939Z] [DEBUG] [ShellTaskProvider] Processing shell type: perl (extensions: pl)
+[2026-04-10T19:10:12.940Z] [DEBUG] [ShellTaskProvider] Processing shell type: ruby (extensions: rb)
+[2026-04-10T19:10:12.940Z] [DEBUG] [ShellTaskProvider] Processing shell type: sh (extensions: sh)
+[2026-04-10T19:10:12.940Z] [DEBUG] [ShellTaskProvider] Processing shell type: nushell (extensions: nu)
+[2026-04-10T19:10:27.408Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: nushell
+[2026-04-10T19:10:27.408Z] [DEBUG] [ShellTaskProvider] Finished shell type: nushell — 0 file(s) resolved in 14468ms
+[2026-04-10T19:10:27.446Z] [DEBUG] [ShellTaskProvider] Found 2 candidate file(s) for shell type: zsh
+[2026-04-10T19:10:27.516Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/.devcontainer/files/home/vscode/.p10k.zsh
+[2026-04-10T19:10:27.543Z] [DEBUG] [ShellTaskProvider] Found 4 candidate file(s) for shell type: python
+[2026-04-10T19:10:27.570Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/.devcontainer/files/home/vscode/.zsh/custom/aliases/default.zsh
+[2026-04-10T19:10:27.575Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/python/tasks.py
+[2026-04-10T19:10:27.576Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/with-shebang.py
+[2026-04-10T19:10:27.580Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/python/no-shebang.py
+[2026-04-10T19:10:27.596Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/no-shebang.py
+[2026-04-10T19:10:27.616Z] [DEBUG] [ShellTaskProvider] Found 3 candidate file(s) for shell type: batch
+[2026-04-10T19:10:27.617Z] [DEBUG] [ShellTaskProvider] Finished shell type: batch — 3 file(s) resolved in 14678ms
+[2026-04-10T19:10:27.681Z] [DEBUG] [ShellTaskProvider] Finished shell type: zsh — 2 file(s) resolved in 14743ms
+[2026-04-10T19:10:27.683Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: perl
+[2026-04-10T19:10:27.683Z] [DEBUG] [ShellTaskProvider] Finished shell type: perl — 0 file(s) resolved in 14744ms
+[2026-04-10T19:10:27.708Z] [DEBUG] [ShellTaskProvider] Finished shell type: python — 4 file(s) resolved in 14769ms
+[2026-04-10T19:10:27.763Z] [DEBUG] [ShellTaskProvider] Found 6 candidate file(s) for shell type: pwsh
+[2026-04-10T19:10:27.763Z] [DEBUG] [ShellTaskProvider] Finished shell type: pwsh — 6 file(s) resolved in 14824ms
+[2026-04-10T19:10:27.771Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: fish
+[2026-04-10T19:10:27.771Z] [DEBUG] [ShellTaskProvider] Finished shell type: fish — 0 file(s) resolved in 14832ms
+[2026-04-10T19:10:27.821Z] [DEBUG] [ShellTaskProvider] Found 12 candidate file(s) for shell type: bash
+[2026-04-10T19:10:27.829Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/long-running.sh
+[2026-04-10T19:10:27.829Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/stuck.sh
+[2026-04-10T19:10:27.830Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/with-shebang.sh
+[2026-04-10T19:10:27.830Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/no-shebang.sh
+[2026-04-10T19:10:27.834Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/hello2.sh
+[2026-04-10T19:10:27.834Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/hello.sh
+[2026-04-10T19:10:27.835Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/failing.sh
+[2026-04-10T19:10:27.837Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/.devcontainer/install-tools.sh
+[2026-04-10T19:10:27.844Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/apps/appC/script1.sh
+[2026-04-10T19:10:27.845Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/apps/appB/script1.sh
+[2026-04-10T19:10:27.846Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/apps/appA/script1.sh
+[2026-04-10T19:10:27.869Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/deep/folder/path/for/task/fetch/not-discovered.sh
+[2026-04-10T19:10:27.899Z] [DEBUG] [ShellTaskProvider] Finished shell type: bash — 12 file(s) resolved in 14961ms
+[2026-04-10T19:10:28.089Z] [DEBUG] [ShellTaskProvider] Found 12 candidate file(s) for shell type: sh
+[2026-04-10T19:10:28.093Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/hello2.sh
+[2026-04-10T19:10:28.094Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/no-shebang.sh
+[2026-04-10T19:10:28.094Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/hello.sh
+[2026-04-10T19:10:28.094Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/failing.sh
+[2026-04-10T19:10:28.094Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/long-running.sh
+[2026-04-10T19:10:28.094Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/with-shebang.sh
+[2026-04-10T19:10:28.094Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/stuck.sh
+[2026-04-10T19:10:28.095Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/.devcontainer/install-tools.sh
+[2026-04-10T19:10:28.096Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/apps/appB/script1.sh
+[2026-04-10T19:10:28.097Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/apps/appA/script1.sh
+[2026-04-10T19:10:28.167Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/apps/appC/script1.sh
+[2026-04-10T19:10:28.171Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/deep/folder/path/for/task/fetch/not-discovered.sh
+[2026-04-10T19:10:28.172Z] [DEBUG] [ShellTaskProvider] Finished shell type: sh — 12 file(s) resolved in 15232ms
+[2026-04-10T19:10:28.338Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: ruby
+[2026-04-10T19:10:28.338Z] [DEBUG] [ShellTaskProvider] Finished shell type: ruby — 0 file(s) resolved in 15398ms
+[2026-04-10T19:10:28.344Z] [INFO] [ShellTaskProvider] bash: 12 task(s) from 12 file(s) in 14961ms (12 shebang reads, 0 cache hits)
+[2026-04-10T19:10:28.345Z] [INFO] [ShellTaskProvider] zsh: 2 task(s) from 2 file(s) in 14743ms (2 shebang reads, 0 cache hits)
+[2026-04-10T19:10:28.345Z] [INFO] [ShellTaskProvider] fish: 0 task(s) from 0 file(s) in 14832ms
+[2026-04-10T19:10:28.347Z] [INFO] [ShellTaskProvider] pwsh: 6 task(s) from 6 file(s) in 14824ms
+[2026-04-10T19:10:28.348Z] [INFO] [ShellTaskProvider] batch: 3 task(s) from 3 file(s) in 14678ms
+[2026-04-10T19:10:28.357Z] [INFO] [ShellTaskProvider] python: 4 task(s) from 4 file(s) in 14769ms (4 shebang reads, 0 cache hits)
+[2026-04-10T19:10:28.357Z] [INFO] [ShellTaskProvider] perl: 0 task(s) from 0 file(s) in 14744ms (0 shebang reads, 0 cache hits)
+[2026-04-10T19:10:28.357Z] [INFO] [ShellTaskProvider] ruby: 0 task(s) from 0 file(s) in 15398ms (0 shebang reads, 0 cache hits)
+[2026-04-10T19:10:28.357Z] [INFO] [ShellTaskProvider] sh: 0 task(s) from 12 file(s) in 15232ms (0 shebang reads, 12 cache hits)
+[2026-04-10T19:10:28.357Z] [INFO] [ShellTaskProvider] nushell: 0 task(s) from 0 file(s) in 14468ms
+[2026-04-10T19:10:28.357Z] [INFO] [ShellTaskProvider] Completed — 27 total shell task(s) loaded in 15419ms

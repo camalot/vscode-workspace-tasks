@@ -60,6 +60,10 @@
             }
           ]
         },
+        "taskType": {
+          "type": "string",
+          "description": "The enabled task type setting key that controls whether this provider is shown in the tree. If omitted, the top-level key name is used. Use this to map provider keys like 'dockerfile' or 'docker-compose' to a shared setting such as 'docker'."
+        },
         "tasks": {
           "type": "array",
           "description": "List of tasks to be generated for files matching the language ID",

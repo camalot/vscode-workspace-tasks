@@ -1,0 +1,3 @@
+take the information from the improvements done by both plans, create a documentation section called `performance` in `docs/`. add a pages to highlight the improvements for each plan.
+
+Provide info about the data set tested against. this is a test project located in `sample/sample-workspace-tasks`. This is the workspace that the data metrics are pulled from 

@@ -8,10 +8,50 @@ suite('TaskFilesService Test Suite', () => {
     let disposables: vscode.Disposable[] = [];
     let workspaceRoot: vscode.Uri;
     let testFolder: vscode.Uri;
+    let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+    let originalOnDidChangeConfiguration: typeof vscode.workspace.onDidChangeConfiguration;
+    let mockConfigValues: Record<string, unknown>;
+    let capturedConfigChangeHandlers: Array<(e: vscode.ConfigurationChangeEvent) => void | Promise<void>>;
+
+    // Synchronously fire a fake configuration-change event to all captured handlers.
+    // Returns a promise that resolves once every async handler finishes.
+    const fireConfigChange = async (section: string): Promise<void> => {
+        const event: vscode.ConfigurationChangeEvent = {
+            affectsConfiguration: (cfg: string) => cfg === section || section.startsWith(cfg + '.'),
+        };
+        await Promise.all(capturedConfigChangeHandlers.map((h) => h(event)));
+    };
 
     setup(async function(this: Mocha.Context) {
         this.timeout(60000);
         service = TaskFilesService.getInstance();
+        mockConfigValues = {};
+        capturedConfigChangeHandlers = [];
+
+        // Install mocks BEFORE service.initialize() so the service registers with the mock handler
+        originalGetConfiguration = vscode.workspace.getConfiguration;
+        (vscode.workspace as any).getConfiguration = (section?: string) => {
+            if (section === 'workspaceTasks') {
+                return {
+                    get: <T>(key: string, defaultValue?: T): T =>
+                        (Object.prototype.hasOwnProperty.call(mockConfigValues, key)
+                            ? mockConfigValues[key]
+                            : defaultValue) as T,
+                };
+            }
+            return originalGetConfiguration(section);
+        };
+
+        originalOnDidChangeConfiguration = vscode.workspace.onDidChangeConfiguration;
+        (vscode.workspace as any).onDidChangeConfiguration = (
+            listener: (e: vscode.ConfigurationChangeEvent) => void | Promise<void>,
+        ) => {
+            capturedConfigChangeHandlers.push(listener);
+            return { dispose: () => {
+                const idx = capturedConfigChangeHandlers.indexOf(listener);
+                if (idx !== -1) { capturedConfigChangeHandlers.splice(idx, 1); }
+            } };
+        };
 
         // Find workspace root
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
@@ -29,7 +69,7 @@ suite('TaskFilesService Test Suite', () => {
         } catch { }
         await vscode.workspace.fs.createDirectory(testFolder);
 
-        // Initialize service
+        // Initialize service (registers its configWatcher with the mock onDidChangeConfiguration)
         const context = { subscriptions: [] } as any;
         await service.initialize(context);
     });
@@ -40,15 +80,9 @@ suite('TaskFilesService Test Suite', () => {
             await vscode.workspace.fs.delete(testFolder, { recursive: true, useTrash: false });
         } catch { }
 
-        // Reset configuration
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
-        await config.update('exclude', undefined, vscode.ConfigurationTarget.Workspace);
-        await config.update('taskDiscovery.fetchDepth', undefined, vscode.ConfigurationTarget.Workspace);
-        // Wait for any onDidChangeConfiguration handlers (e.g. initialize()) to settle
-        // before the next test starts. Without this, a deferred initialize() triggered by
-        // the config reset can clear ignoreFiles mid-test.
-        // Use a longer wait on CI where file-system and config handlers can be slower.
-        await new Promise(r => setTimeout(r, 1500));
+        // Restore mocked APIs; no real config was written so no cleanup needed
+        (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+        (vscode.workspace as any).onDidChangeConfiguration = originalOnDidChangeConfiguration;
 
         disposables.forEach(d => d.dispose());
     });
@@ -77,28 +111,19 @@ suite('TaskFilesService Test Suite', () => {
     });
 
     test('shouldIgnore - Respects workspaceTasks.exclude configuration', async function() {
-        this.timeout(60000); // Increase timeout
+        this.timeout(60000);
         // Create file that should correspond to new exclude rule
         const fileUri = await createFile('dist/output.js');
         // Initial state check
         assert.strictEqual(service.shouldIgnore(fileUri), false, 'Initially should allow');
 
-        // Update config
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
-        await config.update('exclude', ['**/dist/**'], vscode.ConfigurationTarget.Workspace);
+        // Update mocked config and fire the event synchronously so the service
+        // calls initialize() internally and picks up the new exclude pattern.
+        mockConfigValues['exclude'] = ['**/dist/**'];
+        await fireConfigChange('workspaceTasks.exclude');
 
-        // Poll until the config change propagates (initialize() is async; fixed sleeps are flaky on CI).
-        let ignored = false;
-        for (let i = 0; i < 75; i++) {
-            if (service.shouldIgnore(fileUri)) {
-                ignored = true;
-                break;
-            }
-            await new Promise(r => setTimeout(r, 200));
-        }
-
-        // Verify
-        assert.strictEqual(ignored, true, 'Should ignore after config update');
+        // Verify immediately — no polling needed because fireConfigChange awaits the handler
+        assert.strictEqual(service.shouldIgnore(fileUri), true, 'Should ignore after config update');
     });
 
 
@@ -186,7 +211,6 @@ suite('TaskFilesService Test Suite', () => {
 
     test('filterByDepth - Respects fetchDepth configuration', async function() {
         this.timeout(60000);
-        const config = vscode.workspace.getConfiguration('workspaceTasks');
 
         // Create nested structure
         // root/depth0.txt
@@ -212,27 +236,45 @@ suite('TaskFilesService Test Suite', () => {
         const d1 = getDepth(depth1File);
         const d2 = getDepth(depth2File);
 
-        // 1. Unset limit (null)
-        await config.update('taskDiscovery.fetchDepth', null, vscode.ConfigurationTarget.Workspace);
-        // Force refresh config? filterByDepth reads config on invocation
-        let filtered = (service as any).filterByDepth(uris);
-        assert.strictEqual(filtered.length, 3, 'Should find all 3 files without depth limit');
+        // Mock getConfiguration so filterByDepth reads a known fetchDepth without touching real settings
+        const originalGetConfig = vscode.workspace.getConfiguration;
+        let fetchDepthValue: number | null = null;
+        (vscode.workspace as any).getConfiguration = (section?: string) => {
+            if (section === 'workspaceTasks') {
+                return {
+                    get: <T>(key: string, defaultValue?: T): T => {
+                        if (key === 'taskDiscovery.fetchDepth') { return fetchDepthValue as unknown as T; }
+                        return defaultValue as T;
+                    },
+                };
+            }
+            return originalGetConfig(section);
+        };
 
-        // 2. Limit to depth of depth0File
-        await config.update('taskDiscovery.fetchDepth', d0, vscode.ConfigurationTarget.Workspace);
-        filtered = (service as any).filterByDepth(uris);
-        assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth0File.toString()), 'Should include depth0');
-        // If d1 > d0, it should be excluded
-        if (d1 > d0) {
-            assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should exclude depth1');
-        }
+        try {
+            // 1. Unset limit (null) — filterByDepth reads config on each invocation
+            fetchDepthValue = null;
+            let filtered = (service as any).filterByDepth(uris);
+            assert.strictEqual(filtered.length, 3, 'Should find all 3 files without depth limit');
 
-        // 3. Limit to depth of depth1File
-        await config.update('taskDiscovery.fetchDepth', d1, vscode.ConfigurationTarget.Workspace);
-        filtered = (service as any).filterByDepth(uris);
-        assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should include depth1');
-        if (d2 > d1) {
-            assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth2File.toString()), 'Should exclude depth2');
+            // 2. Limit to depth of depth0File
+            fetchDepthValue = d0;
+            filtered = (service as any).filterByDepth(uris);
+            assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth0File.toString()), 'Should include depth0');
+            // If d1 > d0, it should be excluded
+            if (d1 > d0) {
+                assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should exclude depth1');
+            }
+
+            // 3. Limit to depth of depth1File
+            fetchDepthValue = d1;
+            filtered = (service as any).filterByDepth(uris);
+            assert.ok(filtered.some((u: vscode.Uri) => u.toString() === depth1File.toString()), 'Should include depth1');
+            if (d2 > d1) {
+                assert.ok(!filtered.some((u: vscode.Uri) => u.toString() === depth2File.toString()), 'Should exclude depth2');
+            }
+        } finally {
+            (vscode.workspace as any).getConfiguration = originalGetConfig;
         }
     });
 
@@ -430,6 +472,56 @@ ignore.me
         uris = await service.findFiles(['**/invalidate-test/**/*.txt']);
         relevant = uris.filter(u => u.fsPath.startsWith(testFolder.fsPath));
         assert.strictEqual(relevant.length, 2, 'Should find both files after cache invalidated');
+    });
+
+    test('findFiles does not throw when markCacheStale interrupts an in-flight build (generation mismatch)', async () => {
+        // Regression test for: "object null is not iterable" in GitHub Actions CI.
+        //
+        // Race condition:
+        //   1. findFiles() starts buildCache(), which starts _doBuildCache()
+        //   2. markCacheStale() fires (e.g. via a file-watcher event) during the
+        //      async awaits inside _doBuildCache, incrementing cacheGeneration and
+        //      setting cachedPaths = null.
+        //   3. _doBuildCache detects the generation mismatch and returns early
+        //      WITHOUT setting cachedPaths.
+        //   4. findFiles() resumes with cachedPaths still null → Array.from(null) throws.
+        //
+        // The fix (while-loop in findFiles) retries buildCache() until cachedPaths
+        // is non-null so the error never reaches the caller.
+        //
+        // The mock below replicates step 3 by calling markCacheStale() and then
+        // returning early (without calling the real _doBuildCache) on the first
+        // invocation, leaving cachedPaths === null.  On the second invocation it
+        // delegates to the real implementation, which succeeds.
+
+        service.registerPatterns(['**/race-condition-test/**/*.txt']);
+        service.invalidateCache();
+
+        const original_doBuildCache = (service as any)._doBuildCache.bind(service);
+        let buildCount = 0;
+
+        (service as any)._doBuildCache = async () => {
+            buildCount++;
+            if (buildCount === 1) {
+                // Simulate markCacheStale() firing mid-build (e.g. from a file-watcher event).
+                // This increments cacheGeneration and clears cachedPaths/cacheInvalidated.
+                // The real _doBuildCache detects the generation mismatch and returns early
+                // WITHOUT populating cachedPaths.  We replicate that abort by returning here
+                // so that cachedPaths remains null, which drives the while-loop retry in findFiles().
+                (service as any).markCacheStale();
+                return;
+            }
+            return original_doBuildCache();
+        };
+
+        try {
+            // Must NOT throw despite the first build aborting without setting cachedPaths.
+            const result = await service.findFiles(['**/race-condition-test/**/*.txt']);
+            assert.ok(Array.isArray(result), 'findFiles should return an array, not throw');
+            assert.ok(buildCount >= 2, `Expected at least 2 _doBuildCache calls (got ${buildCount}); first should abort, second should succeed`);
+        } finally {
+            (service as any)._doBuildCache = original_doBuildCache;
+        }
     });
 
     test('rebuildRegisteredPatterns - clears and repopulates from TaskCacheService providers', () => {
@@ -1010,5 +1102,200 @@ package.json@build`;
         service.invalidateCache();
         assert.strictEqual(service.shouldIgnore(pkgUri), false,
             'Rule removed after awaiting loadIgnoreFile and re-invalidating');
+    });
+
+    // ── onDidInitialScanComplete (Phase 3 Pre-condition A) ────────────────────
+
+    suite('onDidInitialScanComplete', () => {
+        test('fires once after the first successful _doBuildCache', async () => {
+            // Reset the initialScanFired flag so we can observe the event freshly
+            (service as any).initialScanFired = false;
+            (service as any).cachedPaths = null;
+            (service as any).cacheInvalidated = true;
+
+            let firedCount = 0;
+            const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
+            disposables.push(disposable);
+
+            // Run a cache build by calling findFiles
+            await service.findFiles(['**/package.json']);
+
+            // The event is scheduled via queueMicrotask — wait for it
+            await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+            assert.strictEqual(firedCount, 1, 'onDidInitialScanComplete should fire exactly once after first build');
+        });
+
+        test('fires only once even if cache is rebuilt multiple times', async () => {
+            (service as any).initialScanFired = false;
+            (service as any).cachedPaths = null;
+            (service as any).cacheInvalidated = true;
+
+            let firedCount = 0;
+            const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
+            disposables.push(disposable);
+
+            // First build
+            await service.findFiles(['**/package.json']);
+            await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+            // Invalidate and trigger a second build (simulate file change)
+            (service as any).initialScanFired = true; // keep it true — only first scan fires event
+            (service as any).cacheInvalidated = true;
+            (service as any).cachedPaths = null;
+            await service.findFiles(['**/package.json']);
+            await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+            assert.strictEqual(firedCount, 1, 'onDidInitialScanComplete should only fire once regardless of rebuilds');
+        });
+
+        test('does not fire until a cache build actually completes', async () => {
+            (service as any).initialScanFired = false;
+
+            let fired = false;
+            const disposable = service.onDidInitialScanComplete(() => { fired = true; });
+            disposables.push(disposable);
+
+            // Before any build, event should not have fired
+            assert.strictEqual(fired, false, 'Event should not fire before a cache build runs');
+        });
+
+        test('getCachedPathCount returns 0 when cache not built', () => {
+            (service as any).cachedPaths = null;
+            assert.strictEqual(service.getCachedPathCount(), 0);
+        });
+
+        test('getCachedPathCount returns the size of cachedPaths', () => {
+            (service as any).cachedPaths = new Set(['/a', '/b', '/c']);
+            assert.strictEqual(service.getCachedPathCount(), 3);
+        });
+
+        test('hasRegisteredPatterns returns false when no patterns registered', () => {
+            (service as any).registeredPatterns = new Set();
+            assert.strictEqual(service.hasRegisteredPatterns(), false);
+        });
+
+        test('hasRegisteredPatterns returns true when patterns are registered', () => {
+            (service as any).registeredPatterns = new Set(['**/package.json']);
+            assert.strictEqual(service.hasRegisteredPatterns(), true);
+        });
+    });
+
+    // ─── Uncovered-pattern batch coalescing ──────────────────────────────────
+
+    suite('uncovered batch coalescing', () => {
+        let originalFindFiles: typeof vscode.workspace.findFiles;
+        let findFilesCalls: string[];
+
+        setup(() => {
+            originalFindFiles = vscode.workspace.findFiles;
+            findFilesCalls = [];
+            // Remove all registered patterns so every call goes through the uncovered path
+            (service as any).registeredPatterns = new Set<string>();
+            // Reset batch state
+            (service as any).uncoveredBatchQueue = [];
+            (service as any).uncoveredBatchScheduled = false;
+        });
+
+        teardown(() => {
+            (vscode.workspace as any).findFiles = originalFindFiles;
+            (service as any).registeredPatterns = new Set<string>();
+            (service as any).uncoveredBatchQueue = [];
+            (service as any).uncoveredBatchScheduled = false;
+        });
+
+        test('concurrent findFiles calls with uncovered patterns are coalesced into one vscode.workspace.findFiles call', async () => {
+            const uriA = vscode.Uri.file('/workspace/Cargo.toml');
+            const uriB = vscode.Uri.file('/workspace/go.mod');
+            const uriC = vscode.Uri.file('/workspace/pyproject.toml');
+
+            // Mock so each known pattern returns its own file; the combined batch
+            // pattern contains all three so all three URIs are returned together.
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                // skip internal .tasksignore calls
+                if (pattern.includes('.tasksignore')) { return []; }
+                findFilesCalls.push(pattern);
+                const results: vscode.Uri[] = [];
+                if (pattern.includes('Cargo.toml')) { results.push(uriA); }
+                if (pattern.includes('go.mod')) { results.push(uriB); }
+                if (pattern.includes('pyproject.toml')) { results.push(uriC); }
+                return results;
+            };
+
+            // Fire three concurrent uncovered findFiles calls (mirrors WorkspaceTasksProvider Phase 2)
+            const [r1, r2, r3] = await Promise.all([
+                service.findFiles(['**/Cargo.toml']),
+                service.findFiles(['**/go.mod']),
+                service.findFiles(['**/pyproject.toml']),
+            ]);
+
+            assert.strictEqual(findFilesCalls.length, 1, 'Should make exactly one vscode.workspace.findFiles call');
+            assert.ok(r1.some(u => u.fsPath === uriA.fsPath), 'cargo result should contain Cargo.toml');
+            assert.ok(r2.some(u => u.fsPath === uriB.fsPath), 'go result should contain go.mod');
+            assert.ok(r3.some(u => u.fsPath === uriC.fsPath), 'poetry result should contain pyproject.toml');
+        });
+
+        test('sequential (non-concurrent) findFiles calls each get their own query', async () => {
+            const uriA = vscode.Uri.file('/workspace/Cargo.toml');
+            const uriB = vscode.Uri.file('/workspace/go.mod');
+
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                if (pattern.includes('.tasksignore')) { return []; }
+                findFilesCalls.push(pattern);
+                if (pattern.includes('Cargo')) { return [uriA]; }
+                if (pattern.includes('go.mod')) { return [uriB]; }
+                return [];
+            };
+
+            // Sequential calls — each is awaited before the next starts, so they cannot coalesce
+            const r1 = await service.findFiles(['**/Cargo.toml']);
+            const r2 = await service.findFiles(['**/go.mod']);
+
+            assert.strictEqual(findFilesCalls.length, 2, 'Sequential calls should each produce their own query');
+            assert.ok(r1.some(u => u.fsPath === uriA.fsPath), 'First call should find Cargo.toml');
+            assert.ok(r2.some(u => u.fsPath === uriB.fsPath), 'Second call should find go.mod');
+        });
+
+        test('per-request exclude is applied in memory after coalesced batch query', async () => {
+            const uriA = vscode.Uri.file('/workspace/src/Cargo.toml');
+            const uriB = vscode.Uri.file('/workspace/vendor/Cargo.toml');
+
+            // Both URIs returned by the batch query
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                if (pattern.includes('.tasksignore')) { return []; }
+                findFilesCalls.push(pattern);
+                return [uriA, uriB];
+            };
+
+            // Two concurrent calls: one excludes vendor/**, the other does not
+            const [rFiltered, rUnfiltered] = await Promise.all([
+                service.findFiles(['**/Cargo.toml'], ['**/vendor/**']),
+                service.findFiles(['**/Cargo.toml']),
+            ]);
+
+            assert.strictEqual(findFilesCalls.length, 1, 'Should still make only one batch query');
+            assert.ok(!rFiltered.some(u => u.fsPath === uriB.fsPath), 'vendor/ Cargo.toml should be excluded from filtered result');
+            assert.ok(rFiltered.some(u => u.fsPath === uriA.fsPath), 'src/ Cargo.toml should appear in filtered result');
+            assert.ok(rUnfiltered.some(u => u.fsPath === uriB.fsPath), 'vendor/ Cargo.toml should appear in unfiltered result');
+            assert.ok(rUnfiltered.some(u => u.fsPath === uriA.fsPath), 'src/ Cargo.toml should appear in unfiltered result');
+        });
+
+        test('errors from the batch query are propagated to all waiting callers', async () => {
+            const batchError = new Error('findFiles batch failure');
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                if (pattern.includes('.tasksignore')) { return []; }
+                throw batchError;
+            };
+
+            const [r1, r2] = await Promise.allSettled([
+                service.findFiles(['**/Cargo.toml']),
+                service.findFiles(['**/go.mod']),
+            ]);
+
+            assert.strictEqual(r1.status, 'rejected', 'First caller should receive the error');
+            assert.strictEqual(r2.status, 'rejected', 'Second caller should receive the error');
+            assert.strictEqual((r1 as PromiseRejectedResult).reason, batchError);
+            assert.strictEqual((r2 as PromiseRejectedResult).reason, batchError);
+        });
     });
 });

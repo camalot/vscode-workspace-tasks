@@ -370,6 +370,10 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       // If interpreter is provided, construct command
       // e.g. "python", "script.py" -> "python script.py"
       // e.g. "wsl.exe /bin/bash", "script.sh" -> "wsl.exe /bin/bash script.sh"
+      //
+      // When interpreter is empty the script is executed directly, which allows
+      // the OS to honour the shebang line (e.g. "#!/usr/bin/env python3").
+      // The file must be executable for this to work on Unix-like systems.
 
       let shellExec: vscode.ShellExecution;
       let commandString: string;
@@ -384,7 +388,7 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
         shellExec = new vscode.ShellExecution(interpreter, shellArgs, { cwd });
         commandString = `${interpreter} ${shellArgs.join(' ')}`;
       } else {
-        // Legacy fallback or just execute file directly
+        // Execute directly — the OS will use the shebang interpreter (if present)
         commandString = `"${resourceUri.fsPath}"`;
         if (args) {
           commandString += ` ${shellArgs.slice(1).join(' ')}`;

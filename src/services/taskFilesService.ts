@@ -77,6 +77,32 @@ export class TaskFilesService {
   private cacheInvalidated = true;
   private buildCacheInFlight: Promise<void> | null = null;
   private cacheGeneration = 0;
+  private initialScanFired = false;
+
+  // ── Uncovered-pattern batch coalescing ──────────────────────────────────────
+  // When multiple concurrent findFiles() calls have patterns that are NOT in
+  // registeredPatterns, they would each trigger their own vscode.workspace.findFiles
+  // walk.  Instead, calls arriving in the same microtask checkpoint are collected
+  // into a single queue entry and dispatched together as one combined query.
+  private uncoveredBatchQueue: Array<{
+    patterns: string[];
+    exclude: string[];
+    resolve: (uris: vscode.Uri[]) => void;
+    reject: (err: unknown) => void;
+  }> = [];
+  private uncoveredBatchScheduled = false;
+  private _onDidInitialScanComplete = new vscode.EventEmitter<void>();
+  public readonly onDidInitialScanComplete: vscode.Event<void> = this._onDidInitialScanComplete.event;
+
+  /** Returns the number of files in the current valid cache, or 0 if the cache is empty/unbuilt. */
+  public getCachedPathCount(): number {
+    return this.cachedPaths?.size ?? 0;
+  }
+
+  /** Returns true if any file patterns have been registered with the service. */
+  public hasRegisteredPatterns(): boolean {
+    return this.registeredPatterns.size > 0;
+  }
 
   private constructor() {
     this.globalIgnore = ignore();
@@ -163,16 +189,36 @@ export class TaskFilesService {
       this.logger.debug(
         `[TaskFilesService] Cache built with ${this.cachedPaths.size} files from combined pattern: ${combinedPattern} in ${cacheBuildDurationMs}ms`,
       );
+      if (!this.initialScanFired) {
+        this.initialScanFired = true;
+        queueMicrotask(() => this._onDidInitialScanComplete.fire());
+      }
     } catch (err) {
       const cacheBuildDurationMs = Date.now() - cacheBuildStartMs;
       this.logger.error(`[TaskFilesService] Error building cache after ${cacheBuildDurationMs}ms: ${err}`);
       if (generation !== this.cacheGeneration) { return; }
       this.cachedPaths = new Set();
       this.cacheInvalidated = false;
+      if (!this.initialScanFired) {
+        this.initialScanFired = true;
+        queueMicrotask(() => this._onDidInitialScanComplete.fire());
+      }
     }
   }
 
   public invalidateCache(): void {
+    this.markCacheStale();
+    // Refresh the task cache to discover or hide tasks based on new ignore rules
+    TaskCacheService.getInstance().refresh();
+  }
+
+  /**
+   * Marks the file cache as stale so the next `findFiles()` call triggers a rebuild,
+   * without firing a tree refresh via `TaskCacheService`. Use this when registering
+   * new patterns before the initial cache build (e.g. during config load at startup)
+   * where the full `invalidateCache()` side-effect would be premature or recursive.
+   */
+  public markCacheStale(): void {
     this.cachedPaths = null;
     this.cacheInvalidated = true;
     this.cacheGeneration++;
@@ -180,9 +226,6 @@ export class TaskFilesService {
     // The generation increment ensures that if the old build still completes it
     // will detect the mismatch and discard its results.
     this.buildCacheInFlight = null;
-
-    // Refresh the task cache to discover or hide tasks based on new ignore rules
-    TaskCacheService.getInstance().refresh();
   }
 
   public rebuildRegisteredPatterns(): void {
@@ -212,11 +255,15 @@ export class TaskFilesService {
 
     // Serve covered patterns from the cache
     if (covered.length > 0 && this.registeredPatterns.size > 0) {
-      if (this.cacheInvalidated || this.cachedPaths === null) {
+      // Loop to handle the rare race where markCacheStale() increments cacheGeneration
+      // while _doBuildCache() is awaiting, causing that build to detect a mismatch
+      // and return early without setting cachedPaths. Without the loop, findFiles()
+      // would resume with cachedPaths === null and throw "object null is not iterable".
+      while (this.cacheInvalidated || this.cachedPaths === null) {
         await this.buildCache();
       }
 
-      const allPaths = Array.from(this.cachedPaths!);
+      const allPaths = Array.from(this.cachedPaths);
 
       // Normalize to forward-slashes for micromatch (Windows-safe)
       const allPathsNormalized = allPaths.map(p => p.replace(/\\/g, '/'));
@@ -242,24 +289,117 @@ export class TaskFilesService {
       }
     }
 
-    // Direct query for uncovered patterns (not pre-registered / dynamic)
+    // Uncovered patterns: coalesce concurrent callers via microtask batching.
+    // All findFiles() calls issued in the same async turn (e.g. from Promise.all)
+    // enqueue their uncovered patterns here.  A single queueMicrotask fires after
+    // all have enqueued, dispatching ONE vscode.workspace.findFiles for the union
+    // of all uncovered patterns and distributing results back per caller.
     if (uncovered.length > 0) {
-      if (this.context) {
-        await this.syncIgnoreFiles();
-      }
-      const combinedPattern = uncovered.length > 1 ? `{${uncovered.join(',')}}` : uncovered[0];
-      const excludeGlob = exclude && exclude.length > 0 ? exclude.join(',') : undefined;
-      const uris = await vscode.workspace.findFiles(combinedPattern, excludeGlob);
-      const depthFiltered = this.filterByDepth(uris);
-      for (const uri of depthFiltered) {
-        if (this.shouldIgnore(uri)) {
-          continue;
+      const uncoveredResults = await new Promise<vscode.Uri[]>((resolve, reject) => {
+        this.uncoveredBatchQueue.push({ patterns: uncovered, exclude: exclude ?? [], resolve, reject });
+        if (!this.uncoveredBatchScheduled) {
+          this.uncoveredBatchScheduled = true;
+          queueMicrotask(() => { this._flushUncoveredBatch(); });
         }
-        results.push(uri);
-      }
+      });
+      results.push(...uncoveredResults);
     }
 
     return results;
+  }
+
+  /**
+   * Flushes the pending uncovered-pattern batch queue.  Called via queueMicrotask so
+   * that all concurrent findFiles() callers within the same async turn have had a
+   * chance to enqueue their patterns before the single VS Code query fires.
+   */
+  private _flushUncoveredBatch(): void {
+    const batch = this.uncoveredBatchQueue.splice(0);
+    this.uncoveredBatchScheduled = false;
+    if (batch.length === 0) { return; }
+
+    // Deduplicate patterns across all queued requests.
+    const allPatterns = [...new Set(batch.flatMap((b) => b.patterns))];
+
+    // Compute the intersection of all exclude lists.  Patterns common to every
+    // request can be applied in the VS Code query itself; per-request extras that
+    // did not appear in every list are applied in memory when distributing results.
+    const allExcludeSets = batch.map((b) => new Set(b.exclude));
+    const commonExcludes = [...allExcludeSets[0]].filter((e) =>
+      allExcludeSets.every((s) => s.has(e)),
+    );
+
+    const combinedPattern =
+      allPatterns.length > 1 ? `{${allPatterns.join(',')}}` : allPatterns[0];
+    const excludeGlob = commonExcludes.length > 0 ? commonExcludes.join(',') : undefined;
+
+    void (async () => {
+      try {
+        if (this.context) {
+          await this.syncIgnoreFiles();
+        }
+
+        const uris = await vscode.workspace.findFiles(combinedPattern, excludeGlob);
+        const depthFiltered = this.filterByDepth(uris);
+        const accepted: vscode.Uri[] = [];
+        for (const uri of depthFiltered) {
+          if (!this.shouldIgnore(uri)) {
+            accepted.push(uri);
+          }
+        }
+
+        if (batch.length === 1) {
+          this.logger.debug(
+            `[TaskFilesService] uncoveredBatch: 1 request, ${allPatterns.length} pattern(s) → ${accepted.length} file(s).`,
+          );
+        } else {
+          this.logger.debug(
+            `[TaskFilesService] uncoveredBatch: ${batch.length} requests coalesced into 1 query, ` +
+            `${allPatterns.length} unique pattern(s) → ${accepted.length} file(s) ` +
+            `(${batch.length - 1} extra vscode.workspace.findFiles call(s) avoided).`,
+          );
+        }
+
+        // Distribute results to each queued request, applying per-request filtering.
+        for (const entry of batch) {
+          // When only one request is in the batch, VS Code has already filtered against
+          // the combined pattern, so all accepted files belong to this request — no
+          // secondary micromatch pass is needed (and would break workspace-relative patterns).
+          // For multi-request batches, we use micromatch to assign files to the correct
+          // caller.  This works reliably for the common `**/pattern.ext` glob style.
+          let matched: vscode.Uri[];
+          if (batch.length === 1) {
+            matched = accepted;
+          } else {
+            const expandedPatterns = entry.patterns.flatMap((p) =>
+              micromatch.braces(p, { expand: true }),
+            );
+            matched = accepted.filter((uri) =>
+              micromatch.isMatch(uri.fsPath.replace(/\\/g, '/'), expandedPatterns, { dot: true }),
+            );
+          }
+
+          // Apply any per-request excludes that were not in the common set.
+          const extraExcludes = entry.exclude.filter((e) => !commonExcludes.includes(e));
+          const filtered =
+            extraExcludes.length > 0
+              ? matched.filter(
+                  (uri) =>
+                    !micromatch.isMatch(
+                      uri.fsPath.replace(/\\/g, '/'),
+                      extraExcludes,
+                      { dot: true },
+                    ),
+                )
+              : matched;
+          entry.resolve(filtered);
+        }
+      } catch (err) {
+        for (const entry of batch) {
+          entry.reject(err);
+        }
+      }
+    })();
   }
 
   private async syncIgnoreFiles(): Promise<void> {

@@ -16,10 +16,20 @@ async function waitFor(predicate: () => boolean, timeout = 10000) {
 suite('Ant Provider Test Suite', function () {
   // save original values to restore during teardown
   let originalPlatform: PropertyDescriptor | undefined;
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
 
   setup(() => {
     // capture original platform descriptor so we can reset
     originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
   });
 
   teardown(async () => {
@@ -28,6 +38,7 @@ suite('Ant Provider Test Suite', function () {
       Object.defineProperty(process, 'platform', originalPlatform);
     }
     // note: we avoid changing configuration during tests so nothing else to reset
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
 
   test('uses correct type', function () {

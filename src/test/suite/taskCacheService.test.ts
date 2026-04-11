@@ -402,9 +402,123 @@ suite('TaskCacheService Test Suite', () => {
     });
 
     test('initialize - Sets context', () => {
-        const context = { subscriptions: [] } as any;
+        const context = { subscriptions: [] as vscode.Disposable[] } as any;
         const result = service.initialize(context);
         assert.strictEqual(result, service);
+        // Dispose subscriptions to prevent leaking the onDidInitialScanComplete listener
+        // into subsequent tests (which would trigger spurious invalidateCache() calls).
+        for (const d of context.subscriptions) {
+            d.dispose();
+        }
+    });
+
+    // ── Loading state (Phase 3) ───────────────────────────────────────────────
+
+    test('isLoading() returns false when no providers are refreshing', () => {
+        assert.strictEqual(service.isLoading(), false);
+    });
+
+    test('isLoading() returns true while a refreshProvider call is in-flight', async () => {
+        let resolveTask!: () => void;
+        const slowProvider = new MockTaskProvider([], 'slowType');
+        slowProvider.getTasks = () => new Promise<TaskItem[]>((resolve) => {
+            resolveTask = () => resolve([]);
+        });
+        (service as any).providers = [slowProvider];
+
+        const refreshPromise = service.refreshProvider('slowType');
+        assert.strictEqual(service.isLoading(), true, 'should be loading mid-refresh');
+        resolveTask();
+        await refreshPromise;
+        assert.strictEqual(service.isLoading(), false, 'should be idle after refresh');
+    });
+
+    test('getLoadingProviders() contains the active provider type during refreshProvider', async () => {
+        let resolveTask!: () => void;
+        const slowProvider = new MockTaskProvider([], 'loadingType');
+        slowProvider.getTasks = () => new Promise<TaskItem[]>((resolve) => {
+            resolveTask = () => resolve([]);
+        });
+        (service as any).providers = [slowProvider];
+
+        const refreshPromise = service.refreshProvider('loadingType');
+        assert.ok(service.getLoadingProviders().has('loadingType'), 'loadingType should be in set');
+        resolveTask();
+        await refreshPromise;
+        assert.ok(!service.getLoadingProviders().has('loadingType'), 'loadingType should be removed after resolve');
+    });
+
+    test('onDidLoadingStateChange fires when provider starts and finishes in refreshProvider', async () => {
+        const events: string[] = [];
+        service.onDidLoadingStateChange(() => {
+            events.push(service.isLoading() ? 'loading' : 'idle');
+        });
+
+        let resolveTask!: () => void;
+        const slowProvider = new MockTaskProvider([], 'eventType');
+        slowProvider.getTasks = () => new Promise<TaskItem[]>((resolve) => {
+            resolveTask = () => resolve([]);
+        });
+        (service as any).providers = [slowProvider];
+
+        const refreshPromise = service.refreshProvider('eventType');
+        // Should have fired on start (idle→loading transition)
+        assert.ok(events.length >= 1, 'event should fire when provider starts');
+        assert.strictEqual(events[0], 'loading');
+        resolveTask();
+        await refreshPromise;
+        // Should have fired on finish (loading→idle transition)
+        assert.ok(events.length >= 2, 'event should fire when provider finishes');
+        assert.strictEqual(events[events.length - 1], 'idle');
+    });
+
+    test('getLoadingProviders() is empty after refresh() completes', async () => {
+        const item = createTaskItem('T1', 'mockType');
+        mockTasks.push(item);
+        await service.refresh();
+        assert.strictEqual(service.getLoadingProviders().size, 0, 'no providers should be loading after refresh');
+    });
+
+    test('isLoading() returns false after refresh() with multiple providers', async () => {
+        const p1 = new MockTaskProvider([createTaskItem('a', 'typeA')], 'typeA');
+        const p2 = new MockTaskProvider([createTaskItem('b', 'typeB')], 'typeB');
+        (service as any).providers = [p1, p2];
+        await service.refresh();
+        assert.strictEqual(service.isLoading(), false);
+    });
+
+    test('hasTasksForProviderType() returns false before tasks are committed', async () => {
+        assert.strictEqual(service.hasTasksForProviderType('mockType'), false);
+    });
+
+    test('hasTasksForProviderType() returns true after tasks are committed', async () => {
+        mockTasks.push(createTaskItem('T1', 'mockType'));
+        await service.refreshProvider('mockType');
+        assert.strictEqual(service.hasTasksForProviderType('mockType'), true);
+    });
+
+    test('hasTasksForProviderType() returns false for empty provider result', async () => {
+        mockTasks.length = 0;
+        await service.refreshProvider('mockType');
+        assert.strictEqual(service.hasTasksForProviderType('mockType'), false);
+    });
+
+    test('isLoading() returns true while refresh() is in-flight', async () => {
+        let resolveTask!: () => void;
+        const slowProvider = new MockTaskProvider([], 'refresh-slow');
+        slowProvider.getTasks = () => new Promise<TaskItem[]>((resolve) => {
+            resolveTask = () => resolve([]);
+        });
+        (service as any).providers = [slowProvider];
+
+        let wasLoadingDuringRefresh = false;
+        const refreshPromise = service.refresh();
+        wasLoadingDuringRefresh = service.isLoading();
+        resolveTask();
+        await refreshPromise;
+
+        assert.strictEqual(wasLoadingDuringRefresh, true, 'should be loading while refresh is in-flight');
+        assert.strictEqual(service.isLoading(), false, 'should be idle after refresh');
     });
 
 });

@@ -31,6 +31,7 @@ nav_order: 7
   "shell": true,
   "composer": true,
   "docker": true,
+  "eslint": true,
   "github-actions": true,
   "gradle": true,
   "grunt": true,
@@ -43,6 +44,7 @@ nav_order: 7
   "pipenv": true,
   "jupyter": true,
   "tsc": true,
+  "webpack": true,
   "yarn": false,
   "pnpm": false,
   "venv": true,
@@ -59,7 +61,8 @@ Select the types of tasks that the extension should support and display in the t
 - **cake** - Cake Build
 - **composer** - Composer
 - **deno** - Deno
-- **docker** - Docker
+- **docker** - Docker (controls both `dockerfile` and `docker-compose` task types)
+- **eslint** - ESLint
 - **github-actions** - GitHub Actions
 - **gradle** - Gradle
 - **grunt** - Grunt
@@ -74,6 +77,7 @@ Select the types of tasks that the extension should support and display in the t
 - **pnpm** - PNPM
 - **shell** - Scripts
 - **tsc** - TypeScript Compiler
+- **webpack** - Webpack
 - **yarn** - Yarn
 - **venv** - Virtual Environment
 - **vscode** - Visual Studio Code

@@ -44,6 +44,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       this._onDidChangeTreeData.fire();
     });
 
+    TaskCacheService.getInstance().onDidLoadingStateChange(() => {
+      this._onDidChangeTreeData.fire();
+    });
+
     // Restore collapseLevel from workspace state (default to 0)
     // Actually we only care about restoring if it was 0, as other modes are temporary toggles usually?
     // But if persistence is tricky for groups, maybe we just default to 0.
@@ -199,8 +203,41 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       }
       return element.children;
     } else {
-      const allTasks = TaskCacheService.getInstance().getAllTasks();
+      const cacheService = TaskCacheService.getInstance();
+      const allTasks = cacheService.getAllTasks();
       this.currentRoots = this.organizeTasks(allTasks);
+
+      // Inject a loading placeholder for each in-flight provider that has not yet committed tasks.
+      // Placeholders are placed after Favorites/Recent/Compound groups and before workspace-folder
+      // groups, per the plan. They disappear once the provider delivers tasks or finishes.
+      const loadingProviders = cacheService.getLoadingProviders();
+      const loadingItems: TaskItem[] = [];
+      for (const type of loadingProviders) {
+        if (!cacheService.hasTasksForProviderType(type)) {
+          const placeholder = new TaskItem(
+            `Loading ${type} tasks…`,
+            vscode.TreeItemCollapsibleState.None,
+            type,
+          );
+          placeholder.iconPath = new vscode.ThemeIcon('loading~spin');
+          placeholder.contextValue = 'loadingPlaceholder';
+          loadingItems.push(placeholder);
+        }
+      }
+
+      if (loadingItems.length > 0) {
+        // Insert placeholders after special groups (favorites, recent, compoundTask, compoundTasks)
+        // and before workspace-folder groups.
+        const specialTypes = new Set(['recent', 'favorites', 'compoundTask', 'compoundTasks']);
+        const firstNonSpecialIdx = this.currentRoots.findIndex(
+          (r) => !specialTypes.has(r.taskType || ''),
+        );
+        if (firstNonSpecialIdx >= 0) {
+          this.currentRoots.splice(firstNonSpecialIdx, 0, ...loadingItems);
+        } else {
+          this.currentRoots.push(...loadingItems);
+        }
+      }
 
       // Fire update signal for collapse logic
       // Use setTimeout to ensure we are out of the immediate stack if needed,

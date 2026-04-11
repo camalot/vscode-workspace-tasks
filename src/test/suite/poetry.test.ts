@@ -12,6 +12,7 @@ suite('Poetry Provider Test Suite', () => {
   let originalFindFiles: any;
   let originalAsRelativePath: any;
   let originalGetTaskIcon: any;
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
   let tempDir: string;
 
   setup(() => {
@@ -33,6 +34,15 @@ suite('Poetry Provider Test Suite', () => {
     originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
     iconService.getTaskIcon = () => new vscode.ThemeIcon('symbol-method');
 
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
+
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '.tmp-poetry-'));
   });
 
@@ -44,6 +54,8 @@ suite('Poetry Provider Test Suite', () => {
 
     const iconService = TaskIconService.getInstance();
     iconService.getTaskIcon = originalGetTaskIcon;
+
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });

@@ -81,37 +81,23 @@ suite('ExecutableService Tests', () => {
   });
 
   test('uses configured value when configKey is provided', async function () {
-    // workspace-level update required for this test; skip if no workspace
-    if (!vscode.workspace.workspaceFolders) {
-      this.skip();
-      return;
-    }
-
-    // use a registered configuration object so Configuration.updateWs can write nested keys
     const key = 'shellEnabledTaskTypes.bash';
-    const cfg = vscode.workspace.getConfiguration('workspaceTasks');
-    const parent = 'shellEnabledTaskTypes';
-    const originalParent = cfg.get<any>(parent);
-
+    // Mock configuration.get on the singleton so no real VS Code settings are written
+    const { configuration } = await import('../../libs/configuration.js');
+    const originalGet = configuration.get.bind(configuration);
     try {
-      // write to workspace configuration and wait for internal cache to update
-      const { configuration } = await import('../../libs/configuration.js');
-      await configuration.updateWs(`${parent}.bash`, 'configuredcmd --flag');
-
-      // small wait loop to allow configuration cache to refresh
-      const start = Date.now();
-      while (configuration.get<string>(`${parent}.bash`) !== 'configuredcmd --flag' && Date.now() - start < 2000) {
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise((r) => setTimeout(r, 50));
-      }
+      (configuration as any).get = <T>(cfgKey: string, defaultValue?: T): T => {
+        if (cfgKey === key) { return 'configuredcmd --flag' as unknown as T; }
+        return originalGet(cfgKey, defaultValue);
+      };
 
       const exec = ExecutableService.getInstance();
-      const res = exec.getCommand({ configKey: `${parent}.bash`, defaultValue: 'fallback', configName: 'configuredcmd' });
+      const res = exec.getCommand({ configKey: key, defaultValue: 'fallback', configName: 'configuredcmd' });
       const expectedCmd = process.platform === 'win32' ? 'configuredcmd.exe' : 'configuredcmd';
       assert.strictEqual(res.command, expectedCmd);
       assert.deepStrictEqual(res.args, ['--flag']);
     } finally {
-      await cfg.update(parent, originalParent, vscode.ConfigurationTarget.Workspace);
+      (configuration as any).get = originalGet;
     }
   });
 

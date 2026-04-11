@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -729,6 +729,7 @@
         "workspaceTasks.task.presentationOptions": {
           "type": "object",
           "additionalProperties": false,
+          "markdownDescription": "%config.workspaceTasks.task.presentationOptions.markdown%",
           "properties": {
             "reveal": {
               "type": "string",
@@ -981,6 +982,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.docker%"
             },
+            "eslint": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.eslint%"
+            },
             "github-actions": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.github-actions%"
@@ -1065,6 +1070,10 @@
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.vscode%"
             },
+            "webpack": {
+              "type": "boolean",
+              "description": "%config.workspaceTasks.enabledTaskTypes.webpack%"
+            },
             "workspace": {
               "type": "boolean",
               "description": "%config.workspaceTasks.enabledTaskTypes.workspace%"
@@ -1081,6 +1090,7 @@
             "cargo": true,
             "cargo-make": true,
             "docker": true,
+            "eslint": true,
             "github-actions": true,
             "go": true,
             "gradle": true,
@@ -1101,6 +1111,7 @@
             "pnpm": false,
             "venv": true,
             "vscode": true,
+            "webpack": true,
             "workspace": true
           }
         },

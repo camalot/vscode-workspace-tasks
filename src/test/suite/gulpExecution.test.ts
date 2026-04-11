@@ -7,6 +7,23 @@ import { TaskRunner } from '../../taskRunner';
 import { TaskStateManager } from '../../taskStateManager';
 
 suite('Gulp Execution Test Suite', () => {
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+
+  setup(() => {
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
+  });
+
+  teardown(() => {
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+  });
+
   test('Running a gulp task uses vscode.tasks.executeTask and sets running state', async () => {
     const filesService = TaskFilesService.getInstance();
     const originalFindFiles = filesService.findFiles;

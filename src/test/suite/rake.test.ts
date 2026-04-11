@@ -9,6 +9,7 @@ suite('Rake Provider Test Suite', () => {
   let originalFindFiles: any;
   let originalFetchTasks: any;
   let originalGetWorkspaceFolder: any;
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
 
   const workspaceFolder: vscode.WorkspaceFolder = {
     uri: vscode.Uri.file('/workspace'),
@@ -33,6 +34,15 @@ suite('Rake Provider Test Suite', () => {
       }
       return undefined;
     };
+
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
   });
 
   teardown(() => {
@@ -41,6 +51,7 @@ suite('Rake Provider Test Suite', () => {
 
     (vscode.tasks as any).fetchTasks = originalFetchTasks;
     (vscode.workspace as any).getWorkspaceFolder = originalGetWorkspaceFolder;
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
 
   test('uses correct type and file pattern', () => {

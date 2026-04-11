@@ -5,6 +5,23 @@ import { GulpTaskProvider } from '../../providers/gulpTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
 
 suite('Gulp Provider Test Suite', () => {
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+
+  setup(() => {
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return { get: <T>(_key: string, def?: T): T => def as T };
+      }
+      return originalGetConfiguration(section);
+    };
+  });
+
+  teardown(() => {
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+  });
+
   test('Discovers tasks in sample gulpfile.mjs and referenced in series/parallel', async () => {
     const filesService = TaskFilesService.getInstance();
     const originalFindFiles = filesService.findFiles;

@@ -145,14 +145,40 @@ class TestableTaskTreeDataProvider extends TaskTreeDataProvider {
 
 suite('TaskTreeDataProvider Test Suite', () => {
   let ctx: vscode.ExtensionContext;
+  let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
 
   setup(() => {
     resetSingletons();
     ctx = createMockContext();
+
+    // Mock getConfiguration to prevent .vscode/settings.json overrides from affecting tests.
+    // Notably: groups.compoundTasks.enabled is true in settings.json which changes tree structure.
+    originalGetConfiguration = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return {
+          get: <T>(key: string, def?: T): T => {
+            // Return sensible defaults that match code defaults, not workspace overrides
+            if (key === 'groups.compoundTasks.enabled') { return false as unknown as T; }
+            if (key === 'groups.enabled') { return true as unknown as T; }
+            if (key === 'groups.useParentFolder') { return false as unknown as T; }
+            if (key === 'groups.recentTasks.enabled') { return false as unknown as T; }
+            if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return true as unknown as T; }
+            if (key === 'groups.taskSeparator') { return '-' as unknown as T; }
+            if (key === 'groups.expanded') {
+              return { favorites: true, compoundTask: true, recent: true } as unknown as T;
+            }
+            return def as T;
+          },
+        };
+      }
+      return originalGetConfiguration(section);
+    };
   });
 
   teardown(() => {
     resetSingletons();
+    (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
 
   // ── Instance management ──────────────────────────────────────────────────
@@ -2148,6 +2174,133 @@ suite('TaskTreeDataProvider Test Suite', () => {
           done();
         }, 300);
       });
+    });
+  });
+
+  // ── Loading placeholders (Phase 3) ─────────────────────────────────────────
+
+  suite('Loading placeholders', () => {
+    test('loading placeholder appears for in-flight provider with no tasks', async () => {
+      stubServicesForOrganize([]);
+      const cacheService = TaskCacheService.getInstance();
+      // Simulate a provider actively loading with no tasks committed yet
+      (cacheService as any).loadingProviders = new Set(['shell']);
+      (cacheService as any).providerTasks = new Map(); // no tasks committed
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const placeholder = roots.find((r) => r.contextValue === 'loadingPlaceholder');
+      assert.ok(placeholder, 'A loading placeholder should appear for the loading provider');
+      assert.ok(String(placeholder!.label).includes('shell'), 'Placeholder label should mention provider type');
+    });
+
+    test('loading placeholder uses loading~spin icon', async () => {
+      stubServicesForOrganize([]);
+      const cacheService = TaskCacheService.getInstance();
+      (cacheService as any).loadingProviders = new Set(['npm']);
+      (cacheService as any).providerTasks = new Map();
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const placeholder = roots.find((r) => r.contextValue === 'loadingPlaceholder');
+      assert.ok(placeholder, 'Placeholder should exist');
+      const icon = placeholder!.iconPath as vscode.ThemeIcon;
+      assert.ok(icon instanceof vscode.ThemeIcon, 'Icon should be a ThemeIcon');
+      assert.strictEqual(icon.id, 'loading~spin');
+    });
+
+    test('loading placeholder has contextValue loadingPlaceholder', async () => {
+      stubServicesForOrganize([]);
+      const cacheService = TaskCacheService.getInstance();
+      (cacheService as any).loadingProviders = new Set(['vscode']);
+      (cacheService as any).providerTasks = new Map();
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const placeholder = roots.find((r) => r.contextValue === 'loadingPlaceholder');
+      assert.ok(placeholder, 'Placeholder should exist');
+      assert.strictEqual(placeholder!.contextValue, 'loadingPlaceholder');
+    });
+
+    test('no placeholder appears when provider has tasks committed', async () => {
+      const uri = vscode.Uri.file('/root/package.json');
+      const task = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      task.taskFileUri = uri;
+      task.id = 'npm-build';
+      task.originalLabel = 'build';
+      stubServicesForOrganize([task]);
+      const cacheService = TaskCacheService.getInstance();
+      // Provider is still "loading" but has committed tasks
+      (cacheService as any).loadingProviders = new Set(['npm']);
+      (cacheService as any).providerTasks = new Map([['npm', [task]]]);
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const placeholder = roots.find((r) => r.contextValue === 'loadingPlaceholder');
+      assert.strictEqual(placeholder, undefined, 'No placeholder when provider already has tasks');
+    });
+
+    test('no placeholders appear when loadingProviders is empty', async () => {
+      const uri = vscode.Uri.file('/root/package.json');
+      const task = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      task.taskFileUri = uri;
+      task.id = 'npm-build-2';
+      task.originalLabel = 'build';
+      stubServicesForOrganize([task]);
+      const cacheService = TaskCacheService.getInstance();
+      (cacheService as any).loadingProviders = new Set();
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const placeholders = roots.filter((r) => r.contextValue === 'loadingPlaceholder');
+      assert.strictEqual(placeholders.length, 0, 'No placeholders when not loading');
+    });
+
+    test('placeholder is inserted before workspace-folder groups', async () => {
+      const uri = vscode.Uri.file('/root/package.json');
+      const task = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      task.taskFileUri = uri;
+      task.id = 'npm-build-3';
+      task.originalLabel = 'build';
+      stubServicesForOrganize([task]);
+      const cacheService = TaskCacheService.getInstance();
+      // shell is loading (no tasks), npm has tasks
+      (cacheService as any).loadingProviders = new Set(['shell']);
+      (cacheService as any).providerTasks = new Map();
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      const roots = await provider.getChildren();
+
+      const placeholderIdx = roots.findIndex((r) => r.contextValue === 'loadingPlaceholder');
+      const workspaceIdx = roots.findIndex((r) => r.taskType === 'workspace');
+
+      assert.ok(placeholderIdx >= 0, 'Placeholder should be present');
+      if (workspaceIdx >= 0) {
+        assert.ok(
+          placeholderIdx < workspaceIdx,
+          `Placeholder (idx ${placeholderIdx}) should appear before workspace root (idx ${workspaceIdx})`,
+        );
+      }
+    });
+
+    test('onDidLoadingStateChange subscription fires tree data change', () => {
+      const cacheService = TaskCacheService.getInstance();
+      const provider = new TestableTaskTreeDataProvider(ctx);
+
+      let treeChanged = false;
+      provider.onDidChangeTreeData(() => {
+        treeChanged = true;
+      });
+
+      // Fire the loading state change event
+      (cacheService as any)._onDidLoadingStateChange.fire();
+
+      assert.strictEqual(treeChanged, true, 'Tree data change event should fire on loading state change');
     });
   });
 });

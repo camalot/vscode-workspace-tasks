@@ -1,0 +1,281 @@
+[2026-04-11T03:02:09.231Z] [DEBUG] Workspace Tasks extension activating...
+[2026-04-11T03:02:09.869Z] [DEBUG] [WorkspaceTasksService] Loaded built-in defaults in 111ms.
+[2026-04-11T03:02:10.187Z] [DEBUG] [TaskFilesService] uncoveredBatch: 1 request, 1 pattern(s) → 1 file(s).
+[2026-04-11T03:02:10.187Z] [DEBUG] [WorkspaceTasksService] Found 1 .workspace-tasks.json file(s) in 318ms.
+[2026-04-11T03:02:10.199Z] [DEBUG] [WorkspaceTasksService] Loaded /workspace/sample/sample-workspace-tasks/.workspace-tasks.json in 12ms.
+[2026-04-11T03:02:10.200Z] [DEBUG] [WorkspaceTasksService] Registered 14 dynamic glob pattern(s) with TaskFilesService.
+[2026-04-11T03:02:10.200Z] [INFO] [WorkspaceTasksService] loadWorkspaceConfig() completed in 444ms (17 provider(s) loaded).
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService] Loading compound tasks from workspaceState.
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService] Found 1 compound task(s) in storage: [Compound Task]
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService] Loading compound task 'Compound Task': 7 item(s), executionType='sequential'.
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService]   Item[0]: id='sample-workspace-tasks:package.json:hello', label='hello', taskType='npm', resourceUri='file:///workspace/sample/sample-workspace-tasks/package.json'
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService]   Item[1]: id='sample-workspace-tasks:shell/hello2.sh:hello2.sh', label='hello2.sh', taskType='shell', resourceUri='file:///workspace/sample/sample-workspace-tasks/shell/hello2.sh'
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService]   Item[2]: id='sample-workspace-tasks:.vscode/tasks.json:TEST: RUN ALL SEQUENTIAL', label='TEST: RUN ALL SEQUENTIAL', taskType='vscode', resourceUri='file:///workspace/sample/sample-workspace-tasks/.vscode/tasks.json'
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService]   Item[3]: id='sample-workspace-tasks:docker/dockerfile:dockerfile:build', label='dockerfile:build', taskType='dockerfile', resourceUri='file:///workspace/sample/sample-workspace-tasks/docker/dockerfile'
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService]   Item[4]: id='sample-workspace-tasks:makefile/Makefile:hello', label='hello', taskType='makefile', resourceUri='file:///workspace/sample/sample-workspace-tasks/makefile/Makefile'
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService]   Item[5]: id='sample-workspace-tasks:.vscode/tasks.json:VSCode: Hello', label='VSCode: Hello', taskType='vscode', resourceUri='file:///workspace/sample/sample-workspace-tasks/.vscode/tasks.json'
+[2026-04-11T03:02:10.201Z] [DEBUG] [CompoundTaskService]   Item[6]: id='workspace:0:user-global:echo', label='echo', taskType='vscode', resourceUri='workspace-tasks:/task?workspace%3A0%3Auser-global%3Aecho'
+[2026-04-11T03:02:10.204Z] [DEBUG] bunTaskProvider initialized
+[2026-04-11T03:02:10.204Z] [DEBUG] BunTaskProvider initialized
+[2026-04-11T03:02:10.204Z] [DEBUG] npmTaskProvider initialized
+[2026-04-11T03:02:10.204Z] [DEBUG] pnpmTaskProvider initialized
+[2026-04-11T03:02:10.204Z] [DEBUG] yarnTaskProvider initialized
+[2026-04-11T03:02:10.209Z] [DEBUG] [ShellTaskProvider] Starting shell task discovery
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: bash (extensions: sh, bash)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: zsh (extensions: zsh)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: fish (extensions: fish)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: pwsh (extensions: ps1)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: batch (extensions: bat, cmd)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Skipping disabled shell type: python
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: perl (extensions: pl)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: ruby (extensions: rb)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: sh (extensions: sh)
+[2026-04-11T03:02:10.210Z] [DEBUG] [ShellTaskProvider] Processing shell type: nushell (extensions: nu)
+[2026-04-11T03:02:10.220Z] [DEBUG] [WorkspaceTasksProvider] Found 16 provider(s) to process.
+[2026-04-11T03:02:10.220Z] [DEBUG] Provider bun (type: bun) is disabled. Skipping.
+[2026-04-11T03:02:10.220Z] [DEBUG] Provider pnpm (type: pnpm) is disabled. Skipping.
+[2026-04-11T03:02:10.220Z] [DEBUG] Provider yarn (type: yarn) is disabled. Skipping.
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "ruby": 2 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "cargo": 5 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "go": 8 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "poetry": 7 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "pipenv": 3 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "docker-compose": 2 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "dockerfile": 1 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "typescript": 2 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "npm": 4 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "venv": 1 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "eslint": 11 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "webpack": 3 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.221Z] [DEBUG] [WorkspaceTasksProvider] Provider "pantera": 1 task definition(s), 1 include glob(s).
+[2026-04-11T03:02:10.845Z] [DEBUG] [TaskFilesService] Cache built with 53 files from combined pattern: {**/.workspace-tasks.json,**/[gG]em[Ff]ile,**/Cargo.toml,**/go.mod,**/pyproject.toml,**/[pP]ip[fF]ile,**/docker-compose.yml,**/Dockerfile,**/dockerfile,**Dockerfile.*,**/tsconfig.json,**/package.json,**/.venv/pyvenv.cfg,**/eslint.config.js,**/eslint.config.mjs,**/eslint.config.cjs,**/eslint.config.ts,**/eslint.config.mts,**/eslint.config.cts,**/webpack.config.js,**/webpack.config.mjs,**/webpack.config.cjs,**/webpack.config.ts,**/webpack.config.mts,**/webpack.config.cts,**/shell/hello2.sh,**/package.json,**/package.yaml,**/composer.json,**/deno.json,**/deno.jsonc,**/*.sh,**/*.bash,**/*.zsh,**/*.fish,**/*.ps1,**/*.bat,**/*.cmd,**/*.py,**/*.pl,**/*.rb,**/*.nu,**/*.sh,**/*.bash,**/*.zsh,**/*.fish,**/*.ps1,**/*.bat,**/*.cmd,**/*.py,**/*.pl,**/*.rb,**/*.nu,**/.vscode/tasks.json,**/.venv/Scripts/activate.bat,**/.venv/Scripts/activate.fish,**/.venv/Scripts/Activate.ps1,**/.venv/Scripts/deactivate.bat,**/[Mm]ake[Ff]ile,**/Makefile.toml,**/*.toml,**/mise.toml,**/mise.*.toml,**/mise.*.local.toml,**/.workspace-tasks.json,**/.workspace-tasks.*.json,**/justfile,**/.justfile,**/*.just,**/*.xml,**/gulpfile.js,**/gulpfile.mjs,**/[Gg]runtfile.js,**/*.csproj,**/*.vbproj,**/*.vcxproj,**/*.xml,**/*.proj,**/*.sln,**/pom.xml,**/.github/workflows/*.yml,**/.github/workflows/*.yaml,**/*.gradle,**/[Pp]ip[Ff]ile,**/*.rake,**/Rakefile,**/*.ipynb,**/CMakeLists.txt,**/*.cake} in 636ms
+[2026-04-11T03:02:10.867Z] [DEBUG] [ShellTaskProvider] Found 9 candidate file(s) for shell type: bash
+[2026-04-11T03:02:10.868Z] [DEBUG] [ShellTaskProvider] Found 1 candidate file(s) for shell type: zsh
+[2026-04-11T03:02:10.868Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: fish
+[2026-04-11T03:02:10.868Z] [DEBUG] [ShellTaskProvider] Found 4 candidate file(s) for shell type: pwsh
+[2026-04-11T03:02:10.868Z] [DEBUG] [ShellTaskProvider] Found 3 candidate file(s) for shell type: batch
+[2026-04-11T03:02:10.868Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: perl
+[2026-04-11T03:02:10.868Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: ruby
+[2026-04-11T03:02:10.868Z] [DEBUG] [ShellTaskProvider] Found 9 candidate file(s) for shell type: sh
+[2026-04-11T03:02:10.869Z] [DEBUG] [ShellTaskProvider] Found 0 candidate file(s) for shell type: nushell
+[2026-04-11T03:02:10.896Z] [DEBUG] [ShellTaskProvider] Finished shell type: fish — 0 file(s) resolved in 686ms
+[2026-04-11T03:02:10.897Z] [DEBUG] [ShellTaskProvider] Finished shell type: perl — 0 file(s) resolved in 687ms
+[2026-04-11T03:02:10.897Z] [DEBUG] [ShellTaskProvider] Finished shell type: ruby — 0 file(s) resolved in 687ms
+[2026-04-11T03:02:10.897Z] [DEBUG] [ShellTaskProvider] Finished shell type: nushell — 0 file(s) resolved in 687ms
+[2026-04-11T03:02:10.898Z] [DEBUG] [WorkspaceTasksProvider] Parallel file search for 13 provider(s) completed in 677ms.
+[2026-04-11T03:02:10.911Z] [DEBUG] [TaskIconService] ruby resolved from $(iconName) syntax {"type":"ruby","iconUri":"$(rake)","iconName":"rake","light":"/workspace/res/icons/light/rake.svg","dark":"/workspace/res/icons/dark/rake.svg"}
+[2026-04-11T03:02:10.912Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/ruby/Gemfile for provider: ruby
+[2026-04-11T03:02:10.912Z] [DEBUG] [WorkspaceTasksProvider] Provider "ruby" added 2 task(s) from 1 file(s).
+[2026-04-11T03:02:10.920Z] [DEBUG] [TaskIconService] cargo resolved using built-in type icon {"type":"cargo","iconUri":"$(cargo)","light":"/workspace/res/icons/light/cargo.svg","dark":"/workspace/res/icons/dark/cargo.svg"}
+[2026-04-11T03:02:10.920Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/cargo/Cargo.toml for provider: cargo
+[2026-04-11T03:02:10.920Z] [DEBUG] [WorkspaceTasksProvider] Provider "cargo" added 5 task(s) from 1 file(s).
+[2026-04-11T03:02:10.928Z] [DEBUG] [TaskIconService] go resolved using built-in type icon {"type":"go","iconUri":"$(go)","light":"/workspace/res/icons/light/go.svg","dark":"/workspace/res/icons/dark/go.svg"}
+[2026-04-11T03:02:10.928Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/golang/go.mod for provider: go
+[2026-04-11T03:02:10.929Z] [DEBUG] [WorkspaceTasksProvider] Provider "go" added 8 task(s) from 1 file(s).
+[2026-04-11T03:02:10.936Z] [DEBUG] [TaskIconService] poetry resolved using built-in type icon {"type":"poetry","iconUri":"pyproject.toml","light":"/workspace/res/icons/light/poetry.svg","dark":"/workspace/res/icons/dark/poetry.svg"}
+[2026-04-11T03:02:10.936Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/python/pyproject.toml for provider: poetry
+[2026-04-11T03:02:10.937Z] [DEBUG] [WorkspaceTasksProvider] Provider "poetry" added 7 task(s) from 1 file(s).
+[2026-04-11T03:02:10.946Z] [DEBUG] [TaskIconService] pipenv resolved using built-in type icon {"type":"pipenv","iconUri":"Pipfile","light":"/workspace/res/icons/light/pipenv.svg","dark":"/workspace/res/icons/dark/pipenv.svg"}
+[2026-04-11T03:02:10.946Z] [DEBUG] [WorkspaceTasksProvider] Provider "pipenv" added 3 task(s) from 0 file(s).
+[2026-04-11T03:02:10.953Z] [DEBUG] [TaskIconService] docker-compose resolved using built-in type icon {"type":"docker-compose","iconUri":"docker-compose.yml","light":"/workspace/res/icons/light/docker.svg","dark":"/workspace/res/icons/dark/docker.svg"}
+[2026-04-11T03:02:10.953Z] [DEBUG] [WorkspaceTasksProvider] Provider "docker-compose" added 2 task(s) from 0 file(s).
+[2026-04-11T03:02:10.963Z] [DEBUG] [TaskIconService] dockerfile resolved using built-in type icon {"type":"dockerfile","iconUri":"dockerfile","light":"/workspace/res/icons/light/docker.svg","dark":"/workspace/res/icons/dark/docker.svg"}
+[2026-04-11T03:02:10.963Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/.devcontainer/Dockerfile for provider: dockerfile
+[2026-04-11T03:02:10.964Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/docker/dockerfile for provider: dockerfile
+[2026-04-11T03:02:10.964Z] [DEBUG] [WorkspaceTasksProvider] Provider "dockerfile" added 1 task(s) from 2 file(s).
+[2026-04-11T03:02:10.972Z] [DEBUG] [TaskIconService] typescript resolved using built-in type icon {"type":"typescript","iconUri":"tsconfig.json","light":"/workspace/res/icons/light/typescript.svg","dark":"/workspace/res/icons/dark/typescript.svg"}
+[2026-04-11T03:02:10.972Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/tsconfig.json for provider: typescript
+[2026-04-11T03:02:10.973Z] [DEBUG] [WorkspaceTasksProvider] Provider "typescript" added 2 task(s) from 1 file(s).
+[2026-04-11T03:02:10.981Z] [DEBUG] [TaskIconService] npm resolved using built-in type icon {"type":"npm","light":"/workspace/res/icons/light/npm.svg","dark":"/workspace/res/icons/dark/npm.svg"}
+[2026-04-11T03:02:10.981Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appB/package.json for provider: npm
+[2026-04-11T03:02:10.982Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appC/package.json for provider: npm
+[2026-04-11T03:02:10.982Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/gulp/package.json for provider: npm
+[2026-04-11T03:02:10.982Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/package.json for provider: npm
+[2026-04-11T03:02:10.982Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appA/package.json for provider: npm
+[2026-04-11T03:02:10.982Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/grunt/package.json for provider: npm
+[2026-04-11T03:02:10.982Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/nodejs/package.json for provider: npm
+[2026-04-11T03:02:10.982Z] [DEBUG] [WorkspaceTasksProvider] Provider "npm" added 4 task(s) from 7 file(s).
+[2026-04-11T03:02:10.993Z] [DEBUG] [TaskIconService] venv resolved from $(iconName) syntax {"type":"venv","iconUri":"$(python)","iconName":"python","light":"/workspace/res/icons/light/python.svg","dark":"/workspace/res/icons/dark/python.svg"}
+[2026-04-11T03:02:10.993Z] [DEBUG] [WorkspaceTasksProvider] Provider "venv" added 1 task(s) from 0 file(s).
+[2026-04-11T03:02:10.997Z] [DEBUG] [TaskIconService] eslint resolved using built-in type icon {"type":"eslint","iconUri":"eslint.config.mjs","light":"/workspace/res/icons/light/eslint.svg","dark":"/workspace/res/icons/dark/eslint.svg"}
+[2026-04-11T03:02:10.997Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/eslint.config.mjs for provider: eslint
+[2026-04-11T03:02:10.997Z] [DEBUG] [WorkspaceTasksProvider] Provider "eslint" added 11 task(s) from 1 file(s).
+[2026-04-11T03:02:11.002Z] [DEBUG] [TaskIconService] webpack resolved using built-in type icon {"type":"webpack","iconUri":"webpack.config.js","light":"/workspace/res/icons/light/webpack.svg","dark":"/workspace/res/icons/dark/webpack.svg"}
+[2026-04-11T03:02:11.002Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/webpack.config.js for provider: webpack
+[2026-04-11T03:02:11.002Z] [DEBUG] [WorkspaceTasksProvider] Provider "webpack" added 3 task(s) from 1 file(s).
+[2026-04-11T03:02:11.006Z] [DEBUG] [TaskIconService] pantera resolved from $(iconName) syntax {"type":"pantera","iconUri":"$(task)","iconName":"task","light":"/workspace/res/icons/light/task.svg","dark":"/workspace/res/icons/dark/task.svg"}
+[2026-04-11T03:02:11.007Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/shell/hello2.sh for provider: pantera
+[2026-04-11T03:02:11.007Z] [DEBUG] [WorkspaceTasksProvider] Provider "pantera" added 1 task(s) from 1 file(s).
+[2026-04-11T03:02:11.007Z] [INFO] [WorkspaceTasksProvider] getTasks() completed: 69 total task(s) loaded in 795ms.
+[2026-04-11T03:02:11.008Z] [DEBUG] [ShellTaskProvider] Finished shell type: pwsh — 4 file(s) resolved in 798ms
+[2026-04-11T03:02:11.008Z] [DEBUG] [ShellTaskProvider] Finished shell type: batch — 3 file(s) resolved in 798ms
+[2026-04-11T03:02:11.028Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/stuck.sh
+[2026-04-11T03:02:11.028Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/long-running.sh
+[2026-04-11T03:02:11.028Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/hello2.sh
+[2026-04-11T03:02:11.028Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/.devcontainer/install-tools.sh
+[2026-04-11T03:02:11.028Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/hello.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/shell/failing.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/apps/appB/script1.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/apps/appC/script1.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/apps/appA/script1.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/.devcontainer/install-tools.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/stuck.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/long-running.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache miss (read): /workspace/sample/sample-workspace-tasks/.devcontainer/files/home/vscode/.p10k.zsh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/hello2.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/hello.sh
+[2026-04-11T03:02:11.029Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/shell/failing.sh
+[2026-04-11T03:02:11.030Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/apps/appA/script1.sh
+[2026-04-11T03:02:11.030Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/apps/appB/script1.sh
+[2026-04-11T03:02:11.030Z] [DEBUG] [ShellTaskProvider] shebang cache hit: /workspace/sample/sample-workspace-tasks/apps/appC/script1.sh
+[2026-04-11T03:02:11.034Z] [ERROR] [RakeTaskProvider] Failed to get tasks from /workspace/sample/sample-workspace-tasks/python/rake/Rakefile: {"code":1,"killed":false,"signal":null,"cmd":"rake --tasks --file /workspace/sample/sample-workspace-tasks/python/rake/Rakefile","stdout":"","stderr":"/usr/local/lib/ruby/3.4.0/rubygems.rb:269:in 'Gem.find_spec_for_exe': can't find gem rake (>= 0.a) with executable rake (Gem::GemNotFoundException)\n\tfrom /usr/local/lib/ruby/3.4.0/rubygems.rb:288:in 'Gem.activate_bin_path'\n\tfrom /usr/local/bin/rake:25:in '<main>'\n"}
+[2026-04-11T03:02:11.047Z] [DEBUG] [ShellTaskProvider] Finished shell type: bash — 9 file(s) resolved in 837ms
+[2026-04-11T03:02:11.047Z] [DEBUG] [ShellTaskProvider] Finished shell type: sh — 9 file(s) resolved in 837ms
+[2026-04-11T03:02:11.047Z] [DEBUG] [ShellTaskProvider] Finished shell type: zsh — 1 file(s) resolved in 837ms
+[2026-04-11T03:02:11.078Z] [INFO] [ShellTaskProvider] bash: 9 task(s) from 9 file(s) in 837ms (9 shebang reads, 0 cache hits)
+[2026-04-11T03:02:11.081Z] [INFO] [ShellTaskProvider] zsh: 1 task(s) from 1 file(s) in 837ms (1 shebang reads, 0 cache hits)
+[2026-04-11T03:02:11.081Z] [INFO] [ShellTaskProvider] fish: 0 task(s) from 0 file(s) in 686ms
+[2026-04-11T03:02:11.096Z] [INFO] [ShellTaskProvider] pwsh: 4 task(s) from 4 file(s) in 798ms
+[2026-04-11T03:02:11.105Z] [INFO] [ShellTaskProvider] batch: 3 task(s) from 3 file(s) in 798ms
+[2026-04-11T03:02:11.105Z] [INFO] [ShellTaskProvider] perl: 0 task(s) from 0 file(s) in 687ms (0 shebang reads, 0 cache hits)
+[2026-04-11T03:02:11.105Z] [INFO] [ShellTaskProvider] ruby: 0 task(s) from 0 file(s) in 687ms (0 shebang reads, 0 cache hits)
+[2026-04-11T03:02:11.105Z] [INFO] [ShellTaskProvider] sh: 0 task(s) from 9 file(s) in 837ms (0 shebang reads, 9 cache hits)
+[2026-04-11T03:02:11.105Z] [INFO] [ShellTaskProvider] nushell: 0 task(s) from 0 file(s) in 687ms
+[2026-04-11T03:02:11.105Z] [INFO] [ShellTaskProvider] Completed — 17 total shell task(s) loaded in 896ms
+[2026-04-11T03:02:11.181Z] [DEBUG] [TaskIconService] shell resolved using built-in type icon {"type":"shell","light":"/workspace/res/icons/light/shell.svg","dark":"/workspace/res/icons/dark/shell.svg"}
+[2026-04-11T03:02:11.190Z] [DEBUG] [TaskIconService] venv resolved from $(iconName) syntax {"type":"venv","iconUri":"$(python)","iconName":"python","light":"/workspace/res/icons/light/python.svg","dark":"/workspace/res/icons/dark/python.svg"}
+[2026-04-11T03:02:11.197Z] [DEBUG] [TaskIconService] eslint resolved using built-in type icon {"type":"eslint","iconUri":"eslint.config.mjs","light":"/workspace/res/icons/light/eslint.svg","dark":"/workspace/res/icons/dark/eslint.svg"}
+[2026-04-11T03:02:11.203Z] [DEBUG] [TaskIconService] webpack resolved using built-in type icon {"type":"webpack","iconUri":"webpack.config.js","light":"/workspace/res/icons/light/webpack.svg","dark":"/workspace/res/icons/dark/webpack.svg"}
+[2026-04-11T03:02:11.208Z] [DEBUG] [TaskIconService] cargo resolved using built-in type icon {"type":"cargo","iconUri":"$(cargo)","light":"/workspace/res/icons/light/cargo.svg","dark":"/workspace/res/icons/dark/cargo.svg"}
+[2026-04-11T03:02:11.214Z] [DEBUG] [TaskIconService] typescript resolved using built-in type icon {"type":"typescript","iconUri":"tsconfig.json","light":"/workspace/res/icons/light/typescript.svg","dark":"/workspace/res/icons/dark/typescript.svg"}
+[2026-04-11T03:02:11.226Z] [DEBUG] [TaskIconService] go resolved using built-in type icon {"type":"go","iconUri":"$(go)","light":"/workspace/res/icons/light/go.svg","dark":"/workspace/res/icons/dark/go.svg"}
+[2026-04-11T03:02:11.231Z] [DEBUG] [TaskIconService] poetry resolved using built-in type icon {"type":"poetry","iconUri":"pyproject.toml","light":"/workspace/res/icons/light/poetry.svg","dark":"/workspace/res/icons/dark/poetry.svg"}
+[2026-04-11T03:02:12.033Z] [DEBUG] [TaskIconService] cargo-make resolved using built-in type icon {"type":"cargo-make","light":"/workspace/res/icons/light/cargo-make.svg","dark":"/workspace/res/icons/dark/cargo-make.svg"}
+[2026-04-11T03:02:12.039Z] [DEBUG] [TaskIconService] cmake resolved using built-in type icon {"type":"cmake","light":"/workspace/res/icons/light/cmake.svg","dark":"/workspace/res/icons/dark/cmake.svg"}
+[2026-04-11T03:02:12.084Z] [DEBUG] [TaskIconService] maven resolved using built-in type icon {"type":"maven","light":"/workspace/res/icons/light/maven.svg","dark":"/workspace/res/icons/dark/maven.svg"}
+[2026-04-11T03:02:12.090Z] [DEBUG] [TaskIconService] poe resolved using built-in type icon {"type":"poe","light":"/workspace/res/icons/light/poe.svg","dark":"/workspace/res/icons/dark/poe.svg"}
+[2026-04-11T03:02:12.095Z] [DEBUG] [TaskIconService] poetry resolved using built-in type icon {"type":"poetry","iconUri":"pyproject.toml","light":"/workspace/res/icons/light/poetry.svg","dark":"/workspace/res/icons/dark/poetry.svg"}
+[2026-04-11T03:02:12.102Z] [DEBUG] [TaskIconService] shell resolved using built-in type icon {"type":"shell","light":"/workspace/res/icons/light/shell.svg","dark":"/workspace/res/icons/dark/shell.svg"}
+[2026-04-11T03:02:12.110Z] [DEBUG] [TaskIconService] venv resolved from $(iconName) syntax {"type":"venv","iconUri":"$(python)","iconName":"python","light":"/workspace/res/icons/light/python.svg","dark":"/workspace/res/icons/dark/python.svg"}
+[2026-04-11T03:02:12.115Z] [DEBUG] [TaskIconService] eslint resolved using built-in type icon {"type":"eslint","iconUri":"eslint.config.mjs","light":"/workspace/res/icons/light/eslint.svg","dark":"/workspace/res/icons/dark/eslint.svg"}
+[2026-04-11T03:02:12.122Z] [DEBUG] [TaskIconService] webpack resolved using built-in type icon {"type":"webpack","iconUri":"webpack.config.js","light":"/workspace/res/icons/light/webpack.svg","dark":"/workspace/res/icons/dark/webpack.svg"}
+[2026-04-11T03:02:12.127Z] [DEBUG] [TaskIconService] cargo resolved using built-in type icon {"type":"cargo","iconUri":"$(cargo)","light":"/workspace/res/icons/light/cargo.svg","dark":"/workspace/res/icons/dark/cargo.svg"}
+[2026-04-11T03:02:12.133Z] [DEBUG] [TaskIconService] typescript resolved using built-in type icon {"type":"typescript","iconUri":"tsconfig.json","light":"/workspace/res/icons/light/typescript.svg","dark":"/workspace/res/icons/dark/typescript.svg"}
+[2026-04-11T03:02:12.144Z] [DEBUG] [TaskIconService] go resolved using built-in type icon {"type":"go","iconUri":"$(go)","light":"/workspace/res/icons/light/go.svg","dark":"/workspace/res/icons/dark/go.svg"}
+[2026-04-11T03:02:14.758Z] [DEBUG] [NpmTaskProvider] Fetched 32 system tasks.
+[2026-04-11T03:02:14.928Z] [DEBUG] [npmTaskProvider] Searching for task files with pattern: **/package.json
+[2026-04-11T03:02:14.929Z] [DEBUG] [npmTaskProvider] Found 7 files matching pattern.
+[2026-04-11T03:02:14.929Z] [DEBUG] [npmTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appB/package.json
+[2026-04-11T03:02:14.934Z] [DEBUG] [npmTaskProvider] Parsed JSON from /workspace/sample/sample-workspace-tasks/apps/appB/package.json
+[2026-04-11T03:02:14.934Z] [DEBUG] [npmTaskProvider] Found script: dev in /workspace/sample/sample-workspace-tasks/apps/appB/package.json
+[2026-04-11T03:02:14.934Z] [DEBUG] [npmTaskProvider] Found script: check-types in /workspace/sample/sample-workspace-tasks/apps/appB/package.json
+[2026-04-11T03:02:14.934Z] [DEBUG] [npmTaskProvider] Found script: build in /workspace/sample/sample-workspace-tasks/apps/appB/package.json
+[2026-04-11T03:02:14.934Z] [DEBUG] [npmTaskProvider] Found script: preview in /workspace/sample/sample-workspace-tasks/apps/appB/package.json
+[2026-04-11T03:02:14.934Z] [DEBUG] [npmTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appC/package.json
+[2026-04-11T03:02:14.941Z] [DEBUG] [npmTaskProvider] Parsed JSON from /workspace/sample/sample-workspace-tasks/apps/appC/package.json
+[2026-04-11T03:02:14.941Z] [DEBUG] [npmTaskProvider] Found script: dev in /workspace/sample/sample-workspace-tasks/apps/appC/package.json
+[2026-04-11T03:02:14.941Z] [DEBUG] [npmTaskProvider] Found script: check-types in /workspace/sample/sample-workspace-tasks/apps/appC/package.json
+[2026-04-11T03:02:14.941Z] [DEBUG] [npmTaskProvider] Found script: build in /workspace/sample/sample-workspace-tasks/apps/appC/package.json
+[2026-04-11T03:02:14.941Z] [DEBUG] [npmTaskProvider] Found script: preview in /workspace/sample/sample-workspace-tasks/apps/appC/package.json
+[2026-04-11T03:02:14.941Z] [DEBUG] [npmTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/gulp/package.json
+[2026-04-11T03:02:14.948Z] [DEBUG] [npmTaskProvider] Parsed JSON from /workspace/sample/sample-workspace-tasks/gulp/package.json
+[2026-04-11T03:02:14.948Z] [DEBUG] [npmTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.954Z] [DEBUG] [npmTaskProvider] Parsed JSON from /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.954Z] [DEBUG] [npmTaskProvider] Found script: compile in /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.955Z] [DEBUG] [npmTaskProvider] Found script: test in /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.955Z] [DEBUG] [npmTaskProvider] Found script: hello in /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.955Z] [DEBUG] [npmTaskProvider] Found script: long-running in /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.955Z] [DEBUG] [npmTaskProvider] Found script: failing-task in /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.955Z] [DEBUG] [npmTaskProvider] Found script: build in /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.955Z] [DEBUG] [npmTaskProvider] Found script: watch in /workspace/sample/sample-workspace-tasks/package.json
+[2026-04-11T03:02:14.955Z] [DEBUG] [npmTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appA/package.json
+[2026-04-11T03:02:14.962Z] [DEBUG] [npmTaskProvider] Parsed JSON from /workspace/sample/sample-workspace-tasks/apps/appA/package.json
+[2026-04-11T03:02:14.962Z] [DEBUG] [npmTaskProvider] Found script: dev in /workspace/sample/sample-workspace-tasks/apps/appA/package.json
+[2026-04-11T03:02:14.962Z] [DEBUG] [npmTaskProvider] Found script: check-types in /workspace/sample/sample-workspace-tasks/apps/appA/package.json
+[2026-04-11T03:02:14.962Z] [DEBUG] [npmTaskProvider] Found script: build in /workspace/sample/sample-workspace-tasks/apps/appA/package.json
+[2026-04-11T03:02:14.962Z] [DEBUG] [npmTaskProvider] Found script: preview in /workspace/sample/sample-workspace-tasks/apps/appA/package.json
+[2026-04-11T03:02:14.962Z] [DEBUG] [npmTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/grunt/package.json
+[2026-04-11T03:02:14.968Z] [DEBUG] [npmTaskProvider] Parsed JSON from /workspace/sample/sample-workspace-tasks/grunt/package.json
+[2026-04-11T03:02:14.969Z] [DEBUG] [npmTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.975Z] [DEBUG] [npmTaskProvider] Parsed JSON from /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.975Z] [DEBUG] [npmTaskProvider] Found script: compile in /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.976Z] [DEBUG] [npmTaskProvider] Found script: test in /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.976Z] [DEBUG] [npmTaskProvider] Found script: hello in /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.976Z] [DEBUG] [npmTaskProvider] Found script: long-running in /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.976Z] [DEBUG] [npmTaskProvider] Found script: failing-task in /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.976Z] [DEBUG] [npmTaskProvider] Found script: build in /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:14.976Z] [DEBUG] [npmTaskProvider] Found script: watch in /workspace/sample/sample-workspace-tasks/nodejs/package.json
+[2026-04-11T03:02:15.063Z] [DEBUG] [TaskIconService] cargo-make resolved using built-in type icon {"type":"cargo-make","light":"/workspace/res/icons/light/cargo-make.svg","dark":"/workspace/res/icons/dark/cargo-make.svg"}
+[2026-04-11T03:02:15.069Z] [DEBUG] [TaskIconService] cmake resolved using built-in type icon {"type":"cmake","light":"/workspace/res/icons/light/cmake.svg","dark":"/workspace/res/icons/dark/cmake.svg"}
+[2026-04-11T03:02:15.114Z] [DEBUG] [TaskIconService] maven resolved using built-in type icon {"type":"maven","light":"/workspace/res/icons/light/maven.svg","dark":"/workspace/res/icons/dark/maven.svg"}
+[2026-04-11T03:02:15.126Z] [DEBUG] [TaskIconService] poe resolved using built-in type icon {"type":"poe","light":"/workspace/res/icons/light/poe.svg","dark":"/workspace/res/icons/dark/poe.svg"}
+[2026-04-11T03:02:15.132Z] [DEBUG] [TaskIconService] poetry resolved using built-in type icon {"type":"poetry","iconUri":"pyproject.toml","light":"/workspace/res/icons/light/poetry.svg","dark":"/workspace/res/icons/dark/poetry.svg"}
+[2026-04-11T03:02:15.138Z] [DEBUG] [TaskIconService] shell resolved using built-in type icon {"type":"shell","light":"/workspace/res/icons/light/shell.svg","dark":"/workspace/res/icons/dark/shell.svg"}
+[2026-04-11T03:02:15.146Z] [DEBUG] [TaskIconService] venv resolved from $(iconName) syntax {"type":"venv","iconUri":"$(python)","iconName":"python","light":"/workspace/res/icons/light/python.svg","dark":"/workspace/res/icons/dark/python.svg"}
+[2026-04-11T03:02:15.152Z] [DEBUG] [TaskIconService] eslint resolved using built-in type icon {"type":"eslint","iconUri":"eslint.config.mjs","light":"/workspace/res/icons/light/eslint.svg","dark":"/workspace/res/icons/dark/eslint.svg"}
+[2026-04-11T03:02:15.158Z] [DEBUG] [TaskIconService] webpack resolved using built-in type icon {"type":"webpack","iconUri":"webpack.config.js","light":"/workspace/res/icons/light/webpack.svg","dark":"/workspace/res/icons/dark/webpack.svg"}
+[2026-04-11T03:02:15.163Z] [DEBUG] [TaskIconService] cargo resolved using built-in type icon {"type":"cargo","iconUri":"$(cargo)","light":"/workspace/res/icons/light/cargo.svg","dark":"/workspace/res/icons/dark/cargo.svg"}
+[2026-04-11T03:02:15.169Z] [DEBUG] [TaskIconService] typescript resolved using built-in type icon {"type":"typescript","iconUri":"tsconfig.json","light":"/workspace/res/icons/light/typescript.svg","dark":"/workspace/res/icons/dark/typescript.svg"}
+[2026-04-11T03:02:15.180Z] [DEBUG] [TaskIconService] go resolved using built-in type icon {"type":"go","iconUri":"$(go)","light":"/workspace/res/icons/light/go.svg","dark":"/workspace/res/icons/dark/go.svg"}
+[2026-04-11T03:02:15.186Z] [DEBUG] [VscodeTaskProvider] Fetched 18 system tasks from VSCode.
+[2026-04-11T03:02:15.188Z] [DEBUG] [VscodeTaskProvider] - Processing Task: VSCode: Hello, Source: Workspace
+[2026-04-11T03:02:15.194Z] [DEBUG] [VscodeTaskProvider] - Processing Task: VSCode: Hello Again, Source: Workspace
+[2026-04-11T03:02:15.199Z] [DEBUG] [VscodeTaskProvider] - Processing Task: VSCode: Long Running, Source: Workspace
+[2026-04-11T03:02:15.204Z] [DEBUG] [VscodeTaskProvider] - Processing Task: VSCode: Failing Task, Source: Workspace
+[2026-04-11T03:02:15.210Z] [DEBUG] [VscodeTaskProvider] - Processing Task: VSCode: Build, Source: Workspace
+[2026-04-11T03:02:15.215Z] [DEBUG] [VscodeTaskProvider] - Processing Task: VSCode: Test, Source: Workspace
+[2026-04-11T03:02:15.220Z] [DEBUG] [VscodeTaskProvider] - Processing Task: Run Shell Script, Source: Workspace
+[2026-04-11T03:02:15.225Z] [DEBUG] [VscodeTaskProvider] - Processing Task: Run Python Script, Source: Workspace
+[2026-04-11T03:02:15.231Z] [DEBUG] [VscodeTaskProvider] - Processing Task: wsl python hello, Source: Workspace
+[2026-04-11T03:02:15.237Z] [DEBUG] [VscodeTaskProvider] - Processing Task: Run Make Hello, Source: Workspace
+[2026-04-11T03:02:15.243Z] [DEBUG] [VscodeTaskProvider] - Processing Task: TEST: Step 1, Source: Workspace
+[2026-04-11T03:02:15.248Z] [DEBUG] [VscodeTaskProvider] - Processing Task: TEST: Step 2, Source: Workspace
+[2026-04-11T03:02:15.253Z] [DEBUG] [VscodeTaskProvider] - Processing Task: TEST: RUN ALL, Source: Workspace
+[2026-04-11T03:02:15.259Z] [DEBUG] [VscodeTaskProvider] - Processing Task: TEST: RUN ALL SEQUENTIAL, Source: Workspace
+[2026-04-11T03:02:15.264Z] [DEBUG] [VscodeTaskProvider] - Processing Task: TEST: STUCK, Source: Workspace
+[2026-04-11T03:02:15.269Z] [DEBUG] [VscodeTaskProvider] - Processing Task: TEST: COMPOUND CANCEL SEQUENTIAL, Source: Workspace
+[2026-04-11T03:02:15.275Z] [DEBUG] [VscodeTaskProvider] - Processing Task: Run Node.js Hello, Source: Workspace
+[2026-04-11T03:02:15.280Z] [DEBUG] [VscodeTaskProvider] - Processing Task: echo, Source: Workspace
+[2026-04-11T03:02:15.286Z] [INFO] [VscodeTaskProvider] getSystemTasks() completed: 18 task(s) in 5075ms
+[2026-04-11T03:02:15.287Z] [DEBUG] [VscodeTaskProvider] Processing tasks file: /workspace/sample/sample-workspace-tasks/.vscode/tasks.json
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:VSCode: Hello
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:VSCode: Hello Again
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:VSCode: Long Running
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:VSCode: Failing Task
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:VSCode: Build
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:VSCode: Test
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:Run Node.js Hello
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:Run Shell Script
+[2026-04-11T03:02:15.293Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:Run Python Script
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:wsl python hello
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:Run Make Hello
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:TEST: Step 1
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:TEST: Step 2
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:TEST: RUN ALL
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:TEST: RUN ALL SEQUENTIAL
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:TEST: STUCK
+[2026-04-11T03:02:15.294Z] [DEBUG] [VscodeTaskProvider] - Skipping duplicate task: sample-workspace-tasks:.vscode/tasks.json:TEST: COMPOUND CANCEL SEQUENTIAL
+[2026-04-11T03:02:15.472Z] [DEBUG] [TaskIconService] cargo-make resolved using built-in type icon {"type":"cargo-make","light":"/workspace/res/icons/light/cargo-make.svg","dark":"/workspace/res/icons/dark/cargo-make.svg"}
+[2026-04-11T03:02:15.478Z] [DEBUG] [TaskIconService] cmake resolved using built-in type icon {"type":"cmake","light":"/workspace/res/icons/light/cmake.svg","dark":"/workspace/res/icons/dark/cmake.svg"}
+[2026-04-11T03:02:15.530Z] [DEBUG] [TaskIconService] maven resolved using built-in type icon {"type":"maven","light":"/workspace/res/icons/light/maven.svg","dark":"/workspace/res/icons/dark/maven.svg"}
+[2026-04-11T03:02:15.545Z] [DEBUG] [TaskIconService] poe resolved using built-in type icon {"type":"poe","light":"/workspace/res/icons/light/poe.svg","dark":"/workspace/res/icons/dark/poe.svg"}
+[2026-04-11T03:02:15.551Z] [DEBUG] [TaskIconService] poetry resolved using built-in type icon {"type":"poetry","iconUri":"pyproject.toml","light":"/workspace/res/icons/light/poetry.svg","dark":"/workspace/res/icons/dark/poetry.svg"}
+[2026-04-11T03:02:15.558Z] [DEBUG] [TaskIconService] shell resolved using built-in type icon {"type":"shell","light":"/workspace/res/icons/light/shell.svg","dark":"/workspace/res/icons/dark/shell.svg"}
+[2026-04-11T03:02:15.567Z] [DEBUG] [TaskIconService] venv resolved from $(iconName) syntax {"type":"venv","iconUri":"$(python)","iconName":"python","light":"/workspace/res/icons/light/python.svg","dark":"/workspace/res/icons/dark/python.svg"}
+[2026-04-11T03:02:15.580Z] [DEBUG] [TaskIconService] eslint resolved using built-in type icon {"type":"eslint","iconUri":"eslint.config.mjs","light":"/workspace/res/icons/light/eslint.svg","dark":"/workspace/res/icons/dark/eslint.svg"}
+[2026-04-11T03:02:15.587Z] [DEBUG] [TaskIconService] webpack resolved using built-in type icon {"type":"webpack","iconUri":"webpack.config.js","light":"/workspace/res/icons/light/webpack.svg","dark":"/workspace/res/icons/dark/webpack.svg"}
+[2026-04-11T03:02:15.593Z] [DEBUG] [TaskIconService] cargo resolved using built-in type icon {"type":"cargo","iconUri":"$(cargo)","light":"/workspace/res/icons/light/cargo.svg","dark":"/workspace/res/icons/dark/cargo.svg"}
+[2026-04-11T03:02:15.600Z] [DEBUG] [TaskIconService] typescript resolved using built-in type icon {"type":"typescript","iconUri":"tsconfig.json","light":"/workspace/res/icons/light/typescript.svg","dark":"/workspace/res/icons/dark/typescript.svg"}
+[2026-04-11T03:02:15.611Z] [DEBUG] [TaskIconService] go resolved using built-in type icon {"type":"go","iconUri":"$(go)","light":"/workspace/res/icons/light/go.svg","dark":"/workspace/res/icons/dark/go.svg"}
+[2026-04-11T03:02:15.811Z] [DEBUG] [TaskIconService] cargo-make resolved using built-in type icon {"type":"cargo-make","light":"/workspace/res/icons/light/cargo-make.svg","dark":"/workspace/res/icons/dark/cargo-make.svg"}
+[2026-04-11T03:02:15.817Z] [DEBUG] [TaskIconService] cmake resolved using built-in type icon {"type":"cmake","light":"/workspace/res/icons/light/cmake.svg","dark":"/workspace/res/icons/dark/cmake.svg"}
+[2026-04-11T03:02:15.865Z] [DEBUG] [TaskIconService] maven resolved using built-in type icon {"type":"maven","light":"/workspace/res/icons/light/maven.svg","dark":"/workspace/res/icons/dark/maven.svg"}
+[2026-04-11T03:02:15.875Z] [DEBUG] [TaskIconService] poe resolved using built-in type icon {"type":"poe","light":"/workspace/res/icons/light/poe.svg","dark":"/workspace/res/icons/dark/poe.svg"}
+[2026-04-11T03:02:15.881Z] [DEBUG] [TaskIconService] poetry resolved using built-in type icon {"type":"poetry","iconUri":"pyproject.toml","light":"/workspace/res/icons/light/poetry.svg","dark":"/workspace/res/icons/dark/poetry.svg"}
+[2026-04-11T03:02:15.887Z] [DEBUG] [TaskIconService] shell resolved using built-in type icon {"type":"shell","light":"/workspace/res/icons/light/shell.svg","dark":"/workspace/res/icons/dark/shell.svg"}
+[2026-04-11T03:02:15.894Z] [DEBUG] [TaskIconService] venv resolved from $(iconName) syntax {"type":"venv","iconUri":"$(python)","iconName":"python","light":"/workspace/res/icons/light/python.svg","dark":"/workspace/res/icons/dark/python.svg"}
+[2026-04-11T03:02:15.905Z] [DEBUG] [TaskIconService] eslint resolved using built-in type icon {"type":"eslint","iconUri":"eslint.config.mjs","light":"/workspace/res/icons/light/eslint.svg","dark":"/workspace/res/icons/dark/eslint.svg"}
+[2026-04-11T03:02:15.910Z] [DEBUG] [TaskIconService] webpack resolved using built-in type icon {"type":"webpack","iconUri":"webpack.config.js","light":"/workspace/res/icons/light/webpack.svg","dark":"/workspace/res/icons/dark/webpack.svg"}
+[2026-04-11T03:02:15.915Z] [DEBUG] [TaskIconService] cargo resolved using built-in type icon {"type":"cargo","iconUri":"$(cargo)","light":"/workspace/res/icons/light/cargo.svg","dark":"/workspace/res/icons/dark/cargo.svg"}
+[2026-04-11T03:02:15.920Z] [DEBUG] [TaskIconService] typescript resolved using built-in type icon {"type":"typescript","iconUri":"tsconfig.json","light":"/workspace/res/icons/light/typescript.svg","dark":"/workspace/res/icons/dark/typescript.svg"}
+[2026-04-11T03:02:15.930Z] [DEBUG] [TaskIconService] go resolved using built-in type icon {"type":"go","iconUri":"$(go)","light":"/workspace/res/icons/light/go.svg","dark":"/workspace/res/icons/dark/go.svg"}

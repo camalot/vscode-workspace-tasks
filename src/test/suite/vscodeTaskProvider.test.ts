@@ -489,4 +489,144 @@ suite('VscodeTaskProvider Test Suite', () => {
       assert.strictEqual(userTask!.taskFileUri, undefined);
     });
   });
+
+  // ─── Fix 5: parallel openTextDocument + pre-built line index ────────────────
+
+  suite('Fix 5 — parallel file open and line-number pre-indexing', () => {
+    test('openTextDocument is called at most once per unique file URI per getSystemTasks() run', async () => {
+      const workspaceFolder: vscode.WorkspaceFolder = {
+        uri: vscode.Uri.file('/workspace'),
+        name: 'workspace',
+        index: 0,
+      };
+      const tasksJson = JSON.stringify({
+        version: '2.0.0',
+        tasks: [
+          { label: 'Task A', type: 'shell', command: 'echo a' },
+          { label: 'Task B', type: 'shell', command: 'echo b' },
+          { label: 'Task C', type: 'shell', command: 'echo c' },
+        ],
+      });
+
+      // Three tasks all from the same file
+      const makeTask = (name: string) => ({
+        name,
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'shell' },
+      }) as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [makeTask('Task A'), makeTask('Task B'), makeTask('Task C')];
+
+      let openCallCount = 0;
+      (vscode.workspace as any).openTextDocument = async (_uri: any) => {
+        openCallCount++;
+        return { getText: () => tasksJson };
+      };
+
+      const tasks = await provider.getSystemTasks();
+      assert.strictEqual(openCallCount, 1, 'openTextDocument should be called exactly once for the shared file');
+      assert.strictEqual(tasks.length, 3);
+    });
+
+    test('openTextDocument calls for different files are issued concurrently (Promise.all)', async () => {
+      const folderA: vscode.WorkspaceFolder = { uri: vscode.Uri.file('/workspace/a'), name: 'a', index: 0 };
+      const folderB: vscode.WorkspaceFolder = { uri: vscode.Uri.file('/workspace/b'), name: 'b', index: 1 };
+
+      const makeTask = (name: string, folder: vscode.WorkspaceFolder) => ({
+        name,
+        source: 'Workspace',
+        scope: folder,
+        definition: { type: 'shell' },
+      }) as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [makeTask('Task A', folderA), makeTask('Task B', folderB)];
+
+      const openOrder: string[] = [];
+      const pendingResolvers: Array<() => void> = [];
+
+      (vscode.workspace as any).openTextDocument = async (uri: vscode.Uri) => {
+        openOrder.push(uri.fsPath);
+        // Simulate async delay — each call suspends until all are in-flight
+        await new Promise<void>((resolve) => pendingResolvers.push(resolve));
+        return { getText: () => '{}' };
+      };
+
+      // Start getSystemTasks() — with Promise.all it fires both opens before awaiting either
+      const getTasksPromise = provider.getSystemTasks();
+
+      // Allow microtasks to run so both openTextDocument calls are initiated
+      await new Promise((resolve) => setImmediate(resolve));
+
+      // Both opens must have been started before either resolves
+      assert.strictEqual(openOrder.length, 2, 'Both openTextDocument calls should be in-flight simultaneously');
+
+      // Unblock both pending resolvers
+      for (const r of pendingResolvers) { r(); }
+      await getTasksPromise;
+    });
+
+    test('line numbers are correctly resolved when multiple tasks share one file', async () => {
+      const workspaceFolder: vscode.WorkspaceFolder = {
+        uri: vscode.Uri.file('/workspace'),
+        name: 'workspace',
+        index: 0,
+      };
+      const tasksJson = [
+        '{',
+        '  "version": "2.0.0",',
+        '  "tasks": [',
+        '    { "label": "Alpha", "type": "shell", "command": "echo alpha" },',
+        '    { "label": "Beta",  "type": "shell", "command": "echo beta"  },',
+        '    { "label": "Gamma", "type": "shell", "command": "echo gamma" }',
+        '  ]',
+        '}',
+      ].join('\n');
+
+      const makeTask = (name: string) => ({
+        name,
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'shell' },
+      }) as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [makeTask('Alpha'), makeTask('Beta'), makeTask('Gamma')];
+      (vscode.workspace as any).openTextDocument = async (_uri: any) => ({ getText: () => tasksJson });
+
+      const tasks = await provider.getSystemTasks();
+      const alpha = tasks.find(t => t.label === 'Alpha');
+      const beta  = tasks.find(t => t.label === 'Beta');
+      const gamma = tasks.find(t => t.label === 'Gamma');
+
+      assert.ok(alpha, 'Alpha should be found');
+      assert.ok(beta,  'Beta should be found');
+      assert.ok(gamma, 'Gamma should be found');
+      // Line 3 = index 3 (0-based): '    { "label": "Alpha", ... }'
+      assert.strictEqual(alpha!.startLine, 3, 'Alpha should be on line 3');
+      assert.strictEqual(beta!.startLine,  4, 'Beta should be on line 4');
+      assert.strictEqual(gamma!.startLine, 5, 'Gamma should be on line 5');
+    });
+
+    test('startLine is undefined when file cannot be opened', async () => {
+      const workspaceFolder: vscode.WorkspaceFolder = {
+        uri: vscode.Uri.file('/workspace'),
+        name: 'workspace',
+        index: 0,
+      };
+      const mockTask = {
+        name: 'Missing Task',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'shell' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockTask];
+      (vscode.workspace as any).openTextDocument = async (_uri: any) => { throw new Error('ENOENT'); };
+
+      const tasks = await provider.getSystemTasks();
+      const item = tasks.find(t => t.label === 'Missing Task');
+      assert.ok(item, 'Task item should still be created when file open fails');
+      assert.strictEqual(item!.startLine, undefined, 'startLine should be undefined when file is missing');
+    });
+  });
 });
