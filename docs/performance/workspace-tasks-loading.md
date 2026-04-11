@@ -22,6 +22,8 @@ nav_order: 1
 
 This investigation diagnosed and resolved a series of performance bottlenecks in the `getTasks()` pipeline — the code path that runs every time the task tree is loaded or refreshed. On the [test dataset](#test-dataset), the cold load time dropped from **~52,000 ms** to **~795 ms** (~98.5% reduction) across seven targeted fixes.
 
+![Workspace-Tasks Load v1.6.0](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-load-v1.6.0.gif){: .vat }
+
 ---
 
 ## Test Dataset
