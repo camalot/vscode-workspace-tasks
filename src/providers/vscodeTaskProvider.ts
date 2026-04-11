@@ -184,23 +184,26 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     const taskTextByFile = new Map<string, string>();
     const dependsOnByFile = new Map<string, Map<string, string[]>>();
 
-    // get the system registered tasks
-    const allTasks: vscode.Task[] = await vscode.tasks.fetchTasks();
-
+    // Phase 1: fetch all registered VS Code tasks.
     // Include both workspace tasks and user-level tasks (source 'Workspace' or 'User').
     // Note: user profile tasks also have source 'Workspace' in real VSCode.
+    const allTasks: vscode.Task[] = await vscode.tasks.fetchTasks();
     const vscodeTasks = allTasks.filter((t => t.source === 'Workspace' || t.source === 'User'));
     this.logger.debug(`[VscodeTaskProvider] Fetched ${vscodeTasks.length} system tasks from VSCode.`);
 
-    for (const vscodeTask of vscodeTasks) {
-      this.logger.debug(`[VscodeTaskProvider] - Processing Task: ${vscodeTask.name}, Source: ${vscodeTask.source}`);
+    // Phase 2: resolve file URI and scope metadata for every task (synchronous).
+    // Workspace-folder tasks have an object scope with a .uri property (vscode.WorkspaceFolder).
+    // User profile tasks have a numeric scope (TaskScope.Global=1 or TaskScope.Workspace=2),
+    // NOT a WorkspaceFolder object. Checking typeof lets us distinguish them reliably without
+    // depending on a specific enum value that may vary across VSCode versions.
+    interface VscodeTaskMeta {
+      vscodeTask: vscode.Task;
+      label: string;
+      fileUri: vscode.Uri | undefined;
+      isUserProfileTask: boolean;
+    }
+    const taskMetas: VscodeTaskMeta[] = vscodeTasks.map((vscodeTask) => {
       const label = vscodeTask.name || 'Unnamed Task';
-
-      // Determine the correct file URI based on the task's workspace folder scope.
-      // Workspace-folder tasks have an object scope with a .uri property (vscode.WorkspaceFolder).
-      // User profile tasks have a numeric scope (TaskScope.Global=1 or TaskScope.Workspace=2),
-      // NOT a WorkspaceFolder object. Checking typeof lets us distinguish them reliably without
-      // depending on a specific enum value that may vary across VSCode versions.
       const rawScope = vscodeTask.scope;
       const workspaceFolderScope: vscode.WorkspaceFolder | undefined =
         rawScope !== null &&
@@ -210,21 +213,87 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
           ? rawScope as vscode.WorkspaceFolder
           : undefined;
       const isUserProfileTask = workspaceFolderScope === undefined || vscodeTask.source === 'User';
-
       let fileUri: vscode.Uri | undefined;
-      if (isUserProfileTask) {
-        // User profile tasks might not be in the default user tasks.json
-        // We use undefined to indicate it's a user task without a known direct path.
-        fileUri = undefined;
-      } else if (vscodeTask.definition._source) {
-        // Use the _source property if available (more specific than folder default)
-        fileUri = typeof vscodeTask.definition._source === 'string'
-          ? vscode.Uri.file(vscodeTask.definition._source)
-          : vscodeTask.definition._source;
-      } else {
-        // Workspace folder task — use the folder's .vscode/tasks.json
-        fileUri = vscode.Uri.joinPath(workspaceFolderScope!.uri, '.vscode', 'tasks.json');
+      if (!isUserProfileTask) {
+        if (vscodeTask.definition._source) {
+          // Use the _source property if available (more specific than folder default)
+          fileUri = typeof vscodeTask.definition._source === 'string'
+            ? vscode.Uri.file(vscodeTask.definition._source)
+            : vscodeTask.definition._source;
+        } else {
+          // Workspace folder task — use the folder's .vscode/tasks.json
+          fileUri = vscode.Uri.joinPath(workspaceFolderScope!.uri, '.vscode', 'tasks.json');
+        }
       }
+      return { vscodeTask, label, fileUri, isUserProfileTask };
+    });
+
+    // Phase 3 (Fix 5a): open all unique task files in parallel rather than one-at-a-time inside
+    // the serial processing loop. A cold openTextDocument call can take 385ms+; batching them
+    // with Promise.all turns N sequential waits into a single concurrent wait.
+    const uniqueFileUris = new Map<string, vscode.Uri>();
+    for (const { fileUri } of taskMetas) {
+      if (fileUri) {
+        uniqueFileUris.set(fileUri.toString(), fileUri);
+      }
+    }
+    await Promise.all(
+      [...uniqueFileUris.values()].map(async (uri) => {
+        const key = uri.toString();
+        try {
+          const document = await vscode.workspace.openTextDocument(uri);
+          const text = document.getText();
+          taskTextByFile.set(key, text);
+          if (text) {
+            try {
+              dependsOnByFile.set(key, getDependsOnMap(text));
+            } catch {
+              // Ignore parse errors and continue without compound metadata.
+            }
+          }
+        } catch {
+          // File may not exist (e.g. user tasks.json on a machine that has none)
+          this.logger.debug(`[VscodeTaskProvider] - Could not open file: ${uri.fsPath}`);
+          taskTextByFile.set(key, '');
+        }
+      }),
+    );
+
+    // Phase 4 (Fix 5b): build per-file line-number index for all expected task labels.
+    // Groups all labels per file, then splits each file's text exactly once and scans for every
+    // label in a single pass — O(lines + labels) per file instead of O(lines × tasks).
+    const labelsByFile = new Map<string, string[]>();
+    for (const { fileUri, label } of taskMetas) {
+      if (!fileUri) {
+        continue;
+      }
+      const key = fileUri.toString();
+      if (!labelsByFile.has(key)) {
+        labelsByFile.set(key, []);
+      }
+      labelsByFile.get(key)!.push(label);
+    }
+    const lineNumberByFile = new Map<string, Map<string, number>>();
+    for (const [key, labels] of labelsByFile) {
+      const text = taskTextByFile.get(key) ?? '';
+      const lines = text.split('\n');
+      const fileLineMap = new Map<string, number>();
+      lineNumberByFile.set(key, fileLineMap);
+      const remaining = new Set(labels);
+      for (let i = 0; i < lines.length && remaining.size > 0; i++) {
+        for (const lbl of remaining) {
+          if (lines[i].includes(`"${lbl}"`)) {
+            fileLineMap.set(lbl, i);
+            remaining.delete(lbl);
+            break;
+          }
+        }
+      }
+    }
+
+    // Phase 5: build TaskItems from pre-fetched data (entirely synchronous).
+    for (const { vscodeTask, label, fileUri, isUserProfileTask } of taskMetas) {
+      this.logger.debug(`[VscodeTaskProvider] - Processing Task: ${vscodeTask.name}, Source: ${vscodeTask.source}`);
 
       const item = new TaskItem(
         label,
@@ -243,36 +312,11 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
         item.taskOrigin = 'user';
       }
 
-      let text = '';
-      if (fileUri) {
-        const fileKey = fileUri.toString();
-        if (taskTextByFile.has(fileKey)) {
-          text = taskTextByFile.get(fileKey)!;
-        } else {
-          try {
-            const document = await vscode.workspace.openTextDocument(fileUri);
-            text = document.getText();
-          } catch {
-            // File may not exist (e.g. user tasks.json on a machine that has none)
-            this.logger.debug(`[VscodeTaskProvider] - Could not open file: ${fileUri.fsPath}`);
-          }
-          taskTextByFile.set(fileKey, text);
-
-          if (text) {
-            try {
-              dependsOnByFile.set(fileKey, getDependsOnMap(text));
-            } catch {
-              // Ignore parse errors and continue without compound metadata.
-            }
-          }
-        }
-      }
-
       if (fileUri) {
         const fileKey = fileUri.toString();
         const dependsOnMap = dependsOnByFile.get(fileKey);
         if (dependsOnMap) {
-          const dependsOnLabels = dependsOnMap.get((label || '').toLowerCase()) || [];
+          const dependsOnLabels = dependsOnMap.get((label || '').toLowerCase()) ?? [];
           if (dependsOnLabels.length > 0) {
             item.metadata = {
               ...(item.metadata || {}),
@@ -280,14 +324,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
             };
           }
         }
-      }
-
-      const lines = text.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i].includes(`"${label}"`)) {
-          item.startLine = i;
-          break;
-        }
+        item.startLine = lineNumberByFile.get(fileKey)?.get(label);
       }
 
       if (isUserProfileTask) {

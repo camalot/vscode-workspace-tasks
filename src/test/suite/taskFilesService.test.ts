@@ -1130,4 +1130,122 @@ package.json@build`;
             assert.strictEqual(service.hasRegisteredPatterns(), true);
         });
     });
+
+    // ─── Uncovered-pattern batch coalescing ──────────────────────────────────
+
+    suite('uncovered batch coalescing', () => {
+        let originalFindFiles: typeof vscode.workspace.findFiles;
+        let findFilesCalls: string[];
+
+        setup(() => {
+            originalFindFiles = vscode.workspace.findFiles;
+            findFilesCalls = [];
+            // Remove all registered patterns so every call goes through the uncovered path
+            (service as any).registeredPatterns = new Set<string>();
+            // Reset batch state
+            (service as any).uncoveredBatchQueue = [];
+            (service as any).uncoveredBatchScheduled = false;
+        });
+
+        teardown(() => {
+            (vscode.workspace as any).findFiles = originalFindFiles;
+            (service as any).registeredPatterns = new Set<string>();
+            (service as any).uncoveredBatchQueue = [];
+            (service as any).uncoveredBatchScheduled = false;
+        });
+
+        test('concurrent findFiles calls with uncovered patterns are coalesced into one vscode.workspace.findFiles call', async () => {
+            const uriA = vscode.Uri.file('/workspace/Cargo.toml');
+            const uriB = vscode.Uri.file('/workspace/go.mod');
+            const uriC = vscode.Uri.file('/workspace/pyproject.toml');
+
+            // Mock so each known pattern returns its own file; the combined batch
+            // pattern contains all three so all three URIs are returned together.
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                // skip internal .tasksignore calls
+                if (pattern.includes('.tasksignore')) { return []; }
+                findFilesCalls.push(pattern);
+                const results: vscode.Uri[] = [];
+                if (pattern.includes('Cargo.toml')) { results.push(uriA); }
+                if (pattern.includes('go.mod')) { results.push(uriB); }
+                if (pattern.includes('pyproject.toml')) { results.push(uriC); }
+                return results;
+            };
+
+            // Fire three concurrent uncovered findFiles calls (mirrors WorkspaceTasksProvider Phase 2)
+            const [r1, r2, r3] = await Promise.all([
+                service.findFiles(['**/Cargo.toml']),
+                service.findFiles(['**/go.mod']),
+                service.findFiles(['**/pyproject.toml']),
+            ]);
+
+            assert.strictEqual(findFilesCalls.length, 1, 'Should make exactly one vscode.workspace.findFiles call');
+            assert.ok(r1.some(u => u.fsPath === uriA.fsPath), 'cargo result should contain Cargo.toml');
+            assert.ok(r2.some(u => u.fsPath === uriB.fsPath), 'go result should contain go.mod');
+            assert.ok(r3.some(u => u.fsPath === uriC.fsPath), 'poetry result should contain pyproject.toml');
+        });
+
+        test('sequential (non-concurrent) findFiles calls each get their own query', async () => {
+            const uriA = vscode.Uri.file('/workspace/Cargo.toml');
+            const uriB = vscode.Uri.file('/workspace/go.mod');
+
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                if (pattern.includes('.tasksignore')) { return []; }
+                findFilesCalls.push(pattern);
+                if (pattern.includes('Cargo')) { return [uriA]; }
+                if (pattern.includes('go.mod')) { return [uriB]; }
+                return [];
+            };
+
+            // Sequential calls — each is awaited before the next starts, so they cannot coalesce
+            const r1 = await service.findFiles(['**/Cargo.toml']);
+            const r2 = await service.findFiles(['**/go.mod']);
+
+            assert.strictEqual(findFilesCalls.length, 2, 'Sequential calls should each produce their own query');
+            assert.ok(r1.some(u => u.fsPath === uriA.fsPath), 'First call should find Cargo.toml');
+            assert.ok(r2.some(u => u.fsPath === uriB.fsPath), 'Second call should find go.mod');
+        });
+
+        test('per-request exclude is applied in memory after coalesced batch query', async () => {
+            const uriA = vscode.Uri.file('/workspace/src/Cargo.toml');
+            const uriB = vscode.Uri.file('/workspace/vendor/Cargo.toml');
+
+            // Both URIs returned by the batch query
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                if (pattern.includes('.tasksignore')) { return []; }
+                findFilesCalls.push(pattern);
+                return [uriA, uriB];
+            };
+
+            // Two concurrent calls: one excludes vendor/**, the other does not
+            const [rFiltered, rUnfiltered] = await Promise.all([
+                service.findFiles(['**/Cargo.toml'], ['**/vendor/**']),
+                service.findFiles(['**/Cargo.toml']),
+            ]);
+
+            assert.strictEqual(findFilesCalls.length, 1, 'Should still make only one batch query');
+            assert.ok(!rFiltered.some(u => u.fsPath === uriB.fsPath), 'vendor/ Cargo.toml should be excluded from filtered result');
+            assert.ok(rFiltered.some(u => u.fsPath === uriA.fsPath), 'src/ Cargo.toml should appear in filtered result');
+            assert.ok(rUnfiltered.some(u => u.fsPath === uriB.fsPath), 'vendor/ Cargo.toml should appear in unfiltered result');
+            assert.ok(rUnfiltered.some(u => u.fsPath === uriA.fsPath), 'src/ Cargo.toml should appear in unfiltered result');
+        });
+
+        test('errors from the batch query are propagated to all waiting callers', async () => {
+            const batchError = new Error('findFiles batch failure');
+            (vscode.workspace as any).findFiles = async (pattern: string) => {
+                if (pattern.includes('.tasksignore')) { return []; }
+                throw batchError;
+            };
+
+            const [r1, r2] = await Promise.allSettled([
+                service.findFiles(['**/Cargo.toml']),
+                service.findFiles(['**/go.mod']),
+            ]);
+
+            assert.strictEqual(r1.status, 'rejected', 'First caller should receive the error');
+            assert.strictEqual(r2.status, 'rejected', 'Second caller should receive the error');
+            assert.strictEqual((r1 as PromiseRejectedResult).reason, batchError);
+            assert.strictEqual((r2 as PromiseRejectedResult).reason, batchError);
+        });
+    });
 });

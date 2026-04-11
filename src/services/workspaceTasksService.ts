@@ -61,6 +61,7 @@ export class WorkspaceTasksService {
   }
 
   private async loadWorkspaceConfig() {
+    const loadStart = Date.now();
     let newConfig: FileTasksConfig = {};
     let defaultsPath: string | undefined;
 
@@ -70,17 +71,22 @@ export class WorkspaceTasksService {
 
     try {
       if (defaultsPath && fs.existsSync(defaultsPath)) {
+        const defaultsStart = Date.now();
         const content = await fs.promises.readFile(defaultsPath, 'utf8');
         newConfig = parseJsonWithComments(content);
+        this.logger.debug(`[WorkspaceTasksService] Loaded built-in defaults in ${Date.now() - defaultsStart}ms.`);
       }
     } catch (e) {
       this.logger.error(`[WorkspaceTasksService]: Failed to load default workspace tasks from ${defaultsPath}`, e);
     }
 
     const filesService = TaskFilesService.getInstance();
+    const findStart = Date.now();
     const files = await filesService.findFiles(['**/.workspace-tasks.json']);
+    this.logger.debug(`[WorkspaceTasksService] Found ${files.length} .workspace-tasks.json file(s) in ${Date.now() - findStart}ms.`);
     if (files.length > 0) {
       for (const file of files) {
+        const fileStart = Date.now();
         try {
           const content = await vscode.workspace.fs.readFile(file);
           const jsonString = new TextDecoder().decode(content);
@@ -105,6 +111,7 @@ export class WorkspaceTasksService {
           }
 
           this.mergeConfig(newConfig, localConfig);
+          this.logger.debug(`[WorkspaceTasksService] Loaded ${file.fsPath} in ${Date.now() - fileStart}ms.`);
         } catch (e) {
           if (e instanceof Error && e.message.includes('Unexpected end of JSON input')) {
             this.logger.debug(`[WorkspaceTasksService]: Incomplete JSON in ${file.fsPath}, ignoring.`);
@@ -116,6 +123,24 @@ export class WorkspaceTasksService {
     }
     this.config = newConfig;
     this.configLoaded = true;
+
+    // Register all dynamic globs declared in workspace-task configs with TaskFilesService so that
+    // the shared file cache includes them. This avoids each provider issuing its own uncovered
+    // vscode.workspace.findFiles call and instead lets them all share a single combined scan.
+    const dynamicGlobs: string[] = ['**/.workspace-tasks.json'];
+    for (const key of Object.keys(this.config)) {
+      const includes = this.config[key].globs?.include ?? [];
+      dynamicGlobs.push(...includes);
+    }
+    const uniqueGlobs = [...new Set(dynamicGlobs)];
+    filesService.registerPatterns(uniqueGlobs);
+    // Mark the cache stale so the next findFiles() call rebuilds it including the new patterns.
+    // Using markCacheStale() (not invalidateCache()) avoids triggering a premature tree refresh
+    // during extension startup before providers and the tree view are initialised.
+    filesService.markCacheStale();
+    this.logger.debug(`[WorkspaceTasksService] Registered ${uniqueGlobs.length} dynamic glob pattern(s) with TaskFilesService.`);
+
+    this.logger.info(`[WorkspaceTasksService] loadWorkspaceConfig() completed in ${Date.now() - loadStart}ms (${Object.keys(this.config).length} provider(s) loaded).`);
   }
 
   private mergeConfig(target: FileTasksConfig, local: FileTasksConfig) {
@@ -155,7 +180,9 @@ export class WorkspaceTasksService {
   }
 
   public async getProviders(): Promise<string[]> {
-    await this.loadWorkspaceConfig();
+    if (!this.configLoaded) {
+      await this.loadWorkspaceConfig();
+    }
     // Return all the keys (language IDs / Task Types) from the config
     return Object.keys(this.config).filter((key) => {
       // ignore keys that start with _ and $
