@@ -312,12 +312,15 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
         // so any concurrent caller for this path sees it immediately
         const readPromise = (async () => {
           const handle = await fs.promises.open(uri.fsPath, 'r');
-          const buffer = new Uint8Array(2);
-          const { bytesRead } = await handle.read(buffer, 0, 2, 0);
-          await handle.close();
-          const hasShebang = bytesRead >= 2 && buffer[0] === 0x23 && buffer[1] === 0x21; // #!
-          this.shebangCache.set(uri.fsPath, { hasShebang, mtime });
-          return hasShebang;
+          try {
+            const buffer = new Uint8Array(2);
+            const { bytesRead } = await handle.read(buffer, 0, 2, 0);
+            const hasShebang = bytesRead >= 2 && buffer[0] === 0x23 && buffer[1] === 0x21; // #!
+            this.shebangCache.set(uri.fsPath, { hasShebang, mtime });
+            return hasShebang;
+          } finally {
+            await handle.close();
+          }
         })();
         this.shebangInFlight.set(uri.fsPath, readPromise);
         try {
