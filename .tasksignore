@@ -6,3 +6,7 @@ src/test/task-files
 **/package.json@build
 .devcontainer/**
 docs/_plugins/**
+.github/linters/**
+.vscode/tasks.json@npm: test
+.vscode/tasks.json@npm: compile
+.vscode/tasks.json@npm: watch
