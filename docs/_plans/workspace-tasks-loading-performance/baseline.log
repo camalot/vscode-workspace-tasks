@@ -1,0 +1,52 @@
+[2026-04-10T21:40:42.867Z] [DEBUG] [WorkspaceTasksService] Loaded built-in defaults in 14ms.
+[2026-04-10T21:40:45.082Z] [DEBUG] [WorkspaceTasksService] Found 1 .workspace-tasks.json file(s) in 2215ms.
+[2026-04-10T21:40:45.089Z] [DEBUG] [WorkspaceTasksService] Loaded /workspace/sample/sample-workspace-tasks/.workspace-tasks.json in 7ms.
+[2026-04-10T21:40:45.090Z] [INFO] [WorkspaceTasksService] loadWorkspaceConfig() completed in 2239ms (17 provider(s) loaded).
+[2026-04-10T21:40:45.115Z] [DEBUG] [WorkspaceTasksService] Loaded built-in defaults in 10ms.
+[2026-04-10T21:41:00.262Z] [DEBUG] [WorkspaceTasksService] Found 1 .workspace-tasks.json file(s) in 15147ms.
+15175ms
+[2026-04-10T21:41:00.307Z] [DEBUG] [WorkspaceTasksService] Loaded /workspace/sample/sample-workspace-tasks/.workspace-tasks.json in 45ms.
+[2026-04-10T21:41:00.307Z] [INFO] [WorkspaceTasksService] loadWorkspaceConfig() completed in 15204ms (17 provider(s) loaded).
+[2026-04-10T21:41:00.307Z] [DEBUG] [WorkspaceTasksProvider] Found 16 provider(s) to process.
+[2026-04-10T21:41:00.308Z] [DEBUG] [WorkspaceTasksProvider] Provider "cargo": 5 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:03.341Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/cargo/Cargo.toml for provider: cargo
+[2026-04-10T21:41:03.342Z] [DEBUG] [WorkspaceTasksProvider] Provider "cargo" loaded 1 file(s) in 3034ms.
+[2026-04-10T21:41:03.342Z] [DEBUG] [WorkspaceTasksProvider] Provider "go": 8 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:05.621Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/golang/go.mod for provider: go
+[2026-04-10T21:41:05.622Z] [DEBUG] [WorkspaceTasksProvider] Provider "go" loaded 1 file(s) in 2280ms.
+[2026-04-10T21:41:05.622Z] [DEBUG] [WorkspaceTasksProvider] Provider "poetry": 7 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:05.629Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/python/pyproject.toml for provider: poetry
+[2026-04-10T21:41:05.629Z] [DEBUG] [WorkspaceTasksProvider] Provider "poetry" loaded 1 file(s) in 7ms.
+[2026-04-10T21:41:05.629Z] [DEBUG] [WorkspaceTasksProvider] Provider "pipenv": 3 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:07.542Z] [DEBUG] [WorkspaceTasksProvider] Provider "pipenv" loaded 0 file(s) in 1913ms.
+[2026-04-10T21:41:07.543Z] [DEBUG] [WorkspaceTasksProvider] Provider "docker-compose": 2 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:09.446Z] [DEBUG] [WorkspaceTasksProvider] Provider "docker-compose" loaded 0 file(s) in 1904ms.
+[2026-04-10T21:41:09.446Z] [DEBUG] [WorkspaceTasksProvider] Provider "dockerfile": 1 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:11.392Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/docker/dockerfile for provider: dockerfile
+[2026-04-10T21:41:11.392Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/.devcontainer/Dockerfile for provider: dockerfile
+[2026-04-10T21:41:11.392Z] [DEBUG] [WorkspaceTasksProvider] Provider "dockerfile" loaded 2 file(s) in 1946ms.
+[2026-04-10T21:41:11.392Z] [DEBUG] [WorkspaceTasksProvider] Provider "typescript": 2 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:13.236Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/tsconfig.json for provider: typescript
+[2026-04-10T21:41:13.236Z] [DEBUG] [WorkspaceTasksProvider] Provider "typescript" loaded 1 file(s) in 1844ms.
+[2026-04-10T21:41:13.237Z] [DEBUG] [WorkspaceTasksProvider] Provider "npm": 4 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:13.242Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/package.json for provider: npm
+[2026-04-10T21:41:13.242Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/nodejs/package.json for provider: npm
+[2026-04-10T21:41:13.242Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/grunt/package.json for provider: npm
+[2026-04-10T21:41:13.242Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/gulp/package.json for provider: npm
+[2026-04-10T21:41:13.242Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appC/package.json for provider: npm
+[2026-04-10T21:41:13.242Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appA/package.json for provider: npm
+[2026-04-10T21:41:13.242Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/apps/appB/package.json for provider: npm
+[2026-04-10T21:41:13.242Z] [DEBUG] [WorkspaceTasksProvider] Provider "npm" loaded 7 file(s) in 6ms.
+[2026-04-10T21:41:13.243Z] [DEBUG] [WorkspaceTasksProvider] Provider "venv": 1 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:15.233Z] [DEBUG] [WorkspaceTasksProvider] Provider "venv" loaded 0 file(s) in 1990ms.
+[2026-04-10T21:41:15.234Z] [DEBUG] [WorkspaceTasksProvider] Provider "eslint": 11 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:17.216Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/eslint.config.mjs for provider: eslint
+[2026-04-10T21:41:17.217Z] [DEBUG] [WorkspaceTasksProvider] Provider "eslint" loaded 1 file(s) in 1984ms.
+[2026-04-10T21:41:17.217Z] [DEBUG] [WorkspaceTasksProvider] Provider "webpack": 3 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:19.154Z] [DEBUG] [TaskIconService] webpack resolved using built-in type icon {"type":"webpack","iconUri":"webpack.config.js","light":"/workspace/res/icons/light/webpack.svg","dark":"/workspace/res/icons/dark/webpack.svg"}
+[2026-04-10T21:41:19.154Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/webpack.config.js for provider: webpack
+[2026-04-10T21:41:19.154Z] [DEBUG] [WorkspaceTasksProvider] Provider "webpack" loaded 1 file(s) in 1937ms.
+[2026-04-10T21:41:19.154Z] [DEBUG] [WorkspaceTasksProvider] Provider "pantera": 1 task definition(s), 1 include glob(s).
+[2026-04-10T21:41:22.463Z] [DEBUG] [workspace-taskTaskProvider] Processing file: /workspace/sample/sample-workspace-tasks/shell/hello2.sh for provider: pantera
+[2026-04-10T21:41:22.464Z] [DEBUG] [WorkspaceTasksProvider] Provider "pantera" loaded 1 file(s) in 3310ms.
+[2026-04-10T21:41:22.464Z] [INFO] [WorkspaceTasksProvider] getTasks() completed: 67 total task(s) loaded in 37361ms.
