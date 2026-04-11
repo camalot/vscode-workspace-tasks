@@ -25,6 +25,10 @@ export class TaskHistoryService {
   private readonly _onDidChange = new vscode.EventEmitter<void>();
   public readonly onDidChange = this._onDidChange.event;
 
+  private readonly _onDidRecordHistory = new vscode.EventEmitter<ITaskExecutionRecord>();
+  /** Fires after a task execution record transitions to a terminal state (Success / Failed / Terminated). */
+  public readonly onDidRecordHistory = this._onDidRecordHistory.event;
+
   private historyGroups: Map<string, ITaskHistoryGroup> = new Map();
   private activeExecutions: Map<vscode.TaskExecution, ITaskExecutionRecord> = new Map();
   private context: vscode.ExtensionContext | undefined;
@@ -128,6 +132,7 @@ export class TaskHistoryService {
       }
 
       this._onDidChange.fire();
+      this._onDidRecordHistory.fire(record);
     }
   }
 
@@ -143,6 +148,7 @@ export class TaskHistoryService {
         // We don't have exit code here usually
         record.status = 'Terminated';
         this._onDidChange.fire();
+        this._onDidRecordHistory.fire(record);
       }
       this.activeExecutions.delete(e.execution);
     }
