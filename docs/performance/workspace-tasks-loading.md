@@ -94,10 +94,11 @@ The workspace tasks config (`loadWorkspaceConfig`) was being called **twice** �
 
 ### Fix 5 — Optimize `VscodeTaskProvider` File Access
 
-**Problem:** `VscodeTaskProvider.getSystemTasks()` opened and read VS Code task files **sequentially**, one await per file. Additionally, it was reading entire file contents when only the first line (the shebang or task label) is needed.
+**Problem:** `VscodeTaskProvider.getSystemTasks()` opened and processed VS Code task files **sequentially**, one await per file. It also incurred avoidable per-file processing overhead while scanning document content to extract task metadata.
 
 **Fix (5a):** Converted the file-open loop to `Promise.all()` for parallel file access.
-**Fix (5b):** Changed file reads to stop at the first line instead of reading the entire file.
+
+**Fix (5b):** Kept the full-document read, but reduced processing overhead by scanning each file's content once per file instead of performing additional repeated line-processing work.
 
 **Result:** Warm-reload time for `VscodeTaskProvider`: ~2,613 ms → ~697 ms (~1,916 ms saved).
 
