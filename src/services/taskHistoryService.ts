@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { TaskStateManager } from '../taskStateManager';
 
 export interface ITaskExecutionRecord {
   id: string; // Unique ID for this execution (e.g. uuid or timestamp based)
@@ -125,12 +126,18 @@ export class TaskHistoryService {
       record.exitCode = e.exitCode;
       record.duration = record.endTime - record.startTime;
 
+      const stateManager = TaskStateManager.getInstance();
+      const taskId = stateManager.getIdByExecution(e.execution);
+      const wasTerminated = taskId !== undefined && stateManager.isTerminated(taskId);
+
       if (e.exitCode === 0) {
         record.status = 'Success';
+      } else if (wasTerminated) {
+        record.status = 'Terminated'; // Task was explicitly stopped (e.g. via SIGINT)
       } else if (e.exitCode !== undefined) {
         record.status = 'Failed'; // Non-zero exit code
       } else {
-        record.status = 'Terminated'; // Usually if no exit code, might be terminated?
+        record.status = 'Terminated'; // No exit code — treat as terminated
       }
 
       this._onDidChange.fire();

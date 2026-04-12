@@ -332,18 +332,63 @@ Extend the existing `vscode.getState()`/`setState()` calls to persist `tab: 'das
 - Charts using aggregated metrics should read `dashboardMetrics` (has `recentDurations`, `hourlyRunCounts`).
 - The `metricsData` variable (from `loadData`) still drives `renderSummary()` and the Statistics tab — do not change that.
 
-### Phase 3: Charts
+### Phase 3: Charts ✅ COMPLETE
 
-Implement charts in this order (simplest → most complex):
+All 8 charts/panels implemented in `res/webviews/taskHistory.html`. TypeScript type-check passes (exit 0). All 1093 tests passing, 5 pending, no regressions.
 
-1. **Execution Outcomes doughnut** (uses summary data from `dashboardMetrics`)
-2. **Daily Activity line** (uses `dashboardHistory` — the atomically consistent snapshot from `loadDashboardData`)
-3. **Top Tasks bar** (uses `dashboardMetrics`)
-4. **Success Rate bar** (uses `dashboardMetrics`)
-5. **Duration Comparison grouped bar** (uses `dashboardMetrics`)
-6. **Hourly Activity bar** (uses `dashboardMetrics.hourlyRunCounts` — available now via `loadDashboardData`)
-7. **Duration Trend sparklines** (uses `dashboardMetrics.recentDurations`)
-8. **Attention Required table** (no chart, uses `dashboardMetrics`)
+**Charts implemented (in final render order):**
+
+| # | Name | Chart type | Data source |
+| --- | --- | --- | --- |
+| 1 | Execution Outcomes | Doughnut | `dashboardMetrics` — success/fail/terminated totals |
+| 2 | Hourly Activity | Bar | `dashboardMetrics.hourlyRunCounts[0..23]` summed across all tasks |
+| 3 | Top Tasks by Executions | Horizontal bar | `dashboardMetrics` — top 15 by `totalExecutions` |
+| 4 | Success Rate (worst first) | Horizontal bar | `dashboardMetrics` — bottom 20 `successRate` |
+| 5 | Duration Comparison | Grouped bar (min/avg/p95/max) | `dashboardMetrics` — top 10 by executions |
+| 6 | Daily Activity (14 days) | Line with fill | `dashboardHistory` |
+| 7 | Duration Trend Sparklines | Micro line charts | `dashboardMetrics.recentDurations` — top 20 by `totalExecutions`, ≥5 samples |
+| 8 | Attention Required | HTML table | `dashboardMetrics` — flaky / low success / recent-failure tasks |
+
+**New helper functions added:**
+
+- `destroyDashboardCharts()` — iterates `Object.values(dashboardCharts)`, calls `.destroy()`, resets to `{}`; called at start of each `renderDashboard()` invocation
+- `cssVar(name)` — reads CSS custom properties via `getComputedStyle`
+- `withAlpha(color, alpha)` — handles `#RRGGBB`, `#RGB`, `rgb(...)`, `rgba(...)` formats with fallback to solid color (needed because VS Code CSS vars can be any format)
+- `taskNameFromKey(key)` — splits `"type:name:scope"` and returns the middle segment
+- `truncate(str, maxLen)` — appends `…` if string exceeds `maxLen`
+- `makeDashCard(title)` — creates a `.dash-card` wrapper div with a `.dash-card-title` heading
+- `applyChartDefaults()` — sets `Chart.defaults` font, color, border, tooltip from CSS vars; called once per `renderDashboard()` invocation
+
+**Canvas IDs:**
+`chart-outcomes`, `chart-hourly`, `chart-top-tasks`, `chart-success-rate`, `chart-duration`, `chart-daily`; sparklines keyed `sparkline-{metricsKey}` (stored in `dashboardCharts`).
+
+**Layout:**
+
+- Row 1: `.dash-grid-2` (2-column CSS grid) — Outcomes doughnut + Hourly activity side-by-side
+- Rows 2–8: Full-width `.dash-card` elements stacked vertically
+
+**Dynamic canvas heights:**
+
+- Horizontal bar charts: `entries.length * 28 + 20` px (grow with data)
+- Grouped bar (Duration Comparison): 260 px
+- Hourly / Daily charts: 200 px
+- Sparklines: 60 px per task
+
+**Decisions from rubber-duck critique:**
+
+| Issue | Decision |
+| --- | --- |
+| `withAlpha` originally hex-only | Expanded to handle `rgb()` / `rgba()` with fallback |
+| Sparklines sorted arbitrarily | Sort by `totalExecutions` desc before `.slice(0, 20)` |
+| `new Date()` called inside daily activity loop | Captured as `const baseDate = new Date()` once before the loop (avoids midnight edge case) |
+| `attention-table th:hover` inherited blue hover | Added `.attention-table th:hover { background-color: transparent; }` CSS override |
+| Chart destroy vs. `innerHTML` clear order | Destroy while canvas is in DOM (correct — Chart.js disconnects ResizeObserver), then clear `innerHTML` |
+| Global `Chart.defaults` mutation | Acceptable for single-page webview; documented with comment |
+| `centerLabelPlugin` inline object | No memory leak — destroyed with chart instance |
+
+**Files changed (Phase 3 only):**
+
+- `res/webviews/taskHistory.html` — CSS additions, `let dashboardCharts = {}` variable, all helper functions, all 8 chart builder functions, updated `renderDashboard()` orchestrator
 
 ### Phase 4: Polish & Tests
 

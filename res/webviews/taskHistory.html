@@ -328,6 +328,101 @@
     .exit-seg-other {
       background-color: var(--vscode-testing-iconFailed);
     }
+
+    /* ── Dashboard chart layout ──────────────────────────────── */
+    .dash-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .dash-card {
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 4px;
+      background-color: var(--vscode-sideBar-background);
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .dash-grid-2 > .dash-card {
+      margin-bottom: 0;
+    }
+
+    .dash-card-title {
+      font-weight: 600;
+      font-size: 0.8em;
+      color: var(--vscode-descriptionForeground);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .dash-empty {
+      padding: 16px 0;
+      text-align: center;
+      color: var(--vscode-descriptionForeground);
+      font-style: italic;
+      font-size: 0.9em;
+    }
+
+    .sparkline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .sparkline-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sparkline-label {
+      font-size: 0.8em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--vscode-descriptionForeground);
+      margin-bottom: 2px;
+    }
+
+    /* Attention Required — override global th styles from the history table */
+    .attention-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85em;
+    }
+
+    .attention-table th {
+      position: static;
+      cursor: default;
+      user-select: auto;
+      background: none;
+      color: var(--vscode-descriptionForeground);
+      z-index: auto;
+    }
+
+    .attention-table th:hover {
+      background-color: transparent;
+    }
+
+    .attention-table td,
+    .attention-table th {
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--vscode-panel-border);
+      text-align: left;
+    }
+
+    .attention-row td:first-child {
+      border-left: 3px solid var(--vscode-testing-iconFailed);
+      padding-left: 6px;
+    }
+
+    .attention-empty {
+      padding: 12px 0;
+      color: var(--vscode-testing-iconPassed);
+      font-size: 0.9em;
+    }
   </style>
 </head>
 
@@ -372,7 +467,7 @@
   <!-- Statistics tab -->
   <div id="stats-panel" style="display:none;"></div>
 
-  <!-- Dashboard tab (stub — charts rendered in Phase 3) -->
+  <!-- Dashboard tab -->
   <div id="dashboard-panel" style="display:none;"></div>
 
   <script nonce="{{nonce}}">
@@ -388,6 +483,7 @@
     // both fields reflect the same provider snapshot.
     let dashboardMetrics = {};
     let dashboardHistory = [];
+    let dashboardCharts = {}; // active Chart.js instances; destroyed before each re-render
     let currentTab = savedState.tab || 'history';
     let sortKey = savedState.sortKey || null;
     let sortDirection = savedState.sortDir || 1;
@@ -741,24 +837,605 @@
       return cell;
     }
 
-    // ── Dashboard (stub — charts rendered in Phase 3) ──────────
-    // Uses dashboardMetrics and dashboardHistory, populated via the loadDashboardData message.
-    // These are always atomically consistent (same provider snapshot).
+    // ── Dashboard ─────────────────────────────────────────────
+    // Chart.js global defaults are applied once per renderDashboard() call via applyChartDefaults().
+    // This is safe: the webview is an isolated browsing context with one Chart global.
+    // dashboardMetrics and dashboardHistory are always an atomically consistent provider snapshot.
+
+    function destroyDashboardCharts() {
+      Object.values(dashboardCharts).forEach(c => c.destroy());
+      dashboardCharts = {};
+    }
+
+    /** Read a VS Code CSS custom property value. */
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    /**
+     * Returns `color` with the given alpha (0–1).
+     * Handles #RRGGBB, #RGB, rgb(...), and rgba(...) formats.
+     * Falls back to the original solid color string if the format is unrecognised.
+     */
+    function withAlpha(color, alpha) {
+      if (!color) { return `rgba(100,140,200,${alpha})`; }
+      if (color.startsWith('#')) {
+        const a = Math.round(alpha * 255).toString(16).padStart(2, '0');
+        if (color.length === 7) { return color + a; }
+        if (color.length === 4) {
+          const r = color[1], g = color[2], b = color[3];
+          return `#${r}${r}${g}${g}${b}${b}${a}`;
+        }
+      }
+      const rgb = color.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+      if (rgb) { return `rgba(${rgb[1]},${rgb[2]},${rgb[3]},${alpha})`; }
+      const rgba = color.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)$/);
+      if (rgba) { return `rgba(${rgba[1]},${rgba[2]},${rgba[3]},${alpha})`; }
+      return color;
+    }
+
+    /** Extract the task name segment from a "type:taskName:scope" metrics key. */
+    function taskNameFromKey(key) {
+      const parts = key.split(':');
+      return parts.slice(1, -1).join(':') || key;
+    }
+
+    /** Truncate a string to maxLen characters, appending '…' if needed. */
+    function truncate(str, maxLen) {
+      if (!str || str.length <= maxLen) { return str || ''; }
+      return str.slice(0, maxLen - 1) + '\u2026';
+    }
+
+    /** Create a styled dashboard card div with a title element. Returns the card. */
+    function makeDashCard(title) {
+      const card = document.createElement('div');
+      card.className = 'dash-card';
+      const titleEl = document.createElement('div');
+      titleEl.className = 'dash-card-title';
+      titleEl.textContent = title;
+      card.appendChild(titleEl);
+      return card;
+    }
+
+    /** Apply VS Code theme colors to Chart.js global defaults before rendering. */
+    function applyChartDefaults() {
+      Chart.defaults.font.family = cssVar('--vscode-font-family') || 'sans-serif';
+      Chart.defaults.font.size = 11;
+      Chart.defaults.color = cssVar('--vscode-foreground') || '#ccc';
+      Chart.defaults.borderColor = cssVar('--vscode-panel-border') || '#444';
+      Chart.defaults.plugins.legend.labels.color = cssVar('--vscode-foreground') || '#ccc';
+      Chart.defaults.plugins.tooltip.backgroundColor =
+        cssVar('--vscode-editorHoverWidget-background') || '#252526';
+      Chart.defaults.plugins.tooltip.titleColor =
+        cssVar('--vscode-editorHoverWidget-foreground') || '#ccc';
+      Chart.defaults.plugins.tooltip.bodyColor =
+        cssVar('--vscode-editorHoverWidget-foreground') || '#ccc';
+      Chart.defaults.plugins.tooltip.borderColor =
+        cssVar('--vscode-editorHoverWidget-border') || '#454545';
+      Chart.defaults.plugins.tooltip.borderWidth = 1;
+    }
+
+    // ── Chart 1: Execution Outcomes (Doughnut) ────────────────
+    function buildOutcomesChart(allMetrics) {
+      const card = makeDashCard('Execution Outcomes');
+      const successful = allMetrics.reduce((s, m) => s + (m.successfulExecutions || 0), 0);
+      const failed = allMetrics.reduce((s, m) => s + (m.failedExecutions || 0), 0);
+      const terminated = allMetrics.reduce((s, m) => s + (m.terminatedExecutions || 0), 0);
+      const total = successful + failed + terminated;
+
+      if (total === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No completed executions yet.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const pct = Math.round((successful / total) * 100);
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:220px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-outcomes';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      const centerLabelPlugin = {
+        id: 'centerLabel',
+        afterDraw(chart) {
+          const { width, height, ctx } = chart;
+          ctx.save();
+          ctx.font = `bold ${Math.round(height / 6)}px ${cssVar('--vscode-font-family') || 'sans-serif'}`;
+          ctx.fillStyle = cssVar('--vscode-foreground') || '#ccc';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`${pct}%`, width / 2, height / 2);
+          ctx.restore();
+        }
+      };
+
+      dashboardCharts['outcomes'] = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['Successful', 'Failed', 'Terminated'],
+          datasets: [{
+            data: [successful, failed, terminated],
+            backgroundColor: [
+              cssVar('--vscode-charts-green'),
+              cssVar('--vscode-charts-red'),
+              cssVar('--vscode-charts-yellow'),
+            ],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const val = ctx.raw;
+                  const pctVal = Math.round((val / total) * 100);
+                  return ` ${val} (${pctVal}%)`;
+                }
+              }
+            }
+          }
+        },
+        plugins: [centerLabelPlugin]
+      });
+      return card;
+    }
+
+    // ── Chart 2: Hourly Activity Pattern (Bar) ────────────────
+    function buildHourlyActivityChart(allMetrics) {
+      const card = makeDashCard('Hourly Activity Pattern');
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:200px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-hourly';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      const hourly = Array(24).fill(0);
+      allMetrics.forEach(m => {
+        if (Array.isArray(m.hourlyRunCounts) && m.hourlyRunCounts.length === 24) {
+          m.hourlyRunCounts.forEach((v, i) => { hourly[i] += (v || 0); });
+        }
+      });
+
+      const peak = Math.max(...hourly);
+      const blue = cssVar('--vscode-charts-blue');
+      const orange = cssVar('--vscode-charts-orange');
+      const colors = hourly.map(v => (v === peak && peak > 0) ? orange : blue);
+      const labels = Array.from({ length: 24 }, (_, h) => {
+        if (h === 0) { return '12 AM'; }
+        if (h === 12) { return '12 PM'; }
+        return h < 12 ? `${h} AM` : `${h - 12} PM`;
+      });
+
+      dashboardCharts['hourly'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Executions', data: hourly, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, ticks: { callback: v => Number.isInteger(v) ? v : undefined } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 3: Top Tasks by Run Count (Horizontal Bar) ──────
+    function buildTopTasksChart(metricsEntries) {
+      const card = makeDashCard('Top Tasks by Run Count');
+      const entries = metricsEntries
+        .filter(([, m]) => (m.totalExecutions || 0) > 0)
+        .sort((a, b) => b[1].totalExecutions - a[1].totalExecutions)
+        .slice(0, 15);
+
+      if (entries.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No task runs recorded.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const avgCount = entries.reduce((s, [, m]) => s + m.totalExecutions, 0) / entries.length;
+      const labels = entries.map(([key]) => truncate(taskNameFromKey(key), 30));
+      const data = entries.map(([, m]) => m.totalExecutions);
+      const blue = cssVar('--vscode-charts-blue');
+      const purple = cssVar('--vscode-charts-purple');
+      const colors = data.map(v => v >= avgCount ? blue : purple);
+
+      const height = Math.max(entries.length * 28 + 20, 120);
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `position:relative;height:${height}px;`;
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-top-tasks';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      dashboardCharts['topTasks'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Executions', data, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, ticks: { callback: v => Number.isInteger(v) ? v : undefined } },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 4: Success Rate by Task (Horizontal Bar) ────────
+    function buildSuccessRateChart(metricsEntries) {
+      const card = makeDashCard('Success Rate by Task');
+      const eligible = metricsEntries
+        .filter(([, m]) => m.successRate !== undefined && (m.totalExecutions || 0) >= 1)
+        .sort((a, b) => (a[1].successRate || 0) - (b[1].successRate || 0))
+        .slice(0, 20);
+
+      if (eligible.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No success rate data available.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const green = cssVar('--vscode-charts-green');
+      const yellow = cssVar('--vscode-charts-yellow');
+      const red = cssVar('--vscode-charts-red');
+      const labels = eligible.map(([key]) => truncate(taskNameFromKey(key), 30));
+      const data = eligible.map(([, m]) => Math.round(m.successRate));
+      const colors = data.map(v => v >= 80 ? green : v >= 50 ? yellow : red);
+
+      const height = Math.max(eligible.length * 28 + 20, 120);
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `position:relative;height:${height}px;`;
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-success-rate';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      dashboardCharts['successRate'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Success Rate %', data, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { min: 0, max: 100, ticks: { callback: v => `${v}%` } },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 5: Duration Comparison — min/avg/p95/max (Grouped Bar) ──
+    function buildDurationComparisonChart(metricsEntries) {
+      const card = makeDashCard('Duration Comparison');
+      const eligible = metricsEntries
+        .filter(([, m]) => m.avgDurationMs !== undefined)
+        .sort((a, b) => (b[1].totalExecutions || 0) - (a[1].totalExecutions || 0))
+        .slice(0, 10);
+
+      if (eligible.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No duration data available.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const labels = eligible.map(([key]) => truncate(taskNameFromKey(key), 20));
+      const green = cssVar('--vscode-charts-green');
+      const blue = cssVar('--vscode-charts-blue');
+      const orange = cssVar('--vscode-charts-orange');
+      const red = cssVar('--vscode-charts-red');
+
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:260px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-duration';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      dashboardCharts['duration'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Min', backgroundColor: green, borderWidth: 0,
+              data: eligible.map(([, m]) => m.minDurationMs !== undefined ? m.minDurationMs : null),
+            },
+            {
+              label: 'Avg', backgroundColor: blue, borderWidth: 0,
+              data: eligible.map(([, m]) => m.avgDurationMs !== undefined ? m.avgDurationMs : null),
+            },
+            {
+              label: 'p95', backgroundColor: orange, borderWidth: 0,
+              data: eligible.map(([, m]) => m.p95DurationMs !== undefined ? m.p95DurationMs : null),
+            },
+            {
+              label: 'Max', backgroundColor: red, borderWidth: 0,
+              data: eligible.map(([, m]) => m.maxDurationMs !== undefined ? m.maxDurationMs : null),
+            },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label(ctx) { return ` ${ctx.dataset.label}: ${formatDuration(ctx.raw)}`; }
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => formatDuration(v) } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 6: Daily Activity — Last 14 Days (Line) ─────────
+    function buildDailyActivityChart(history) {
+      const card = makeDashCard('Daily Activity \u2014 Last 14 Days');
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:200px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-daily';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      // Capture base date once to avoid midnight edge-case across loop iterations
+      const baseDate = new Date();
+      baseDate.setHours(0, 0, 0, 0);
+      const days = Array.from({ length: 14 }, (_, i) => {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() - (13 - i));
+        return d;
+      });
+
+      const counts = days.map(day => {
+        const nextDay = new Date(day);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return history.filter(
+          r => r.timestampRaw >= day.getTime() && r.timestampRaw < nextDay.getTime()
+        ).length;
+      });
+      const labels = days.map(d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+      const blue = cssVar('--vscode-charts-blue');
+
+      dashboardCharts['daily'] = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Executions',
+            data: counts,
+            borderColor: blue,
+            backgroundColor: withAlpha(blue, 0.15),
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, ticks: { callback: v => Number.isInteger(v) ? v : undefined } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 7: Duration Trend Sparklines ────────────────────
+    function buildSparklines(metricsEntries) {
+      const card = makeDashCard('Duration Trends');
+      // Sort by totalExecutions desc so the busiest tasks appear first; cap at 20
+      const eligible = metricsEntries
+        .filter(([, m]) => Array.isArray(m.recentDurations) && m.recentDurations.length >= 5)
+        .sort((a, b) => (b[1].totalExecutions || 0) - (a[1].totalExecutions || 0))
+        .slice(0, 20);
+
+      if (eligible.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'Not enough duration samples to plot trends (need \u2265 5 per task).';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'sparkline-grid';
+      card.appendChild(grid);
+
+      eligible.forEach(([key, m]) => {
+        const item = document.createElement('div');
+        item.className = 'sparkline-item';
+
+        const label = document.createElement('div');
+        label.className = 'sparkline-label';
+        label.textContent = truncate(taskNameFromKey(key), 25);
+        label.title = taskNameFromKey(key);
+        item.appendChild(label);
+
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative;height:60px;';
+        const canvas = document.createElement('canvas');
+        const chartId = 'sparkline-' + key;
+        wrapper.appendChild(canvas);
+        item.appendChild(wrapper);
+        grid.appendChild(item);
+
+        const trend = m.durationTrend;
+        let color;
+        if (trend === undefined || trend === null) {
+          color = cssVar('--vscode-charts-blue');
+        } else if (trend < 0) {
+          color = cssVar('--vscode-charts-green');  // negative slope = getting faster
+        } else if (trend > 0) {
+          color = cssVar('--vscode-charts-red');    // positive slope = getting slower
+        } else {
+          color = cssVar('--vscode-charts-blue');   // zero = stable
+        }
+
+        dashboardCharts[chartId] = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: m.recentDurations.map(() => ''),
+            datasets: [{
+              data: m.recentDurations,
+              borderColor: color,
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.3,
+              fill: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false } }
+          }
+        });
+      });
+      return card;
+    }
+
+    // ── Chart 8: Attention Required (table widget, no Chart.js) ──
+    function buildAttentionRequired(metricsEntries) {
+      const card = makeDashCard('\u26a0 Attention Required');
+      const now = Date.now();
+      const h24 = 24 * 60 * 60 * 1000;
+
+      const flagged = metricsEntries.filter(([, m]) => {
+        if (m.isFlaky) { return true; }
+        if (m.successRate !== undefined && m.successRate < 50 && (m.totalExecutions || 0) >= 5) { return true; }
+        if (m.lastExitCode !== undefined && m.lastExitCode !== 0 &&
+            m.lastRunAt !== undefined && (now - m.lastRunAt) <= h24) { return true; }
+        return false;
+      });
+
+      if (flagged.length === 0) {
+        const ok = document.createElement('div');
+        ok.className = 'attention-empty';
+        ok.textContent = 'All tasks are healthy \u{1F389}';
+        card.appendChild(ok);
+        return card;
+      }
+
+      const table = document.createElement('table');
+      table.className = 'attention-table';
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      ['Task', 'Type', 'Last Exit', 'Consec. Failures', 'Success Rate', 'Last Run'].forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      flagged.forEach(([key, m]) => {
+        const parts = key.split(':');
+        const taskName = parts.slice(1, -1).join(':') || key;
+        const taskSource = parts[0] || '';
+        const tr = document.createElement('tr');
+        tr.className = 'attention-row';
+        [
+          taskName,
+          taskSource,
+          m.lastExitCode !== undefined ? String(m.lastExitCode) : '\u2014',
+          String(m.consecutiveFailures || 0),
+          m.successRate !== undefined ? `${Math.round(m.successRate)}%` : '\u2014',
+          m.lastRunAt ? new Date(m.lastRunAt).toLocaleString() : '\u2014',
+        ].forEach(text => {
+          const td = document.createElement('td');
+          td.textContent = text;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      card.appendChild(table);
+      return card;
+    }
+
+    // ── Dashboard: main render orchestrator ───────────────────
     function renderDashboard() {
+      destroyDashboardCharts();
       const panel = document.getElementById('dashboard-panel');
-      // Verify Chart.js loaded without CSP errors
       if (typeof Chart === 'undefined') {
         panel.textContent = 'Chart.js failed to load.';
         return;
       }
+
       const allMetrics = Object.values(dashboardMetrics);
+      const metricsEntries = Object.entries(dashboardMetrics);
+
       if (allMetrics.length === 0) {
-        panel.textContent = 'No metrics collected yet. Run some tasks to see the dashboard.';
+        panel.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'stats-empty';
+        empty.textContent = 'No metrics collected yet. Run some tasks to see the dashboard.';
+        panel.appendChild(empty);
         return;
       }
-      // dashboardHistory is available for chart use in Phase 3 (e.g. daily activity line chart)
-      void dashboardHistory;
-      panel.textContent = `Dashboard ready — Chart.js ${Chart.version} loaded. Charts coming in Phase 3.`;
+
+      panel.innerHTML = '';
+      applyChartDefaults();
+
+      // Row 1: 2-column grid — outcomes doughnut + hourly activity bar
+      const row1 = document.createElement('div');
+      row1.className = 'dash-grid-2';
+      row1.appendChild(buildOutcomesChart(allMetrics));
+      row1.appendChild(buildHourlyActivityChart(allMetrics));
+      panel.appendChild(row1);
+
+      panel.appendChild(buildTopTasksChart(metricsEntries));
+      panel.appendChild(buildSuccessRateChart(metricsEntries));
+      panel.appendChild(buildDurationComparisonChart(metricsEntries));
+      panel.appendChild(buildDailyActivityChart(dashboardHistory));
+      panel.appendChild(buildSparklines(metricsEntries));
+      panel.appendChild(buildAttentionRequired(metricsEntries));
     }
 
     // ── Helpers ───────────────────────────────────────────────
