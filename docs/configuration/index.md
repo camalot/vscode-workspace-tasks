@@ -35,3 +35,4 @@ This section describes all configuration settings available in the Workspace Tas
 | [Application Path Settings](application-path) | Configure executable paths for tools |
 | [GitHub Actions Settings (Act)](github-actions) | Configure Act environment, variables, and secrets |
 | [Ant Settings](ant) | ANSICON behavior for Ant tasks |
+| [Metrics Settings](metrics) | Task execution metrics scope, sample size, and retention |

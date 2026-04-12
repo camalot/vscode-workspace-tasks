@@ -106,20 +106,41 @@ Computed (not stored, derived at read time in `TaskMetricsAggregator`):
 1. `src/taskHistoryTableViewProvider.ts` — added `TaskMetricsService` import; added `_updateTimer` field; debounced `updateWebview()`; extracted `_doUpdateWebview()`; strips `recentDurations`/`hourlyRunCounts`; stores and disposes `messageListener`; clears `this._view` on dispose; webview message handler only accepts per-task clear
 2. `res/webviews/taskHistory.html` — completely revised: added tab strip, summary bar, Statistics card panel, per-row metrics hint column; all fixes from rubber duck review applied
 
-### Phase 5: Tests
+### Phase 5: Tests ✅ COMPLETE
 
-1. Create `src/test/suite/services/taskMetricsTypes.test.ts` (if needed for type guards)
-2. Create `src/test/suite/services/taskMetricsAggregator.test.ts` — pure function tests; cover avg, median, p95, successRate, flaky detection, empty/undefined cases, ring-buffer overflow
-3. Create `src/test/suite/services/taskMetricsService.test.ts` — test scope variants (workspace/global/both/disabled), persistence, clear, config-change handling, onDidChangeMetrics event firing; use `createMockContext()` pattern + monkey-patch TaskHistoryService event
-4. Create `src/test/suite/commands/clearTaskMetricsCommand.test.ts` — test clear all + clear single; mock confirmation dialog
-5. Update `src/test/suite/taskHistoryTableViewProvider.test.ts` — ensure metrics injection doesn't break existing tests
+**Tests already created in earlier phases:**
+- `src/test/suite/taskMetricsAggregator.test.ts` — Phase 1 (pure function tests; ring-buffer, updateMetricsFromRecord, computeStats)
+- `src/test/suite/taskMetricsService.test.ts` — Phase 1 (scope variants, persistence, clear, config-change, onDidChangeMetrics)
+- `src/test/suite/clearTaskMetricsCommand.test.ts` — Phase 3 (clear all + clear single; mock confirmation dialog)
 
-### Phase 6: Documentation
+**New in Phase 5:**
+- `src/test/suite/taskHistoryTableViewProvider.test.ts` — 19 tests covering:
+  - `resolveWebviewView` sets html and posts initial `loadData` after the debounce delay
+  - Does not post when view is not visible
+  - `onDidChange` from history service fires a new `loadData`
+  - `onDidChangeMetrics` from metrics service fires a new `loadData`
+  - Rapid back-to-back changes coalesce into a single `loadData` (debounce)
+  - Becoming visible triggers an update
+  - Row shape: status, type, task, source (path/cwd fallback), timestamp, exitCode, executionTime, durationRaw, metricsKey
+  - `formatRecord` source: uses `path`, falls back to `cwd`, empty when absent
+  - Duration formatting: sub-second in ms, seconds with 2dp, `undefined` → empty string
+  - `recentDurations` and `hourlyRunCounts` are stripped before `postMessage`
+  - Webview `clearMetrics` message with `taskId` calls `clearMetrics(taskId)`
+  - Webview `clearMetrics` message without `taskId` does NOT call `clearAllMetrics`
+  - Unrecognised message commands are ignored
+  - After dispose, history and metrics changes do not post to the webview
+  - `hasFilter` excludes non-passing-filter rows from history
 
-1. Update `README.md` — add mention of task metrics / statistics in the feature list
-2. Add `docs/features/task-metrics.md` — full documentation: storage scope, what metrics are tracked, how to view, how to clear
-3. Update `docs/features/task-history.md` — note the Statistics mode toggle in the history panel
-4. Add `docs/configuration/metrics.md` — document all 3 new settings with examples
+**Test totals: 1101 passing, 5 pending (pre-existing), 0 failures**
+
+### Phase 6: Documentation ✅ COMPLETE
+
+**Files changed:**
+
+1. `README.md` — added `🕰️ Task History & Statistics` bullet to Key Features; rewrote the Task History section (removed outdated Tree View subsection, updated Table View, added Statistics View subsection)
+2. `docs/configuration/metrics.md` — new file documenting all 3 metrics settings (`scope`, `maxDurationSamples`, `retentionDays`) with types, defaults, options, usage examples, and cross-links
+3. `docs/configuration/index.md` — added Metrics Settings row to the configuration table
+4. `docs/features/task-history.md` — already updated in Phase 4 (Statistics View section, Metrics Storage table, link to metrics config)
 
 ---
 

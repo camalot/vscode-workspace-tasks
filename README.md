@@ -57,7 +57,8 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
-- **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
+- **�️ Task History & Statistics** - Track all task executions in a sortable history table and view per-task performance metrics (duration trends, success rates, failure streaks) in a statistics panel
+- **�💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 
 ## 📥 Installation
@@ -326,27 +327,7 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 
 ## 🕰️ Task History
 
-Track and review all task executions with comprehensive history views. Task History provides both a tree view and table panel for monitoring task execution status, timing, and results.
-
-### Tree View
-
-The Task History tree view provides a hierarchical, filterable view of all executed tasks.
-
-![Task History Tree View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-treeview.png)
-
-**Features:**
-
-- **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
-- **Hierarchical Organization** - Tasks grouped for easy navigation
-- **Task Details** - View task name, source, and execution time
-- **Real-time Updates** - Automatically updates as tasks complete
-
-**How to Use:**
-
-1. Open the Task History  in the Panel View
-2. Use the filter buttons in the title bar to show/hide specific statuses
-3. Click on any task item to view more details
-4. Right-click for additional options (clear history, etc.)
+Track and review all task executions with comprehensive history and statistics. Task History provides a **table view** with sortable execution details and a **Statistics view** for aggregated per-task metrics.
 
 ### Table View
 
@@ -359,28 +340,48 @@ The Task History Table View provides a tabular, sortable view of all task execut
 - **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
 - **Sortable Columns** - Click any column header to sort tasks by that field
 - **Comprehensive Details** - View status, type, task name, source path, timestamp, exit code, and execution time
+- **Metrics Hint** - Each row shows the task's average duration and a flaky-streak badge (if the task has failed 3+ times consecutively)
 - **Status Indicators** - Color-coded status labels/icons for quick identification
   - 🟢 Success - Task completed successfully
   - 🔴 Failed - Task exited with an error
   - 🔵 Running - Task is currently executing
   - 🟠 Terminated - Task was stopped manually
-- **Single-column Sorting** - Sort by any column in ascending or descending order, one column at a time
 - **Real-time Updates** - Automatically updates as tasks complete
 
 **How to Use:**
 
-1. Open the Task History in the Panel View and choose 'View as Table'
+1. Open the **Task History** panel
 2. Click column headers to sort by that field (click again to reverse order)
 3. Review detailed execution information including exact timestamps and durations
 4. Use the scrollable view to review extensive task history
+
+### Statistics View
+
+The Statistics View provides aggregated per-task execution metrics across all runs.
+
+![Task Statistics View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-statistics-webview.png)
+
+**Features:**
+
+- **Summary Bar** - Total tasks run today, all-time count, overall success rate, and total execution time
+- **Per-task Cards** - Success rate, total runs, avg/min/max/p95 duration, last run time, consecutive failure/success streak, peak hour, duration trend, and exit code histogram
+- **Clear Metrics** - Click the **✕** button on any card to clear that task's metrics data
+
+**How to Use:**
+
+1. Open the **Task History** panel
+2. Click the **Statistics** tab at the top
+3. Review per-task cards for performance trends and failure patterns
+4. Click **✕** on a card to reset metrics for that task
+5. To clear all metrics, use the **Clear All Task Metrics** command (`workspaceTasks.metrics.clearAll`) from the Command Palette
 
 **Perfect For:**
 
 - Debugging task failures by reviewing exit codes and execution times
 - Monitoring build and deployment pipeline status
-- Tracking task performance over time
+- Tracking task performance over time with duration trends
+- Identifying flaky tasks (consecutive failures ≥ 3) at a glance
 - Auditing task executions in CI/CD workflows
-- Identifying patterns in task failures or long-running tasks
 
 ## 🚀 Quick Start
 
