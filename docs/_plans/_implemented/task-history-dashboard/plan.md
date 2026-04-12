@@ -403,6 +403,10 @@ All 8 charts/panels implemented in `res/webviews/taskHistory.html`. TypeScript t
 ### Phase 5: Documentation
 
 1. Update `docs/features/task-history.md` — add "Dashboard Tab" section with screenshot placeholder and feature list.
+    - include screenshots
+      - res/assets/images/docs/features/task-dashboard-1.png
+      - res/assets/images/docs/features/task-dashboard-2.png
+      - res/assets/images/docs/features/task-dashboard-3.png
 2. Update `README.md` — mention Dashboard in the Task History feature description.
 
 ---

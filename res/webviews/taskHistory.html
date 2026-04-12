@@ -192,6 +192,33 @@
       color: var(--vscode-descriptionForeground);
     }
 
+    .dashboard-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      gap: 10px;
+      color: var(--vscode-descriptionForeground);
+      text-align: center;
+    }
+
+    .dashboard-empty-icon {
+      font-size: 2.5em;
+      line-height: 1;
+    }
+
+    .dashboard-empty-title {
+      font-size: 1em;
+      font-weight: 600;
+      color: var(--vscode-foreground);
+    }
+
+    .dashboard-empty-hint {
+      font-size: 0.85em;
+      max-width: 260px;
+    }
+
     .task-card {
       border: 1px solid var(--vscode-panel-border);
       border-radius: 4px;
@@ -490,6 +517,16 @@
 
     // Apply restored tab on startup
     applyTab(currentTab);
+
+    // ── Theme-change observer ─────────────────────────────────
+    // VS Code updates CSS custom properties on document.documentElement when the
+    // color theme changes. Detect this and re-render the dashboard so chart colors
+    // track the active theme without requiring a manual tab switch.
+    new MutationObserver(() => {
+      if (currentTab === 'dashboard' && Object.keys(dashboardMetrics).length > 0) {
+        renderDashboard();
+      }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
 
     // ── Tab wiring (use addEventListener, not onclick — CSP blocks inline handlers) ──
     document.getElementById('tab-history').addEventListener('click', () => switchTab('history'));
@@ -1414,8 +1451,19 @@
       if (allMetrics.length === 0) {
         panel.innerHTML = '';
         const empty = document.createElement('div');
-        empty.className = 'stats-empty';
-        empty.textContent = 'No metrics collected yet. Run some tasks to see the dashboard.';
+        empty.className = 'dashboard-empty';
+        const icon = document.createElement('div');
+        icon.className = 'dashboard-empty-icon';
+        icon.textContent = '📊';
+        const title = document.createElement('div');
+        title.className = 'dashboard-empty-title';
+        title.textContent = 'No data yet';
+        const hint = document.createElement('div');
+        hint.className = 'dashboard-empty-hint';
+        hint.textContent = 'Run some tasks to start collecting metrics. The dashboard will populate automatically.';
+        empty.appendChild(icon);
+        empty.appendChild(title);
+        empty.appendChild(hint);
         panel.appendChild(empty);
         return;
       }
