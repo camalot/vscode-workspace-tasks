@@ -87,18 +87,24 @@ Computed (not stored, derived at read time in `TaskMetricsAggregator`):
 10. `src/test/suite/taskMetricsService.test.ts` — updated `makeRecord()` to include `scope` field; updated key derivation assertions
 11. `src/test/suite/taskMetricsAggregator.test.ts` — updated `makeRecord()` to include `scope` field
 
-### Phase 4: Display — Enrich History Webview
+### Phase 4: Display — Enrich History Webview ✅ COMPLETE
 
-1. Modify `src/taskHistoryTableViewProvider.ts`:
-    - Inject `TaskMetricsService` dependency
-    - Add `_updateView()` to post both history and metrics data: `{ command: 'loadData', data: { history, metrics, viewMode: 'history'|'stats' } }`
-    - Subscribe to `TaskMetricsService.onDidChangeMetrics` to trigger view refresh
-    - Handle `{ command: 'clearMetrics', taskId? }` message from webview
-2. Modify `res/webviews/taskHistory.html`:
-    - Add "History | Statistics" toggle tab strip above the existing table
-    - **Statistics mode**: Card grid per task showing — total runs, success rate (colored), avg/min/max/p95 duration, last run, streak badge, peak hour, exit code histogram bar
-    - **History mode**: existing table, unchanged in layout; add per-row "last run metrics" tooltip (streak, avg duration)
-    - Summary bar at top of both modes: today's runs | all-time runs | overall success rate | total execution time
+**Implementation notes / changes from original plan:**
+
+- `taskHistoryTableViewProvider.ts`: `updateWebview()` is debounced via `setTimeout(0)` to coalesce the double-fire that occurs when a task completes (both `onDidChange` from `TaskHistoryService` and `onDidChangeMetrics` from `TaskMetricsService` fire in the same tick). This avoids sending two `loadData` payloads per task completion.
+- `recentDurations` and `hourlyRunCounts` arrays are stripped before `postMessage` to avoid sending up to 1000 numbers per task over the webview message channel — they are not displayed.
+- `onDidReceiveMessage` now returns a `Disposable` that is stored and disposed on view disposal (was previously leaked).
+- `clearAllMetrics` is **not** routable from the webview message handler. The webview's ✕ button only clears a single task; "Clear All" requires the command palette (where the confirmation modal is shown). This matches the security intent of `MetricsClearAllCommand`.
+- `this._view` is cleared to `undefined` on dispose to prevent stale-reference access.
+- **CSP fix**: `onclick` inline handlers are blocked by the `nonce`-only `script-src` CSP. Tab buttons wire their click handlers via `addEventListener` in the `<script nonce>` block.
+- **XSS fix**: The metrics-hint column in the history table now builds DOM nodes explicitly (`createElement`/`textContent`) rather than using `innerHTML` with interpolated values.
+- **Sticky header fix**: Body is a flex column; `#history-panel` and `#stats-panel` are `flex: 1; overflow-y: auto`. The `<th>` elements use `position: sticky; top: 0` within the panel's own scroll container, so they never overlap the tab strip or summary bar.
+- **State persistence**: `currentTab`, `sortKey`, and `sortDirection` are persisted via `vscode.getState()`/`setState()` and restored on page load. Tab selection survives webview recreation.
+
+**Files changed:**
+
+1. `src/taskHistoryTableViewProvider.ts` — added `TaskMetricsService` import; added `_updateTimer` field; debounced `updateWebview()`; extracted `_doUpdateWebview()`; strips `recentDurations`/`hourlyRunCounts`; stores and disposes `messageListener`; clears `this._view` on dispose; webview message handler only accepts per-task clear
+2. `res/webviews/taskHistory.html` — completely revised: added tab strip, summary bar, Statistics card panel, per-row metrics hint column; all fixes from rubber duck review applied
 
 ### Phase 5: Tests
 

@@ -1320,11 +1320,6 @@
           "when": "view == workspaceTasksHistoryView"
         },
         {
-          "command": "workspaceTasks.history.switchTreeView",
-          "group": "navigation@1",
-          "when": "view == workspaceTasksHistoryTableView"
-        },
-        {
           "submenu": "workspaceTasks.history.filter",
           "group": "navigation@3",
           "when": "view == workspaceTasksHistoryView || view == workspaceTasksHistoryTableView"
