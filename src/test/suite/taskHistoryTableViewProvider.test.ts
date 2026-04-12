@@ -431,4 +431,141 @@ suite('TaskHistoryTableViewProvider Test Suite', () => {
     assert.strictEqual(rows.length, 1);
     assert.strictEqual(rows[0].task, 'build');
   });
+
+  // -------------------------------------------------------------------------
+  // Webview message handler — requestDashboardData
+  // -------------------------------------------------------------------------
+
+  test('requestDashboardData posts loadDashboardData with command and data fields', async () => {
+    fakeMetrics = {
+      'npm:build:workspace': {
+        totalExecutions: 5,
+        recentDurations: [100, 200, 300],
+        hourlyRunCounts: new Array(24).fill(0),
+      } as unknown as ITaskMetricsWithComputed,
+    };
+    fakeExecutions = [makeRecord({ taskName: 'build' })];
+
+    const { view, postedMessages, fireMessage } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+    const before = postedMessages.length;
+
+    fireMessage({ command: 'requestDashboardData' });
+
+    assert.ok(postedMessages.length > before, 'should post at least one message');
+    const dashMsg = postedMessages[postedMessages.length - 1] as any;
+    assert.strictEqual(dashMsg.command, 'loadDashboardData');
+    assert.ok(dashMsg.data !== undefined, 'data field should be present');
+    assert.ok(dashMsg.data.metrics !== undefined, 'data.metrics should be present');
+    assert.ok(Array.isArray(dashMsg.data.history), 'data.history should be an array');
+  });
+
+  test('requestDashboardData includes recentDurations and hourlyRunCounts unstripped', async () => {
+    fakeMetrics = {
+      'npm:build:workspace': {
+        totalExecutions: 5,
+        recentDurations: [100, 200, 300],
+        hourlyRunCounts: new Array(24).fill(0),
+      } as unknown as ITaskMetricsWithComputed,
+    };
+
+    const { view, postedMessages, fireMessage } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+
+    fireMessage({ command: 'requestDashboardData' });
+
+    const dashMsg = postedMessages[postedMessages.length - 1] as any;
+    const entry = dashMsg.data.metrics['npm:build:workspace'];
+    assert.ok(entry !== undefined, 'metric entry should be present');
+    assert.deepStrictEqual(entry.recentDurations, [100, 200, 300], 'recentDurations must NOT be stripped');
+    assert.strictEqual(entry.hourlyRunCounts.length, 24, 'hourlyRunCounts must NOT be stripped');
+  });
+
+  test('requestDashboardData history includes full formatRecord fields', async () => {
+    fakeExecutions = [
+      makeRecord({
+        taskName: 'build',
+        taskSource: 'npm',
+        scope: 'myWorkspace',
+        duration: 1500,
+        exitCode: 0,
+        status: 'Success',
+        startTime: 1000000,
+        definition: { type: 'npm', path: 'packages/core' },
+      }),
+    ];
+
+    const { view, postedMessages, fireMessage } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+
+    fireMessage({ command: 'requestDashboardData' });
+
+    const dashMsg = postedMessages[postedMessages.length - 1] as any;
+    assert.ok(Array.isArray(dashMsg.data.history));
+    assert.strictEqual(dashMsg.data.history.length, 1);
+    const row = dashMsg.data.history[0];
+    assert.strictEqual(row.task, 'build');
+    assert.strictEqual(row.metricsKey, 'npm:build:myWorkspace');
+    assert.strictEqual(row.durationRaw, 1500);
+    assert.strictEqual(row.executionTime, '1.50s');
+    assert.strictEqual(row.exitCode, 0);
+  });
+
+  test('requestDashboardData with empty metrics posts empty metrics object', async () => {
+    fakeMetrics = {};
+    fakeExecutions = [];
+
+    const { view, postedMessages, fireMessage } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+
+    fireMessage({ command: 'requestDashboardData' });
+
+    const dashMsg = postedMessages[postedMessages.length - 1] as any;
+    assert.strictEqual(dashMsg.command, 'loadDashboardData');
+    assert.deepStrictEqual(dashMsg.data.metrics, {});
+    assert.deepStrictEqual(dashMsg.data.history, []);
+  });
+
+  test('requestDashboardData history excludes rows filtered by hasFilter', async () => {
+    fakeExecutions = [
+      makeRecord({ taskName: 'build', status: 'Success' }),
+      makeRecord({ taskName: 'test', status: 'Failed' }),
+    ];
+    (historyService as any).hasFilter = (status: string) => status === 'Success';
+
+    const { view, postedMessages, fireMessage } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+
+    fireMessage({ command: 'requestDashboardData' });
+
+    const dashMsg = postedMessages[postedMessages.length - 1] as any;
+    assert.strictEqual(dashMsg.data.history.length, 1, 'filtered-out rows must be excluded');
+    assert.strictEqual(dashMsg.data.history[0].task, 'build');
+  });
+
+  test('standard loadData still strips recentDurations and hourlyRunCounts', async () => {
+    // Regression: adding requestDashboardData must not affect the stripped loadData path
+    fakeMetrics = {
+      'npm:build:workspace': {
+        totalExecutions: 5,
+        recentDurations: [100, 200, 300],
+        hourlyRunCounts: new Array(24).fill(0),
+      } as unknown as ITaskMetricsWithComputed,
+    };
+
+    const { view, postedMessages } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+
+    const loadDataMsg = (postedMessages as any[]).find(m => m.command === 'loadData');
+    assert.ok(loadDataMsg, 'loadData should have been posted');
+    const entry = loadDataMsg.data.metrics['npm:build:workspace'];
+    assert.strictEqual(entry.recentDurations, undefined, 'recentDurations should be stripped in loadData');
+    assert.strictEqual(entry.hourlyRunCounts, undefined, 'hourlyRunCounts should be stripped in loadData');
+  });
 });

@@ -65,7 +65,7 @@ Add a new webview→extension message command `requestDashboardData`. When the d
 
 This avoids bloating the standard `loadData` payload for the History and Statistics tabs.
 
-```
+```text
 Webview                         Provider
   │                                │
   │  switchTab('dashboard')        │
@@ -89,7 +89,7 @@ if (message.command === 'requestDashboardData') {
 
 The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container divided into distinct sections:
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
 │  [History]  [Statistics]  [Dashboard]                  │  ← tab strip (existing)
 ├────────────────────────────────────────────────────────┤
@@ -126,11 +126,12 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 
 **Type**: `doughnut`
 **Data source**: Aggregate across all task metrics
-| Segment          | Value                      | Colour              |
-|------------------|----------------------------|---------------------|
-| Successful       | Σ `successfulExecutions`   | `--vscode-charts-green` |
-| Failed           | Σ `failedExecutions`       | `--vscode-charts-red`   |
-| Terminated       | Σ `terminatedExecutions`   | `--vscode-charts-yellow`|
+
+| Segment | Value | Color |
+| --- | --- | --- |
+| Successful | Σ `successfulExecutions` | `--vscode-charts-green` |
+| Failed | Σ `failedExecutions` | `--vscode-charts-red` |
+| Terminated | Σ `terminatedExecutions` | `--vscode-charts-yellow` |
 
 **Notes**: Centre label shows overall success percentage. Tooltip shows count and percentage.
 
@@ -142,7 +143,7 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 **Data source**: Σ of `hourlyRunCounts[0..23]` across all tasks
 **X-axis**: Hour of day (0 → "12 AM", 12 → "12 PM", etc.)
 **Y-axis**: Execution count
-**Colour**: `--vscode-charts-blue` with opacity, peak hour highlighted in `--vscode-charts-orange`
+**Color**: `--vscode-charts-blue` with opacity, peak hour highlighted in `--vscode-charts-orange`
 **Notes**: Shows when the workspace is most active. Requires `hourlyRunCounts` from `loadDashboardData`.
 
 ---
@@ -153,7 +154,7 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 **Data source**: `totalExecutions` per task, sorted descending, capped at top 15 tasks
 **X-axis**: Execution count
 **Y-axis**: Task name (truncated to 30 chars with ellipsis)
-**Colour**: Gradient from `--vscode-charts-blue` (≥ average) to `--vscode-charts-purple` (below average)
+**Color**: Gradient from `--vscode-charts-blue` (≥ average) to `--vscode-charts-purple` (below average)
 **Notes**: Clicking a bar zooms into that task's detail (future enhancement, out of scope here — bar is non-interactive in Phase 1).
 
 ---
@@ -164,7 +165,7 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 **Data source**: `successRate` per task, sorted by rate ascending (worst first)
 **X-axis**: 0–100%
 **Y-axis**: Task name (truncated)
-**Colour per bar**: `--vscode-charts-red` if rate < 50%, `--vscode-charts-yellow` if 50–79%, `--vscode-charts-green` if ≥ 80%
+**Color per bar**: `--vscode-charts-red` if rate < 50%, `--vscode-charts-yellow` if 50–79%, `--vscode-charts-green` if ≥ 80%
 **Notes**: Tasks with `successRate === undefined` (never ran to completion) are excluded.
 
 ---
@@ -177,12 +178,13 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 **X-axis**: Task names
 **Y-axis**: Duration in ms (log scale optional if range is large)
 **Datasets** (one per metric):
-| Dataset | Colour |
-|---------|--------|
-| Min     | `--vscode-charts-green` |
-| Avg     | `--vscode-charts-blue` |
-| p95     | `--vscode-charts-orange` |
-| Max     | `--vscode-charts-red` |
+
+| Dataset | Color |
+| --- | --- |
+| Min | `--vscode-charts-green` |
+| Avg | `--vscode-charts-blue` |
+| p95 | `--vscode-charts-orange` |
+| Max | `--vscode-charts-red` |
 
 **Notes**: Tasks with `avgDurationMs === undefined` are excluded. Tooltip shows formatted duration (using existing `formatDuration()` helper).
 
@@ -195,7 +197,7 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 **Computation**: Group records by calendar day (using `timestampRaw`); count per day for the last 14 days. Days with no executions are plotted as 0.
 **X-axis**: Date labels ("Apr 1", "Apr 2", …)
 **Y-axis**: Execution count
-**Colour**: `--vscode-charts-blue` fill with low opacity
+**Color**: `--vscode-charts-blue` fill with low opacity
 **Notes**: Uses **existing** `historyData` (no new data needed). Respects the history filter (status filter already applied by the provider).
 
 ---
@@ -205,7 +207,7 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 **Type**: `line` (one chart per task, very small, no axes)
 **Data source**: `recentDurations[]` per task (from `loadDashboardData`)
 **Rendering**: 2-column grid of small canvas elements (≈ 160 × 60 px each)
-**Colour**: Green if `durationTrend < 0` (getting faster), red if `durationTrend > 0` (getting slower), neutral otherwise
+**Color**: Green if `durationTrend < 0` (getting faster), red if `durationTrend > 0` (getting slower), neutral otherwise
 **Notes**: Skip tasks with fewer than 5 `recentDurations` samples. Requires `recentDurations` from `loadDashboardData`. Chart.js `line` chart with `tension: 0.3`, no point dots, no axes, no legend.
 
 ---
@@ -214,6 +216,7 @@ The dashboard panel (`#dashboard-panel`) is a scrollable flex-column container d
 
 **Type**: HTML table / card list (no Chart.js)
 **Data source**: Tasks matching any of:
+
 - `isFlaky === true` (i.e. `consecutiveFailures >= 3`)
 - `successRate < 50` and `totalExecutions >= 5`
 - `lastExitCode !== undefined && lastExitCode !== 0` and `lastRunAt` within last 24 h
@@ -256,13 +259,13 @@ Extend the existing `vscode.getState()`/`setState()` calls to persist `tab: 'das
 ### New Files
 
 | File | Purpose |
-|------|---------|
+| --- | --- |
 | `res/webviews/lib/chart.umd.min.js` | Vendored Chart.js UMD build (copied from `node_modules/chart.js/dist/`) |
 
 ### Modified Files
 
 | File | Changes |
-|------|---------|
+| --- | --- |
 | `package.json` | Add `chart.js` devDependency; add `bundle-chartjs` script; add `postinstall` hook or update `compile` script to invoke copy |
 | `res/webviews/taskHistory.html` | Add `#dashboard-panel` div; add Dashboard tab button; add Chart.js `<script>` tag; add `requestDashboardData` message handler; add all chart rendering functions; add theme MutationObserver |
 | `src/taskHistoryTableViewProvider.ts` | Handle `requestDashboardData` message in `onDidReceiveMessage`; inject `{{chartJsUri}}` into HTML; update CSP to include `{{cspSource}}` for scripts |
@@ -292,40 +295,64 @@ Extend the existing `vscode.getState()`/`setState()` calls to persist `tab: 'das
 4. `res/webviews/taskHistory.html` — updated CSP; added Chart.js `<script>` tag; added Dashboard tab button; added `#dashboard-panel` div; updated `applyTab()` and `switchTab()` for 3-tab support; added `renderDashboard()` stub; added `#dashboard-panel` CSS rules
 5. `src/taskHistoryTableViewProvider.ts` — added `chartJsUri` generation and `{{chartJsUri}}` template replacement in `_getHtmlForWebview()`
 
+---
+
 1. `npm install chart.js` (devDependency).
 2. Add `scripts.bundle-chartjs` in `package.json` that copies `node_modules/chart.js/dist/chart.umd.min.js` → `res/webviews/lib/chart.umd.min.js`. Hook into `compile`.
 3. Verify the file exists at `res/webviews/lib/chart.umd.min.js` after `npm run compile`.
 4. Update `TaskHistoryTableViewProvider._getHtmlForWebview()` to inject `{{chartJsUri}}` and update CSP.
 5. Add a minimal test `<canvas>` in `taskHistory.html` to confirm Chart.js loads without CSP errors.
 
-### Phase 2: Data Pipeline
+### Phase 2: Data Pipeline ✅ COMPLETE
 
-1. Add `requestDashboardData` handler in `onDidReceiveMessage` (provider side).
-2. Add `loadDashboardData` message handling in the webview `window.addEventListener('message', ...)`.
-3. Add `switchTab('dashboard')` → fires `requestDashboardData` → stores result in `dashboardMetrics` local variable.
-4. Write unit tests for the new message handler (extend `taskHistoryTableViewProvider.test.ts`).
+**Implementation notes / changes from original plan:**
+
+- **Atomicity requirement (from rubber-duck review)**: The original plan stored only `dashboardMetrics` and relied on the shared `historyData` for rendering. This creates a consistency gap: a `loadData` message can update `historyData` after `requestDashboardData` is sent but before `loadDashboardData` arrives, meaning `renderDashboard()` would use history from T2 with metrics from T1. Fixed by introducing a `dashboardHistory` variable alongside `dashboardMetrics`; `loadDashboardData` bundles both, and `renderDashboard()` reads from `dashboardHistory` exclusively.
+- **`_buildHistory()` extraction**: The `requestDashboardData` handler in the provider required the same filtering + formatting logic as `_doUpdateWebview()`. Extracted a private `_buildHistory()` method as the single authoritative source for the history payload. Both paths call it, eliminating duplication and ensuring any future filter changes propagate correctly.
+- **`loadData` handler change**: When `currentTab === 'dashboard'` and a `loadData` message arrives, the webview now sends `requestDashboardData` instead of calling `renderDashboard()` directly. This prevents a double-render (stale stripped metrics then fresh full metrics) and ensures the dashboard always waits for an atomic `loadDashboardData` response.
+- **`switchTab('dashboard')` change**: No longer calls `renderDashboard()` directly; instead sends `requestDashboardData`. `renderDashboard()` is called only from the `loadDashboardData` handler.
+- **`renderDashboard()` updated**: Now reads `dashboardMetrics` and `dashboardHistory` (set by `loadDashboardData`). The `void dashboardHistory;` expression references the variable so it is clearly available for Phase 3 chart implementations.
+- **Tests added** (6 new tests in `taskHistoryTableViewProvider.test.ts`):
+  1. `requestDashboardData` posts `loadDashboardData` with correct command and data shape.
+  2. `loadDashboardData` metrics include `recentDurations` and `hourlyRunCounts` unstripped.
+  3. `loadDashboardData` history rows include full `formatRecord` fields (`metricsKey`, `durationRaw`, `executionTime`, `exitCode`).
+  4. Empty metrics/history edge case: returns `{}` and `[]` without throwing.
+  5. `hasFilter` exclusion applies to dashboard history (same filter as `loadData`).
+  6. Regression guard: standard `loadData` still strips `recentDurations` and `hourlyRunCounts`.
+
+**Files changed:**
+
+1. `src/taskHistoryTableViewProvider.ts` — extracted `_buildHistory()` private helper; added `requestDashboardData` handler in `onDidReceiveMessage` that posts `loadDashboardData` with unstripped full metrics + bundled history
+2. `res/webviews/taskHistory.html` — added `dashboardMetrics`/`dashboardHistory` variables; updated `loadData` handler (dashboard branch now sends `requestDashboardData`); added `loadDashboardData` message handler; updated `switchTab('dashboard')` to send `requestDashboardData`; updated `renderDashboard()` to use `dashboardMetrics`/`dashboardHistory`
+3. `src/test/suite/taskHistoryTableViewProvider.test.ts` — added 6 new tests for `requestDashboardData`/`loadDashboardData` pipeline
+
+**Phase 3 notes** (impacted by these changes):
+
+- Charts that use daily activity data must read `dashboardHistory`, not `historyData`.
+- Charts using aggregated metrics should read `dashboardMetrics` (has `recentDurations`, `hourlyRunCounts`).
+- The `metricsData` variable (from `loadData`) still drives `renderSummary()` and the Statistics tab — do not change that.
 
 ### Phase 3: Charts
 
 Implement charts in this order (simplest → most complex):
 
-1. **Execution Outcomes doughnut** (uses summary data already in `metricsData`)
-2. **Daily Activity line** (uses `historyData` already in scope)
-3. **Top Tasks bar** (uses `metricsData`)
-4. **Success Rate bar** (uses `metricsData`)
-5. **Duration Comparison grouped bar** (uses `metricsData`)
-6. **Hourly Activity bar** (uses `dashboardMetrics` — needs `loadDashboardData`)
+1. **Execution Outcomes doughnut** (uses summary data from `dashboardMetrics`)
+2. **Daily Activity line** (uses `dashboardHistory` — the atomically consistent snapshot from `loadDashboardData`)
+3. **Top Tasks bar** (uses `dashboardMetrics`)
+4. **Success Rate bar** (uses `dashboardMetrics`)
+5. **Duration Comparison grouped bar** (uses `dashboardMetrics`)
+6. **Hourly Activity bar** (uses `dashboardMetrics.hourlyRunCounts` — available now via `loadDashboardData`)
 7. **Duration Trend sparklines** (uses `dashboardMetrics.recentDurations`)
-8. **Attention Required table** (no chart, uses `metricsData`)
+8. **Attention Required table** (no chart, uses `dashboardMetrics`)
 
 ### Phase 4: Polish & Tests
 
-1. Add `renderDashboard()` call in `loadData` handler when `currentTab === 'dashboard'` (to keep charts updated after task runs).
+1. ~~Add `renderDashboard()` call in `loadData` handler when `currentTab === 'dashboard'` (to keep charts updated after task runs).~~ *(Done in Phase 2 — `loadData` now sends `requestDashboardData` when on the dashboard tab, which triggers a `loadDashboardData` → `renderDashboard()` cycle.)*
 2. Add MutationObserver for theme changes.
 3. Handle empty state (no metrics yet) with a friendly placeholder.
 4. Add / update tests:
-   - `requestDashboardData` message handler sends unstripped metrics.
-   - `loadDashboardData` message sets `dashboardMetrics` (hard to test inside webview; focus on the provider side).
+   - `requestDashboardData` message handler sends unstripped metrics. *(Done in Phase 2.)*
+   - `loadDashboardData` message sets `dashboardMetrics`/`dashboardHistory`. *(Done in Phase 2.)*
 5. Manual verification checklist (see below).
 
 ### Phase 5: Documentation

@@ -382,6 +382,12 @@
     const savedState = vscode.getState() || {};
     let historyData = [];
     let metricsData = {};
+    // Full (unstripped) metrics and history snapshot received via loadDashboardData.
+    // Populated on demand when the dashboard tab is activated; renderDashboard() reads
+    // these instead of the shared historyData/metricsData to guarantee atomicity —
+    // both fields reflect the same provider snapshot.
+    let dashboardMetrics = {};
+    let dashboardHistory = [];
     let currentTab = savedState.tab || 'history';
     let sortKey = savedState.sortKey || null;
     let sortDirection = savedState.sortDir || 1;
@@ -421,8 +427,15 @@
         } else if (currentTab === 'stats') {
           renderStats();
         } else if (currentTab === 'dashboard') {
-          renderDashboard();
+          // Request full metrics (with recentDurations, hourlyRunCounts) so the dashboard
+          // charts always reflect a consistent provider snapshot.
+          vscode.postMessage({ command: 'requestDashboardData' });
         }
+      } else if (message.command === 'loadDashboardData') {
+        // Full unstripped metrics and history bundled together for atomicity.
+        dashboardMetrics = message.data.metrics || {};
+        dashboardHistory = message.data.history || [];
+        renderDashboard();
       }
     });
 
@@ -441,7 +454,8 @@
       } else if (tab === 'stats') {
         renderStats();
       } else if (tab === 'dashboard') {
-        renderDashboard();
+        // Send requestDashboardData; renderDashboard() is called when loadDashboardData arrives.
+        vscode.postMessage({ command: 'requestDashboardData' });
       }
     }
 
@@ -728,6 +742,8 @@
     }
 
     // ── Dashboard (stub — charts rendered in Phase 3) ──────────
+    // Uses dashboardMetrics and dashboardHistory, populated via the loadDashboardData message.
+    // These are always atomically consistent (same provider snapshot).
     function renderDashboard() {
       const panel = document.getElementById('dashboard-panel');
       // Verify Chart.js loaded without CSP errors
@@ -735,11 +751,13 @@
         panel.textContent = 'Chart.js failed to load.';
         return;
       }
-      const allMetrics = Object.values(metricsData);
+      const allMetrics = Object.values(dashboardMetrics);
       if (allMetrics.length === 0) {
         panel.textContent = 'No metrics collected yet. Run some tasks to see the dashboard.';
         return;
       }
+      // dashboardHistory is available for chart use in Phase 3 (e.g. daily activity line chart)
+      void dashboardHistory;
       panel.textContent = `Dashboard ready — Chart.js ${Chart.version} loaded. Charts coming in Phase 3.`;
     }
 

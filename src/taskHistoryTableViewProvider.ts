@@ -55,6 +55,17 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
         if (taskId) {
           metricsService.clearMetrics(taskId);
         }
+      } else if (message.command === 'requestDashboardData') {
+        // Respond with full (unstripped) metrics — recentDurations and hourlyRunCounts are
+        // needed by the dashboard charts. History is bundled in the same message to guarantee
+        // atomicity: renderDashboard() uses the snapshot from this response, not the
+        // potentially-stale global historyData that may have been updated by a concurrent loadData.
+        const rawMetrics = metricsService.getAllMetrics();
+        const history = this._buildHistory();
+        webviewView.webview.postMessage({
+          command: 'loadDashboardData',
+          data: { metrics: rawMetrics, history },
+        });
       }
     });
 
@@ -84,12 +95,9 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
 
   private _doUpdateWebview() {
     if (this._view && this._view.visible) {
-      const historyService = TaskHistoryService.getInstance();
       const metricsService = TaskMetricsService.getInstance();
 
-      const executions = historyService.getAllExecutions()
-        .filter(record => historyService.hasFilter(record.status));
-      const history = executions.map(record => this.formatRecord(record));
+      const history = this._buildHistory();
 
       // Strip large per-task arrays (recentDurations, hourlyRunCounts) before sending to the
       // webview — they are not displayed and can be hundreds of numbers per task.
@@ -103,6 +111,17 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
 
       this._view.webview.postMessage({ command: 'loadData', data: { history, metrics } });
     }
+  }
+
+  /**
+   * Returns the current filtered, formatted history records.
+   * This is the single authoritative method for building the history payload sent to the webview.
+   */
+  private _buildHistory() {
+    const historyService = TaskHistoryService.getInstance();
+    const executions = historyService.getAllExecutions()
+      .filter(record => historyService.hasFilter(record.status));
+    return executions.map(record => this.formatRecord(record));
   }
 
   private formatRecord(record: ITaskExecutionRecord) {
