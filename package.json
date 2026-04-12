@@ -706,6 +706,10 @@
               "workspace": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.workspace%"
+              },
+              "mise": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.mise%"
               }
             },
             "default": {
@@ -741,8 +745,29 @@
               "venv": true,
               "vscode": true,
               "webpack": true,
-              "workspace": true
+              "workspace": true,
+              "mise": true
             }
+          },
+          "workspaceTasks.enabledTaskTypePatterns": {
+            "type": "array",
+            "scope": "window",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "%config.workspaceTasks.enabledTaskTypePatterns%",
+            "markdownDescription": "%config.workspaceTasks.enabledTaskTypePatterns.markdown%"
+          },
+          "workspaceTasks.disabledTaskTypePatterns": {
+            "type": "array",
+            "scope": "window",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "%config.workspaceTasks.disabledTaskTypePatterns%",
+            "markdownDescription": "%config.workspaceTasks.disabledTaskTypePatterns.markdown%"
           },
           "workspaceTasks.shellEnabledTaskTypes": {
             "type": "object",

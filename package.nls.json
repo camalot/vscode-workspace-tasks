@@ -111,6 +111,13 @@
   "config.workspaceTasks.enabledTaskTypes.vscode": "Visual Studio Code",
   "config.workspaceTasks.enabledTaskTypes.webpack": "Webpack",
   "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
+  "config.workspaceTasks.enabledTaskTypes.mise": "Mise",
+
+  "config.workspaceTasks.enabledTaskTypePatterns": "Enabled Task Type Patterns",
+  "config.workspaceTasks.enabledTaskTypePatterns.markdown": "Glob patterns matched against **internal task type names** (e.g. `dockerfile`, `justfile`) to **enable**. When non-empty, acts as a whitelist — only matching types are shown. `disabledTaskTypePatterns` takes precedence. Uses [micromatch](https://github.com/micromatch/micromatch) glob syntax. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/discovery#workspacetasksenabledtasktypepatterns)",
+
+  "config.workspaceTasks.disabledTaskTypePatterns": "Disabled Task Type Patterns",
+  "config.workspaceTasks.disabledTaskTypePatterns.markdown": "Glob patterns matched against **internal task type names** (e.g. `dockerfile`, `justfile`) to **disable**. Always takes precedence over `enabledTaskTypePatterns` and `enabledTaskTypes`. Uses [micromatch](https://github.com/micromatch/micromatch) glob syntax. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/discovery#workspacetasksdisabledtasktypepatterns)",
 
   "config.workspaceTasks.shellEnabledTaskTypes": "Supported Shell Task Types",
   "config.workspaceTasks.shellEnabledTaskTypes.markdown": "Enable support for specific shell script types. This allows the extension to recognize and run tasks defined in these shell scripts. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/shell-script.html#workspacetasksshellenabledtasktypes)",

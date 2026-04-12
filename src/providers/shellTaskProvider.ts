@@ -6,6 +6,7 @@ import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import * as path from 'path';
 import { TaskIconService } from '../services/taskIconService';
+import { TaskConfigService } from '../services/taskConfigService';
 
 interface ShellConfig {
   extensions: string[];
@@ -132,7 +133,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
       }
       const { type, def, interpreter, items, elapsedMs, fileCount, shebangReads, cacheHits } = result.value;
 
-      if (!enabledTypes[type]) {
+      if (!enabledTypes[type] || !TaskConfigService.getInstance().isTaskTypeEnabled(type)) {
         continue;
       }
 
@@ -216,7 +217,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     enabledTypes: Record<string, boolean>,
     shellPaths: Record<string, string>,
   ): Promise<ShellTypeBatch> {
-    if (!enabledTypes[type]) {
+    if (!enabledTypes[type] || !TaskConfigService.getInstance().isTaskTypeEnabled(type)) {
       this.logger.debug(`[ShellTaskProvider] Skipping disabled shell type: ${type}`);
       return { type, def, interpreter: '', items: [], elapsedMs: 0, fileCount: 0, shebangReads: 0, cacheHits: 0 };
     }

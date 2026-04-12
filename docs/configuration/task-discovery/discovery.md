@@ -27,30 +27,40 @@ nav_order: 2
 ```json
 {
   "ant": true,
+  "bun": false,
   "cake": true,
-  "deno": true,
-  "shell": true,
+  "cargo": true,
+  "cargo-make": true,
+  "cmake": true,
   "composer": true,
+  "deno": true,
   "docker": true,
   "eslint": true,
   "github-actions": true,
+  "go": true,
   "gradle": true,
   "grunt": true,
   "gulp": true,
   "just": true,
+  "jupyter": true,
   "make": true,
   "maven": true,
+  "mise": true,
   "msbuild": true,
   "npm": true,
   "pipenv": true,
-  "jupyter": true,
-  "tsc": true,
-  "webpack": true,
-  "yarn": false,
   "pnpm": false,
+  "poe": true,
+  "poetry": true,
+  "rake": true,
+  "ruby": true,
+  "shell": true,
+  "typescript": true,
   "venv": true,
   "vscode": true,
-  "workspace": true
+  "webpack": true,
+  "workspace": true,
+  "yarn": false
 }
 ```
 
@@ -59,12 +69,17 @@ Select which task-type providers are active. Disabling a provider prevents the e
 #### Available Task Types
 
 - **ant** - Ant
+- **bun** - Bun
 - **cake** - Cake Build
+- **cargo** - Cargo
+- **cargo-make** - Cargo Make
+- **cmake** - CMake
 - **composer** - Composer
 - **deno** - Deno
 - **docker** - Docker (`dockerfile` and `docker-compose` task types)
 - **eslint** - ESLint
 - **github-actions** - GitHub Actions
+- **go** - Go
 - **gradle** - Gradle
 - **grunt** - Grunt
 - **gulp** - Gulp
@@ -72,17 +87,25 @@ Select which task-type providers are active. Disabling a provider prevents the e
 - **just** - Just
 - **make** - Makefile
 - **maven** - Maven
+- **mise** - Mise
 - **msbuild** - MSBuild
 - **npm** - NPM
 - **pipenv** - Pipenv
 - **pnpm** - PNPM
+- **poe** - Poe the Poet
+- **poetry** - Poetry
+- **rake** - Rake
+- **ruby** - Ruby (Gemfile / Rake tasks; see note below)
 - **shell** - Shell scripts
-- **tsc** - TypeScript Compiler
-- **webpack** - Webpack
-- **yarn** - Yarn
+- **typescript** - TypeScript Compiler
 - **venv** - Virtual Environment
 - **vscode** - Visual Studio Code tasks
+- **webpack** - Webpack
 - **workspace** - Custom Workspace Tasks
+- **yarn** - Yarn
+
+{: .note}
+> **`ruby` is a dual-control type.** The `enabledTaskTypes.ruby` key controls Gemfile / Rake-based Ruby tasks. Ruby *shell scripts* (`*.rb` files) are additionally controlled by `workspaceTasks.shellEnabledTaskTypes.ruby`. Disabling `enabledTaskTypes.ruby` disables *both* kinds of Ruby tasks; disabling only `shellEnabledTaskTypes.ruby` leaves Rake tasks visible while hiding `*.rb` shell scripts.
 
 **Example:**
 
@@ -103,6 +126,86 @@ Select which task-type providers are active. Disabling a provider prevents the e
 ```
 
 ![Screenshot - Enabled Task Types](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/task-types.png)
+
+---
+
+### workspaceTasks.enabledTaskTypePatterns
+
+**Type:** `array` of `string`
+**Default:** `[]`
+**Scope:** `window`
+
+Glob patterns matched against **task type config keys** (the same names used in `enabledTaskTypes`) to **enable**. When the array is non-empty it acts as a **whitelist** — only task types whose config key matches at least one pattern are shown. All non-matching types are hidden regardless of their `enabledTaskTypes` boolean.
+
+{: .warning}
+> **`enabledTaskTypePatterns` has the highest priority.** When this array is non-empty it completely overrides `disabledTaskTypePatterns` and all `enabledTaskTypes` boolean values. Set it to `["*"]` to restore the "show all" baseline while still using `disabledTaskTypePatterns` for exclusions.
+
+**Example — show only npm and pnpm:**
+
+```json
+{
+  "workspaceTasks.enabledTaskTypePatterns": ["npm", "pnpm"]
+}
+```
+
+**Example — show only Python-ecosystem types:**
+
+```json
+{
+  "workspaceTasks.enabledTaskTypePatterns": ["p*"],
+  "workspaceTasks.disabledTaskTypePatterns": ["pipenv"]
+}
+```
+
+**Example — show all types (restore default while keeping disabled patterns active):**
+
+```json
+{
+  "workspaceTasks.enabledTaskTypePatterns": ["*"],
+  "workspaceTasks.disabledTaskTypePatterns": ["bun", "yarn"]
+}
+```
+
+---
+
+### workspaceTasks.disabledTaskTypePatterns
+
+**Type:** `array` of `string`
+**Default:** `[]`
+**Scope:** `window`
+
+Glob patterns matched against **task type config keys** (the same names used in `enabledTaskTypes`) to **disable**. Only evaluated when `enabledTaskTypePatterns` is empty. Matching types are hidden regardless of their `enabledTaskTypes` boolean value.
+
+{: .note}
+> **`ruby` dual-control.** `disabledTaskTypePatterns: ["ruby"]` disables *both* Rake/Gemfile tasks and `*.rb` shell scripts. To disable only the shell scripts, leave `enabledTaskTypes.ruby` unchanged and set `shellEnabledTaskTypes.ruby: false` instead.
+
+**Example — disable bun and yarn:**
+
+```json
+{
+  "workspaceTasks.disabledTaskTypePatterns": ["bun", "yarn"]
+}
+```
+
+**Example — disable all Docker-related providers:**
+
+```json
+{
+  "workspaceTasks.disabledTaskTypePatterns": ["docker*"]
+}
+```
+
+#### Precedence summary
+
+Evaluation order — first matching rule wins:
+
+| Priority | Condition | Result |
+| --- | --- | --- |
+| 1 | `enabledTaskTypePatterns` non-empty **and** matches config key | **enabled** |
+| 2 | `enabledTaskTypePatterns` non-empty **and** does **not** match | **disabled** |
+| 3 | `disabledTaskTypePatterns` non-empty **and** matches config key | **disabled** |
+| 4 | `enabledTaskTypes[configKey]` present | respect the boolean |
+| 5 | All other cases | **enabled** (opt-out default) |
 
 ---
 
