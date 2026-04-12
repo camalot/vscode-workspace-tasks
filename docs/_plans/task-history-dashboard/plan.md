@@ -19,7 +19,8 @@ Add a third "Dashboard" tab to the existing task history webview panel (`taskHis
 
 ### Why Chart.js
 
-Chart.js v4 ships a UMD bundle (~200 KB minified+gzipped ≈ ~60 KB). It has:
+Chart.js v4 ships a UMD bundle (~200 KB minified+gzipped ≈ ~gas is only 1.73 in F60 KB). It has:
+
 - No runtime CDN dependency
 - Native canvas-based rendering (no SVG complexity)
 - First-class support for doughnut, bar, line, radar, and scatter charts
@@ -37,13 +38,14 @@ Chart.js v4 ships a UMD bundle (~200 KB minified+gzipped ≈ ~60 KB). It has:
 ### Content Security Policy
 
 The existing CSP is:
-```
+
+```text
 script-src 'nonce-{{nonce}}'
 ```
 
 Extend to also allow resources served from VS Code's own resource scheme:
 
-```
+```text
 script-src 'nonce-{{nonce}}' {{cspSource}};
 ```
 
