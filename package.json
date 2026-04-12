@@ -683,9 +683,9 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.ruby%"
               },
-              "tsc": {
+              "typescript": {
                 "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.tsc%"
+                "description": "%config.workspaceTasks.enabledTaskTypes.typescript%"
               },
               "yarn": {
                 "type": "boolean",
@@ -735,7 +735,7 @@
               "poetry": true,
               "jupyter": true,
               "rake": true,
-              "tsc": true,
+              "typescript": true,
               "yarn": false,
               "pnpm": false,
               "venv": true,

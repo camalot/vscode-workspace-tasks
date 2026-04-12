@@ -105,7 +105,7 @@
   "config.workspaceTasks.enabledTaskTypes.rake": "Rake",
   "config.workspaceTasks.enabledTaskTypes.ruby": "Ruby",
   "config.workspaceTasks.enabledTaskTypes.shell": "Scripts",
-  "config.workspaceTasks.enabledTaskTypes.tsc": "TypeScript Compiler",
+  "config.workspaceTasks.enabledTaskTypes.typescript": "TypeScript Compiler",
   "config.workspaceTasks.enabledTaskTypes.yarn": "Yarn",
   "config.workspaceTasks.enabledTaskTypes.venv": "Virtual Environment",
   "config.workspaceTasks.enabledTaskTypes.vscode": "Visual Studio Code",
