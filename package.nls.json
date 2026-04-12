@@ -3,6 +3,12 @@
   "description": "Manage and run tasks in your workspace",
   "displayName": "Workspace Tasks Management for VSCode",
 
+  "config.group.general.title": "General",
+  "config.group.discovery.title": "Task Discovery",
+  "config.group.display.title": "Display & Interaction",
+  "config.group.execution.title": "Task Execution",
+  "config.group.environment.title": "Environment",
+
   "command.addToFavorites": "Add to Favorites",
   "command.removeFromFavorites": "Remove from Favorites",
   "command.addToCompoundTask": "Add to Compound Task (Queue)",

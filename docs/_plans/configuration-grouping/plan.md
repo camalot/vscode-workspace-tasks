@@ -5,7 +5,7 @@
 The extension currently exposes all its settings as a single flat `configuration` object in
 `package.json`. VS Code supports grouping configuration into named sections by converting
 `configuration` from a single object to an **array of objects**, each with a `"title"` and its
-own `"properties"` block. This plan introduces **four logical groups** that organise the ~45
+own `"properties"` block. This plan introduces **five logical groups** that organise the ~45
 settings into discoverable, user-friendly categories, and restructures the documentation to match.
 
 ---
@@ -29,7 +29,7 @@ VS Code feature.
 4. Add NLS keys for each section title in `package.nls.json`.
 5. No settings are renamed, removed, or given new defaults — this is a **presentation-only**
    change; no runtime code changes are needed.
-6. Restructure documentation in `docs/configuration/` to mirror the four groups, with
+6. Restructure documentation in `docs/configuration/` to mirror the five groups, with
    sub-pages for each logical sub-section.
 7. Documentation pages must include full configuration detail and link to related feature docs
    where applicable.
@@ -37,7 +37,7 @@ VS Code feature.
 
 ---
 
-## Groups (4)
+## Groups (5)
 
 ### Group 1 — General
 
@@ -78,7 +78,7 @@ interpreters used when scanning shell-script tasks.
 ### Group 3 — Display & Interaction
 
 Settings that govern the visual presentation of the task tree view and how the user interacts
-with tasks — grouping, icons, click actions, action bar buttons, and terminal presentation.
+with tasks — grouping, icons, click actions, action bar buttons, and the recent tasks cap.
 
 | Setting | Description |
 | --- | --- |
@@ -94,23 +94,32 @@ with tasks — grouping, icons, click actions, action bar buttons, and terminal 
 | `workspaceTasks.task.doubleClickAction` | Action on double-click |
 | `workspaceTasks.task.iconType` | Source of the task icon (type / file / gear / run / custom) |
 | `workspaceTasks.task.iconTypeCustom` | Custom ThemeIcon or image path |
-| `workspaceTasks.task.presentationOptions` | Terminal reveal, clear, echo, panel, focus, close |
+| `workspaceTasks.recentTasks.maxItems` | Maximum items in the Recent Tasks list |
 
 ---
 
-### Group 4 — Task Execution & Environment
+### Group 4 — Task Execution
 
-Settings that control runtime execution behaviour — how tasks are stopped, how compound/queue
-tasks are executed, tool-specific executable paths, GitHub Actions (Act) integration, and CMake
-configuration.
+Settings that directly control how tasks behave at runtime — lifecycle (graceful stop),
+presentation in the terminal, and compound task execution logic.
 
 | Setting | Description |
 | --- | --- |
 | `workspaceTasks.task.stopGracefulDelayMilliseconds` | Grace period before force-killing a task |
 | `workspaceTasks.task.stopCompoundDependencies` | Also stop dependent tasks in a compound run |
-| `workspaceTasks.recentTasks.maxItems` | Maximum items in the Recent Tasks list |
 | `workspaceTasks.compoundTasks.defaultExecutionType` | Default sequential vs. parallel execution |
 | `workspaceTasks.compoundTasks.includeVsCodeCompoundTasks` | Include VS Code built-in compound tasks |
+| `workspaceTasks.task.presentationOptions` | Terminal reveal, clear, echo, panel, focus, close |
+
+---
+
+### Group 5 — Environment
+
+Tool-specific executable paths and per-tool configuration for task-type providers that require
+external binaries (GitHub Actions via Act, Apache Ant, CMake, and all other tools).
+
+| Setting | Description |
+| --- | --- |
 | `workspaceTasks.applicationPath.act` | Path to the `act` executable |
 | `workspaceTasks.applicationPath.ansicon` | Path to `ansicon.exe` |
 | `workspaceTasks.applicationPath.ant` | Path to the `ant` executable |
@@ -139,37 +148,43 @@ configuration.
 
 ---
 
-## NLS Keys to Add
+## NLS Keys
+
+Keys already added (Tasks 1–5):
 
 ```json
 "config.group.general.title": "General",
 "config.group.discovery.title": "Task Discovery",
-"config.group.display.title": "Display & Interaction",
-"config.group.execution.title": "Task Execution & Environment"
+"config.group.display.title": "Display & Interaction"
 ```
 
-> The former `"config.group.history.title"` key is **not added** — History & Metrics is folded
-> into General. There is no separate group for metrics.
+Keys requiring update/addition (new Tasks 6–10):
+
+```json
+"config.group.execution.title": "Task Execution",
+"config.group.environment.title": "Environment"
+```
+
+> `config.group.execution.title` was previously `"Task Execution & Environment"` — its value
+> must be updated to `"Task Execution"`. A new `config.group.environment.title` key is added
+> for the split-off Environment group.
 
 ---
 
 ## `package.json` Structural Change
 
-**Before (current):**
+**Before (implemented in Tasks 1–5 — 4 groups):**
 
 ```json
-"configuration": {
-  "type": "object",
-  "title": "%view.name%",
-  "properties": {
-    "workspaceTasks.debug": { ... },
-    "workspaceTasks.exclude": { ... },
-    ...
-  }
-}
+"configuration": [
+  { "title": "%config.group.general.title%",   "properties": { /* 4 settings  */ } },
+  { "title": "%config.group.discovery.title%", "properties": { /* 6 settings  */ } },
+  { "title": "%config.group.display.title%",   "properties": { /* 13 settings */ } },
+  { "title": "%config.group.execution.title%", "properties": { /* 30 settings */ } }
+]
 ```
 
-**After:**
+**After (target — 5 groups):**
 
 ```json
 "configuration": [
@@ -208,7 +223,7 @@ configuration.
       "workspaceTasks.task.doubleClickAction": { ... },
       "workspaceTasks.task.iconType": { ... },
       "workspaceTasks.task.iconTypeCustom": { ... },
-      "workspaceTasks.task.presentationOptions": { ... }
+      "workspaceTasks.recentTasks.maxItems": { ... }
     }
   },
   {
@@ -216,9 +231,14 @@ configuration.
     "properties": {
       "workspaceTasks.task.stopGracefulDelayMilliseconds": { ... },
       "workspaceTasks.task.stopCompoundDependencies": { ... },
-      "workspaceTasks.recentTasks.maxItems": { ... },
       "workspaceTasks.compoundTasks.defaultExecutionType": { ... },
       "workspaceTasks.compoundTasks.includeVsCodeCompoundTasks": { ... },
+      "workspaceTasks.task.presentationOptions": { ... }
+    }
+  },
+  {
+    "title": "%config.group.environment.title%",
+    "properties": {
       "workspaceTasks.applicationPath.act": { ... },
       "workspaceTasks.applicationPath.ansicon": { ... },
       "workspaceTasks.applicationPath.ant": { ... },
@@ -253,13 +273,13 @@ configuration.
 
 ## Documentation Structure
 
-The existing `docs/configuration/` pages are a flat list. The new structure introduces four
+The existing `docs/configuration/` pages are a flat list. The new structure introduces five
 group-level index pages as parents, with existing and new pages nested under them using
 just-the-docs `parent:` / `grand_parent:` front matter.
 
 ```
 docs/configuration/
-├── index.md                                    (updated — 4-group overview, links to group landing pages)
+├── index.md                                    (updated — 5-group overview, links to group landing pages)
 ├── general/
 │   ├── index.md                                (new — General group landing page)
 │   ├── debugging.md                            (new — workspaceTasks.debug)
@@ -272,11 +292,14 @@ docs/configuration/
 ├── display-interaction/
 │   ├── index.md                                (new — Display & Interaction group landing page)
 │   ├── grouping.md                             (new — groups.* settings)
-│   └── tasks.md                                (new — task action, icon, click, presentation, status)
-└── execution-environment/
-    ├── index.md                                (new — Task Execution & Environment landing page)
-    ├── tasks.md                                (new — stop behavior, recentTasks.maxItems)
-    ├── compound-tasks.md                       (new — compoundTasks.* settings)
+│   └── tasks.md                                (new — task action, icon, click, status,
+│                                                       recentTasks.maxItems)
+├── task-execution/
+│   ├── index.md                                (new — Task Execution group landing page)
+│   ├── tasks.md                                (new — stop behavior, presentationOptions)
+│   └── compound-tasks.md                       (new — compoundTasks.* settings)
+└── environment/
+    ├── index.md                                (new — Environment group landing page)
     └── application-paths/
         ├── index.md                            (new — intro + all simple applicationPath.* settings)
         ├── ant.md                              (new — applicationPath.ant, ant.ansicon.enabled)
@@ -551,8 +574,7 @@ An empty string (default) disables name-based grouping.
 **Parent:** `🖥️ Display & Interaction`
 **Grand parent:** `⚙️ Configuration`
 
-Migrate and expand content from `task-display.md`, `task-action.md`, `task-icon.md`, and
-`task-presentation.md`.
+Migrate and expand content from `task-display.md`, `task-action.md`, and `task-icon.md`.
 
 #### Settings documented
 
@@ -564,7 +586,56 @@ Migrate and expand content from `task-display.md`, `task-action.md`, `task-icon.
 | `workspaceTasks.task.iconType` | `string` | `"type"` |
 | `workspaceTasks.task.iconTypeCustom` | `string` | `""` |
 | `workspaceTasks.task.actionBar` | `object` | _(see below)_ |
-| `workspaceTasks.task.presentationOptions` | `object` | _(see below)_ |
+| `workspaceTasks.recentTasks.maxItems` | `number` | `20` |
+
+**`workspaceTasks.task.singleClickAction`** / **`workspaceTasks.task.doubleClickAction`**
+Actions triggered by single or double-clicking a task row. Options: `"run"`, `"runWithArgs"`,
+`"open"` (opens the task's source file), `"none"`.
+
+**`workspaceTasks.task.statusResetDelay`**
+Milliseconds to wait after a task finishes before the status icon on the task row resets back
+to its idle state. Set to `0` to reset immediately.
+
+**`workspaceTasks.task.iconType`**
+Source used for the icon displayed next to each task in the tree. Options:
+
+- `"type"` (default) — the icon registered by the task-type provider
+- `"file"` — VS Code's file icon for the task's source file
+- `"gear"` — a generic gear/settings icon
+- `"run"` — a play icon
+- `"custom"` — the icon specified by `workspaceTasks.task.iconTypeCustom`
+
+**`workspaceTasks.task.iconTypeCustom`**
+Active only when `iconType` is `"custom"`. Accepts a
+[ThemeIcon](https://code.visualstudio.com/api/references/icons-in-labels) reference (e.g.
+`"$(rocket)"`) or a path to a PNG/SVG file.
+
+**`workspaceTasks.task.actionBar`**
+An object controlling which inline buttons appear when hovering over a task row. Default:
+
+```jsonc
+{
+  "run": true,        // Run task
+  "runWithArgs": true,// Run with arguments
+  "openFile": true,   // Open source file
+  "favorite": true,   // Add to / remove from Favorites
+  "queue": true,      // Add to Compound Task (Queue)
+  "hide": false,      // Hide this task
+  "unhide": true      // Unhide a hidden task (visible in show-hidden mode)
+}
+```
+
+**`workspaceTasks.recentTasks.maxItems`**
+Maximum number of entries kept in the Recent Tasks list. When the limit is reached the oldest
+entry is removed. Set to `0` to disable the list entirely (this also overrides
+`workspaceTasks.groups.recentTasks.enabled`).
+
+**Feature links:**
+- [Running Tasks](../../features/running-tasks.md)
+- [Favorites](../../features/favorites.md)
+- [Compound Tasks / Queues](../../features/compound-tasks.md)
+- [Hide Tasks](../../features/hide-tasks.md)
+- [Recent Tasks](../../features/recents.md)
 
 **`workspaceTasks.task.singleClickAction`** / **`workspaceTasks.task.doubleClickAction`**
 Actions triggered by single or double-clicking a task row. Options: `"run"`, `"runWithArgs"`,
@@ -624,22 +695,24 @@ unless a task's own `tasks.json` definition overrides it. Sub-properties:
 
 ---
 
-### `docs/configuration/execution-environment/index.md` (new)
+### `docs/configuration/task-execution/index.md` (new)
 
-**Title:** `⚡ Task Execution & Environment`
+**Title:** `⚡ Task Execution`
 **Parent:** `⚙️ Configuration`
 
-Landing page for the Task Execution & Environment group. Explains the group covers task lifecycle
-(stop behaviour), compound task execution, and tool-specific environment configuration (paths,
-CMake, Act). Lists sub-sections: Tasks, Compound Tasks, Application Paths.
+Landing page for the Task Execution group. Explains the group covers task lifecycle
+(graceful stop, compound execution), and terminal presentation. Lists sub-pages: Tasks,
+Compound Tasks.
 
 ---
 
-### `docs/configuration/execution-environment/tasks.md` (new)
+### `docs/configuration/task-execution/tasks.md` (new)
 
 **Title:** `⚡ Tasks`
-**Parent:** `⚡ Task Execution & Environment`
+**Parent:** `⚡ Task Execution`
 **Grand parent:** `⚙️ Configuration`
+
+Migrate and expand `task-presentation.md` stop-related content from `general.md`.
 
 #### Settings documented
 
@@ -647,7 +720,7 @@ CMake, Act). Lists sub-sections: Tasks, Compound Tasks, Application Paths.
 | --- | --- | --- |
 | `workspaceTasks.task.stopGracefulDelayMilliseconds` | `number` | `5000` |
 | `workspaceTasks.task.stopCompoundDependencies` | `boolean` | `true` |
-| `workspaceTasks.recentTasks.maxItems` | `number` | `20` |
+| `workspaceTasks.task.presentationOptions` | `object` | _(see below)_ |
 
 **`workspaceTasks.task.stopGracefulDelayMilliseconds`**
 When the user stops a running task the extension sends SIGTERM (or the platform equivalent) and
@@ -659,21 +732,28 @@ When `true`, stopping a compound task also terminates any currently running depe
 were launched as part of the same compound run. When `false`, only the compound task itself is
 stopped.
 
-**`workspaceTasks.recentTasks.maxItems`**
-Maximum number of entries kept in the Recent Tasks list. When the limit is reached the oldest
-entry is removed. Set to `0` to disable the list entirely (this also overrides
-`workspaceTasks.groups.recentTasks.enabled`).
+**`workspaceTasks.task.presentationOptions`**
+Mirrors the VS Code `presentation` block. Applied to all tasks launched from the extension
+unless a task's own `tasks.json` definition overrides it. Sub-properties:
+
+| Property | Type | Default | Description |
+| --- | --- | --- | --- |
+| `reveal` | `string` | `"always"` | When to reveal the terminal panel (`"always"`, `"silent"`, `"never"`) |
+| `clear` | `boolean` | `false` | Clear the terminal before each run |
+| `close` | `boolean` | `false` | Close the terminal after the task finishes |
+| `echo` | `boolean` | `true` | Echo the command to the terminal |
+| `focus` | `boolean` | `false` | Focus the terminal when the task starts |
+| `panel` | `string` | `"shared"` | Terminal panel mode (`"dedicated"`, `"shared"`, `"new"`) |
 
 **Feature links:**
 - [Running Tasks](../../features/running-tasks.md)
-- [Recent Tasks](../../features/recents.md)
 
 ---
 
-### `docs/configuration/execution-environment/compound-tasks.md` (new)
+### `docs/configuration/task-execution/compound-tasks.md` (new)
 
 **Title:** `⚡ Compound Tasks`
-**Parent:** `⚡ Task Execution & Environment`
+**Parent:** `⚡ Task Execution`
 **Grand parent:** `⚙️ Configuration`
 
 #### Settings documented
@@ -704,10 +784,20 @@ you want to hide VS Code built-in compound tasks from the tree.
 
 ---
 
-### `docs/configuration/execution-environment/application-paths/index.md` (new)
+### `docs/configuration/environment/index.md` (new)
+
+**Title:** `🌐 Environment`
+**Parent:** `⚙️ Configuration`
+
+Landing page for the Environment group. Introduces the concept of tool-specific executable
+paths and per-tool configuration. Lists the Application Paths sub-section.
+
+---
+
+### `docs/configuration/environment/application-paths/index.md` (new)
 
 **Title:** `📂 Application Paths`
-**Parent:** `⚡ Task Execution & Environment`
+**Parent:** `🌐 Environment`
 **Grand parent:** `⚙️ Configuration`
 
 Introduction: The extension invokes external executables when running tasks. Each
@@ -750,11 +840,11 @@ happens if the executable is not found (task type is disabled at runtime).
 
 ---
 
-### `docs/configuration/execution-environment/application-paths/ant.md` (new)
+### `docs/configuration/environment/application-paths/ant.md` (new)
 
 **Title:** `📂 Ant`
 **Parent:** `📂 Application Paths`
-**Grand parent:** `⚡ Task Execution & Environment`
+**Grand parent:** `🌐 Environment`
 
 #### Settings documented
 
@@ -776,11 +866,11 @@ Has no effect on macOS/Linux where ANSI colours are natively supported.
 
 ---
 
-### `docs/configuration/execution-environment/application-paths/act.md` (new)
+### `docs/configuration/environment/application-paths/act.md` (new)
 
 **Title:** `📂 Act (GitHub Actions)`
 **Parent:** `📂 Application Paths`
-**Grand parent:** `⚡ Task Execution & Environment`
+**Grand parent:** `🌐 Environment`
 
 #### Settings documented
 
@@ -818,11 +908,11 @@ resolved from the workspace root.
 
 ---
 
-### `docs/configuration/execution-environment/application-paths/cmake.md` (new)
+### `docs/configuration/environment/application-paths/cmake.md` (new)
 
 **Title:** `📂 CMake`
 **Parent:** `📂 Application Paths`
-**Grand parent:** `⚡ Task Execution & Environment`
+**Grand parent:** `🌐 Environment`
 
 #### Settings documented
 
@@ -867,9 +957,9 @@ default (e.g. `"Unix Makefiles"` on Linux/macOS, `"Visual Studio"` on Windows). 
 
 | File | Change |
 | --- | --- |
-| `package.json` | Convert `"configuration"` from `{}` to `[]`; distribute all settings across 4 named section objects; remove root `"type": "object"` and `"title"` |
-| `package.nls.json` | Add four NLS section-title keys |
-| `docs/configuration/index.md` | Replace flat section table with 4-group overview linking to group landing pages |
+| `package.json` | ~~Convert `"configuration"` from `{}` to `[]`; distribute all settings across 4 named section objects; remove root `"type": "object"` and `"title"`~~ ✅ Done (Tasks 1–5). **Pending:** split old Group 4 into Task Execution (5 settings) and Environment (25 settings); move `presentationOptions` from Display to Task Execution; move `recentTasks.maxItems` from Task Execution to Display |
+| `package.nls.json` | ~~Add four NLS section-title keys~~ ✅ Done. **Pending:** update `config.group.execution.title` value to `"Task Execution"`; add `config.group.environment.title` = `"Environment"` |
+| `docs/configuration/index.md` | Replace flat section table with 5-group overview linking to group landing pages |
 
 ### New documentation files
 
@@ -883,14 +973,15 @@ default (e.g. `"Unix Makefiles"` on Linux/macOS, `"Visual Studio"` on Windows). 
 | `docs/configuration/task-discovery/discovery.md` | `enabledTaskTypes`, shell settings |
 | `docs/configuration/display-interaction/index.md` | Display & Interaction group landing page |
 | `docs/configuration/display-interaction/grouping.md` | `groups.*` settings |
-| `docs/configuration/display-interaction/tasks.md` | task action, icon, click, presentation |
-| `docs/configuration/execution-environment/index.md` | Task Execution & Environment landing page |
-| `docs/configuration/execution-environment/tasks.md` | stop behaviour, `recentTasks.maxItems` |
-| `docs/configuration/execution-environment/compound-tasks.md` | `compoundTasks.*` settings |
-| `docs/configuration/execution-environment/application-paths/index.md` | All simple `applicationPath.*` + intro |
-| `docs/configuration/execution-environment/application-paths/ant.md` | `applicationPath.ant`, `ant.ansicon.enabled` |
-| `docs/configuration/execution-environment/application-paths/act.md` | `applicationPath.act`, `act.*` |
-| `docs/configuration/execution-environment/application-paths/cmake.md` | `applicationPath.cmake`, `cmake.*` |
+| `docs/configuration/display-interaction/tasks.md` | task action, icon, click, status, `recentTasks.maxItems` |
+| `docs/configuration/task-execution/index.md` | Task Execution group landing page |
+| `docs/configuration/task-execution/tasks.md` | stop behaviour, `presentationOptions` |
+| `docs/configuration/task-execution/compound-tasks.md` | `compoundTasks.*` settings |
+| `docs/configuration/environment/index.md` | Environment group landing page |
+| `docs/configuration/environment/application-paths/index.md` | All simple `applicationPath.*` + intro |
+| `docs/configuration/environment/application-paths/ant.md` | `applicationPath.ant`, `ant.ansicon.enabled` |
+| `docs/configuration/environment/application-paths/act.md` | `applicationPath.act`, `act.*` |
+| `docs/configuration/environment/application-paths/cmake.md` | `applicationPath.cmake`, `cmake.*` |
 
 ### Retired / replaced files
 
@@ -899,18 +990,18 @@ the designated replacement pages, then add a deprecation redirect notice to each
 
 | Old file | Replaced by |
 | --- | --- |
-| `docs/configuration/general.md` | `task-discovery/general.md` + `execution-environment/tasks.md` |
+| `docs/configuration/general.md` | `task-discovery/general.md` + `task-execution/tasks.md` |
 | `docs/configuration/metrics.md` | `general/metrics.md` |
 | `docs/configuration/task-display.md` | `display-interaction/tasks.md` |
 | `docs/configuration/task-grouping.md` | `display-interaction/grouping.md` |
 | `docs/configuration/task-icon.md` | `display-interaction/tasks.md` |
 | `docs/configuration/task-action.md` | `display-interaction/tasks.md` |
-| `docs/configuration/task-presentation.md` | `display-interaction/tasks.md` |
+| `docs/configuration/task-presentation.md` | `task-execution/tasks.md` |
 | `docs/configuration/task-type.md` | `task-discovery/discovery.md` |
 | `docs/configuration/shell-script.md` | `task-discovery/discovery.md` |
-| `docs/configuration/application-path.md` | `execution-environment/application-paths/index.md` |
-| `docs/configuration/github-actions.md` | `execution-environment/application-paths/act.md` |
-| `docs/configuration/ant.md` | `execution-environment/application-paths/ant.md` |
+| `docs/configuration/application-path.md` | `environment/application-paths/index.md` |
+| `docs/configuration/github-actions.md` | `environment/application-paths/act.md` |
+| `docs/configuration/ant.md` | `environment/application-paths/ant.md` |
 
 ---
 
@@ -937,56 +1028,66 @@ the designated replacement pages, then add a deprecation redirect notice to each
 
 ## Implementation Tasks
 
-1. **Verify property count before editing**
+### Completed (Tasks 1–5)
+
+1. ✅ **Verified property count before editing** — 53 properties confirmed.
+2. ✅ **Edited `package.json`** — converted to 4-group array; root `"type"`/`"title"` removed.
+3. ✅ **Verified property count after** — 4 + 6 + 13 + 30 = 53 ✓
+4. ✅ **Edited `package.nls.json`** — added `config.group.general.title`, `config.group.discovery.title`, `config.group.display.title`, `config.group.execution.title` (value: `"Task Execution & Environment"`).
+5. ✅ **Verified NLS coverage** — all four tokens resolve correctly.
+
+---
+
+### New Tasks (6–11) — 5-Group Split
+
+6. **Re-verify property count** (should still be 53).
 
    ```sh
-   node -e "const p=require('./package.json'); \
-     console.log(Object.keys(p.contributes.configuration.properties).length);"
+   python3 -c "import json; p=json.load(open('package.json')); \
+     t=sum(len(s['properties']) for s in p['contributes']['configuration']); print(t)"
    ```
 
-   Record this number.
+7. **Update `package.json`** — restructure from 4 groups to 5:
+   - Split the existing `config.group.execution.title` group into:
+     - **Task Execution** (`task.stopGracefulDelayMilliseconds`, `task.stopCompoundDependencies`, `compoundTasks.defaultExecutionType`, `compoundTasks.includeVsCodeCompoundTasks`, `task.presentationOptions`)
+     - **Environment** (all remaining: `applicationPath.*`, `ant.*`, `act.*`, `cmake.*`)
+   - Move `task.presentationOptions` **from** Display & Interaction **to** Task Execution.
+   - Move `recentTasks.maxItems` **from** Task Execution **to** Display & Interaction.
 
-2. **Edit `package.json`**
-   - Convert `"configuration"` from `{}` to `[]`.
-   - Create the four group objects per the mapping tables above, moving all settings accordingly.
-   - Remove the root-level `"type": "object"` and `"title": "%view.name%"`.
-
-3. **Verify property count after editing**
+8. **Re-verify property count after** — must still equal 53.
 
    ```sh
-   node -e "const p=require('./package.json'); \
-     const t=p.contributes.configuration.reduce((a,s)=>a+Object.keys(s.properties).length,0); \
-     console.log(t);"
+   python3 -c "import json; p=json.load(open('package.json')); \
+     t=sum(len(s['properties']) for s in p['contributes']['configuration']); print(t)"
    ```
 
-   Must equal the count from step 1.
+9. **Update `package.nls.json`**:
+   - Change value of `config.group.execution.title` from `"Task Execution & Environment"` to `"Task Execution"`.
+   - Add `"config.group.environment.title": "Environment"`.
 
-4. **Edit `package.nls.json`** — add the four section-title NLS keys.
+10. **Verify NLS coverage** — all five `%config.group.*.title%` tokens must resolve.
 
-5. **Verify NLS coverage** — every `%config.group.*.title%` token in `package.json` must have
-   a matching key in `package.nls.json`.
+11. **Create the new documentation files** per the structure table above. Populate each page with
+    the full setting documentation, feature links, and example JSON as specified in the Page
+    Specifications section.
 
-6. **Create the new documentation files** per the structure table above. Populate each page with
-   the full setting documentation, feature links, and example JSON as specified in the Page
-   Specifications section.
+12. **Update `docs/configuration/index.md`** — replace the flat section table with the new
+    five-group overview.
 
-7. **Update `docs/configuration/index.md`** — replace the flat section table with the new
-   four-group overview.
+13. **Add deprecation notices to retired flat pages** pointing to their replacement page.
 
-8. **Add deprecation notices to retired flat pages** pointing to their replacement page.
+14. **Run tests**
 
-9. **Run tests**
+    ```sh
+    npm test
+    ```
 
-   ```sh
-   npm test
-   ```
+    All tests must pass. Failures here indicate a malformed `package.json`.
 
-   All tests must pass. Failures here indicate a malformed `package.json`.
+15. **Manual UI verification** — open VS Code Settings (`Ctrl+,`), search `workspaceTasks`.
+    Confirm all five section headers are visible and each setting appears under its correct group.
 
-10. **Manual UI verification** — open VS Code Settings (`Ctrl+,`), search `workspaceTasks`.
-    Confirm all four section headers are visible and each setting appears under its correct group.
-
-11. **Update `README.md`** — brief note that settings are now grouped into four categories with
+16. **Update `README.md`** — brief note that settings are now grouped into five categories with
     a link to the configuration docs.
 
 ---
