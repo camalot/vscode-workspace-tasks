@@ -286,6 +286,103 @@ suite('TaskMetricsService Test Suite', () => {
   });
 
   // -------------------------------------------------------------------------
+  // clearCurrentWorkspaceMetrics
+  // -------------------------------------------------------------------------
+
+  /** Recreate the service instance with a specific scope. */
+  function reinitServiceWithScope(scope: MetricsScope): void {
+    capturedHistoryHandlers = [];
+    resetSingleton();
+    (TaskHistoryService as any).instance = undefined;
+    const hs = TaskHistoryService.getInstance();
+    (hs as any).onDidRecordHistory = (listener: (r: ITaskExecutionRecord) => void) => {
+      capturedHistoryHandlers.push(listener);
+      return { dispose: () => {} };
+    };
+    configValues['metrics.scope'] = scope;
+    service = TaskMetricsService.getInstance();
+    service.initialize(mockContext);
+  }
+
+  const METRICS_STORAGE_KEY = 'workspaceTasks.taskMetrics';
+
+  test('clearCurrentWorkspaceMetrics: scope=workspace wipes workspace store entirely', () => {
+    fireHistoryRecord(makeRecord({ taskName: 'build', scope: 'myProject', status: 'Success', exitCode: 0, duration: 100 }));
+    fireHistoryRecord(makeRecord({ taskName: 'test', scope: 'myProject', status: 'Success', exitCode: 0, duration: 200 }));
+    assert.strictEqual(Object.keys(service.getAllMetrics()).length, 2);
+    service.clearCurrentWorkspaceMetrics(['myProject']);
+    assert.deepStrictEqual(service.getAllMetrics(), {});
+  });
+
+  test('clearCurrentWorkspaceMetrics: scope=workspace does not touch global store', () => {
+    globalData.set(METRICS_STORAGE_KEY, { 'npm:build:otherProject': { totalExecutions: 5 } });
+    fireHistoryRecord(makeRecord({ taskName: 'build', scope: 'myProject', status: 'Success', exitCode: 0, duration: 100 }));
+    service.clearCurrentWorkspaceMetrics(['myProject']);
+    const globalStore = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
+    assert.ok('npm:build:otherProject' in globalStore, 'global store should be untouched');
+  });
+
+  test('clearCurrentWorkspaceMetrics: scope=global removes matching folder keys only', () => {
+    reinitServiceWithScope('global');
+    globalData.set(METRICS_STORAGE_KEY, {
+      'npm:build:myProject': { totalExecutions: 3 },
+      'npm:test:otherProject': { totalExecutions: 7 },
+    });
+    service.clearCurrentWorkspaceMetrics(['myProject']);
+    const remaining = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
+    assert.strictEqual('npm:build:myProject' in remaining, false, 'matching key should be removed');
+    assert.ok('npm:test:otherProject' in remaining, 'non-matching key should be preserved');
+  });
+
+  test('clearCurrentWorkspaceMetrics: scope=global preserves "1" and "global" scoped keys', () => {
+    reinitServiceWithScope('global');
+    globalData.set(METRICS_STORAGE_KEY, {
+      'npm:build:1': { totalExecutions: 1 },
+      'npm:build:global': { totalExecutions: 2 },
+      'npm:build:myProject': { totalExecutions: 3 },
+    });
+    service.clearCurrentWorkspaceMetrics(['myProject']);
+    const remaining = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
+    assert.ok('npm:build:1' in remaining, '"1"-scoped key should be preserved');
+    assert.ok('npm:build:global' in remaining, '"global"-scoped key should be preserved');
+    assert.strictEqual('npm:build:myProject' in remaining, false, 'folder-scoped key should be removed');
+  });
+
+  test('clearCurrentWorkspaceMetrics: scope=both wipes workspace store and removes matching global keys', () => {
+    reinitServiceWithScope('both');
+    workspaceData.set(METRICS_STORAGE_KEY, { 'npm:build:1': { totalExecutions: 2 } });
+    globalData.set(METRICS_STORAGE_KEY, {
+      'npm:build:myProject': { totalExecutions: 5 },
+      'npm:test:otherProject': { totalExecutions: 7 },
+    });
+    service.clearCurrentWorkspaceMetrics(['myProject']);
+    const wsStore = workspaceData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
+    assert.deepStrictEqual(wsStore, {}, 'workspace store should be wiped');
+    const gStore = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
+    assert.strictEqual('npm:build:myProject' in gStore, false, 'matching global key should be removed');
+    assert.ok('npm:test:otherProject' in gStore, 'non-matching global key should be preserved');
+  });
+
+  test('clearCurrentWorkspaceMetrics: scope=disabled is a no-op', () => {
+    reinitServiceWithScope('disabled');
+    workspaceData.set(METRICS_STORAGE_KEY, { 'npm:build:myProject': { totalExecutions: 1 } });
+    globalData.set(METRICS_STORAGE_KEY, { 'npm:build:myProject': { totalExecutions: 1 } });
+    service.clearCurrentWorkspaceMetrics(['myProject']);
+    const wsStore = workspaceData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
+    const gStore = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
+    assert.ok('npm:build:myProject' in wsStore, 'workspace store should be unchanged');
+    assert.ok('npm:build:myProject' in gStore, 'global store should be unchanged');
+  });
+
+  test('clearCurrentWorkspaceMetrics: fires onDidChangeMetrics', () => {
+    let fired = false;
+    service.onDidChangeMetrics(() => { fired = true; });
+    fired = false;
+    service.clearCurrentWorkspaceMetrics(['any']);
+    assert.strictEqual(fired, true);
+  });
+
+  // -------------------------------------------------------------------------
   // onDidChangeMetrics event
   // -------------------------------------------------------------------------
 

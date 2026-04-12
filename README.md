@@ -57,8 +57,8 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
-- **�️ Task History & Statistics** - Track all task executions in a sortable history table and view per-task performance metrics (duration trends, success rates, failure streaks) in a statistics panel
-- **�💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
+- **🕰️ Task History, Statistics & Dashboard** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
+- **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 
 ## 📥 Installation
@@ -327,7 +327,7 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 
 ## 🕰️ Task History
 
-Track and review all task executions with comprehensive history and statistics. Task History provides a **table view** with sortable execution details and a **Statistics view** for aggregated per-task metrics.
+Track and review all task executions with comprehensive history and statistics. Task History provides a **table view** with sortable execution details, a **Statistics view** for aggregated per-task metrics, and a **Dashboard** with interactive charts for a workspace-wide health overview.
 
 ### Table View
 
@@ -374,6 +374,29 @@ The Statistics View provides aggregated per-task execution metrics across all ru
 3. Review per-task cards for performance trends and failure patterns
 4. Click **✕** on a card to reset metrics for that task
 5. To clear all metrics, use the **Clear All Task Metrics** command (`workspaceTasks.metrics.clearAll`) from the Command Palette
+
+### Dashboard
+
+The Dashboard tab provides an at-a-glance, workspace-wide view of task health using interactive [Chart.js](https://www.chartjs.org/) charts that automatically adapt to your VS Code color theme.
+
+![Task Dashboard](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-1.png)
+
+**Charts included:**
+
+- **Execution Outcomes** — Doughnut showing the workspace-wide split of successful, failed, and terminated runs
+- **Hourly Activity Pattern** — When the workspace is most active by hour of day
+- **Top Tasks by Run Count** — Most-executed tasks, ranked descending
+- **Success Rate by Task** — All tasks ranked worst-to-best; color-coded red / amber / green
+- **Duration Comparison** — Min / Avg / p95 / Max durations for the top tasks
+- **Daily Activity (14 days)** — Execution count per calendar day
+- **Duration Trend Sparklines** — Per-task trend lines; green = getting faster, red = getting slower
+- **Attention Required** — Table of flaky, low-success, or recently-failed tasks
+
+**How to Use:**
+
+1. Open the **Task History** panel
+2. Click the **Dashboard** tab at the top
+3. Charts populate automatically from your collected metrics and update as tasks run
 
 **Perfect For:**
 

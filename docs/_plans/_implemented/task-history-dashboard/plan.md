@@ -390,7 +390,7 @@ All 8 charts/panels implemented in `res/webviews/taskHistory.html`. TypeScript t
 
 - `res/webviews/taskHistory.html` — CSS additions, `let dashboardCharts = {}` variable, all helper functions, all 8 chart builder functions, updated `renderDashboard()` orchestrator
 
-### Phase 4: Polish & Tests
+### Phase 4: Polish & Tests ✅ COMPLETE
 
 1. ~~Add `renderDashboard()` call in `loadData` handler when `currentTab === 'dashboard'` (to keep charts updated after task runs).~~ *(Done in Phase 2 — `loadData` now sends `requestDashboardData` when on the dashboard tab, which triggers a `loadDashboardData` → `renderDashboard()` cycle.)*
 2. Add MutationObserver for theme changes.

@@ -51,7 +51,6 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
     const messageListener = webviewView.webview.onDidReceiveMessage((message) => {
       if (message.command === 'clearMetrics') {
         const taskId: string | undefined = message.taskId;
-        // Only per-task clear is supported from the webview; clear-all requires the command palette
         if (taskId) {
           metricsService.clearMetrics(taskId);
         }

@@ -21,7 +21,7 @@ nav_order: 6
 
 ## Overview
 
-Track and review all task executions with comprehensive history and statistics. Task History provides a **table panel** for monitoring task execution status, timing, and results, and a **Statistics view** for aggregated per-task metrics.
+Track and review all task executions with comprehensive history and statistics. Task History provides a **table panel** for monitoring task execution status, timing, and results, a **Statistics view** for aggregated per-task metrics, and a **Dashboard** with interactive charts for an at-a-glance view of workspace-wide task health.
 
 ---
 
@@ -68,7 +68,7 @@ The Statistics View provides aggregated per-task execution metrics, giving you a
   - **Success rate** — Overall success percentage across all tracked tasks
   - **Total time** — Sum of all recorded execution durations
 - **Per-task Cards** — One card per tracked task, sorted by most-run first, each showing:
-  - **Success Rate** — Colour-coded: green ≥ 80%, amber ≥ 50%, red < 50%
+  - **Success Rate** — Color-coded: green ≥ 80%, amber ≥ 50%, red < 50%
   - **Total Runs** — All-time execution count
   - **Avg / Min / Max / p95 Duration** — Computed from the last N duration samples (configurable)
   - **Last Run** — Timestamp of the most recent execution
@@ -92,13 +92,56 @@ The Statistics View provides aggregated per-task execution metrics, giving you a
 Metrics are persisted across VS Code sessions. The storage location is controlled by the `workspaceTasks.metrics.scope` setting:
 
 | Value | Storage |
-|-------|---------|
+| ----- | ------- |
 | `workspace` (default) | Per-workspace (`workspaceState`) |
 | `global` | Global across all workspaces (`globalState`) |
 | `both` | Written to both; workspace takes precedence on read |
 | `disabled` | Metrics collection is turned off entirely |
 
 See the [Metrics Configuration](../configuration/metrics) page for all available settings.
+
+---
+
+## Dashboard Tab
+
+The Dashboard tab provides an at-a-glance, workspace-wide view of task execution health using interactive charts powered by [Chart.js](https://www.chartjs.org/). All charts automatically adapt to your active VS Code color theme.
+
+![Task Dashboard 1](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-1.png)
+
+![Task Dashboard 2](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-2.png)
+
+![Task Dashboard 3](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-3.png)
+
+### Charts
+
+| Chart | Type | What it shows |
+| ----- | ---- | ------------- |
+| **Execution Outcomes** | Doughnut | Workspace-wide split of successful, failed, and terminated executions with a centre success-rate label |
+| **Hourly Activity Pattern** | Bar | Which hour of day sees the most task executions — peak hour highlighted in orange |
+| **Top Tasks by Run Count** | Horizontal bar | Up to 15 most-executed tasks, sorted descending |
+| **Success Rate by Task** | Horizontal bar | All tasks ranked worst-to-best; bars coloured red < 50%, amber 50–79%, green ≥ 80% |
+| **Duration Comparison** | Grouped bar | Min / Avg / p95 / Max durations for the top 10 tasks by execution count |
+| **Daily Activity — Last 14 Days** | Line | Execution count per calendar day for the past two weeks |
+| **Duration Trend Sparklines** | Micro line charts | Per-task duration trend over the last N runs; green = getting faster, red = getting slower |
+| **Attention Required** | Table | Tasks that are flaky (≥ 3 consecutive failures), have a success rate below 50%, or failed within the last 24 hours |
+
+### Features
+
+- **Theme-aware** — Charts re-render automatically when you switch VS Code color themes
+- **Empty state** — A friendly placeholder is shown when no metrics have been collected yet
+- **Atomic data** — The dashboard always reflects a consistent metrics + history snapshot from the same point in time
+- **Persistent tab selection** — The active tab (History / Statistics / Dashboard) is remembered across webview recreations
+
+### How to Use
+
+1. Open the **Task History** panel
+2. Click the **Dashboard** tab at the top
+3. Charts populate automatically from your collected metrics
+4. Switch VS Code themes — charts update immediately to match
+5. Run tasks to see counts, durations, and trends grow over time
+
+{: .note }
+The Dashboard requires at least one completed task execution before any charts are shown. Sparklines require a minimum of 5 duration samples per task.
 
 ---
 

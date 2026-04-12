@@ -156,6 +156,47 @@ export class TaskMetricsService {
     this._onDidChangeMetrics.fire();
   }
 
+  /**
+   * Clears metrics for all tasks belonging to the current workspace.
+   *
+   * - The workspace store is always wiped entirely — it is already scoped to the
+   *   current workspace by VS Code's `workspaceState` API.
+   * - For `global` or `both` scope the global store is shared across all workspaces.
+   *   Only entries whose key scope segment matches one of `workspaceFolderNames` are
+   *   removed; other workspaces' data is preserved.
+   *
+   * @param workspaceFolderNames Names of workspace folders in the current workspace
+   *   (from `vscode.workspace.workspaceFolders`).
+   */
+  public clearCurrentWorkspaceMetrics(workspaceFolderNames: string[]): void {
+    if (this.scope === 'disabled') { return; }
+
+    // The workspace store is inherently per-workspace — wipe it entirely.
+    if (this.scope === 'workspace' || this.scope === 'both') {
+      this.writeStore('workspace', {});
+    }
+
+    // The global store is shared; selectively remove only keys whose scope
+    // segment matches a folder in the current workspace.
+    if (this.scope === 'global' || this.scope === 'both') {
+      const store = this.readStore('global');
+      const folderSet = new Set(workspaceFolderNames);
+      let changed = false;
+      for (const key of Object.keys(store)) {
+        // Key format: "source:name:scope" — scope is the last colon-delimited segment.
+        const lastColon = key.lastIndexOf(':');
+        const scopePart = lastColon >= 0 ? key.slice(lastColon + 1) : key;
+        if (folderSet.has(scopePart)) {
+          delete store[key];
+          changed = true;
+        }
+      }
+      if (changed) { this.writeStore('global', store); }
+    }
+
+    this._onDidChangeMetrics.fire();
+  }
+
   // ---------------------------------------------------------------------------
   // Storage helpers
   // ---------------------------------------------------------------------------

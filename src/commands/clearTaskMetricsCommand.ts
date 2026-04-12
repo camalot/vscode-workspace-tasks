@@ -51,3 +51,27 @@ export class MetricsClearAllCommand extends BaseCommand {
     TaskMetricsService.getInstance().clearAllMetrics();
   }
 }
+
+/**
+ * Command to clear task metrics for the current workspace only.
+ * When metrics scope is `global` or `both`, the global store is shared across
+ * workspaces; this command removes only entries belonging to the current
+ * workspace folders and leaves other workspaces' data intact.
+ * Registered as `workspaceTasks.metrics.clearWorkspace`.
+ */
+export class MetricsClearWorkspaceCommand extends BaseCommand {
+  constructor(context: vscode.ExtensionContext) {
+    super('metrics.clearWorkspace', context);
+  }
+
+  async run(): Promise<void> {
+    const answer = await vscode.window.showWarningMessage(
+      'Clear all task metrics for this workspace? This cannot be undone.',
+      { modal: true },
+      'Clear'
+    );
+    if (answer !== 'Clear') { return; }
+    const folderNames = (vscode.workspace.workspaceFolders ?? []).map((f) => f.name);
+    TaskMetricsService.getInstance().clearCurrentWorkspaceMetrics(folderNames);
+  }
+}

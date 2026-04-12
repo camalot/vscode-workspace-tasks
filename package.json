@@ -488,7 +488,12 @@
       {
         "command": "workspaceTasks.metrics.clearAll",
         "title": "%command.metrics.clearAll%",
-        "icon": "$(clear-all)"
+        "icon": "$(trash)"
+      },
+      {
+        "command": "workspaceTasks.metrics.clearWorkspace",
+        "title": "%command.metrics.clearWorkspace%",
+        "icon": "$(trash)"
       }
     ],
     "configuration": {
@@ -1311,6 +1316,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "workspaceTasks.metrics.clearWorkspace",
+          "group": "navigation@98",
+          "when": "view == workspaceTasksHistoryTableView"
+        },
         {
           "command": "workspaceTasks.history.clear",
           "group": "navigation@99",

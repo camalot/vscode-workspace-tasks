@@ -4,7 +4,7 @@ import { TaskItem } from '../../taskItem';
 import { TaskStateManager } from '../../taskStateManager';
 import { FavoritesService } from '../../services/favoritesService';
 import { FilteredTaskService } from '../../services/filteredTaskService';
-import { MetricsClearAllCommand, MetricsClearTaskCommand } from '../../commands/clearTaskMetricsCommand';
+import { MetricsClearAllCommand, MetricsClearTaskCommand, MetricsClearWorkspaceCommand } from '../../commands/clearTaskMetricsCommand';
 import { TaskMetricsService } from '../../services/taskMetricsService';
 
 // ---------------------------------------------------------------------------
@@ -70,11 +70,13 @@ suite('clearTaskMetricsCommand Test Suite', () => {
   let fakeContext: vscode.ExtensionContext;
   let clearMetricsCalls: string[];
   let clearAllCalled: boolean;
+  let clearCurrentWorkspaceMetricsCalls: string[][];
   let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
   let showWarningMessageResult: string | undefined;
   let originalShowWarningMessage: typeof vscode.window.showWarningMessage;
   let clearTaskCmd: MetricsClearTaskCommand;
   let clearAllCmd: MetricsClearAllCommand;
+  let clearWorkspaceCmd: MetricsClearWorkspaceCommand;
 
   setup(() => {
     // Reset singletons
@@ -85,6 +87,7 @@ suite('clearTaskMetricsCommand Test Suite', () => {
 
     clearMetricsCalls = [];
     clearAllCalled = false;
+    clearCurrentWorkspaceMetricsCalls = [];
 
     fakeContext = makeFakeContext();
 
@@ -92,6 +95,7 @@ suite('clearTaskMetricsCommand Test Suite', () => {
     const fakeMetricsService = {
       clearMetrics: (key: string) => { clearMetricsCalls.push(key); },
       clearAllMetrics: () => { clearAllCalled = true; },
+      clearCurrentWorkspaceMetrics: (names: string[]) => { clearCurrentWorkspaceMetricsCalls.push(names); },
     };
     (TaskMetricsService as any).instance = fakeMetricsService;
 
@@ -109,6 +113,7 @@ suite('clearTaskMetricsCommand Test Suite', () => {
     // Create command instances once per test (fresh fakeContext each time)
     clearTaskCmd = new MetricsClearTaskCommand(fakeContext);
     clearAllCmd = new MetricsClearAllCommand(fakeContext);
+    clearWorkspaceCmd = new MetricsClearWorkspaceCommand(fakeContext);
   });
 
   teardown(() => {
@@ -182,5 +187,24 @@ suite('clearTaskMetricsCommand Test Suite', () => {
     showWarningMessageResult = undefined; // user dismissed or pressed Cancel
     await clearAllCmd.run();
     assert.strictEqual(clearAllCalled, false);
+  });
+
+  // -------------------------------------------------------------------------
+  // MetricsClearWorkspaceCommand
+  // -------------------------------------------------------------------------
+
+  test('clearWorkspace: calls clearCurrentWorkspaceMetrics with folder names when confirmed', async () => {
+    showWarningMessageResult = 'Clear';
+    await clearWorkspaceCmd.run();
+    assert.strictEqual(clearCurrentWorkspaceMetricsCalls.length, 1);
+    // Folder names come from vscode.workspace.workspaceFolders — derive the expected value
+    const expectedNames = (vscode.workspace.workspaceFolders ?? []).map((f) => f.name);
+    assert.deepStrictEqual(clearCurrentWorkspaceMetricsCalls[0], expectedNames);
+  });
+
+  test('clearWorkspace: does NOT call clearCurrentWorkspaceMetrics when cancelled', async () => {
+    showWarningMessageResult = undefined;
+    await clearWorkspaceCmd.run();
+    assert.strictEqual(clearCurrentWorkspaceMetricsCalls.length, 0);
   });
 });

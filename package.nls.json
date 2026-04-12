@@ -19,6 +19,7 @@
   "command.copyTaskCommand": "Copy Command",
   "command.metrics.clearTask": "Clear Task Metrics",
   "command.metrics.clearAll": "Clear All Task Metrics",
+  "command.metrics.clearWorkspace": "Clear Workspace Metrics",
   "command.stopTask": "Stop Task",
   "command.stopCompoundTask": "Stop Compound Task (Queue)",
   "command.restartTask": "Restart Task",
