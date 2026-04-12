@@ -2,6 +2,9 @@
 sample/**/tools/**
 sample/sample-workspace-tasks
 
+# Generated webview vendor assets (bundled from node_modules at compile time)
+res/webviews/lib/
+
 test-*.txt
 test-*.log
 *.log

@@ -3,8 +3,10 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}' {{cspSource}}">
   <title>Task History</title>
+  <!-- Chart.js UMD bundle (vendored local resource) -->
+  <script nonce="{{nonce}}" src="{{chartJsUri}}"></script>
   <style>
     html, body {
       height: 100%;
@@ -85,7 +87,8 @@
 
     /* ── Scrollable panel area ──────────────────────────────── */
     #history-panel,
-    #stats-panel {
+    #stats-panel,
+    #dashboard-panel {
       flex: 1;
       overflow-y: auto;
       overflow-x: auto;
@@ -178,7 +181,8 @@
     }
 
     /* ── Statistics cards ───────────────────────────────────── */
-    #stats-panel {
+    #stats-panel,
+    #dashboard-panel {
       padding: 8px;
     }
 
@@ -332,6 +336,7 @@
   <div class="tab-strip">
     <button class="tab-btn active" id="tab-history">History</button>
     <button class="tab-btn" id="tab-stats">Statistics</button>
+    <button class="tab-btn" id="tab-dashboard">Dashboard</button>
   </div>
 
   <!-- Summary bar (shown in both modes) -->
@@ -367,6 +372,9 @@
   <!-- Statistics tab -->
   <div id="stats-panel" style="display:none;"></div>
 
+  <!-- Dashboard tab (stub — charts rendered in Phase 3) -->
+  <div id="dashboard-panel" style="display:none;"></div>
+
   <script nonce="{{nonce}}">
     const vscode = acquireVsCodeApi();
 
@@ -384,6 +392,7 @@
     // ── Tab wiring (use addEventListener, not onclick — CSP blocks inline handlers) ──
     document.getElementById('tab-history').addEventListener('click', () => switchTab('history'));
     document.getElementById('tab-stats').addEventListener('click', () => switchTab('stats'));
+    document.getElementById('tab-dashboard').addEventListener('click', () => switchTab('dashboard'));
 
     // ── Sort header wiring ────────────────────────────────────
     document.querySelectorAll('th[data-key]').forEach(th => {
@@ -409,8 +418,10 @@
         renderSummary();
         if (currentTab === 'history') {
           renderTable();
-        } else {
+        } else if (currentTab === 'stats') {
           renderStats();
+        } else if (currentTab === 'dashboard') {
+          renderDashboard();
         }
       }
     });
@@ -427,16 +438,20 @@
       applyTab(tab);
       if (tab === 'history') {
         renderTable();
-      } else {
+      } else if (tab === 'stats') {
         renderStats();
+      } else if (tab === 'dashboard') {
+        renderDashboard();
       }
     }
 
     function applyTab(tab) {
       document.getElementById('tab-history').classList.toggle('active', tab === 'history');
       document.getElementById('tab-stats').classList.toggle('active', tab === 'stats');
+      document.getElementById('tab-dashboard').classList.toggle('active', tab === 'dashboard');
       document.getElementById('history-panel').style.display = tab === 'history' ? '' : 'none';
       document.getElementById('stats-panel').style.display = tab === 'stats' ? '' : 'none';
+      document.getElementById('dashboard-panel').style.display = tab === 'dashboard' ? '' : 'none';
     }
 
     // ── Summary bar ───────────────────────────────────────────
@@ -710,6 +725,22 @@
       cell.appendChild(l);
       cell.appendChild(v);
       return cell;
+    }
+
+    // ── Dashboard (stub — charts rendered in Phase 3) ──────────
+    function renderDashboard() {
+      const panel = document.getElementById('dashboard-panel');
+      // Verify Chart.js loaded without CSP errors
+      if (typeof Chart === 'undefined') {
+        panel.textContent = 'Chart.js failed to load.';
+        return;
+      }
+      const allMetrics = Object.values(metricsData);
+      if (allMetrics.length === 0) {
+        panel.textContent = 'No metrics collected yet. Run some tasks to see the dashboard.';
+        return;
+      }
+      panel.textContent = `Dashboard ready — Chart.js ${Chart.version} loaded. Charts coming in Phase 3.`;
     }
 
     // ── Helpers ───────────────────────────────────────────────

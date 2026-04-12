@@ -30,7 +30,7 @@ Chart.js v4 ships a UMD bundle (~200 KB minified+gzipped ≈ ~60 KB). It has:
 1. `npm install chart.js` — adds it as a `devDependency` (not shipped raw; only the built artefact is shipped).
 2. Add a `package.json` `scripts.bundle-chartjs` step that copies `node_modules/chart.js/dist/chart.umd.min.js` → `res/webviews/lib/chart.umd.min.js`.
 3. Run the copy step as part of `npm run compile` via a `prebundle-chartjs`/`postinstall` hook **or** a webpack `CopyPlugin` entry.
-4. Add `res/webviews/lib/` to `.vscodeignore` exclusions so the file ships in the VSIX.
+4. Add `res/webviews/lib/` to `.gitignore` (it is a generated artefact and should not be committed). Do NOT add it to `.vscodeignore` — omitting it from `.vscodeignore` is what allows it to ship in the VSIX.
 5. In `TaskHistoryTableViewProvider._getHtmlForWebview()`, inject `{{chartJsUri}}` using `webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'res', 'webviews', 'lib', 'chart.umd.min.js'))`.
 6. Update the HTML `<script nonce="{{nonce}}" src="{{chartJsUri}}"></script>`.
 
@@ -269,7 +269,26 @@ Extend the existing `vscode.getState()`/`setState()` calls to persist `tab: 'das
 
 ## Phases
 
-### Phase 1: Infrastructure
+### Phase 1: Infrastructure ✅ COMPLETE
+
+**Implementation notes / changes from original plan:**
+
+- `chart.js` v4.5.1 was already present in `devDependencies` — no install step needed.
+- `bundle-chartjs` script added to `package.json`; `compile` updated to run `bundle-chartjs && compile:webpack`. The script uses `path.join()` for cross-platform path handling and `fs.mkdirSync(..., { recursive: true })` to create `res/webviews/lib/` before copying.
+- `res/webviews/lib/` added to `.gitignore` (generated artefact — should not be committed). It is intentionally NOT in `.vscodeignore` so it ships in the VSIX. *(The original plan wording "Add to `.vscodeignore` exclusions" was incorrect — it should have said do NOT add it.)*
+- CSP updated: `script-src 'nonce-{{nonce}}' {{cspSource}}`. The `{{cspSource}}` allows the Chart.js file served from the `vscode-resource:` scheme. The `<script>` tag for Chart.js carries the nonce attribute as well.
+- `#dashboard-panel` CSS added to the shared `#history-panel, #stats-panel, #dashboard-panel` rule so `flex: 1; overflow-y: auto` applies consistently. Padding added via the shared `#stats-panel, #dashboard-panel` rule.
+- `applyTab()` uses `display = ''` consistently for all three panels (reverts to CSS default), not `'block'` for the dashboard (which would have been inconsistent).
+- `renderDashboard()` stub checks `typeof Chart === 'undefined'` to surface any CSP load failure and shows `Chart.version` to confirm the correct version loaded. Full charts are Phase 3.
+- Test coverage: no new tests added in Phase 1 (no new TypeScript logic). Coverage for `chartJsUri` injection will be added in Phase 2.
+
+**Files changed:**
+
+1. `package.json` — added `bundle-chartjs` script; updated `compile` to run it first
+2. `.gitignore` — added `res/webviews/lib/` entry
+3. `res/webviews/lib/chart.umd.min.js` — generated artefact (204 KB, gitignored)
+4. `res/webviews/taskHistory.html` — updated CSP; added Chart.js `<script>` tag; added Dashboard tab button; added `#dashboard-panel` div; updated `applyTab()` and `switchTab()` for 3-tab support; added `renderDashboard()` stub; added `#dashboard-panel` CSS rules
+5. `src/taskHistoryTableViewProvider.ts` — added `chartJsUri` generation and `{{chartJsUri}}` template replacement in `_getHtmlForWebview()`
 
 1. `npm install chart.js` (devDependency).
 2. Add `scripts.bundle-chartjs` in `package.json` that copies `node_modules/chart.js/dist/chart.umd.min.js` → `res/webviews/lib/chart.umd.min.js`. Hook into `compile`.

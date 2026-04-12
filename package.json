@@ -81,8 +81,9 @@
   "scripts": {
     "pretest": "npm run compile:tests && npm run compile:webpack && npm run lint",
     "lint": "eslint src",
-    "compile": "npm run compile:webpack",
+    "compile": "npm run bundle-chartjs && npm run compile:webpack",
     "compile:webpack": "webpack",
+    "bundle-chartjs": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\"",
     "compile:prod": "npm run check:types && npm run lint && npm run compile:webpack",
     "compile:tests": "tsc -p . --outDir out",
     "docs:build": "~/bin/build-docs --build",
@@ -122,6 +123,7 @@
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
+    "chart.js": "^4.5.1",
     "codecov": "^3.8.3",
     "eslint": "^10.0",
     "git-cliff": "^2.12.0",

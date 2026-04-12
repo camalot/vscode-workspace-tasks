@@ -142,8 +142,13 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
 
     const nonce = getNonce();
 
+    const chartJsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'res', 'webviews', 'lib', 'chart.umd.min.js')
+    );
+
     htmlContent = htmlContent.replace(/{{cspSource}}/g, webview.cspSource);
     htmlContent = htmlContent.replace(/{{nonce}}/g, nonce);
+    htmlContent = htmlContent.replace(/{{chartJsUri}}/g, chartJsUri.toString());
 
     return htmlContent;
   }
