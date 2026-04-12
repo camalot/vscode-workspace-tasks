@@ -6,7 +6,6 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}' {{cspSource}}">
   <title>Task History</title>
   <!-- Chart.js UMD bundle (vendored local resource) -->
-  <script nonce="{{nonce}}" src="{{chartJsUri}}"></script>
   <style>
     html, body {
       height: 100%;
@@ -497,6 +496,7 @@
   <!-- Dashboard tab -->
   <div id="dashboard-panel" style="display:none;"></div>
 
+  <script nonce="{{nonce}}" src="{{chartJsUri}}"></script>
   <script nonce="{{nonce}}">
     const vscode = acquireVsCodeApi();
 
