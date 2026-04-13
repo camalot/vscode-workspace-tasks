@@ -16,7 +16,7 @@ export interface ITaskMatcher {
 }
 
 /**
- * A single per-task environment variable rule from `workspaceTasks.taskEnv`.
+ * A single per-task environment variable rule from `workspaceTasks.envVars.taskEnv`.
  */
 export interface ITaskEnvRule {
   match: ITaskMatcher;
@@ -34,9 +34,9 @@ export interface ITaskEnvRule {
  * Used for source annotation in the inspector command (Phase 6).
  */
 export type EnvEntrySource =
-  | 'globalSetting'       // workspaceTasks.env
-  | 'globalEnvFile'       // workspaceTasks.envFiles
-  | 'globalSecretFile'    // workspaceTasks.secretFiles            (isSecret = true)
+  | 'globalSetting'       // workspaceTasks.envVars.env
+  | 'globalEnvFile'       // workspaceTasks.envVars.envFiles
+  | 'globalSecretFile'    // workspaceTasks.envVars.secretFiles            (isSecret = true)
   | 'blockEnvFile'        // language-block envFiles
   | 'blockEnv'            // language-block env
   | 'blockSecretFile'     // language-block secretFiles            (isSecret = true)
@@ -55,10 +55,16 @@ export type EnvEntrySource =
 export interface IResolvedEnvEntry {
   value: string;
   source: EnvEntrySource;
-  /** Human-readable source description, e.g. `".env.local (workspaceTasks.envFiles)"`. */
+  /** Human-readable source description, e.g. `".env.local (workspaceTasks.envVars.envFiles)"`. */
   sourceLabel: string;
   /** `true` when the value originated from a `.secret` file or VS Code SecretStorage. */
   isSecret: boolean;
+  /**
+   * Absolute filesystem path of the file this entry was loaded from, when applicable.
+   * Populated for env/secret file entries and `.workspace-tasks.json` block/task env entries.
+   * `undefined` for SecretStorage entries.
+   */
+  sourceFilePath?: string;
 }
 
 /**

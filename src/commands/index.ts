@@ -34,6 +34,9 @@ import * as copyTaskCommand from './copyTaskCommand';
 import * as setCompoundTaskExecutionType from './setCompoundTaskExecutionType';
 import * as purgeInvalidCompoundTasks from './purgeInvalidCompoundTasks';
 import * as clearTaskMetrics from './clearTaskMetricsCommand';
+import * as storeSecret from './storeSecretCommand';
+import * as deleteSecret from './deleteSecretCommand';
+import * as inspectTaskEnv from './inspectTaskEnvCommand';
 
 import { LoggerService } from '../services/loggerService';
 
@@ -76,6 +79,9 @@ export function loadCommands(context: vscode.ExtensionContext) {
     unhideGroup,
     purgeInvalidCompoundTasks,
     clearTaskMetrics,
+    storeSecret,
+    deleteSecret,
+    inspectTaskEnv,
   ];
 
   for (const mod of modules) {

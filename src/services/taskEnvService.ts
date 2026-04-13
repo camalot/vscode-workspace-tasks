@@ -67,11 +67,7 @@ export class TaskEnvService {
 
     this.configDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
       if (
-        e.affectsConfiguration('workspaceTasks.env') ||
-        e.affectsConfiguration('workspaceTasks.envFiles') ||
-        e.affectsConfiguration('workspaceTasks.secretFiles') ||
-        e.affectsConfiguration('workspaceTasks.taskEnv') ||
-        e.affectsConfiguration('workspaceTasks.env.secretPatterns')
+        e.affectsConfiguration('workspaceTasks.envVars')
       ) {
         this.loadConfig();
         this.setupFileWatchers();
@@ -88,13 +84,18 @@ export class TaskEnvService {
    * - Layers 1–3 (global settings) always run.
    * - Layers 4–10 (`.workspace-tasks.json` block + task) run only when `languageDef`
    *   and/or `taskDef` are provided.
-   * - Layers 11–14 (matching `workspaceTasks.taskEnv` rules) always run.
+   * - Layers 11–14 (matching `workspaceTasks.envVars.taskEnv` rules) always run.
    *
    * @param taskItem       The task whose env should be resolved.
    * @param taskDef        Optional per-task definition from `.workspace-tasks.json`.
    * @param languageDef    Optional language-block config from `.workspace-tasks.json`.
    * @param workspaceFolder Override workspace root used for resolving relative file paths.
    */
+  /** Read-only access to the configured secret-pattern list. Used by `TaskSecretWarningService`. */
+  public get currentSecretPatterns(): string[] {
+    return [...this.secretPatterns];
+  }
+
   public async resolveTaskEnv(
     taskItem: TaskItem,
     taskDef?: FileTaskDefinition,
@@ -104,17 +105,23 @@ export class TaskEnvService {
     const result = new Map<string, IResolvedEnvEntry>();
     const effectiveFolder = this.resolveWorkspaceFolder(taskItem, workspaceFolder);
 
-    // ── Layer 1: Global workspaceTasks.env ───────────────────────────────────
+    // Best-effort path for workspace settings.json — used as sourceFilePath for config-backed entries.
+    const workspaceSettingsPath = effectiveFolder
+      ? path.join(effectiveFolder.fsPath, '.vscode', 'settings.json')
+      : undefined;
+
+    // ── Layer 1: Global workspaceTasks.envVars.env ───────────────────────────────────
     for (const [key, value] of Object.entries(this.globalEnv)) {
       result.set(key, {
         value,
         source: 'globalSetting',
-        sourceLabel: 'settings.json (workspaceTasks.env)',
+        sourceLabel: 'settings.json (workspaceTasks.envVars.env)',
         isSecret: false,
+        sourceFilePath: workspaceSettingsPath,
       });
     }
 
-    // ── Layer 2: Global workspaceTasks.envFiles ──────────────────────────────
+    // ── Layer 2: Global workspaceTasks.envVars.envFiles ──────────────────────────────
     const globalEnvPaths = await TaskEnvFileResolver.resolveFileReferences(
       this.globalEnvFiles,
       effectiveFolder,
@@ -124,10 +131,10 @@ export class TaskEnvService {
       globalEnvPaths,
       'globalEnvFile',
       false,
-      'workspaceTasks.envFiles',
+      'workspaceTasks.envVars.envFiles',
     );
 
-    // ── Layer 3: Global workspaceTasks.secretFiles ───────────────────────────
+    // ── Layer 3: Global workspaceTasks.envVars.secretFiles ───────────────────────────
     const globalSecretPaths = await TaskEnvFileResolver.resolveFileReferences(
       this.globalSecretFiles,
       effectiveFolder,
@@ -137,7 +144,7 @@ export class TaskEnvService {
       globalSecretPaths,
       'globalSecretFile',
       true,
-      'workspaceTasks.secretFiles',
+      'workspaceTasks.envVars.secretFiles',
     );
 
     // ── Layers 4–10: .workspace-tasks.json language-block and per-task ───────
@@ -159,12 +166,14 @@ export class TaskEnvService {
 
       // Layer 5 — language-block env
       if (languageDef?.env) {
+        const blockEnvFile = taskDef?.sourceUri?.fsPath;
         for (const [key, value] of Object.entries(languageDef.env)) {
           result.set(key, {
             value,
             source: 'blockEnv',
             sourceLabel: `${configLabel} (block env)`,
             isSecret: false,
+            sourceFilePath: blockEnvFile,
           });
         }
       }
@@ -186,12 +195,14 @@ export class TaskEnvService {
 
       // Layer 8 — per-task env
       if (taskDef?.env) {
+        const taskEnvFile = taskDef.sourceUri?.fsPath;
         for (const [key, value] of Object.entries(taskDef.env)) {
           result.set(key, {
             value,
             source: 'taskEnv',
             sourceLabel: `${configLabel} (task env)`,
             isSecret: false,
+            sourceFilePath: taskEnvFile,
           });
         }
       }
@@ -208,7 +219,7 @@ export class TaskEnvService {
       }
     }
 
-    // ── Layers 11–14: Matching workspaceTasks.taskEnv rules ──────────────────
+    // ── Layers 11–14: Matching workspaceTasks.envVars.taskEnv rules ──────────────────
     const matchingRules = TaskEnvRuleMatcher.getMatchingRules(taskItem, this.taskEnvRules);
 
     for (const rule of matchingRules) {
@@ -232,6 +243,7 @@ export class TaskEnvService {
             source: 'ruleEnv',
             sourceLabel: `${ruleLabel} (env)`,
             isSecret: false,
+            sourceFilePath: workspaceSettingsPath,
           });
         }
       }
@@ -286,6 +298,11 @@ export class TaskEnvService {
     }
   }
 
+  /** Manually fires `onDidChangeEnvSources` — used by secret-management commands. */
+  public fireEnvSourcesChanged(): void {
+    this._onDidChangeEnvSources.fire();
+  }
+
   /** Disposes all file-system watchers and event emitters. */
   public dispose(): void {
     this.fileWatchers.forEach((w) => w.dispose());
@@ -297,11 +314,11 @@ export class TaskEnvService {
   // ── Private helpers ──────────────────────────────────────────────────────────
 
   private loadConfig(): void {
-    const cfg = vscode.workspace.getConfiguration('workspaceTasks');
+    const cfg = vscode.workspace.getConfiguration('workspaceTasks.envVars');
     this.globalEnv = cfg.get<Record<string, string>>('env', {});
     this.globalEnvFiles = cfg.get<IEnvFileReference>('envFiles', []);
     this.globalSecretFiles = cfg.get<IEnvFileReference>('secretFiles', []);
-    this.secretPatterns = cfg.get<string[]>('env.secretPatterns', [
+    this.secretPatterns = cfg.get<string[]>('secretPatterns', [
       '*_TOKEN',
       '*_KEY',
       '*_SECRET',
@@ -402,7 +419,7 @@ export class TaskEnvService {
       const entries = TaskEnvFileResolver.parseEnvFile(fp);
       const fileLabel = `${path.basename(fp)} (${contextLabel})`;
       for (const [key, value] of Object.entries(entries)) {
-        map.set(key, { value, source, sourceLabel: fileLabel, isSecret });
+        map.set(key, { value, source, sourceLabel: fileLabel, isSecret, sourceFilePath: fp });
       }
     }
   }

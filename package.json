@@ -140,7 +140,6 @@
     "webpack-cli": "^7.0.2"
   },
   "dependencies": {
-    "dotenv": "^17.4.2",
     "fast-xml-parser": "5.5.10",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
@@ -495,6 +494,21 @@
         "command": "workspaceTasks.metrics.clearWorkspace",
         "title": "%command.metrics.clearWorkspace%",
         "icon": "$(trash)"
+      },
+      {
+        "command": "workspaceTasks.env.storeSecret",
+        "title": "%command.env.storeSecret%",
+        "icon": "$(lock)"
+      },
+      {
+        "command": "workspaceTasks.env.deleteSecret",
+        "title": "%command.env.deleteSecret%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "workspaceTasks.env.inspect",
+        "title": "%command.env.inspect%",
+        "icon": "$(symbol-variable)"
       }
     ],
     "configuration": [
@@ -1179,17 +1193,17 @@
       {
         "title": "%config.group.taskEnv.title%",
         "properties": {
-          "workspaceTasks.env": {
+          "workspaceTasks.envVars.env": {
             "type": "object",
-            "description": "%config.workspaceTasks.env%",
-            "markdownDescription": "%config.workspaceTasks.env.markdown%",
+            "description": "%config.workspaceTasks.envVars.env%",
+            "markdownDescription": "%config.workspaceTasks.envVars.env.markdown%",
             "additionalProperties": { "type": "string" },
             "default": {},
             "scope": "resource"
           },
-          "workspaceTasks.envFiles": {
-            "description": "%config.workspaceTasks.envFiles%",
-            "markdownDescription": "%config.workspaceTasks.envFiles.markdown%",
+          "workspaceTasks.envVars.envFiles": {
+            "description": "%config.workspaceTasks.envVars.envFiles%",
+            "markdownDescription": "%config.workspaceTasks.envVars.envFiles.markdown%",
             "oneOf": [
               { "type": "string" },
               { "type": "array", "items": { "type": "string" } },
@@ -1206,9 +1220,9 @@
             "default": [],
             "scope": "resource"
           },
-          "workspaceTasks.secretFiles": {
-            "description": "%config.workspaceTasks.secretFiles%",
-            "markdownDescription": "%config.workspaceTasks.secretFiles.markdown%",
+          "workspaceTasks.envVars.secretFiles": {
+            "description": "%config.workspaceTasks.envVars.secretFiles%",
+            "markdownDescription": "%config.workspaceTasks.envVars.secretFiles.markdown%",
             "oneOf": [
               { "type": "string" },
               { "type": "array", "items": { "type": "string" } },
@@ -1225,11 +1239,11 @@
             "default": [],
             "scope": "resource"
           },
-          "workspaceTasks.env.secretPatterns": {
+          "workspaceTasks.envVars.secretPatterns": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "%config.workspaceTasks.env.secretPatterns%",
-            "markdownDescription": "%config.workspaceTasks.env.secretPatterns.markdown%",
+            "description": "%config.workspaceTasks.envVars.secretPatterns%",
+            "markdownDescription": "%config.workspaceTasks.envVars.secretPatterns.markdown%",
             "default": [
               "*_TOKEN",
               "*_KEY",
@@ -1241,10 +1255,10 @@
             ],
             "scope": "resource"
           },
-          "workspaceTasks.taskEnv": {
+          "workspaceTasks.envVars.taskEnv": {
             "type": "array",
-            "description": "%config.workspaceTasks.taskEnv%",
-            "markdownDescription": "%config.workspaceTasks.taskEnv.markdown%",
+            "description": "%config.workspaceTasks.envVars.taskEnv%",
+            "markdownDescription": "%config.workspaceTasks.envVars.taskEnv.markdown%",
             "default": [],
             "scope": "resource",
             "items": {
@@ -1743,6 +1757,11 @@
           "command": "workspaceTasks.copyTaskCommand",
           "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /[cC]ompound[Tt]ask/)",
           "group": "5_copy"
+        },
+        {
+          "command": "workspaceTasks.env.inspect",
+          "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /[cC]ompound[Tt]ask/)",
+          "group": "5_copy@2"
         },
         {
           "command": "workspaceTasks.metrics.clearTask",

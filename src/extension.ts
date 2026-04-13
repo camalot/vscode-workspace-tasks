@@ -20,6 +20,7 @@ import { findTerminalForTask } from './commands/stopTask';
 import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 import { TaskEnvService } from './services/taskEnvService';
+import { TaskSecretWarningService } from './services/taskSecretWarningService';
 
 export async function activate(context: vscode.ExtensionContext) {
   LoggerService.getInstance().initialize(context);
@@ -66,6 +67,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await WorkspaceTasksService.getInstance().initialize(context);
   await TaskEnvService.getInstance().initialize(context);
   context.subscriptions.push(TaskEnvService.getInstance());
+  TaskSecretWarningService.getInstance().initialize(context);
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
   CompoundTaskService.getInstance().initialize(context);

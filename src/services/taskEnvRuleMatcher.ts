@@ -4,7 +4,7 @@ import { TaskItem } from '../taskItem';
 import { ITaskEnvRule } from './taskEnvTypes';
 
 /**
- * Pure, stateless utility for evaluating `workspaceTasks.taskEnv` rules against a `TaskItem`.
+ * Pure, stateless utility for evaluating `workspaceTasks.envVars.taskEnv` rules against a `TaskItem`.
  *
  * All matching is AND-logic across criteria: a rule matches only when every specified field
  * in its `match` object passes. Fields absent from `match` are ignored (wildcard for that

@@ -74,7 +74,7 @@ suite('TaskEnvService Test Suite', () => {
     // Mock vscode.workspace.getConfiguration
     originalGetConfiguration = vscode.workspace.getConfiguration;
     (vscode.workspace as any).getConfiguration = (section?: string) => {
-      if (section === 'workspaceTasks') {
+      if (section === 'workspaceTasks.envVars') {
         return {
           get: <T>(key: string, defaultValue?: T): T =>
             (Object.prototype.hasOwnProperty.call(mockConfigValues, key)
@@ -136,7 +136,7 @@ suite('TaskEnvService Test Suite', () => {
 
   // ── Layer 1: global env setting ──────────────────────────────────────────
 
-  test('Layer 1: global workspaceTasks.env injects keys', async () => {
+  test('Layer 1: global workspaceTasks.envVars.env injects keys', async () => {
     (service as any).globalEnv = { NODE_ENV: 'development', DEBUG: 'true' };
 
     const item = makeItem('build', 'npm');
@@ -446,7 +446,7 @@ suite('TaskEnvService Test Suite', () => {
     mockConfigValues['env'] = { INIT_KEY: 'init-value' };
     mockConfigValues['envFiles'] = [];
     mockConfigValues['secretFiles'] = [];
-    mockConfigValues['env.secretPatterns'] = [];
+    mockConfigValues['secretPatterns'] = [];
     mockConfigValues['taskEnv'] = [];
 
     await service.initialize(mockContext);
@@ -467,7 +467,7 @@ suite('TaskEnvService Test Suite', () => {
     mockConfigValues['env'] = {};
     mockConfigValues['envFiles'] = [];
     mockConfigValues['secretFiles'] = [];
-    mockConfigValues['env.secretPatterns'] = [];
+    mockConfigValues['secretPatterns'] = [];
     mockConfigValues['taskEnv'] = [];
 
     await service.initialize(mockContext);
@@ -475,9 +475,9 @@ suite('TaskEnvService Test Suite', () => {
     let fired = false;
     const disposable = service.onDidChangeEnvSources(() => { fired = true; });
 
-    // Simulate a configuration change event affecting workspaceTasks.env
+    // Simulate a configuration change event affecting workspaceTasks.envVars
     capturedListener?.({
-      affectsConfiguration: (section: string) => section.startsWith('workspaceTasks.env'),
+      affectsConfiguration: (section: string) => section.startsWith('workspaceTasks.envVars'),
     });
 
     assert.strictEqual(fired, true);
