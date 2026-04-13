@@ -8,6 +8,18 @@
   "config.group.display.title": "Display & Interaction",
   "config.group.execution.title": "Task Execution",
   "config.group.environment.title": "Environment",
+  "config.group.taskEnv.title": "Task Environment Variables",
+
+  "config.workspaceTasks.env": "Global environment variables applied to all tasks.",
+  "config.workspaceTasks.env.markdown": "Key-value pairs that are merged into every task's environment. Values from higher-precedence sources override these.",
+  "config.workspaceTasks.envFiles": "One or more .env files loaded for all tasks (string, string array, or include/exclude glob object).",
+  "config.workspaceTasks.envFiles.markdown": "Paths/globs resolved relative to the workspace root. Glob expansions are sorted alphabetically. Supports a single path, an ordered array, or `{ include, exclude }` object.",
+  "config.workspaceTasks.secretFiles": "One or more .secret files loaded for all tasks. Values never trigger secret-pattern warnings.",
+  "config.workspaceTasks.secretFiles.markdown": "Same format as `workspaceTasks.envFiles`. Files with a `.secret` extension are treated as explicitly secret — keys are injected without triggering the secret-name warning.",
+  "config.workspaceTasks.env.secretPatterns": "Key-name patterns that trigger a warning when a matching variable is declared in a non-secret source (e.g. env block or .env file).",
+  "config.workspaceTasks.env.secretPatterns.markdown": "Supports glob-style wildcard patterns (e.g. `*_TOKEN`). Variables whose names match these patterns but originate from a `.secret` file or VS Code SecretStorage are **never** warned about.",
+  "config.workspaceTasks.taskEnv": "Per-task environment rules — inject env vars and secrets into any discovered task by matching on task name, type, source file, and/or workspace folder.",
+  "config.workspaceTasks.taskEnv.markdown": "Each rule has a `match` object (AND logic) and optional `env`, `envFiles`, `secretFiles`, and `secrets` properties. All matching rules are applied in array order; later rules override earlier rules per key.",
 
   "command.addToFavorites": "Add to Favorites",
   "command.removeFromFavorites": "Remove from Favorites",

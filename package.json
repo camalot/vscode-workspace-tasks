@@ -140,6 +140,7 @@
     "webpack-cli": "^7.0.2"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "fast-xml-parser": "5.5.10",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
@@ -1170,6 +1171,163 @@
                   "new"
                 ],
                 "default": "shared"
+              }
+            }
+          }
+        }
+      },
+      {
+        "title": "%config.group.taskEnv.title%",
+        "properties": {
+          "workspaceTasks.env": {
+            "type": "object",
+            "description": "%config.workspaceTasks.env%",
+            "markdownDescription": "%config.workspaceTasks.env.markdown%",
+            "additionalProperties": { "type": "string" },
+            "default": {},
+            "scope": "resource"
+          },
+          "workspaceTasks.envFiles": {
+            "description": "%config.workspaceTasks.envFiles%",
+            "markdownDescription": "%config.workspaceTasks.envFiles.markdown%",
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } },
+              {
+                "type": "object",
+                "properties": {
+                  "include": { "type": "array", "items": { "type": "string" } },
+                  "exclude": { "type": "array", "items": { "type": "string" } }
+                },
+                "required": ["include"],
+                "additionalProperties": false
+              }
+            ],
+            "default": [],
+            "scope": "resource"
+          },
+          "workspaceTasks.secretFiles": {
+            "description": "%config.workspaceTasks.secretFiles%",
+            "markdownDescription": "%config.workspaceTasks.secretFiles.markdown%",
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } },
+              {
+                "type": "object",
+                "properties": {
+                  "include": { "type": "array", "items": { "type": "string" } },
+                  "exclude": { "type": "array", "items": { "type": "string" } }
+                },
+                "required": ["include"],
+                "additionalProperties": false
+              }
+            ],
+            "default": [],
+            "scope": "resource"
+          },
+          "workspaceTasks.env.secretPatterns": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "%config.workspaceTasks.env.secretPatterns%",
+            "markdownDescription": "%config.workspaceTasks.env.secretPatterns.markdown%",
+            "default": [
+              "*_TOKEN",
+              "*_KEY",
+              "*_SECRET",
+              "PASSWORD",
+              "PASSWD",
+              "CREDENTIALS",
+              "API_KEY"
+            ],
+            "scope": "resource"
+          },
+          "workspaceTasks.taskEnv": {
+            "type": "array",
+            "description": "%config.workspaceTasks.taskEnv%",
+            "markdownDescription": "%config.workspaceTasks.taskEnv.markdown%",
+            "default": [],
+            "scope": "resource",
+            "items": {
+              "type": "object",
+              "required": ["match"],
+              "additionalProperties": false,
+              "properties": {
+                "match": {
+                  "type": "object",
+                  "description": "Criteria used to match tasks (all specified fields must match).",
+                  "additionalProperties": false,
+                  "properties": {
+                    "taskName": {
+                      "type": "string",
+                      "description": "Task name: exact string, glob pattern (e.g. 'publish*'), or /regex/ string."
+                    },
+                    "taskType": {
+                      "description": "Task source/type (e.g. 'npm', 'shell'). Accepts a string or array of strings.",
+                      "oneOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                      ]
+                    },
+                    "source": {
+                      "description": "Source file glob pattern(s) to match against the task definition file path.",
+                      "oneOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                      ]
+                    },
+                    "workspaceFolder": {
+                      "type": "string",
+                      "description": "Workspace folder name (not path) for multi-root scoping."
+                    }
+                  }
+                },
+                "env": {
+                  "type": "object",
+                  "description": "Inline environment variables to inject into matched tasks.",
+                  "additionalProperties": { "type": "string" }
+                },
+                "envFiles": {
+                  "description": "One or more .env files to load for matched tasks.",
+                  "oneOf": [
+                    { "type": "string" },
+                    { "type": "array", "items": { "type": "string" } },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "include": { "type": "array", "items": { "type": "string" } },
+                        "exclude": { "type": "array", "items": { "type": "string" } }
+                      },
+                      "required": ["include"],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "secretFiles": {
+                  "description": "One or more .secret files to load for matched tasks (never triggers secret-pattern warnings).",
+                  "oneOf": [
+                    { "type": "string" },
+                    { "type": "array", "items": { "type": "string" } },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "include": { "type": "array", "items": { "type": "string" } },
+                        "exclude": { "type": "array", "items": { "type": "string" } }
+                      },
+                      "required": ["include"],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "secrets": {
+                  "type": "object",
+                  "description": "Maps environment variable names to VS Code SecretStorage keys.",
+                  "additionalProperties": { "type": "string" }
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Set to false to disable this rule without removing it.",
+                  "default": true
+                }
               }
             }
           }
