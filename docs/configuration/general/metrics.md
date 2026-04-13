@@ -19,6 +19,9 @@ nav_order: 2
 
 ---
 
+{: .new }
+v1.7: Task execution metrics collection and configuration options.
+
 ### workspaceTasks.metrics.scope
 
 **Type:** `string`

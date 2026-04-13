@@ -22,7 +22,10 @@ nav_order: 2
 ### workspaceTasks.enabledTaskTypes
 
 **Type:** `object`
+{: .d-block }
+
 **Default:**
+{: .d-block }
 
 ```json
 {
@@ -131,9 +134,17 @@ Select which task-type providers are active. Disabling a provider prevents the e
 
 ### workspaceTasks.enabledTaskTypePatterns
 
+{: .new }
+v1.7.0: Glob pattern controls for task type visibility.
+
 **Type:** `array` of `string`
+{: .d-block }
+
 **Default:** `[]`
+{: .d-block }
+
 **Scope:** `window`
+{: .d-block }
 
 Glob patterns matched against **task type config keys** (the same names used in `enabledTaskTypes`) to **enable**. When the array is non-empty it acts as a **whitelist** — only task types whose config key matches at least one pattern are shown. All non-matching types are hidden regardless of their `enabledTaskTypes` boolean.
 
@@ -170,9 +181,17 @@ Glob patterns matched against **task type config keys** (the same names used in 
 
 ### workspaceTasks.disabledTaskTypePatterns
 
+{: .new }
+v1.7.0: Glob pattern controls for task type visibility.
+
 **Type:** `array` of `string`
+{: .d-block }
+
 **Default:** `[]`
+{: .d-block }
+
 **Scope:** `window`
+{: .d-block }
 
 Glob patterns matched against **task type config keys** (the same names used in `enabledTaskTypes`) to **disable**. Only evaluated when `enabledTaskTypePatterns` is empty. Matching types are hidden regardless of their `enabledTaskTypes` boolean value.
 
@@ -212,7 +231,10 @@ Evaluation order — first matching rule wins:
 ### workspaceTasks.shellEnabledTaskTypes
 
 **Type:** `object`
+{: .d-block }
+
 **Default:**
+{: .d-block }
 
 ```json
 {
@@ -268,7 +290,10 @@ Enable or disable individual shell-script sub-types. This allows fine-grained co
 ### workspaceTasks.shellPaths
 
 **Type:** `object`
+{: .d-block }
+
 **Default:**
+{: .d-block }
 
 ```json
 {
@@ -306,7 +331,10 @@ Specify custom interpreter paths for shell script types. Each key is a shell typ
 ### workspaceTasks.shellAdditionalExtensions
 
 **Type:** `object`
+{: .d-block }
+
 **Default:** `{}`
+{: .d-block }
 
 Register extra file extensions (beyond the built-in defaults) that should be treated as shell tasks. The key is a file extension **without** the leading dot and the value is the path to the interpreter to use for that extension.
 
