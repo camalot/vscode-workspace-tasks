@@ -150,7 +150,7 @@ export function computeStats(metrics: ITaskMetrics): ITaskMetricsComputed {
   const avgDurationMs =
     metrics.recentDurations.length > 0
       ? recentDurationTotalMs / metrics.recentDurations.length
-      : undefined;  
+      : undefined;
   // Success rate: only over non-terminated runs
   const successRate =
     completed === 0
