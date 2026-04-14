@@ -65,3 +65,16 @@ When writing tests for VSCode extensions, consider the following guidelines:
 - Maintain a clear and organized structure in the documentation for easy navigation.
 
 Documentation resides in a "minimal form" in the `README.md`. Full, detailed documentation resides in `docs/`. This directory is organized by feature and includes comprehensive guides, examples, and references for all aspects of the extension. It is processed and published as github pages using jekyll.
+
+## Planning
+
+When asked to "Plan" your implementation, you should create a detailed plan for how you will implement the requested feature or fix. This plan should include the following steps:
+
+1. **Understand the Requirements**: Clearly define what the feature or fix is supposed to accomplish. Identify any constraints or specific requirements that need to be met. Requirements should be documented in the plan and updated as necessary throughout the implementation process. You should also review the changelog to ensure that your understanding of the requirements is consistent with any recent changes or updates to the project.
+2. **Design the Solution**: Outline the architecture and design of the solution. This may include creating diagrams, flowcharts, or pseudocode to visualize how the components will interact.
+3. **Identify Dependencies**: Determine if there are any external libraries, APIs, or tools that will be needed to implement the solution. Ensure that these dependencies are compatible with the existing codebase.
+4. **Break Down the Implementation**: Divide the implementation into smaller, manageable tasks or modules. This will help in organizing the work and making it easier to track progress. This should include identifying which files will be modified or created, and what specific changes will be made to each file. Writing tests, both unit and integration, should be included as part of the implementation plan. Documentation in the `docs/` directory should also be planned for any new features or changes. Running tests should be included as part of the implementation plan to ensure that the new code is properly tested and does not introduce any regressions.
+5. **Estimate Time and Resources**: Provide an estimate of how long each task will take and what resources will be needed. This can help in setting realistic deadlines and managing expectations.
+6. **Plan the Implementation**: Plan the actual coding process, including the order in which tasks will be completed. Consider any potential challenges or obstacles that may arise during implementation and how to address them.
+7. **Review and Refactor**: You should rubber duck your implementation plan with another sub-agent to critique your implementation and make adjustments to implementation as necessary. Be sure to update the documented plan as you go to reflect any changes or insights gained during the implementation process.
+8. **Run Tests**: Execute the tests to ensure that the new feature or fix works as expected and does not introduce any regressions.

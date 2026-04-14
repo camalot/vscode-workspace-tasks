@@ -123,6 +123,12 @@ export class TaskItem extends vscode.TreeItem {
   public updateContextValue() {
     const filteredService = FilteredTaskService.getInstance();
 
+    // Stored-secret items are managed separately — preserve their contextValue as-is.
+    if (this.taskType === 'storedSecret') {
+      this.contextValue = 'storedSecret';
+      return;
+    }
+
     if (
       this.taskType === 'workspace' ||
       this.taskType === 'folder' ||
@@ -130,7 +136,8 @@ export class TaskItem extends vscode.TreeItem {
       this.taskType === 'favorites' ||
       this.taskType === 'compoundTask' ||
       this.taskType === 'compoundTasks' ||
-      this.taskType === 'recent'
+      this.taskType === 'recent' ||
+      this.taskType === 'secrets'
     ) {
       // Check if this group is filtered
       const isFiltered = this.id ? filteredService.isFiltered(this.id) : false;

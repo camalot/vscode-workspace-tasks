@@ -1,19 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}' {{cspSource}}">
   <title>Task History</title>
+  <!-- Chart.js UMD bundle (vendored local resource) -->
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
     body {
       font-family: var(--vscode-font-family);
-      padding: 0;
       color: var(--vscode-foreground);
       background-color: var(--vscode-editor-background);
       cursor: default;
+      display: flex;
+      flex-direction: column;
     }
 
+    /* ── Tab strip ─────────────────────────────────────────── */
+    .tab-strip {
+      display: flex;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--vscode-panel-border);
+      background-color: var(--vscode-editorGroupHeader-tabsBackground);
+    }
+
+    .tab-btn {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      color: var(--vscode-foreground);
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .tab-btn:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--vscode-focusBorder);
+      color: var(--vscode-editor-foreground);
+      font-weight: 600;
+    }
+
+    /* ── Summary bar ────────────────────────────────────────── */
+    .summary-bar {
+      display: flex;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      padding: 5px 10px;
+      background-color: var(--vscode-sideBarSectionHeader-background);
+      border-bottom: 1px solid var(--vscode-panel-border);
+      font-size: 0.85em;
+    }
+
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .summary-label {
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .summary-value {
+      font-weight: 600;
+    }
+
+    .summary-divider {
+      color: var(--vscode-panel-border);
+    }
+
+    /* ── Scrollable panel area ──────────────────────────────── */
+    #history-panel,
+    #stats-panel,
+    #dashboard-panel {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    /* ── History table ──────────────────────────────────────── */
     table {
       border-collapse: collapse;
       width: 100%;
@@ -33,6 +113,7 @@
       font-weight: 600;
       position: sticky;
       top: 0;
+      z-index: 2;
       cursor: pointer;
       user-select: none;
     }
@@ -90,39 +171,369 @@
     .time {
       white-space: nowrap;
     }
+
+    /* ── Metrics hint on history rows ───────────────────────── */
+    .metrics-hint {
+      font-size: 0.8em;
+      color: var(--vscode-descriptionForeground);
+      white-space: nowrap;
+    }
+
+    /* ── Statistics cards ───────────────────────────────────── */
+    #stats-panel,
+    #dashboard-panel {
+      padding: 8px;
+    }
+
+    .stats-empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .dashboard-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      gap: 10px;
+      color: var(--vscode-descriptionForeground);
+      text-align: center;
+    }
+
+    .dashboard-empty-icon {
+      font-size: 2.5em;
+      line-height: 1;
+    }
+
+    .dashboard-empty-title {
+      font-size: 1em;
+      font-weight: 600;
+      color: var(--vscode-foreground);
+    }
+
+    .dashboard-empty-hint {
+      font-size: 0.85em;
+      max-width: 260px;
+    }
+
+    .task-card {
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 4px;
+      margin-bottom: 8px;
+      background-color: var(--vscode-sideBar-background);
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background-color: var(--vscode-editorGroupHeader-tabsBackground);
+      border-bottom: 1px solid var(--vscode-panel-border);
+      gap: 8px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 0.9em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .card-source {
+      font-size: 0.8em;
+      color: var(--vscode-descriptionForeground);
+      white-space: nowrap;
+    }
+
+    .card-clear-btn {
+      background: transparent;
+      border: none;
+      color: var(--vscode-descriptionForeground);
+      cursor: pointer;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 0.85em;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .card-clear-btn:hover {
+      background-color: var(--vscode-list-hoverBackground);
+      color: var(--vscode-foreground);
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0;
+    }
+
+    .stat-cell {
+      padding: 5px 10px;
+      border-right: 1px solid var(--vscode-panel-border);
+      border-bottom: 1px solid var(--vscode-panel-border);
+    }
+
+    .stat-cell:last-child {
+      border-right: none;
+    }
+
+    .stat-label {
+      font-size: 0.75em;
+      color: var(--vscode-descriptionForeground);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .stat-value {
+      font-size: 0.95em;
+      font-weight: 600;
+      margin-top: 1px;
+    }
+
+    .rate-high {
+      color: var(--vscode-testing-iconPassed);
+    }
+
+    .rate-mid {
+      color: var(--vscode-debugConsole-warningForeground);
+    }
+
+    .rate-low {
+      color: var(--vscode-testing-iconFailed);
+    }
+
+    .streak-badge {
+      display: inline-block;
+      font-size: 0.75em;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .streak-fail {
+      background-color: var(--vscode-testing-iconFailed);
+      color: var(--vscode-editor-background);
+    }
+
+    .trend-slower {
+      color: var(--vscode-testing-iconFailed);
+    }
+
+    .trend-faster {
+      color: var(--vscode-testing-iconPassed);
+    }
+
+    /* ── Exit code bar ──────────────────────────────────────── */
+    .exit-bar {
+      display: flex;
+      height: 8px;
+      border-radius: 3px;
+      overflow: hidden;
+      gap: 1px;
+      margin-top: 4px;
+    }
+
+    .exit-seg {
+      height: 100%;
+      min-width: 2px;
+      cursor: default;
+    }
+
+    .exit-seg-0 {
+      background-color: var(--vscode-testing-iconPassed);
+    }
+
+    .exit-seg-other {
+      background-color: var(--vscode-testing-iconFailed);
+    }
+
+    /* ── Dashboard chart layout ──────────────────────────────── */
+    .dash-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .dash-card {
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 4px;
+      background-color: var(--vscode-sideBar-background);
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .dash-grid-2 > .dash-card {
+      margin-bottom: 0;
+    }
+
+    .dash-card-title {
+      font-weight: 600;
+      font-size: 0.8em;
+      color: var(--vscode-descriptionForeground);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .dash-empty {
+      padding: 16px 0;
+      text-align: center;
+      color: var(--vscode-descriptionForeground);
+      font-style: italic;
+      font-size: 0.9em;
+    }
+
+    .sparkline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .sparkline-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sparkline-label {
+      font-size: 0.8em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--vscode-descriptionForeground);
+      margin-bottom: 2px;
+    }
+
+    /* Attention Required — override global th styles from the history table */
+    .attention-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85em;
+    }
+
+    .attention-table th {
+      position: static;
+      cursor: default;
+      user-select: auto;
+      background: none;
+      color: var(--vscode-descriptionForeground);
+      z-index: auto;
+    }
+
+    .attention-table th:hover {
+      background-color: transparent;
+    }
+
+    .attention-table td,
+    .attention-table th {
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--vscode-panel-border);
+      text-align: left;
+    }
+
+    .attention-row td:first-child {
+      border-left: 3px solid var(--vscode-testing-iconFailed);
+      padding-left: 6px;
+    }
+
+    .attention-empty {
+      padding: 12px 0;
+      color: var(--vscode-testing-iconPassed);
+      font-size: 0.9em;
+    }
   </style>
 </head>
 
 <body>
-  <table id="task-history-table">
-    <thead>
-      <tr>
-        <th data-key="status">Status</th>
-        <th data-key="type">Type</th>
-        <th data-key="task">Task</th>
-        <th data-key="source">Source</th>
-        <th data-key="timestampRaw">Timestamp</th>
-        <th data-key="exitCode">Exit Code</th>
-        <th data-key="durationRaw">Execution Time</th>
-      </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-  </table>
+  <!-- Tab strip -->
+  <div class="tab-strip">
+    <button class="tab-btn active" id="tab-history">History</button>
+    <button class="tab-btn" id="tab-stats">Statistics</button>
+    <button class="tab-btn" id="tab-dashboard">Dashboard</button>
+  </div>
+
+  <!-- Summary bar (shown in both modes) -->
+  <div class="summary-bar" id="summary-bar">
+    <span class="summary-item"><span class="summary-label">Today:</span> <span class="summary-value" id="sum-today">—</span></span>
+    <span class="summary-divider">|</span>
+    <span class="summary-item"><span class="summary-label">All-time:</span> <span class="summary-value" id="sum-total">—</span></span>
+    <span class="summary-divider">|</span>
+    <span class="summary-item"><span class="summary-label">Success rate:</span> <span class="summary-value" id="sum-rate">—</span></span>
+    <span class="summary-divider">|</span>
+    <span class="summary-item"><span class="summary-label">Total time:</span> <span class="summary-value" id="sum-time">—</span></span>
+  </div>
+
+  <!-- History tab -->
+  <div id="history-panel">
+    <table id="task-history-table">
+      <thead>
+        <tr>
+          <th data-key="status">Status</th>
+          <th data-key="type">Type</th>
+          <th data-key="task">Task</th>
+          <th data-key="source">Source</th>
+          <th data-key="timestampRaw">Timestamp</th>
+          <th data-key="exitCode">Exit Code</th>
+          <th data-key="durationRaw">Execution Time</th>
+          <th>Metrics</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Statistics tab -->
+  <div id="stats-panel" style="display:none;"></div>
+
+  <!-- Dashboard tab -->
+  <div id="dashboard-panel" style="display:none;"></div>
+
+  <script nonce="{{nonce}}" src="{{chartJsUri}}"></script>
   <script nonce="{{nonce}}">
     const vscode = acquireVsCodeApi();
-    let tableData = [];
-    let sortKey = null;
-    let sortDirection = 1; // 1 for asc, -1 for desc
 
-    window.addEventListener('message', event => {
-      const message = event.data;
-      if (message.command === 'loadData') {
-        tableData = message.data;
-        renderTable();
+    // Restore persisted UI state (survives webview recreation)
+    const savedState = vscode.getState() || {};
+    let historyData = [];
+    let metricsData = {};
+    // Full (unstripped) metrics and history snapshot received via loadDashboardData.
+    // Populated on demand when the dashboard tab is activated; renderDashboard() reads
+    // these instead of the shared historyData/metricsData to guarantee atomicity —
+    // both fields reflect the same provider snapshot.
+    let dashboardMetrics = {};
+    let dashboardHistory = [];
+    let dashboardCharts = {}; // active Chart.js instances; destroyed before each re-render
+    let currentTab = savedState.tab || 'history';
+    let sortKey = savedState.sortKey || null;
+    let sortDirection = savedState.sortDir || 1;
+
+    // Apply restored tab on startup
+    applyTab(currentTab);
+
+    // ── Theme-change observer ─────────────────────────────────
+    // VS Code updates CSS custom properties on document.documentElement when the
+    // color theme changes. Detect this and re-render the dashboard so chart colors
+    // track the active theme without requiring a manual tab switch.
+    new MutationObserver(() => {
+      if (currentTab === 'dashboard' && Object.keys(dashboardMetrics).length > 0) {
+        renderDashboard();
       }
-    });
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
 
-    // Add click listeners to headers
+    // ── Tab wiring (use addEventListener, not onclick — CSP blocks inline handlers) ──
+    document.getElementById('tab-history').addEventListener('click', () => switchTab('history'));
+    document.getElementById('tab-stats').addEventListener('click', () => switchTab('stats'));
+    document.getElementById('tab-dashboard').addEventListener('click', () => switchTab('dashboard'));
+
+    // ── Sort header wiring ────────────────────────────────────
     document.querySelectorAll('th[data-key]').forEach(th => {
       th.addEventListener('click', () => {
         const key = th.getAttribute('data-key');
@@ -130,14 +541,92 @@
           sortDirection *= -1;
         } else {
           sortKey = key;
-          sortDirection = 1; // Default to ascending on new column
+          sortDirection = 1;
         }
+        saveState();
         renderTable();
       });
     });
 
+    // ── Message handler ──────────────────────────────────────
+    window.addEventListener('message', event => {
+      const message = event.data;
+      if (message.command === 'loadData') {
+        historyData = message.data.history || [];
+        metricsData = message.data.metrics || {};
+        renderSummary();
+        if (currentTab === 'history') {
+          renderTable();
+        } else if (currentTab === 'stats') {
+          renderStats();
+        } else if (currentTab === 'dashboard') {
+          // Request full metrics (with recentDurations, hourlyRunCounts) so the dashboard
+          // charts always reflect a consistent provider snapshot.
+          vscode.postMessage({ command: 'requestDashboardData' });
+        }
+      } else if (message.command === 'loadDashboardData') {
+        // Full unstripped metrics and history bundled together for atomicity.
+        dashboardMetrics = message.data.metrics || {};
+        dashboardHistory = message.data.history || [];
+        renderDashboard();
+      }
+    });
+
+    // ── State persistence ─────────────────────────────────────
+    function saveState() {
+      vscode.setState({ tab: currentTab, sortKey, sortDir: sortDirection });
+    }
+
+    // ── Tab switching ─────────────────────────────────────────
+    function switchTab(tab) {
+      currentTab = tab;
+      saveState();
+      applyTab(tab);
+      if (tab === 'history') {
+        renderTable();
+      } else if (tab === 'stats') {
+        renderStats();
+      } else if (tab === 'dashboard') {
+        // Send requestDashboardData; renderDashboard() is called when loadDashboardData arrives.
+        vscode.postMessage({ command: 'requestDashboardData' });
+      }
+    }
+
+    function applyTab(tab) {
+      document.getElementById('tab-history').classList.toggle('active', tab === 'history');
+      document.getElementById('tab-stats').classList.toggle('active', tab === 'stats');
+      document.getElementById('tab-dashboard').classList.toggle('active', tab === 'dashboard');
+      document.getElementById('history-panel').style.display = tab === 'history' ? '' : 'none';
+      document.getElementById('stats-panel').style.display = tab === 'stats' ? '' : 'none';
+      document.getElementById('dashboard-panel').style.display = tab === 'dashboard' ? '' : 'none';
+    }
+
+    // ── Summary bar ───────────────────────────────────────────
+    function renderSummary() {
+      const allMetrics = Object.values(metricsData);
+
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayMs = todayStart.getTime();
+
+      let todayRuns = 0;
+      historyData.forEach(r => {
+        if (r.timestampRaw >= todayMs) { todayRuns++; }
+      });
+
+      const totalRuns = allMetrics.reduce((s, m) => s + (m.totalExecutions || 0), 0);
+      const totalSuccess = allMetrics.reduce((s, m) => s + (m.successfulExecutions || 0), 0);
+      const totalTime = allMetrics.reduce((s, m) => s + (m.totalDurationMs || 0), 0);
+      const overallRate = totalRuns > 0 ? Math.round((totalSuccess / totalRuns) * 100) : undefined;
+
+      document.getElementById('sum-today').textContent = String(todayRuns);
+      document.getElementById('sum-total').textContent = String(totalRuns);
+      document.getElementById('sum-rate').textContent = overallRate !== undefined ? `${overallRate}%` : '—';
+      document.getElementById('sum-time').textContent = formatDuration(totalTime || undefined);
+    }
+
+    // ── History table ─────────────────────────────────────────
     function renderTable() {
-      // Update header classes
       document.querySelectorAll('th').forEach(th => {
         th.classList.remove('sort-asc', 'sort-desc');
         if (th.getAttribute('data-key') === sortKey) {
@@ -145,68 +634,867 @@
         }
       });
 
-      // Sort data
-      const sortedData = [...tableData].sort((a, b) => {
-        if (!sortKey) return 0;
-
+      const sortedData = [...historyData].sort((a, b) => {
+        if (!sortKey) { return 0; }
         let valA = a[sortKey];
         let valB = b[sortKey];
-
-        // Handle undefined/nulls
-        if (valA === undefined || valA === null) valA = '';
-        if (valB === undefined || valB === null) valB = '';
-
-        if (valA < valB) return -1 * sortDirection;
-        if (valA > valB) return 1 * sortDirection;
+        if (valA === undefined || valA === null) { valA = ''; }
+        if (valB === undefined || valB === null) { valB = ''; }
+        if (valA < valB) { return -1 * sortDirection; }
+        if (valA > valB) { return 1 * sortDirection; }
         return 0;
       });
 
       const tbody = document.getElementById('table-body');
-      tbody.innerHTML = ''; // Clear existing
+      tbody.innerHTML = '';
 
       sortedData.forEach(row => {
         const tr = document.createElement('tr');
 
-        // Status
         const tdStatus = document.createElement('td');
         tdStatus.textContent = row.status;
         tdStatus.className = `status-${row.status.toLowerCase()}`;
         tr.appendChild(tdStatus);
 
-        // Type
         const tdType = document.createElement('td');
         tdType.textContent = row.type;
         tr.appendChild(tdType);
 
-        // Task
         const tdTask = document.createElement('td');
         tdTask.textContent = row.task;
         tr.appendChild(tdTask);
 
-        // Source
         const tdSource = document.createElement('td');
         tdSource.textContent = row.source;
         tr.appendChild(tdSource);
 
-        // Timestamp
         const tdTimestamp = document.createElement('td');
         tdTimestamp.textContent = row.timestamp;
         tdTimestamp.classList.add('time');
         tr.appendChild(tdTimestamp);
 
-        // Exit Code
         const tdExit = document.createElement('td');
         tdExit.textContent = row.exitCode !== undefined && row.exitCode !== null ? row.exitCode : '';
         tr.appendChild(tdExit);
 
-        // Execution Time
         const tdTime = document.createElement('td');
         tdTime.textContent = row.executionTime || '';
         tdTime.classList.add('time');
         tr.appendChild(tdTime);
 
+        // Metrics hint column — built via DOM (no innerHTML) to avoid XSS
+        const tdMetrics = document.createElement('td');
+        const m = metricsData[row.metricsKey];
+        if (m && m.totalExecutions > 0) {
+          const span = document.createElement('span');
+          span.className = 'metrics-hint';
+          const avgStr = formatDuration(m.avgDurationMs);
+          if (avgStr && avgStr !== '—') {
+            span.append(`avg ${avgStr}`);
+          }
+          if (Number(m.consecutiveFailures) >= 3) {
+            const badge = document.createElement('span');
+            badge.className = 'streak-badge streak-fail';
+            badge.textContent = `✗${Number(m.consecutiveFailures)}`;
+            span.appendChild(badge);
+          }
+          tdMetrics.appendChild(span);
+        }
+        tr.appendChild(tdMetrics);
+
         tbody.appendChild(tr);
       });
+    }
+
+    // ── Statistics panel ──────────────────────────────────────
+    function renderStats() {
+      const panel = document.getElementById('stats-panel');
+      const entries = Object.entries(metricsData);
+
+      if (entries.length === 0) {
+        panel.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'stats-empty';
+        empty.textContent = 'No metrics collected yet. Run some tasks to see statistics.';
+        panel.appendChild(empty);
+        return;
+      }
+
+      // Sort cards by totalExecutions desc
+      entries.sort((a, b) => (b[1].totalExecutions || 0) - (a[1].totalExecutions || 0));
+
+      panel.innerHTML = '';
+      entries.forEach(([key, m]) => {
+        panel.appendChild(buildTaskCard(key, m));
+      });
+    }
+
+    function buildTaskCard(key, m) {
+      const parts = key.split(':');
+      const taskName = parts.slice(1, -1).join(':') || key;
+      const taskSource = parts[0] || '';
+      const taskScope = parts[parts.length - 1] || '';
+
+      const card = document.createElement('div');
+      card.className = 'task-card';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'card-header';
+
+      const title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = taskName;
+      title.title = key;
+      header.appendChild(title);
+
+      const sourceSpan = document.createElement('span');
+      sourceSpan.className = 'card-source';
+      sourceSpan.textContent = taskSource ? `${taskSource} · ${taskScope}` : taskScope;
+      header.appendChild(sourceSpan);
+
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'card-clear-btn';
+      clearBtn.title = 'Clear metrics for this task';
+      clearBtn.textContent = '✕';
+      clearBtn.addEventListener('click', () => {
+        vscode.postMessage({ command: 'clearMetrics', taskId: key });
+      });
+      header.appendChild(clearBtn);
+      card.appendChild(header);
+
+      // Body grid
+      const body = document.createElement('div');
+      body.className = 'card-body';
+
+      // Success rate
+      body.appendChild(makeStatCell('Success Rate', () => {
+        if (m.successRate === undefined) { return { text: '—' }; }
+        const cls = m.successRate >= 80 ? 'rate-high' : m.successRate >= 50 ? 'rate-mid' : 'rate-low';
+        return { text: `${Math.round(m.successRate)}%`, cls };
+      }));
+
+      // Total runs
+      body.appendChild(makeStatCell('Total Runs', () => ({ text: String(m.totalExecutions || 0) })));
+
+      // Avg duration
+      body.appendChild(makeStatCell('Avg Duration', () => ({ text: formatDuration(m.avgDurationMs) })));
+
+      // Min / Max
+      body.appendChild(makeStatCell('Min / Max', () => ({
+        text: `${formatDuration(m.minDurationMs)} / ${formatDuration(m.maxDurationMs)}`
+      })));
+
+      // p95 duration
+      body.appendChild(makeStatCell('p95 Duration', () => ({ text: formatDuration(m.p95DurationMs) })));
+
+      // Last run
+      body.appendChild(makeStatCell('Last Run', () => ({
+        text: m.lastRunAt ? new Date(m.lastRunAt).toLocaleString() : '—'
+      })));
+
+      // Streak
+      body.appendChild(makeStatCell('Streak', () => {
+        if (Number(m.consecutiveFailures) >= 3) {
+          return { text: `✗ ${Number(m.consecutiveFailures)} failures`, cls: 'rate-low' };
+        }
+        if (Number(m.consecutiveSuccesses) > 1) {
+          return { text: `✓ ${Number(m.consecutiveSuccesses)} successes`, cls: 'rate-high' };
+        }
+        return { text: '—' };
+      }));
+
+      // Peak hour
+      body.appendChild(makeStatCell('Peak Hour', () => ({
+        text: m.peakHour !== undefined ? `${m.peakHour}:00–${m.peakHour}:59` : '—'
+      })));
+
+      // Duration trend
+      body.appendChild(makeStatCell('Trend', () => {
+        if (m.durationTrend === undefined) { return { text: '—' }; }
+        if (m.durationTrend > 0) { return { text: '↑ slower', cls: 'trend-slower' }; }
+        if (m.durationTrend < 0) { return { text: '↓ faster', cls: 'trend-faster' }; }
+        return { text: '→ stable' };
+      }));
+
+      // Exit code histogram
+      const exitCell = document.createElement('div');
+      exitCell.className = 'stat-cell';
+      const exitLabel = document.createElement('div');
+      exitLabel.className = 'stat-label';
+      exitLabel.textContent = 'Exit Codes';
+      exitCell.appendChild(exitLabel);
+
+      const exitCounts = m.exitCodeCounts || {};
+      const exitEntries = Object.entries(exitCounts);
+      if (exitEntries.length > 0) {
+        const total = exitEntries.reduce((s, e) => s + Number(e[1]), 0);
+        const bar = document.createElement('div');
+        bar.className = 'exit-bar';
+        exitEntries
+          .sort((a, b) => Number(b[1]) - Number(a[1]))
+          .forEach(([code, count]) => {
+            const seg = document.createElement('div');
+            seg.className = `exit-seg ${code === '0' ? 'exit-seg-0' : 'exit-seg-other'}`;
+            seg.style.flexGrow = String(Number(count) / total);
+            // Use textContent via title (safe, no innerHTML)
+            seg.title = `Exit ${String(code)}: ${Number(count)}`;
+            bar.appendChild(seg);
+          });
+        const exitValue = document.createElement('div');
+        exitValue.className = 'stat-value';
+        exitValue.textContent = m.mostCommonExitCode !== undefined ? `most: ${m.mostCommonExitCode}` : '—';
+        exitCell.appendChild(exitValue);
+        exitCell.appendChild(bar);
+      } else {
+        const exitValue = document.createElement('div');
+        exitValue.className = 'stat-value';
+        exitValue.textContent = '—';
+        exitCell.appendChild(exitValue);
+      }
+      body.appendChild(exitCell);
+
+      card.appendChild(body);
+      return card;
+    }
+
+    function makeStatCell(label, valueFn) {
+      const cell = document.createElement('div');
+      cell.className = 'stat-cell';
+      const l = document.createElement('div');
+      l.className = 'stat-label';
+      l.textContent = label;
+      const v = document.createElement('div');
+      v.className = 'stat-value';
+      const { text, cls } = valueFn();
+      v.textContent = text || '—';
+      if (cls) { v.classList.add(cls); }
+      cell.appendChild(l);
+      cell.appendChild(v);
+      return cell;
+    }
+
+    // ── Dashboard ─────────────────────────────────────────────
+    // Chart.js global defaults are applied once per renderDashboard() call via applyChartDefaults().
+    // This is safe: the webview is an isolated browsing context with one Chart global.
+    // dashboardMetrics and dashboardHistory are always an atomically consistent provider snapshot.
+
+    function destroyDashboardCharts() {
+      Object.values(dashboardCharts).forEach(c => c.destroy());
+      dashboardCharts = {};
+    }
+
+    /** Read a VS Code CSS custom property value. */
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    /**
+     * Returns `color` with the given alpha (0–1).
+     * Handles #RRGGBB, #RGB, rgb(...), and rgba(...) formats.
+     * Falls back to the original solid color string if the format is unrecognised.
+     */
+    function withAlpha(color, alpha) {
+      if (!color) { return `rgba(100,140,200,${alpha})`; }
+      if (color.startsWith('#')) {
+        const a = Math.round(alpha * 255).toString(16).padStart(2, '0');
+        if (color.length === 7) { return color + a; }
+        if (color.length === 4) {
+          const r = color[1], g = color[2], b = color[3];
+          return `#${r}${r}${g}${g}${b}${b}${a}`;
+        }
+      }
+      const rgb = color.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+      if (rgb) { return `rgba(${rgb[1]},${rgb[2]},${rgb[3]},${alpha})`; }
+      const rgba = color.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)$/);
+      if (rgba) { return `rgba(${rgba[1]},${rgba[2]},${rgba[3]},${alpha})`; }
+      return color;
+    }
+
+    /** Extract the task name segment from a "type:taskName:scope" metrics key. */
+    function taskNameFromKey(key) {
+      const parts = key.split(':');
+      return parts.slice(1, -1).join(':') || key;
+    }
+
+    /** Truncate a string to maxLen characters, appending '…' if needed. */
+    function truncate(str, maxLen) {
+      if (!str || str.length <= maxLen) { return str || ''; }
+      return str.slice(0, maxLen - 1) + '\u2026';
+    }
+
+    /** Create a styled dashboard card div with a title element. Returns the card. */
+    function makeDashCard(title) {
+      const card = document.createElement('div');
+      card.className = 'dash-card';
+      const titleEl = document.createElement('div');
+      titleEl.className = 'dash-card-title';
+      titleEl.textContent = title;
+      card.appendChild(titleEl);
+      return card;
+    }
+
+    /** Apply VS Code theme colors to Chart.js global defaults before rendering. */
+    function applyChartDefaults() {
+      Chart.defaults.font.family = cssVar('--vscode-font-family') || 'sans-serif';
+      Chart.defaults.font.size = 11;
+      Chart.defaults.color = cssVar('--vscode-foreground') || '#ccc';
+      Chart.defaults.borderColor = cssVar('--vscode-panel-border') || '#444';
+      Chart.defaults.plugins.legend.labels.color = cssVar('--vscode-foreground') || '#ccc';
+      Chart.defaults.plugins.tooltip.backgroundColor =
+        cssVar('--vscode-editorHoverWidget-background') || '#252526';
+      Chart.defaults.plugins.tooltip.titleColor =
+        cssVar('--vscode-editorHoverWidget-foreground') || '#ccc';
+      Chart.defaults.plugins.tooltip.bodyColor =
+        cssVar('--vscode-editorHoverWidget-foreground') || '#ccc';
+      Chart.defaults.plugins.tooltip.borderColor =
+        cssVar('--vscode-editorHoverWidget-border') || '#454545';
+      Chart.defaults.plugins.tooltip.borderWidth = 1;
+    }
+
+    // ── Chart 1: Execution Outcomes (Doughnut) ────────────────
+    function buildOutcomesChart(allMetrics) {
+      const card = makeDashCard('Execution Outcomes');
+      const successful = allMetrics.reduce((s, m) => s + (m.successfulExecutions || 0), 0);
+      const failed = allMetrics.reduce((s, m) => s + (m.failedExecutions || 0), 0);
+      const terminated = allMetrics.reduce((s, m) => s + (m.terminatedExecutions || 0), 0);
+      const total = successful + failed + terminated;
+
+      if (total === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No completed executions yet.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const pct = Math.round((successful / total) * 100);
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:220px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-outcomes';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      const centerLabelPlugin = {
+        id: 'centerLabel',
+        afterDraw(chart) {
+          const { width, height, ctx } = chart;
+          ctx.save();
+          ctx.font = `bold ${Math.round(height / 6)}px ${cssVar('--vscode-font-family') || 'sans-serif'}`;
+          ctx.fillStyle = cssVar('--vscode-foreground') || '#ccc';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`${pct}%`, width / 2, height / 2);
+          ctx.restore();
+        }
+      };
+
+      dashboardCharts['outcomes'] = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['Successful', 'Failed', 'Terminated'],
+          datasets: [{
+            data: [successful, failed, terminated],
+            backgroundColor: [
+              cssVar('--vscode-charts-green'),
+              cssVar('--vscode-charts-red'),
+              cssVar('--vscode-charts-yellow'),
+            ],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const val = ctx.raw;
+                  const pctVal = Math.round((val / total) * 100);
+                  return ` ${val} (${pctVal}%)`;
+                }
+              }
+            }
+          }
+        },
+        plugins: [centerLabelPlugin]
+      });
+      return card;
+    }
+
+    // ── Chart 2: Hourly Activity Pattern (Bar) ────────────────
+    function buildHourlyActivityChart(allMetrics) {
+      const card = makeDashCard('Hourly Activity Pattern');
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:200px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-hourly';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      const hourly = Array(24).fill(0);
+      allMetrics.forEach(m => {
+        if (Array.isArray(m.hourlyRunCounts) && m.hourlyRunCounts.length === 24) {
+          m.hourlyRunCounts.forEach((v, i) => { hourly[i] += (v || 0); });
+        }
+      });
+
+      const peak = Math.max(...hourly);
+      const blue = cssVar('--vscode-charts-blue');
+      const orange = cssVar('--vscode-charts-orange');
+      const colors = hourly.map(v => (v === peak && peak > 0) ? orange : blue);
+      const labels = Array.from({ length: 24 }, (_, h) => {
+        if (h === 0) { return '12 AM'; }
+        if (h === 12) { return '12 PM'; }
+        return h < 12 ? `${h} AM` : `${h - 12} PM`;
+      });
+
+      dashboardCharts['hourly'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Executions', data: hourly, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, ticks: { callback: v => Number.isInteger(v) ? v : undefined } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 3: Top Tasks by Run Count (Horizontal Bar) ──────
+    function buildTopTasksChart(metricsEntries) {
+      const card = makeDashCard('Top Tasks by Run Count');
+      const entries = metricsEntries
+        .filter(([, m]) => (m.totalExecutions || 0) > 0)
+        .sort((a, b) => b[1].totalExecutions - a[1].totalExecutions)
+        .slice(0, 15);
+
+      if (entries.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No task runs recorded.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const avgCount = entries.reduce((s, [, m]) => s + m.totalExecutions, 0) / entries.length;
+      const labels = entries.map(([key]) => truncate(taskNameFromKey(key), 30));
+      const data = entries.map(([, m]) => m.totalExecutions);
+      const blue = cssVar('--vscode-charts-blue');
+      const purple = cssVar('--vscode-charts-purple');
+      const colors = data.map(v => v >= avgCount ? blue : purple);
+
+      const height = Math.max(entries.length * 28 + 20, 120);
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `position:relative;height:${height}px;`;
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-top-tasks';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      dashboardCharts['topTasks'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Executions', data, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, ticks: { callback: v => Number.isInteger(v) ? v : undefined } },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 4: Success Rate by Task (Horizontal Bar) ────────
+    function buildSuccessRateChart(metricsEntries) {
+      const card = makeDashCard('Success Rate by Task');
+      const eligible = metricsEntries
+        .filter(([, m]) => m.successRate !== undefined && (m.totalExecutions || 0) >= 1)
+        .sort((a, b) => (a[1].successRate || 0) - (b[1].successRate || 0))
+        .slice(0, 20);
+
+      if (eligible.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No success rate data available.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const green = cssVar('--vscode-charts-green');
+      const yellow = cssVar('--vscode-charts-yellow');
+      const red = cssVar('--vscode-charts-red');
+      const labels = eligible.map(([key]) => truncate(taskNameFromKey(key), 30));
+      const data = eligible.map(([, m]) => Math.round(m.successRate));
+      const colors = data.map(v => v >= 80 ? green : v >= 50 ? yellow : red);
+
+      const height = Math.max(eligible.length * 28 + 20, 120);
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `position:relative;height:${height}px;`;
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-success-rate';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      dashboardCharts['successRate'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Success Rate %', data, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { min: 0, max: 100, ticks: { callback: v => `${v}%` } },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 5: Duration Comparison — min/avg/p95/max (Grouped Bar) ──
+    function buildDurationComparisonChart(metricsEntries) {
+      const card = makeDashCard('Duration Comparison');
+      const eligible = metricsEntries
+        .filter(([, m]) => m.avgDurationMs !== undefined)
+        .sort((a, b) => (b[1].totalExecutions || 0) - (a[1].totalExecutions || 0))
+        .slice(0, 10);
+
+      if (eligible.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'No duration data available.';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const labels = eligible.map(([key]) => truncate(taskNameFromKey(key), 20));
+      const green = cssVar('--vscode-charts-green');
+      const blue = cssVar('--vscode-charts-blue');
+      const orange = cssVar('--vscode-charts-orange');
+      const red = cssVar('--vscode-charts-red');
+
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:260px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-duration';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      dashboardCharts['duration'] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Min', backgroundColor: green, borderWidth: 0,
+              data: eligible.map(([, m]) => m.minDurationMs !== undefined ? m.minDurationMs : null),
+            },
+            {
+              label: 'Avg', backgroundColor: blue, borderWidth: 0,
+              data: eligible.map(([, m]) => m.avgDurationMs !== undefined ? m.avgDurationMs : null),
+            },
+            {
+              label: 'p95', backgroundColor: orange, borderWidth: 0,
+              data: eligible.map(([, m]) => m.p95DurationMs !== undefined ? m.p95DurationMs : null),
+            },
+            {
+              label: 'Max', backgroundColor: red, borderWidth: 0,
+              data: eligible.map(([, m]) => m.maxDurationMs !== undefined ? m.maxDurationMs : null),
+            },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label(ctx) { return ` ${ctx.dataset.label}: ${formatDuration(ctx.raw)}`; }
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => formatDuration(v) } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 6: Daily Activity — Last 14 Days (Line) ─────────
+    function buildDailyActivityChart(history) {
+      const card = makeDashCard('Daily Activity \u2014 Last 14 Days');
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative;height:200px;';
+      const canvas = document.createElement('canvas');
+      canvas.id = 'chart-daily';
+      wrapper.appendChild(canvas);
+      card.appendChild(wrapper);
+
+      // Capture base date once to avoid midnight edge-case across loop iterations
+      const baseDate = new Date();
+      baseDate.setHours(0, 0, 0, 0);
+      const days = Array.from({ length: 14 }, (_, i) => {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() - (13 - i));
+        return d;
+      });
+
+      const counts = days.map(day => {
+        const nextDay = new Date(day);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return history.filter(
+          r => r.timestampRaw >= day.getTime() && r.timestampRaw < nextDay.getTime()
+        ).length;
+      });
+      const labels = days.map(d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+      const blue = cssVar('--vscode-charts-blue');
+
+      dashboardCharts['daily'] = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Executions',
+            data: counts,
+            borderColor: blue,
+            backgroundColor: withAlpha(blue, 0.15),
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, ticks: { callback: v => Number.isInteger(v) ? v : undefined } }
+          }
+        }
+      });
+      return card;
+    }
+
+    // ── Chart 7: Duration Trend Sparklines ────────────────────
+    function buildSparklines(metricsEntries) {
+      const card = makeDashCard('Duration Trends');
+      // Sort by totalExecutions desc so the busiest tasks appear first; cap at 20
+      const eligible = metricsEntries
+        .filter(([, m]) => Array.isArray(m.recentDurations) && m.recentDurations.length >= 5)
+        .sort((a, b) => (b[1].totalExecutions || 0) - (a[1].totalExecutions || 0))
+        .slice(0, 20);
+
+      if (eligible.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dash-empty';
+        empty.textContent = 'Not enough duration samples to plot trends (need \u2265 5 per task).';
+        card.appendChild(empty);
+        return card;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'sparkline-grid';
+      card.appendChild(grid);
+
+      eligible.forEach(([key, m]) => {
+        const item = document.createElement('div');
+        item.className = 'sparkline-item';
+
+        const label = document.createElement('div');
+        label.className = 'sparkline-label';
+        label.textContent = truncate(taskNameFromKey(key), 25);
+        label.title = taskNameFromKey(key);
+        item.appendChild(label);
+
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative;height:60px;';
+        const canvas = document.createElement('canvas');
+        const chartId = 'sparkline-' + key;
+        wrapper.appendChild(canvas);
+        item.appendChild(wrapper);
+        grid.appendChild(item);
+
+        const trend = m.durationTrend;
+        let color;
+        if (trend === undefined || trend === null) {
+          color = cssVar('--vscode-charts-blue');
+        } else if (trend < 0) {
+          color = cssVar('--vscode-charts-green');  // negative slope = getting faster
+        } else if (trend > 0) {
+          color = cssVar('--vscode-charts-red');    // positive slope = getting slower
+        } else {
+          color = cssVar('--vscode-charts-blue');   // zero = stable
+        }
+
+        dashboardCharts[chartId] = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: m.recentDurations.map(() => ''),
+            datasets: [{
+              data: m.recentDurations,
+              borderColor: color,
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.3,
+              fill: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false } }
+          }
+        });
+      });
+      return card;
+    }
+
+    // ── Chart 8: Attention Required (table widget, no Chart.js) ──
+    function buildAttentionRequired(metricsEntries) {
+      const card = makeDashCard('\u26a0 Attention Required');
+      const now = Date.now();
+      const h24 = 24 * 60 * 60 * 1000;
+
+      const flagged = metricsEntries.filter(([, m]) => {
+        if (m.isFlaky) { return true; }
+        if (m.successRate !== undefined && m.successRate < 50 && (m.totalExecutions || 0) >= 5) { return true; }
+        if (m.lastExitCode !== undefined && m.lastExitCode !== 0 &&
+            m.lastRunAt !== undefined && (now - m.lastRunAt) <= h24) { return true; }
+        return false;
+      });
+
+      if (flagged.length === 0) {
+        const ok = document.createElement('div');
+        ok.className = 'attention-empty';
+        ok.textContent = 'All tasks are healthy \u{1F389}';
+        card.appendChild(ok);
+        return card;
+      }
+
+      const table = document.createElement('table');
+      table.className = 'attention-table';
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      ['Task', 'Type', 'Last Exit', 'Consec. Failures', 'Success Rate', 'Last Run'].forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      flagged.forEach(([key, m]) => {
+        const parts = key.split(':');
+        const taskName = parts.slice(1, -1).join(':') || key;
+        const taskSource = parts[0] || '';
+        const tr = document.createElement('tr');
+        tr.className = 'attention-row';
+        [
+          taskName,
+          taskSource,
+          m.lastExitCode !== undefined ? String(m.lastExitCode) : '\u2014',
+          String(m.consecutiveFailures || 0),
+          m.successRate !== undefined ? `${Math.round(m.successRate)}%` : '\u2014',
+          m.lastRunAt ? new Date(m.lastRunAt).toLocaleString() : '\u2014',
+        ].forEach(text => {
+          const td = document.createElement('td');
+          td.textContent = text;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      card.appendChild(table);
+      return card;
+    }
+
+    // ── Dashboard: main render orchestrator ───────────────────
+    function renderDashboard() {
+      destroyDashboardCharts();
+      const panel = document.getElementById('dashboard-panel');
+      if (typeof Chart === 'undefined') {
+        panel.textContent = 'Chart.js failed to load.';
+        return;
+      }
+
+      const allMetrics = Object.values(dashboardMetrics);
+      const metricsEntries = Object.entries(dashboardMetrics);
+
+      if (allMetrics.length === 0) {
+        panel.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'dashboard-empty';
+        const icon = document.createElement('div');
+        icon.className = 'dashboard-empty-icon';
+        icon.textContent = '📊';
+        const title = document.createElement('div');
+        title.className = 'dashboard-empty-title';
+        title.textContent = 'No data yet';
+        const hint = document.createElement('div');
+        hint.className = 'dashboard-empty-hint';
+        hint.textContent = 'Run some tasks to start collecting metrics. The dashboard will populate automatically.';
+        empty.appendChild(icon);
+        empty.appendChild(title);
+        empty.appendChild(hint);
+        panel.appendChild(empty);
+        return;
+      }
+
+      panel.innerHTML = '';
+      applyChartDefaults();
+
+      // Row 1: 2-column grid — outcomes doughnut + hourly activity bar
+      const row1 = document.createElement('div');
+      row1.className = 'dash-grid-2';
+      row1.appendChild(buildOutcomesChart(allMetrics));
+      row1.appendChild(buildHourlyActivityChart(allMetrics));
+      panel.appendChild(row1);
+
+      panel.appendChild(buildTopTasksChart(metricsEntries));
+      panel.appendChild(buildSuccessRateChart(metricsEntries));
+      panel.appendChild(buildDurationComparisonChart(metricsEntries));
+      panel.appendChild(buildDailyActivityChart(dashboardHistory));
+      panel.appendChild(buildSparklines(metricsEntries));
+      panel.appendChild(buildAttentionRequired(metricsEntries));
+    }
+
+    // ── Helpers ───────────────────────────────────────────────
+    function formatDuration(ms) {
+      if (ms === undefined || ms === null) { return '—'; }
+      const n = Number(ms);
+      if (n < 1000) { return `${Math.round(n)}ms`; }
+      if (n < 60000) { return `${(n / 1000).toFixed(2)}s`; }
+      const mins = Math.floor(n / 60000);
+      const secs = Math.round((n % 60000) / 1000);
+      return `${mins}m ${secs}s`;
     }
   </script>
 </body>

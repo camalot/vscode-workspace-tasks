@@ -21,29 +21,7 @@ nav_order: 6
 
 ## Overview
 
-Track and review all task executions with comprehensive history views. Task History provides both a **tree view** and a **table panel** for monitoring task execution status, timing, and results.
-
----
-
-## Tree View
-
-The Task History tree view provides a hierarchical, filterable view of all executed tasks.
-
-![Task History Tree View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-treeview.png)
-
-### Features
-
-- **Status Filtering** — Filter by task status (Running, Success, Failed, Terminated)
-- **Hierarchical Organization** — Tasks grouped for easy navigation
-- **Task Details** — View task name, source, and execution time
-- **Real-time Updates** — Automatically updates as tasks complete
-
-### How to Use
-
-1. Open the **Task History** in the Panel View
-2. Use the **filter buttons** in the title bar to show/hide specific statuses
-3. Click on any task item to view more details
-4. Right-click for additional options (clear history, etc.)
+Track and review all task executions with comprehensive history and statistics. Task History provides a **table panel** for monitoring task execution status, timing, and results, a **Statistics view** for aggregated per-task metrics, and a **Dashboard** with interactive charts for an at-a-glance view of workspace-wide task health.
 
 ---
 
@@ -63,15 +41,107 @@ The Task History Table View provides a tabular, sortable view of all task execut
   - 🔴 **Failed** — Task exited with an error
   - 🔵 **Running** — Task is currently executing
   - 🟠 **Terminated** — Task was stopped manually
+- **Metrics Hint** — Each row shows the task's average duration and a flaky-streak badge (if the task has failed 3 or more times consecutively)
 - **Single-column Sorting** — Sort by any column in ascending or descending order, one column at a time
 - **Real-time Updates** — Automatically updates as tasks complete
 
 ### How to Use
 
-1. Open the **Task History** in the Panel View and choose **"View as Table"**
+1. Open the **Task History** panel
 2. Click **column headers** to sort by that field (click again to reverse order)
 3. Review detailed execution information including exact timestamps and durations
 4. Use the scrollable view to review extensive task history
+
+---
+
+## Statistics View
+
+The Statistics View provides aggregated per-task execution metrics, giving you a quick overview of how each task is performing over time.
+
+![Task Statistics View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-statistics-webview.png)
+
+### Features
+
+- **Summary Bar** — Shown at the top of both History and Statistics modes:
+  - **Today** — Number of tasks run since midnight (from in-memory history)
+  - **All-time** — Total task executions across all runs (from persisted metrics)
+  - **Success rate** — Overall success percentage across all tracked tasks
+  - **Total time** — Sum of all recorded execution durations
+- **Per-task Cards** — One card per tracked task, sorted by most-run first, each showing:
+  - **Success Rate** — Color-coded: green ≥ 80%, amber ≥ 50%, red < 50%
+  - **Total Runs** — All-time execution count
+  - **Avg / Min / Max / p95 Duration** — Computed from the last N duration samples (configurable)
+  - **Last Run** — Timestamp of the most recent execution
+  - **Streak** — Consecutive failure or success count; consecutive failures ≥ 3 are highlighted in red
+  - **Peak Hour** — Hour of day (0–23) when the task runs most often
+  - **Trend** — Whether recent durations are getting slower (↑), faster (↓), or stable (→)
+  - **Exit Codes** — Proportional bar chart of all recorded exit codes with tooltips; most-common exit code shown
+- **Clear Metrics** — Click the **✕** button on any card to clear that task's metrics data
+
+### How to Use
+
+1. Open the **Task History** panel
+2. Click the **Statistics** tab to switch to the metrics view
+3. Review per-task cards for performance trends and failure patterns
+4. Click **✕** on a card to reset metrics for that task
+5. To clear all metrics at once, use the **Clear All Task Metrics** command from the Command Palette (`workspaceTasks.metrics.clearAll`)
+6. Switch back to the **History** tab at any time
+
+### Metrics Storage
+
+Metrics are persisted across VS Code sessions. The storage location is controlled by the `workspaceTasks.metrics.scope` setting:
+
+| Value | Storage |
+| ----- | ------- |
+| `workspace` (default) | Per-workspace (`workspaceState`) |
+| `global` | Global across all workspaces (`globalState`) |
+| `both` | Written to both; workspace takes precedence on read |
+| `disabled` | Metrics collection is turned off entirely |
+
+See the [Metrics Configuration](../configuration/metrics) page for all available settings.
+
+---
+
+## Dashboard Tab
+
+The Dashboard tab provides an at-a-glance, workspace-wide view of task execution health using interactive charts powered by [Chart.js](https://www.chartjs.org/). All charts automatically adapt to your active VS Code color theme.
+
+![Task Dashboard 1](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-1.png)
+
+![Task Dashboard 2](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-2.png)
+
+![Task Dashboard 3](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-3.png)
+
+### Charts
+
+| Chart | Type | What it shows |
+| ----- | ---- | ------------- |
+| **Execution Outcomes** | Doughnut | Workspace-wide split of successful, failed, and terminated executions with a centre success-rate label |
+| **Hourly Activity Pattern** | Bar | Which hour of day sees the most task executions — peak hour highlighted in orange |
+| **Top Tasks by Run Count** | Horizontal bar | Up to 15 most-executed tasks, sorted descending |
+| **Success Rate by Task** | Horizontal bar | All tasks ranked worst-to-best; bars coloured red < 50%, amber 50–79%, green ≥ 80% |
+| **Duration Comparison** | Grouped bar | Min / Avg / p95 / Max durations for the top 10 tasks by execution count |
+| **Daily Activity — Last 14 Days** | Line | Execution count per calendar day for the past two weeks |
+| **Duration Trend Sparklines** | Micro line charts | Per-task duration trend over the last N runs; green = getting faster, red = getting slower |
+| **Attention Required** | Table | Tasks that are flaky (≥ 3 consecutive failures), have a success rate below 50%, or failed within the last 24 hours |
+
+### Features
+
+- **Theme-aware** — Charts re-render automatically when you switch VS Code color themes
+- **Empty state** — A friendly placeholder is shown when no metrics have been collected yet
+- **Atomic data** — The dashboard always reflects a consistent metrics + history snapshot from the same point in time
+- **Persistent tab selection** — The active tab (History / Statistics / Dashboard) is remembered across webview recreations
+
+### How to Use
+
+1. Open the **Task History** panel
+2. Click the **Dashboard** tab at the top
+3. Charts populate automatically from your collected metrics
+4. Switch VS Code themes — charts update immediately to match
+5. Run tasks to see counts, durations, and trends grow over time
+
+{: .note }
+The Dashboard requires at least one completed task execution before any charts are shown. Sparklines require a minimum of 5 duration samples per task.
 
 ---
 
@@ -79,9 +149,9 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 - Debugging task failures by reviewing exit codes and execution times
 - Monitoring build and deployment pipeline status
-- Tracking task performance over time
+- Tracking task performance over time with duration trends
+- Identifying flaky tasks (consecutive failures) at a glance
 - Auditing task executions in CI/CD workflows
-- Identifying patterns in task failures or long-running tasks
 
 ---
 
@@ -89,3 +159,4 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 - [Compound Tasks (Queues)](task-queues) — Run sequences of tasks
 - [Configuration](../configuration) — Full settings reference
+- [Metrics Configuration](../configuration/metrics) — Configure metrics scope, sample size, and retention

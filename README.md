@@ -24,7 +24,13 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [📋 Compound Tasks (Queues)](#task-queues)
 - [🙈 Hide Tasks & Groups](#hide-tasks--groups)
 - [🕰️ Task History](#task-history)
+- [🔐 Secrets Management](#secrets-management)
 - [⚙️ Configuration](#configuration)
+  - [⚙️ General](https://camalot.github.io/vscode-workspace-tasks/configuration/general/)
+  - [🔍 Task Discovery](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/)
+  - [🖥️ Display & Interaction](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/)
+  - [▶️ Task Execution](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/)
+  - [🌐 Environment](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/)
   - [Custom Workspace Tasks](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks)
   - [GitHub Actions Integration](#github-actions-integration)
   - [Task Ignore Patterns](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering)
@@ -55,8 +61,10 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
+- **🔐 Environment Variable & Secrets Management** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
+- **🕰️ Task History, Statistics & Dashboard** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
 - **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 
@@ -326,27 +334,7 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 
 ## 🕰️ Task History
 
-Track and review all task executions with comprehensive history views. Task History provides both a tree view and table panel for monitoring task execution status, timing, and results.
-
-### Tree View
-
-The Task History tree view provides a hierarchical, filterable view of all executed tasks.
-
-![Task History Tree View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-treeview.png)
-
-**Features:**
-
-- **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
-- **Hierarchical Organization** - Tasks grouped for easy navigation
-- **Task Details** - View task name, source, and execution time
-- **Real-time Updates** - Automatically updates as tasks complete
-
-**How to Use:**
-
-1. Open the Task History  in the Panel View
-2. Use the filter buttons in the title bar to show/hide specific statuses
-3. Click on any task item to view more details
-4. Right-click for additional options (clear history, etc.)
+Track and review all task executions with comprehensive history and statistics. Task History provides a **table view** with sortable execution details, a **Statistics view** for aggregated per-task metrics, and a **Dashboard** with interactive charts for a workspace-wide health overview.
 
 ### Table View
 
@@ -359,28 +347,71 @@ The Task History Table View provides a tabular, sortable view of all task execut
 - **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
 - **Sortable Columns** - Click any column header to sort tasks by that field
 - **Comprehensive Details** - View status, type, task name, source path, timestamp, exit code, and execution time
+- **Metrics Hint** - Each row shows the task's average duration and a flaky-streak badge (if the task has failed 3+ times consecutively)
 - **Status Indicators** - Color-coded status labels/icons for quick identification
   - 🟢 Success - Task completed successfully
   - 🔴 Failed - Task exited with an error
   - 🔵 Running - Task is currently executing
   - 🟠 Terminated - Task was stopped manually
-- **Single-column Sorting** - Sort by any column in ascending or descending order, one column at a time
 - **Real-time Updates** - Automatically updates as tasks complete
 
 **How to Use:**
 
-1. Open the Task History in the Panel View and choose 'View as Table'
+1. Open the **Task History** panel
 2. Click column headers to sort by that field (click again to reverse order)
 3. Review detailed execution information including exact timestamps and durations
 4. Use the scrollable view to review extensive task history
+
+### Statistics View
+
+The Statistics View provides aggregated per-task execution metrics across all runs.
+
+![Task Statistics View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-statistics-webview.png)
+
+**Features:**
+
+- **Summary Bar** - Total tasks run today, all-time count, overall success rate, and total execution time
+- **Per-task Cards** - Success rate, total runs, avg/min/max/p95 duration, last run time, consecutive failure/success streak, peak hour, duration trend, and exit code histogram
+- **Clear Metrics** - Click the **✕** button on any card to clear that task's metrics data
+
+**How to Use:**
+
+1. Open the **Task History** panel
+2. Click the **Statistics** tab at the top
+3. Review per-task cards for performance trends and failure patterns
+4. Click **✕** on a card to reset metrics for that task
+5. To clear all metrics, use the **Clear All Task Metrics** command (`workspaceTasks.metrics.clearAll`) from the Command Palette
+
+### Dashboard
+
+The Dashboard tab provides an at-a-glance, workspace-wide view of task health using interactive [Chart.js](https://www.chartjs.org/) charts that automatically adapt to your VS Code color theme.
+
+![Task Dashboard](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-1.png)
+
+**Charts included:**
+
+- **Execution Outcomes** — Doughnut showing the workspace-wide split of successful, failed, and terminated runs
+- **Hourly Activity Pattern** — When the workspace is most active by hour of day
+- **Top Tasks by Run Count** — Most-executed tasks, ranked descending
+- **Success Rate by Task** — All tasks ranked worst-to-best; color-coded red / amber / green
+- **Duration Comparison** — Min / Avg / p95 / Max durations for the top tasks
+- **Daily Activity (14 days)** — Execution count per calendar day
+- **Duration Trend Sparklines** — Per-task trend lines; green = getting faster, red = getting slower
+- **Attention Required** — Table of flaky, low-success, or recently-failed tasks
+
+**How to Use:**
+
+1. Open the **Task History** panel
+2. Click the **Dashboard** tab at the top
+3. Charts populate automatically from your collected metrics and update as tasks run
 
 **Perfect For:**
 
 - Debugging task failures by reviewing exit codes and execution times
 - Monitoring build and deployment pipeline status
-- Tracking task performance over time
+- Tracking task performance over time with duration trends
+- Identifying flaky tasks (consecutive failures ≥ 3) at a glance
 - Auditing task executions in CI/CD workflows
-- Identifying patterns in task failures or long-running tasks
 
 ## 🚀 Quick Start
 
@@ -406,6 +437,16 @@ The Task History Table View provides a tabular, sortable view of all task execut
 <a id="configuration"></a>
 
 ## ⚙️ Configuration
+
+All settings are grouped into five categories. See the [full configuration reference](https://camalot.github.io/vscode-workspace-tasks/configuration/) for details.
+
+| Group | Description |
+| --- | --- |
+| [⚙️ General](https://camalot.github.io/vscode-workspace-tasks/configuration/general/) | Debug logging and task execution metrics |
+| [🔍 Task Discovery](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/) | Exclusion patterns, discovery depth, enabled task types, and shell-script detection |
+| [🖥️ Display & Interaction](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/) | Tree view grouping, click behaviour, action bar, icons, and recent-tasks |
+| [▶️ Task Execution](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/) | Terminal presentation, graceful stop delay, and compound-task execution modes |
+| [🌐 Environment](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/) | Executable paths for build tools and tool-specific settings |
 
 ### GitHub Actions Integration
 
@@ -535,6 +576,69 @@ workspace-folder/
 - **Performance Issues** - Reduce depth if task discovery is slow
 - **Focused Workflows** - Limit to top-level tasks when working on specific projects
 - **Deep Structures** - Use `null` for full discovery in complex nested project layouts
+
+<a id="secrets-management"></a>
+
+## 🔐 Secrets Management
+
+Workspace Tasks integrates with VS Code's built-in `SecretStorage` API to store sensitive values (API keys, passwords, tokens) securely on your machine — encrypted at rest and never synced.
+
+### Secrets Tree Group
+
+When at least one secret is stored, a **Secrets** group appears at the top of the Workspace Tasks tree. Each entry shows the secret **key name** (never the value); hovering or right-clicking reveals all available actions.
+
+![Secrets tree group showing stored secret key entries](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/screenshots/secrets-tree.png)
+
+#### Action Bar (per secret item)
+
+| Icon | Action | Description |
+|------|--------|-------------|
+| `$(copy)` | **Copy Secret Key** | Copies the key name to the clipboard |
+| `$(edit)` | **Update Secret** | Prompts for a new value and updates the stored secret |
+| `$(trash)` | **Delete Secret** | Prompts for confirmation and permanently removes the secret |
+
+> **Tip:** Double-clicking a secret item copies its key name to the clipboard.
+
+#### Right-Click Context Menu (secret item)
+
+The context menu for each secret item exposes the same three actions: **Copy Secret Key**, **Update Secret**, and **Delete Secret**.
+
+#### Right-Click Context Menu (Secrets group header)
+
+Right-clicking the **Secrets** group header provides the **Store Secret** action to add a new secret without opening the Command Palette.
+
+### Command Palette
+
+All secrets operations are also available keyboard-first via the Command Palette (`Ctrl+Shift+P` / `⇧⌘P`):
+
+| Command | Description |
+|---------|-------------|
+| `Workspace Tasks: Store Secret` | Prompts for a key name and value; saves to SecretStorage |
+| `Workspace Tasks: Update Secret` | Shows a QuickPick of existing keys; prompts for the new value |
+| `Workspace Tasks: Delete Secret` | Shows a QuickPick of existing keys; deletes after confirmation |
+| `Workspace Tasks: Copy Secret Key` | Shows a QuickPick of existing keys; copies the selected key name to the clipboard |
+
+### Using Secrets in Tasks
+
+Map stored secrets to environment variable names using the `secrets` field in your task configuration:
+
+```jsonc
+{
+  "workspaceTasks.envVars.taskEnv": [
+    {
+      "match": { "taskType": "npm" },
+      "secrets": {
+        "NPM_TOKEN": "myapp.npm-publish-token",
+        "DB_PASSWORD": "myapp.db-password"
+      }
+    }
+  ]
+}
+```
+
+For full details on the fourteen-layer precedence model, secret file support, and per-task rules, see the [Environment Variables & Secrets documentation](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables/).
+
+---
 
 ## 🔧 Advanced Features
 

@@ -2,11 +2,13 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { TaskHistoryService, ITaskExecutionRecord } from './services/taskHistoryService';
+import { TaskMetricsService } from './services/taskMetricsService';
 
 export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'workspaceTasksHistoryTableView';
 
   private _view?: vscode.WebviewView;
+  private _updateTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -30,7 +32,13 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     const historyService = TaskHistoryService.getInstance();
+    const metricsService = TaskMetricsService.getInstance();
+
     const changeListener = historyService.onDidChange(() => {
+      this.updateWebview();
+    });
+
+    const metricsListener = metricsService.onDidChangeMetrics(() => {
       this.updateWebview();
     });
 
@@ -40,9 +48,32 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
       }
     });
 
+    const messageListener = webviewView.webview.onDidReceiveMessage((message) => {
+      if (message.command === 'clearMetrics') {
+        const taskId: string | undefined = message.taskId;
+        if (taskId) {
+          metricsService.clearMetrics(taskId);
+        }
+      } else if (message.command === 'requestDashboardData') {
+        // Respond with full (unstripped) metrics — recentDurations and hourlyRunCounts are
+        // needed by the dashboard charts. History is bundled in the same message to guarantee
+        // atomicity: renderDashboard() uses the snapshot from this response, not the
+        // potentially-stale global historyData that may have been updated by a concurrent loadData.
+        const rawMetrics = metricsService.getAllMetrics();
+        const history = this._buildHistory();
+        webviewView.webview.postMessage({
+          command: 'loadDashboardData',
+          data: { metrics: rawMetrics, history },
+        });
+      }
+    });
+
     webviewView.onDidDispose(() => {
       changeListener.dispose();
+      metricsListener.dispose();
       visibilityListener.dispose();
+      messageListener.dispose();
+      this._view = undefined;
     });
 
     // Initial load
@@ -50,13 +81,46 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
   }
 
   private updateWebview() {
-    if (this._view && this._view.visible) {
-      const historyService = TaskHistoryService.getInstance();
-      const executions = historyService.getAllExecutions()
-        .filter(record => historyService.hasFilter(record.status));
-      const data = executions.map(record => this.formatRecord(record));
-      this._view.webview.postMessage({ command: 'loadData', data: data });
+    // Debounce: coalesce rapid back-to-back calls (e.g. history change + metrics change
+    // firing in the same tick when a task completes) into a single render.
+    if (this._updateTimer !== undefined) {
+      clearTimeout(this._updateTimer);
     }
+    this._updateTimer = setTimeout(() => {
+      this._updateTimer = undefined;
+      this._doUpdateWebview();
+    }, 0);
+  }
+
+  private _doUpdateWebview() {
+    if (this._view && this._view.visible) {
+      const metricsService = TaskMetricsService.getInstance();
+
+      const history = this._buildHistory();
+
+      // Strip large per-task arrays (recentDurations, hourlyRunCounts) before sending to the
+      // webview — they are not displayed and can be hundreds of numbers per task.
+      const rawMetrics = metricsService.getAllMetrics();
+      const metrics = Object.fromEntries(
+        Object.entries(rawMetrics).map(([k, v]) => {
+          const { recentDurations: _r, hourlyRunCounts: _h, ...rest } = v;
+          return [k, rest];
+        })
+      );
+
+      this._view.webview.postMessage({ command: 'loadData', data: { history, metrics } });
+    }
+  }
+
+  /**
+   * Returns the current filtered, formatted history records.
+   * This is the single authoritative method for building the history payload sent to the webview.
+   */
+  private _buildHistory() {
+    const historyService = TaskHistoryService.getInstance();
+    const executions = historyService.getAllExecutions()
+      .filter(record => historyService.hasFilter(record.status));
+    return executions.map(record => this.formatRecord(record));
   }
 
   private formatRecord(record: ITaskExecutionRecord) {
@@ -79,7 +143,8 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
       timestampRaw: record.startTime,
       exitCode: record.exitCode,
       executionTime: this.formatDuration(record.duration),
-      durationRaw: record.duration
+      durationRaw: record.duration,
+      metricsKey: `${record.taskSource}:${record.taskName}:${record.scope}`
     };
   }
 
@@ -95,8 +160,13 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
 
     const nonce = getNonce();
 
+    const chartJsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'res', 'webviews', 'lib', 'chart.umd.min.js')
+    );
+
     htmlContent = htmlContent.replace(/{{cspSource}}/g, webview.cspSource);
     htmlContent = htmlContent.replace(/{{nonce}}/g, nonce);
+    htmlContent = htmlContent.replace(/{{chartJsUri}}/g, chartJsUri.toString());
 
     return htmlContent;
   }

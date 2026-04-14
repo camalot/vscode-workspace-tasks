@@ -1,3 +1,78 @@
+## [1.7.0] - 2026-04-14
+
+### 🚀 Features
+
+- Task metrics phase 1 implementation #157
+
+- Task metrics phase 2 implementation #157
+
+- Task metrics phase 3 implementation #157
+
+- Task metrics phase 4 implementation #157
+
+- Task metrics dashboard implementation phase 1
+
+- Task metrics dashboard implement phase 2
+
+- Task metrics dashboard implement phase 4
+
+- Implement task history metrics clear
+
+- Group configuration settings items #160
+
+- Task type blacklist and whitelist #159
+
+- Initial phases (1 & 2) of ask Environment Variable Management #158
+
+- Task environment variables - phase 3 - 6
+
+- Task Environment Variable Management #158
+
+- Option to NOT order items #162
+
+
+### 🐛 Bug Fixes
+
+- Taskignore matching using 'micromatch' matching for task name
+
+- Ensure that a task that is stopped is tracked as terminated
+
+- Issue resolved with workspaceTasks.tasks.sortingEnabled not being respected
+
+- Set the coffee icon to a softer white
+
+
+### 💼 Other
+
+- Remove unused tsc option and create typescript
+
+
+### 📚 Documentation
+
+- Update documentation with realtime loading gif by @camalot
+
+- Removed unavailable shields.io badges by @camalot
+
+- Plan for some future enhancements.
+
+- Task metrics documentation implementation #157
+
+- Task metrics dashboard implementation plan
+
+- Implementation plan for better task filtering
+
+- Add documentation for blacklist/whitelist settings feature #159
+
+- Update documentation with new callout
+
+- Update documentation for task environment variables
+
+- Update documentation for task environment variables
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.6.0...v1.7.0
+
 ## [1.6.0] - 2026-04-11
 
 ### 🚀 Features

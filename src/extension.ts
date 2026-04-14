@@ -14,10 +14,13 @@ import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
 import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
+import { TaskMetricsService } from './services/taskMetricsService';
 import { loadCommands } from './commands/index';
 import { findTerminalForTask } from './commands/stopTask';
 import { registerTaskProviders } from './providers/index';
 import { configuration } from './libs/configuration';
+import { TaskEnvService } from './services/taskEnvService';
+import { TaskSecretWarningService } from './services/taskSecretWarningService';
 
 export async function activate(context: vscode.ExtensionContext) {
   LoggerService.getInstance().initialize(context);
@@ -40,6 +43,9 @@ export async function activate(context: vscode.ExtensionContext) {
   // Initialize the view based on persisted preference
   await taskHistoryTreeDataProvider.initializeView();
 
+  // Initialize TaskMetricsService now that TaskHistoryService is ready
+  TaskMetricsService.getInstance().initialize(context);
+
   context.subscriptions.push(
     historyTreeView,
     vscode.commands.registerCommand('workspaceTasks.history.clear', () => taskHistoryTreeDataProvider.clear()),
@@ -59,6 +65,9 @@ export async function activate(context: vscode.ExtensionContext) {
   TaskCacheService.getInstance().initialize(context);
   TaskIconService.getInstance().initialize(context);
   await WorkspaceTasksService.getInstance().initialize(context);
+  await TaskEnvService.getInstance().initialize(context);
+  context.subscriptions.push(TaskEnvService.getInstance());
+  TaskSecretWarningService.getInstance().initialize(context);
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
   CompoundTaskService.getInstance().initialize(context);
@@ -124,6 +133,16 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     CompoundTaskService.getInstance().onCompoundTaskStateChanged(() => {
       taskTreeDataProvider.refreshLocal();
+    })
+  );
+
+  // Invalidate the task cache when env/secret sources change so the next task run
+  // picks up the fresh variable values.  Also clear stale secret-warning diagnostics
+  // so they are re-evaluated on the next task run.
+  context.subscriptions.push(
+    TaskEnvService.getInstance().onDidChangeEnvSources(() => {
+      TaskFilesService.getInstance().invalidateCache();
+      TaskSecretWarningService.getInstance().clearAllDiagnostics();
     })
   );
 

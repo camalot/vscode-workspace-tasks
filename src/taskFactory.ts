@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
+import { TaskEnvService } from './services/taskEnvService';
+import { TaskSecretWarningService } from './services/taskSecretWarningService';
 import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
 import { ComposerTaskProvider } from './providers/composerTaskProvider';
@@ -42,7 +44,10 @@ export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
   'poe', 'poetry', 'cargo-make',
 ]);
 
-export async function createTaskForItem(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+/**
+ * Builds the raw task without env injection. Used internally by `createTaskForItem`.
+ */
+async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
   if (!item) {
     return undefined;
   }
@@ -1058,6 +1063,43 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       return undefined;
     }
   }
+}
+
+/**
+ * Creates a `vscode.Task` for the given `TaskItem`, injecting resolved environment
+ * variables (from `TaskEnvService`) into the task's `ShellExecution` options.
+ *
+ * @param item  The task item to build a task for.
+ * @param args  Optional extra CLI arguments to append to the command.
+ */
+export async function createTaskForItem(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+  const result = await _buildTask(item, args);
+
+  if (result && !result.native && result.task.execution instanceof vscode.ShellExecution) {
+    const envService = TaskEnvService.getInstance();
+    const envMap = await envService.resolveTaskEnv(item);
+    if (envMap.size > 0) {
+      const env: Record<string, string> = {};
+      for (const [key, entry] of envMap) {
+        env[key] = entry.value;
+      }
+      const existingEnv = result.task.execution.options?.env ?? {};
+      result.task.execution.options = {
+        ...result.task.execution.options,
+        env: { ...existingEnv, ...env },
+      };
+    }
+
+    // Phase 4: warn about suspicious keys in git-tracked files (fire-and-forget)
+    const taskLabel = (item.originalLabel || item.label) as string;
+    void TaskSecretWarningService.getInstance().checkAndWarn(
+      taskLabel,
+      envMap,
+      envService.currentSecretPatterns,
+    );
+  }
+
+  return result;
 }
 
 class JupyterTerm implements vscode.Pseudoterminal {

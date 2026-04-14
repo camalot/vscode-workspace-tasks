@@ -64,6 +64,45 @@
           "type": "string",
           "description": "The enabled task type setting key that controls whether this provider is shown in the tree. If omitted, the top-level key name is used. Use this to map provider keys like 'dockerfile' or 'docker-compose' to a shared setting such as 'docker'."
         },
+        "envFiles": {
+          "description": "One or more .env files to load for all tasks in this language block. Supports a single path/glob string, an ordered array of paths/globs, or an include/exclude object.",
+          "oneOf": [
+            { "type": "string", "description": "A single file path or glob pattern." },
+            { "type": "array", "items": { "type": "string" }, "description": "An ordered list of file paths or glob patterns." },
+            {
+              "type": "object",
+              "description": "Include/exclude glob object.",
+              "properties": {
+                "include": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to include." },
+                "exclude": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to exclude." }
+              },
+              "required": ["include"],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "env": {
+          "type": "object",
+          "description": "Environment variables to set for all tasks in this language block.",
+          "additionalProperties": { "type": "string" }
+        },
+        "secretFiles": {
+          "description": "One or more .secret files to load for all tasks in this language block. Values from these files never trigger secret-pattern warnings. Accepts the same forms as envFiles.",
+          "oneOf": [
+            { "type": "string", "description": "A single file path or glob pattern." },
+            { "type": "array", "items": { "type": "string" }, "description": "An ordered list of file paths or glob patterns." },
+            {
+              "type": "object",
+              "description": "Include/exclude glob object.",
+              "properties": {
+                "include": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to include." },
+                "exclude": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to exclude." }
+              },
+              "required": ["include"],
+              "additionalProperties": false
+            }
+          ]
+        },
         "tasks": {
           "type": "array",
           "description": "List of tasks to be generated for files matching the language ID",
@@ -118,6 +157,50 @@
               "hide": {
                 "type": "boolean",
                 "description": "If true, the task will be hidden from the task list by default."
+              },
+              "envFiles": {
+                "description": "One or more .env files to load for this task. Supports a single path/glob string, an ordered array of paths/globs, or an include/exclude object.",
+                "oneOf": [
+                  { "type": "string", "description": "A single file path or glob pattern." },
+                  { "type": "array", "items": { "type": "string" }, "description": "An ordered list of file paths or glob patterns." },
+                  {
+                    "type": "object",
+                    "description": "Include/exclude glob object.",
+                    "properties": {
+                      "include": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to include." },
+                      "exclude": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to exclude." }
+                    },
+                    "required": ["include"],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "env": {
+                "type": "object",
+                "description": "Environment variables to set for this task.",
+                "additionalProperties": { "type": "string" }
+              },
+              "secretFiles": {
+                "description": "One or more .secret files to load for this task. Values from these files never trigger secret-pattern warnings. Accepts the same forms as envFiles.",
+                "oneOf": [
+                  { "type": "string", "description": "A single file path or glob pattern." },
+                  { "type": "array", "items": { "type": "string" }, "description": "An ordered list of file paths or glob patterns." },
+                  {
+                    "type": "object",
+                    "description": "Include/exclude glob object.",
+                    "properties": {
+                      "include": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to include." },
+                      "exclude": { "type": "array", "items": { "type": "string" }, "description": "Glob patterns to exclude." }
+                    },
+                    "required": ["include"],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "secrets": {
+                "type": "object",
+                "description": "Maps environment variable names to VS Code SecretStorage keys. Values are fetched from SecretStorage at run time and never trigger secret-pattern warnings.",
+                "additionalProperties": { "type": "string" }
               }
             },
             "required": ["label", "command", "type"]

@@ -46,6 +46,7 @@ function createMockContext(workspaceStateMap?: Map<string, any>): vscode.Extensi
       get: () => Promise.resolve(undefined),
       store: () => Promise.resolve(),
       delete: () => Promise.resolve(),
+      keys: async () => [] as string[],
       onDidChange: new vscode.EventEmitter<vscode.SecretStorageChangeEvent>().event,
     },
     extension: {} as any,
@@ -66,6 +67,13 @@ function resetSingletons() {
 /** Helper: reset only provider singleton without wiping services used by other suites */
 function resetProviderSingleton() {
   (TaskTreeDataProvider as any).instance = undefined;
+}
+
+/** Creates a mock context with specific secret keys pre-loaded */
+function createMockContextWithSecretKeys(secretKeys: string[]): vscode.ExtensionContext {
+  const ctx = createMockContext();
+  (ctx.secrets as any).keys = async () => [...secretKeys];
+  return ctx;
 }
 
 /** Minimal stub that satisfies every service call made by organizeTasks */
@@ -1803,6 +1811,37 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const leafIdx = result.indexOf(leaf!);
       assert.ok(folderIdx < leafIdx, 'Folder should appear before leaf');
     });
+
+    test('sortEnabled=false preserves insertion order with no separator', () => {
+      const provider = new TaskTreeDataProvider(ctx);
+      const tasks = [
+        new TaskItem('z-task', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('a-task', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('m-task', vscode.TreeItemCollapsibleState.None, 'npm'),
+      ];
+      const result = provider.groupTasksByName(tasks, '', '', false);
+      assert.strictEqual(result.length, 3);
+      assert.strictEqual(result[0].label, 'z-task', 'First task should remain first');
+      assert.strictEqual(result[1].label, 'a-task', 'Second task should remain second');
+      assert.strictEqual(result[2].label, 'm-task', 'Third task should remain third');
+    });
+
+    test('sortEnabled=false preserves insertion order of groups and leafs', () => {
+      const provider = new TaskTreeDataProvider(ctx);
+      const tasks = [
+        new TaskItem('z:leaf', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('a:leaf', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('m-standalone', vscode.TreeItemCollapsibleState.None, 'npm'),
+      ];
+      const result = provider.groupTasksByName(tasks, ':', '', false);
+      // Groups come first (z group, then a group), then standalone leaf
+      assert.strictEqual(result.length, 3, 'Should have 2 groups + 1 standalone');
+      assert.strictEqual(result[0].contextValue, 'folder', 'First result should be a folder group');
+      assert.strictEqual(result[0].label, 'z', 'First group should be z (insertion order)');
+      assert.strictEqual(result[1].contextValue, 'folder', 'Second result should be a folder group');
+      assert.strictEqual(result[1].label, 'a', 'Second group should be a (insertion order)');
+      assert.strictEqual(result[2].label, 'm-standalone', 'Standalone leaf should come last');
+    });
   });
 
   // ── onDidChangeTreeData listener ─────────────────────────────────────────
@@ -2031,6 +2070,54 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.notStrictEqual(id1, id2, 'Duplicate IDs should be made unique');
       // Second one should have a counter suffix
       assert.ok(id2?.includes('|'), 'Second duplicate should have a pipe counter suffix');
+    });
+  });
+
+  suite('sortingEnabled config in organizeTasks', () => {
+    test('tasks.sortingEnabled=false preserves task discovery order', async () => {
+      const uri = vscode.Uri.file('/root/package.json');
+      const taskZ = new TaskItem('z-task', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      taskZ.taskFileUri = uri;
+      taskZ.id = 'z-task-id';
+      taskZ.originalLabel = 'z-task';
+      const taskA = new TaskItem('a-task', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      taskA.taskFileUri = uri;
+      taskA.id = 'a-task-id';
+      taskA.originalLabel = 'a-task';
+
+      stubServicesForOrganize([taskZ, taskA]);
+
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: (key: string, defaultValue?: any) => {
+              if (key === 'tasks.sortingEnabled') { return false; }
+              if (key === 'groups.enabled') { return true; }
+              if (key === 'groups.useParentFolder') { return false; }
+              if (key === 'groups.recentTasks.enabled') { return false; }
+              if (key === 'groups.taskSeparator') { return ''; }
+              if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
+              return defaultValue;
+            },
+          };
+        }
+        return originalGetConfig.call(vscode.workspace, section);
+      };
+
+      try {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+        const wsItem = roots.find((r) => r.taskType === 'workspace');
+        assert.ok(wsItem, 'Should have workspace item');
+        const typeItem = wsItem!.children[0];
+        assert.ok(typeItem, 'Should have type item');
+        // Tasks should appear in discovery order (z first, then a) rather than sorted (a first)
+        assert.strictEqual(typeItem.children[0].label, 'z-task', 'z-task should come first (discovery order)');
+        assert.strictEqual(typeItem.children[1].label, 'a-task', 'a-task should come second (discovery order)');
+      } finally {
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+      }
     });
   });
 
@@ -2301,6 +2388,192 @@ suite('TaskTreeDataProvider Test Suite', () => {
       (cacheService as any)._onDidLoadingStateChange.fire();
 
       assert.strictEqual(treeChanged, true, 'Tree data change event should fire on loading state change');
+    });
+  });
+
+  // ── Secrets group ──────────────────────────────────────────────────────────
+
+  suite('Secrets group', () => {
+    test('no Secrets group when secrets storage is empty', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys([]);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.strictEqual(secretsGroup, undefined, 'Secrets group should not appear when no secrets');
+    });
+
+    test('Secrets group appears when secrets exist', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['api.key', 'deploy.token']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.ok(secretsGroup, 'Secrets group should appear');
+      assert.strictEqual(secretsGroup!.label, 'Secrets');
+    });
+
+    test('Secrets group has key icon and secrets contextValue', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['api.key']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.ok(secretsGroup, 'Secrets group should exist');
+      assert.strictEqual(secretsGroup!.contextValue, 'secrets');
+      assert.ok(
+        secretsGroup!.iconPath instanceof vscode.ThemeIcon &&
+        (secretsGroup!.iconPath as vscode.ThemeIcon).id === 'key',
+        `Secrets group icon should be 'key', got: ${JSON.stringify(secretsGroup!.iconPath)}`,
+      );
+    });
+
+    test('Secrets group children are sorted alphabetically', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['zzz.key', 'aaa.key', 'mmm.key']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.ok(secretsGroup, 'Secrets group should exist');
+
+      const labels = secretsGroup!.children.map((c) => c.label as string);
+      assert.deepStrictEqual(labels, ['aaa.key', 'mmm.key', 'zzz.key']);
+    });
+
+    test('each secret child has storedSecret contextValue and lock icon', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['my.secret']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.ok(secretsGroup, 'Secrets group should exist');
+      assert.strictEqual(secretsGroup!.children.length, 1);
+
+      const child = secretsGroup!.children[0];
+      assert.strictEqual(child.contextValue, 'storedSecret');
+      assert.ok(
+        child.iconPath instanceof vscode.ThemeIcon &&
+        (child.iconPath as vscode.ThemeIcon).id === 'lock',
+        `Secret item icon should be 'lock', got: ${JSON.stringify(child.iconPath)}`,
+      );
+    });
+
+    test('each secret child id is "secret:<key>"', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['my.secret']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.ok(secretsGroup, 'Secrets group should exist');
+
+      const child = secretsGroup!.children[0];
+      assert.strictEqual(child.id, 'secret:my.secret');
+    });
+
+    test('each secret child has correct tooltip and is a leaf node', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['db.password']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      const child = secretsGroup!.children[0];
+
+      assert.ok(
+        (child.tooltip as string)?.includes('db.password'),
+        `Tooltip should include the key name, got: ${child.tooltip}`,
+      );
+      assert.strictEqual(child.collapsibleState, vscode.TreeItemCollapsibleState.None);
+    });
+
+    test('Secrets group is the last root item when tasks also exist', async () => {
+      const task = new TaskItem('my-task', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'task-1';
+      task.originalLabel = 'my-task';
+      stubServicesForOrganize([task]);
+
+      const localCtx = createMockContextWithSecretKeys(['my.secret']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      assert.ok(roots.length >= 2, 'Should have workspace root + secrets group');
+      const lastRoot = roots[roots.length - 1];
+      assert.strictEqual(lastRoot.taskType, 'secrets', 'Secrets group should be the last root item');
+    });
+
+    test('cachedSecretKeys is refreshed on each getChildren call', async () => {
+      stubServicesForOrganize([]);
+      const mutableKeys: string[] = [];
+      const localCtx = createMockContext();
+      (localCtx.secrets as any).keys = async () => [...mutableKeys];
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      // First call: no secrets
+      let roots = await provider.getChildren();
+      assert.strictEqual(roots.find((r) => r.taskType === 'secrets'), undefined, 'No secrets yet');
+
+      // Add a key and refresh
+      mutableKeys.push('new.secret');
+      roots = await provider.getChildren();
+      assert.ok(roots.find((r) => r.taskType === 'secrets'), 'Secrets group should appear after key added');
+    });
+
+    test('secrets.keys() error is handled gracefully — no Secrets group', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContext();
+      (localCtx.secrets as any).keys = async () => { throw new Error('SecretStorage unavailable'); };
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.strictEqual(secretsGroup, undefined, 'No secrets group when keys() throws');
+    });
+
+    test('each secret child has secrets group as parent', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['child.key']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.ok(secretsGroup, 'Secrets group should exist');
+
+      const child = secretsGroup!.children[0];
+      assert.strictEqual(child.parent, secretsGroup, 'Secret item parent should be the Secrets group');
+    });
+
+    test('each secret child command invokes copySecretKey with the key name', async () => {
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys(['db.password']);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      const child = secretsGroup!.children[0];
+
+      assert.ok(child.command, 'Secret item should have a command');
+      assert.strictEqual(child.command!.command, 'workspaceTasks.env.copySecretKey',
+        `Expected copySecretKey, got: ${child.command!.command}`);
+      assert.deepStrictEqual(child.command!.arguments, ['db.password'],
+        'Command arguments should be the secret key string');
     });
   });
 });

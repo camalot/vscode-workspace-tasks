@@ -5,6 +5,15 @@ import { TaskFilesService } from './taskFilesService';
 import { parseJsonWithComments } from '../libs/jsonUtils';
 import { LoggerService } from './loggerService';
 
+/**
+ * Flexible file reference type for envFiles / secretFiles.
+ * Accepts a single path/glob, an ordered array, or an include/exclude object.
+ */
+export type IEnvFileReference =
+  | string
+  | string[]
+  | { include: string[]; exclude?: string[] };
+
 interface TaskInput {
   id: string;
   type: 'promptString' | 'pickString';
@@ -20,6 +29,10 @@ export interface FileTaskDefinition {
   group?: string;
   sourceUri?: vscode.Uri;
   line?: number;
+  env?: Record<string, string>;
+  envFiles?: IEnvFileReference;
+  secretFiles?: IEnvFileReference;
+  secrets?: Record<string, string>;
 }
 
 interface LanguageTaskConfig {
@@ -32,6 +45,9 @@ interface LanguageTaskConfig {
   taskType?: string;
   inputs: TaskInput[];
   tasks: FileTaskDefinition[];
+  env?: Record<string, string>;
+  envFiles?: IEnvFileReference;
+  secretFiles?: IEnvFileReference;
 }
 
 interface FileTasksConfig {

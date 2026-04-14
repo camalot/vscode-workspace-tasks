@@ -159,29 +159,62 @@ export class TaskCacheService {
       }
     };
 
+    // Pass 1: Assign stable IDs using a sorted copy of each provider's tasks.
+    // Sorting here ensures ID assignment (including duplicate-counter suffixes) is
+    // deterministic across runs regardless of the order the underlying VS Code API
+    // returns tasks.  We intentionally do NOT mutate providerTasks so that the
+    // original discovery order is preserved for Pass 2.
     for (const type of sortedTypes) {
-      let tasks = this.providerTasks.get(type) || [];
-
-      // Sort tasks deterministically before processing to ensure stable IDs and counters
-      // We sort by label and resourceUri
-      tasks = tasks.sort((a, b) => {
+      const tasks = this.providerTasks.get(type) || [];
+      const sortedForIds = [...tasks].sort((a, b) => {
         const labelA = a.label || '';
         const labelB = b.label || '';
         const comp = labelA.localeCompare(labelB);
         if (comp !== 0) {
           return comp;
         }
-
         const uriA = a.resourceUri ? a.resourceUri.toString() : '';
         const uriB = b.resourceUri ? b.resourceUri.toString() : '';
         return uriA.localeCompare(uriB);
       });
-
-      for (const task of tasks) {
+      for (const task of sortedForIds) {
         processItem(task);
-        this.allTasks.push(task);
       }
     }
+
+    // Pass 2: Build allTasks in "discovery order" — files sorted alphabetically,
+    // tasks within each file sorted by their startLine (i.e. declaration order in
+    // the source file).  Tasks without a file URI are appended at the end.
+    // This order is used by organizeTasks() when sortingEnabled is false, giving
+    // users a predictable, source-faithful task list.
+    const fileTasksMap = new Map<string, TaskItem[]>();
+    const noFileTasks: TaskItem[] = [];
+
+    for (const type of sortedTypes) {
+      const tasks = this.providerTasks.get(type) || [];
+      for (const task of tasks) {
+        const key = (task.taskFileUri || task.resourceUri)?.toString() || '';
+        if (key) {
+          if (!fileTasksMap.has(key)) {
+            fileTasksMap.set(key, []);
+          }
+          fileTasksMap.get(key)!.push(task);
+        } else {
+          noFileTasks.push(task);
+        }
+      }
+    }
+
+    const sortedFileKeys = Array.from(fileTasksMap.keys()).sort();
+    for (const key of sortedFileKeys) {
+      const fileTasks = fileTasksMap.get(key)!;
+      // Sort within each file by startLine to reflect declaration order
+      fileTasks.sort((a, b) => (a.startLine ?? 0) - (b.startLine ?? 0));
+      this.allTasks.push(...fileTasks);
+    }
+    // Tasks with no associated file come last, sorted by label for a stable order
+    noFileTasks.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+    this.allTasks.push(...noFileTasks);
   }
 
   public async refresh(): Promise<TaskItem[]> {

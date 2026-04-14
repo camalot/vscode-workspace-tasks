@@ -1,99 +1,13 @@
 ---
 layout: default
-title: ⚙️ Task Display
+title: ⚙️ [MOVED] Task Display
 parent: ⚙️ Configuration
-nav_order: 2
+nav_order: 12
+nav_exclude: true
 ---
 
-<!-- markdownlint-disable-next-line MD025 MD022 -->
-# Task Display Settings
-{: .no_toc }
-
-<!-- markdownlint-disable-next-line MD022 -->
-## Table of Contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
-
----
-
-### workspaceTasks.task.singleClickAction
-
-**Type:** `string`
-**Default:** `"open"`
-**Options:** `"run"`, `"runWithArgs"`, `"open"`, `"none"`
-
-Action to perform when a task is single-clicked.
-
-- **run** - Run the task
-- **runWithArgs** - Run the task with arguments
-- **open** - Open the task
-- **none** - Do nothing
-
-**Example:**
-
-```json
-{
-  "workspaceTasks.task.singleClickAction": "open"
-}
-```
-
-![Screenshot - Single Click Action](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/single-click.png)
-
-### workspaceTasks.task.doubleClickAction
-
-**Type:** `string`
-**Default:** `"run"`
-**Options:** `"run"`, `"runWithArgs"`, `"open"`, `"none"`
-
-Action to perform when a task is double-clicked.
-
-- **run** - Run the task
-- **runWithArgs** - Run the task with arguments
-- **open** - Open the task
-- **none** - Do nothing
-
-**Example:**
-
-```json
-{
-  "workspaceTasks.task.doubleClickAction": "run"
-}
-```
-
-![Screenshot - Double Click Action](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/double-click.png)
-
-### workspaceTasks.task.statusResetDelay
-
-**Type:** `number`
-**Default:** `500`
-
-The delay in **milliseconds** before resetting the task icon back to its original state after execution. Set to `0` to reset immediately.
-
-**Example:**
-
-```json
-{
-  "workspaceTasks.task.statusResetDelay": 1000
-}
-```
-
-![Screenshot - Status Reset Delay](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/status-reset-delay.png)
-
-### workspaceTasks.task.stopCompoundDependencies
-
-**Type:** `boolean`
-**Default:** `true`
-
-When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action also stops any currently running dependency tasks declared in `dependsOn`.
-
-This is useful when a compound task launches several child tasks and you want a single stop action to shut down the full task chain.
-
-**Example:**
-
-```json
-{
-  "workspaceTasks.task.stopCompoundDependencies": true
-}
-```
+{: .warning }
+> **This page has moved.** The settings previously documented here have been reorganized:
+>
+> - `workspaceTasks.task.singleClickAction`, `doubleClickAction`, and `statusResetDelay` → [Display & Interaction — Tasks](display-interaction/tasks)
+> - `workspaceTasks.task.stopCompoundDependencies` → [Task Execution — Tasks](task-execution/tasks)

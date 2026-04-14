@@ -159,6 +159,27 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(sentTexts[0].text, '\u0003', 'should send SIGINT character');
     assert.strictEqual(sentTexts[0].nl, false, 'should not append a newline');
     assert.strictEqual(terminateCalls.length, 0, 'terminate should NOT be called on first click');
+    assert.ok(fakeStateManager.isTerminated(id), 'task should be marked as terminated when SIGINT is sent');
+
+    fakeStateManager.clearStopTimer(id);
+  });
+
+  test('run marks task as terminated before sending SIGINT', async () => {
+    const item = makeTaskItem('my-task-sigint-order');
+    const id = fakeStateManager.getTaskId(item);
+    const order: string[] = [];
+
+    const execution = makeExecution();
+    (fakeStateManager as any).getExecution = () => execution;
+    (fakeStateManager as any).markTerminated = (_id: string) => { order.push('markTerminated'); };
+
+    const terminal = makeTerminal((_text, _nl) => { order.push('sendText'); });
+    (fakeStateManager as any).getTerminal = () => terminal;
+
+    await cmd.run(item);
+
+    assert.strictEqual(order[0], 'markTerminated', 'markTerminated should be called before sendText');
+    assert.strictEqual(order[1], 'sendText', 'sendText should be called after markTerminated');
 
     fakeStateManager.clearStopTimer(id);
   });
@@ -458,6 +479,7 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(depSignals[0].text, '\u0003');
     assert.strictEqual(depSignals[0].nl, false);
     assert.strictEqual(childTerminateCalls.length, 0, 'dependency should not be force terminated immediately');
+    assert.ok(fakeStateManager.isTerminated('dependency-task-graceful'), 'dependency should be marked as terminated when SIGINT is sent');
 
     fakeStateManager.clearStopTimer('dependency-task-graceful');
   });

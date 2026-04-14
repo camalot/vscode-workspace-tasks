@@ -155,6 +155,9 @@ export class StopTaskCommand extends BaseCommand {
     // Regular (non-compound) task: graceful SIGINT with timeout fallback.
     const terminal = stateManager.getTerminal(id) ?? findTerminalForTask(execution.task);
     if (terminal) {
+      // Mark as terminated now so that if the process exits on its own in response
+      // to SIGINT, the history/metrics service still records it as a termination.
+      stateManager.markTerminated(id);
       // Send SIGINT (Ctrl+C) — the process gets a chance to shut down gracefully
       // and the terminal window is preserved.
       terminal.sendText('\u0003', false);
@@ -238,6 +241,9 @@ export class StopTaskCommand extends BaseCommand {
 
       const terminal = stateManager.getTerminal(dependencyId) ?? findTerminalForTask(dependencyExecution.task);
       if (terminal) {
+        // Mark as terminated now so that if the dependency exits on its own in
+        // response to SIGINT, the history/metrics service records it as a termination.
+        stateManager.markTerminated(dependencyId);
         terminal.sendText('\u0003', false);
 
         const timeout = configuration.get<number>('task.stopGracefulDelayMilliseconds', 5000);

@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
+import { TaskStateManager } from '../taskStateManager';
 
 export interface ITaskExecutionRecord {
   id: string; // Unique ID for this execution (e.g. uuid or timestamp based)
   taskName: string;
   taskSource: string; // "npm", "workspace", etc.
+  scope: string; // Workspace folder name, or TaskScope value as string (e.g. "1"), or "global"
   definition: vscode.TaskDefinition;
   startTime: number;
   endTime?: number;
@@ -24,6 +26,10 @@ export class TaskHistoryService {
   private static instance: TaskHistoryService;
   private readonly _onDidChange = new vscode.EventEmitter<void>();
   public readonly onDidChange = this._onDidChange.event;
+
+  private readonly _onDidRecordHistory = new vscode.EventEmitter<ITaskExecutionRecord>();
+  /** Fires after a task execution record transitions to a terminal state (Success / Failed / Terminated). */
+  public readonly onDidRecordHistory = this._onDidRecordHistory.event;
 
   private historyGroups: Map<string, ITaskHistoryGroup> = new Map();
   private activeExecutions: Map<vscode.TaskExecution, ITaskExecutionRecord> = new Map();
@@ -100,6 +106,7 @@ export class TaskHistoryService {
       id: Date.now().toString() + Math.random().toString().substring(2, 5),
       taskName: task.name,
       taskSource: task.source,
+      scope: typeof task.scope === 'object' ? (task.scope as vscode.WorkspaceFolder).name : (task.scope?.toString() || 'global'),
       definition: task.definition,
       startTime: Date.now(),
       status: 'Running'
@@ -119,15 +126,22 @@ export class TaskHistoryService {
       record.exitCode = e.exitCode;
       record.duration = record.endTime - record.startTime;
 
+      const stateManager = TaskStateManager.getInstance();
+      const taskId = stateManager.getIdByExecution(e.execution);
+      const wasTerminated = taskId !== undefined && stateManager.isTerminated(taskId);
+
       if (e.exitCode === 0) {
         record.status = 'Success';
+      } else if (wasTerminated) {
+        record.status = 'Terminated'; // Task was explicitly stopped (e.g. via SIGINT)
       } else if (e.exitCode !== undefined) {
         record.status = 'Failed'; // Non-zero exit code
       } else {
-        record.status = 'Terminated'; // Usually if no exit code, might be terminated?
+        record.status = 'Terminated'; // No exit code — treat as terminated
       }
 
       this._onDidChange.fire();
+      this._onDidRecordHistory.fire(record);
     }
   }
 
@@ -143,6 +157,7 @@ export class TaskHistoryService {
         // We don't have exit code here usually
         record.status = 'Terminated';
         this._onDidChange.fire();
+        this._onDidRecordHistory.fire(record);
       }
       this.activeExecutions.delete(e.execution);
     }

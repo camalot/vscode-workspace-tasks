@@ -775,6 +775,33 @@ package.json@build`;
             assert.strictEqual(service.shouldIgnoreTask(fileRoot, 'build'), true, 'Root file should ignore build');
             assert.strictEqual(service.shouldIgnoreTask(fileNested, 'build'), false, 'Nested file should allow build due to negation');
         });
+
+        test('Glob pattern in task name (e.g. "npm: *") matches tasks with that prefix', async function() {
+            this.timeout(60000);
+            const content = '.vscode/tasks.json@npm: *';
+            const ignoreFile = await createFile('task-ignore-glob/.tasksignore', content);
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore-glob/.vscode/tasks.json');
+
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'npm: test'), true, 'Should ignore "npm: test"');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'npm: compile'), true, 'Should ignore "npm: compile"');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'npm: watch'), true, 'Should ignore "npm: watch"');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'build'), false, 'Should not ignore unrelated task "build"');
+        });
+
+        test('Glob pattern in task name negation (e.g. "!tasks.json@npm: *") re-includes tasks', async function() {
+            this.timeout(60000);
+            const content = `.vscode/tasks.json\n!.vscode/tasks.json@npm: *`;
+            const ignoreFile = await createFile('task-ignore-glob-negation/.tasksignore', content);
+            await waitForIgnoreFile(ignoreFile);
+
+            const fileUri = vscode.Uri.joinPath(testFolder, 'task-ignore-glob-negation/.vscode/tasks.json');
+
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'npm: test'), false, 'Should allow "npm: test" via negated glob');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'npm: compile'), false, 'Should allow "npm: compile" via negated glob');
+            assert.strictEqual(service.shouldIgnoreTask(fileUri, 'build'), true, 'Should still ignore "build" (not covered by negation)');
+        });
     });
 
     // ---------------------------------------------------------------------------
