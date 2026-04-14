@@ -134,15 +134,17 @@ suite('TaskMetricsService Test Suite', () => {
   // Scope: workspace (default)
   // -------------------------------------------------------------------------
 
-  test('scope=workspace: records saved to workspaceState', () => {
+  test('scope=workspace: records saved to workspaceState', async () => {
     fireHistoryRecord(makeRecord({ status: 'Success', exitCode: 0, duration: 500 }));
+    await service.flush();
     assert.ok(workspaceData.has('workspaceTasks.taskMetrics'));
     assert.strictEqual(globalData.has('workspaceTasks.taskMetrics'), false);
   });
 
-  test('scope=workspace: getMetrics returns data', () => {
+  test('scope=workspace: getMetrics returns data', async () => {
     const rec = makeRecord({ status: 'Success', exitCode: 0, duration: 500 });
     fireHistoryRecord(rec);
+    await service.flush();
     const key = `${rec.taskSource}:${rec.taskName}:${rec.scope}`;
     const metrics = service.getMetrics(key);
     assert.ok(metrics !== undefined);
@@ -150,9 +152,10 @@ suite('TaskMetricsService Test Suite', () => {
     assert.strictEqual(metrics!.successRate, 100);
   });
 
-  test('scope=workspace: getAllMetrics returns all tasks', () => {
+  test('scope=workspace: getAllMetrics returns all tasks', async () => {
     fireHistoryRecord(makeRecord({ taskName: 'build', status: 'Success', exitCode: 0, duration: 100 }));
     fireHistoryRecord(makeRecord({ taskName: 'test', status: 'Failed', exitCode: 1, duration: 200 }));
+    await service.flush();
     const all = service.getAllMetrics();
     const keys = Object.keys(all);
     assert.strictEqual(keys.length, 2);
@@ -162,7 +165,7 @@ suite('TaskMetricsService Test Suite', () => {
   // Scope: global
   // -------------------------------------------------------------------------
 
-  test('scope=global: records saved to globalState', () => {
+  test('scope=global: records saved to globalState', async () => {
     capturedHistoryHandlers = [];
     resetSingleton();
     (TaskHistoryService as any).instance = undefined;
@@ -177,6 +180,7 @@ suite('TaskMetricsService Test Suite', () => {
     service.initialize(mockContext);
 
     fireHistoryRecord(makeRecord({ status: 'Success', exitCode: 0, duration: 300 }));
+    await service.flush();
     assert.ok(globalData.has('workspaceTasks.taskMetrics'));
     assert.strictEqual(workspaceData.has('workspaceTasks.taskMetrics'), false);
   });
@@ -185,7 +189,7 @@ suite('TaskMetricsService Test Suite', () => {
   // Scope: both
   // -------------------------------------------------------------------------
 
-  test('scope=both: records saved to both stores', () => {
+  test('scope=both: records saved to both stores', async () => {
     capturedHistoryHandlers = [];
     resetSingleton();
     (TaskHistoryService as any).instance = undefined;
@@ -200,6 +204,7 @@ suite('TaskMetricsService Test Suite', () => {
     service.initialize(mockContext);
 
     fireHistoryRecord(makeRecord({ status: 'Success', exitCode: 0, duration: 200 }));
+    await service.flush();
     assert.ok(workspaceData.has('workspaceTasks.taskMetrics'));
     assert.ok(globalData.has('workspaceTasks.taskMetrics'));
   });
@@ -245,12 +250,14 @@ suite('TaskMetricsService Test Suite', () => {
   // clearMetrics
   // -------------------------------------------------------------------------
 
-  test('clearMetrics removes single task', () => {
+  test('clearMetrics removes single task', async () => {
     const rec = makeRecord({ status: 'Success', exitCode: 0, duration: 100 });
     fireHistoryRecord(rec);
+    await service.flush();
     const key = `${rec.taskSource}:${rec.taskName}:${rec.scope}`;
     assert.ok(service.getMetrics(key) !== undefined);
     service.clearMetrics(key);
+    await service.flush();
     assert.strictEqual(service.getMetrics(key), undefined);
   });
 
@@ -269,11 +276,13 @@ suite('TaskMetricsService Test Suite', () => {
   // clearAllMetrics
   // -------------------------------------------------------------------------
 
-  test('clearAllMetrics removes all tasks', () => {
+  test('clearAllMetrics removes all tasks', async () => {
     fireHistoryRecord(makeRecord({ taskName: 'build', status: 'Success', exitCode: 0, duration: 100 }));
     fireHistoryRecord(makeRecord({ taskName: 'test', status: 'Success', exitCode: 0, duration: 200 }));
+    await service.flush();
     assert.strictEqual(Object.keys(service.getAllMetrics()).length, 2);
     service.clearAllMetrics();
+    await service.flush();
     assert.deepStrictEqual(service.getAllMetrics(), {});
   });
 
@@ -306,11 +315,13 @@ suite('TaskMetricsService Test Suite', () => {
 
   const METRICS_STORAGE_KEY = 'workspaceTasks.taskMetrics';
 
-  test('clearCurrentWorkspaceMetrics: scope=workspace wipes workspace store entirely', () => {
+  test('clearCurrentWorkspaceMetrics: scope=workspace wipes workspace store entirely', async () => {
     fireHistoryRecord(makeRecord({ taskName: 'build', scope: 'myProject', status: 'Success', exitCode: 0, duration: 100 }));
     fireHistoryRecord(makeRecord({ taskName: 'test', scope: 'myProject', status: 'Success', exitCode: 0, duration: 200 }));
+    await service.flush();
     assert.strictEqual(Object.keys(service.getAllMetrics()).length, 2);
     service.clearCurrentWorkspaceMetrics(['myProject']);
+    await service.flush();
     assert.deepStrictEqual(service.getAllMetrics(), {});
   });
 
@@ -322,19 +333,20 @@ suite('TaskMetricsService Test Suite', () => {
     assert.ok('npm:build:otherProject' in globalStore, 'global store should be untouched');
   });
 
-  test('clearCurrentWorkspaceMetrics: scope=global removes matching folder keys only', () => {
+  test('clearCurrentWorkspaceMetrics: scope=global removes matching folder keys only', async () => {
     reinitServiceWithScope('global');
     globalData.set(METRICS_STORAGE_KEY, {
       'npm:build:myProject': { totalExecutions: 3 },
       'npm:test:otherProject': { totalExecutions: 7 },
     });
     service.clearCurrentWorkspaceMetrics(['myProject']);
+    await service.flush();
     const remaining = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
     assert.strictEqual('npm:build:myProject' in remaining, false, 'matching key should be removed');
     assert.ok('npm:test:otherProject' in remaining, 'non-matching key should be preserved');
   });
 
-  test('clearCurrentWorkspaceMetrics: scope=global preserves "1" and "global" scoped keys', () => {
+  test('clearCurrentWorkspaceMetrics: scope=global preserves "1" and "global" scoped keys', async () => {
     reinitServiceWithScope('global');
     globalData.set(METRICS_STORAGE_KEY, {
       'npm:build:1': { totalExecutions: 1 },
@@ -342,13 +354,14 @@ suite('TaskMetricsService Test Suite', () => {
       'npm:build:myProject': { totalExecutions: 3 },
     });
     service.clearCurrentWorkspaceMetrics(['myProject']);
+    await service.flush();
     const remaining = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
     assert.ok('npm:build:1' in remaining, '"1"-scoped key should be preserved');
     assert.ok('npm:build:global' in remaining, '"global"-scoped key should be preserved');
     assert.strictEqual('npm:build:myProject' in remaining, false, 'folder-scoped key should be removed');
   });
 
-  test('clearCurrentWorkspaceMetrics: scope=both wipes workspace store and removes matching global keys', () => {
+  test('clearCurrentWorkspaceMetrics: scope=both wipes workspace store and removes matching global keys', async () => {
     reinitServiceWithScope('both');
     workspaceData.set(METRICS_STORAGE_KEY, { 'npm:build:1': { totalExecutions: 2 } });
     globalData.set(METRICS_STORAGE_KEY, {
@@ -356,6 +369,7 @@ suite('TaskMetricsService Test Suite', () => {
       'npm:test:otherProject': { totalExecutions: 7 },
     });
     service.clearCurrentWorkspaceMetrics(['myProject']);
+    await service.flush();
     const wsStore = workspaceData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
     assert.deepStrictEqual(wsStore, {}, 'workspace store should be wiped');
     const gStore = globalData.get(METRICS_STORAGE_KEY) as Record<string, unknown>;
@@ -452,7 +466,7 @@ suite('TaskMetricsService Test Suite', () => {
     assert.ok(service.getMetrics('npm:build:workspace') !== undefined);
   });
 
-  test('retentionDays>0 prunes stale records on initialize', () => {
+  test('retentionDays>0 prunes stale records on initialize', async () => {
     const oldTime = Date.now() - 10 * 24 * 60 * 60 * 1000;
     const stored = {
       'npm:build:workspace': {
@@ -490,6 +504,7 @@ suite('TaskMetricsService Test Suite', () => {
     configValues['metrics.retentionDays'] = 5; // 5-day retention, record is 10 days old
     service = TaskMetricsService.getInstance();
     service.initialize(mockContext);
+    await service.flush();
 
     assert.strictEqual(service.getMetrics('npm:build:workspace'), undefined);
   });

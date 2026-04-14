@@ -25,6 +25,12 @@ export class TaskMetricsService {
   private maxRecentSamples: number = 100;
   private retentionDays: number = 0;
 
+  /** Per-target promise queues that serialize every read-modify-write cycle. */
+  private readonly writeQueues: Record<'workspace' | 'global', Promise<void>> = {
+    workspace: Promise.resolve(),
+    global: Promise.resolve(),
+  };
+
   private constructor() {}
 
   public static getInstance(): TaskMetricsService {
@@ -80,17 +86,20 @@ export class TaskMetricsService {
     if (this.scope === 'disabled') { return; }
 
     const taskKey = this.getTaskKey(record);
+    const { maxRecentSamples } = this;
 
     if (this.scope === 'workspace' || this.scope === 'both') {
-      const store = this.readStore('workspace');
-      store[taskKey] = updateMetricsFromRecord(store[taskKey], record, this.maxRecentSamples);
-      this.writeStore('workspace', store);
+      this.enqueueUpdate('workspace', (store) => {
+        store[taskKey] = updateMetricsFromRecord(store[taskKey], record, maxRecentSamples);
+        return store;
+      });
     }
 
     if (this.scope === 'global' || this.scope === 'both') {
-      const store = this.readStore('global');
-      store[taskKey] = updateMetricsFromRecord(store[taskKey], record, this.maxRecentSamples);
-      this.writeStore('global', store);
+      this.enqueueUpdate('global', (store) => {
+        store[taskKey] = updateMetricsFromRecord(store[taskKey], record, maxRecentSamples);
+        return store;
+      });
     }
 
     this._onDidChangeMetrics.fire();
@@ -104,6 +113,14 @@ export class TaskMetricsService {
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
+
+  /**
+   * Resolves after all pending write operations for both targets have completed.
+   * Primarily intended for test synchronisation.
+   */
+  public flush(): Promise<void> {
+    return Promise.all([this.writeQueues.workspace, this.writeQueues.global]).then(() => undefined);
+  }
 
   /** Returns metrics (with computed fields) for a single task, or undefined if none exist. */
   public getMetrics(taskKey: string): ITaskMetricsWithComputed | undefined {
@@ -127,15 +144,11 @@ export class TaskMetricsService {
     if (this.scope === 'disabled') { return; }
 
     if (this.scope === 'workspace' || this.scope === 'both') {
-      const store = this.readStore('workspace');
-      delete store[taskKey];
-      this.writeStore('workspace', store);
+      this.enqueueUpdate('workspace', (store) => { delete store[taskKey]; return store; });
     }
 
     if (this.scope === 'global' || this.scope === 'both') {
-      const store = this.readStore('global');
-      delete store[taskKey];
-      this.writeStore('global', store);
+      this.enqueueUpdate('global', (store) => { delete store[taskKey]; return store; });
     }
 
     this._onDidChangeMetrics.fire();
@@ -146,11 +159,11 @@ export class TaskMetricsService {
     if (this.scope === 'disabled') { return; }
 
     if (this.scope === 'workspace' || this.scope === 'both') {
-      this.writeStore('workspace', {});
+      this.enqueueUpdate('workspace', () => ({}));
     }
 
     if (this.scope === 'global' || this.scope === 'both') {
-      this.writeStore('global', {});
+      this.enqueueUpdate('global', () => ({}));
     }
 
     this._onDidChangeMetrics.fire();
@@ -173,25 +186,26 @@ export class TaskMetricsService {
 
     // The workspace store is inherently per-workspace — wipe it entirely.
     if (this.scope === 'workspace' || this.scope === 'both') {
-      this.writeStore('workspace', {});
+      this.enqueueUpdate('workspace', () => ({}));
     }
 
     // The global store is shared; selectively remove only keys whose scope
     // segment matches a folder in the current workspace.
     if (this.scope === 'global' || this.scope === 'both') {
-      const store = this.readStore('global');
       const folderSet = new Set(workspaceFolderNames);
-      let changed = false;
-      for (const key of Object.keys(store)) {
-        // Key format: "source:name:scope" — scope is the last colon-delimited segment.
-        const lastColon = key.lastIndexOf(':');
-        const scopePart = lastColon >= 0 ? key.slice(lastColon + 1) : key;
-        if (folderSet.has(scopePart)) {
-          delete store[key];
-          changed = true;
+      this.enqueueUpdate('global', (store) => {
+        let changed = false;
+        for (const key of Object.keys(store)) {
+          // Key format: "source:name:scope" — scope is the last colon-delimited segment.
+          const lastColon = key.lastIndexOf(':');
+          const scopePart = lastColon >= 0 ? key.slice(lastColon + 1) : key;
+          if (folderSet.has(scopePart)) {
+            delete store[key];
+            changed = true;
+          }
         }
-      }
-      if (changed) { this.writeStore('global', store); }
+        return changed ? store : null;
+      });
     }
 
     this._onDidChangeMetrics.fire();
@@ -207,10 +221,31 @@ export class TaskMetricsService {
     return state.get<MetricsStore>(STORAGE_KEY, {});
   }
 
-  private writeStore(target: 'workspace' | 'global', store: MetricsStore): void {
-    if (!this.context) { return; }
-    const state = target === 'workspace' ? this.context.workspaceState : this.context.globalState;
-    state.update(STORAGE_KEY, store);
+  /**
+   * Serializes a read-modify-write cycle for {@link target} onto the per-target
+   * promise queue. Each operation reads the latest persisted store, applies
+   * {@link updater}, then awaits `state.update()` before the next queued
+   * operation may run — eliminating concurrent read-modify-write collisions.
+   *
+   * Return `null` from {@link updater} to skip the write (no-op when unchanged).
+   */
+  private enqueueUpdate(
+    target: 'workspace' | 'global',
+    updater: (store: MetricsStore) => MetricsStore | null,
+  ): void {
+    this.writeQueues[target] = this.writeQueues[target]
+      .then(async () => {
+        if (!this.context) { return; }
+        const state = target === 'workspace' ? this.context.workspaceState : this.context.globalState;
+        const store = state.get<MetricsStore>(STORAGE_KEY, {});
+        const updated = updater(store);
+        if (updated !== null) {
+          await state.update(STORAGE_KEY, updated);
+        }
+      })
+      .catch(() => {
+        // Absorb errors so the queue remains functional for subsequent operations.
+      });
   }
 
   /**
@@ -239,16 +274,17 @@ export class TaskMetricsService {
     const cutoffMs = Date.now() - this.retentionDays * 24 * 60 * 60 * 1000;
 
     const prune = (target: 'workspace' | 'global') => {
-      const store = this.readStore(target);
-      let changed = false;
-      for (const key of Object.keys(store)) {
-        const m = store[key];
-        if (m.lastRunAt !== undefined && m.lastRunAt < cutoffMs) {
-          delete store[key];
-          changed = true;
+      this.enqueueUpdate(target, (store) => {
+        let changed = false;
+        for (const key of Object.keys(store)) {
+          const m = store[key];
+          if (m.lastRunAt !== undefined && m.lastRunAt < cutoffMs) {
+            delete store[key];
+            changed = true;
+          }
         }
-      }
-      if (changed) { this.writeStore(target, store); }
+        return changed ? store : null;
+      });
     };
 
     if (this.scope === 'workspace' || this.scope === 'both') { prune('workspace'); }
