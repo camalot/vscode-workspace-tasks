@@ -521,4 +521,102 @@ suite('TaskCacheService Test Suite', () => {
         assert.strictEqual(service.isLoading(), false, 'should be idle after refresh');
     });
 
+    // ── Discovery order (sortingEnabled=false path) ──────────────────────────
+
+    suite('rebuildCache discovery order', () => {
+        test('allTasks are ordered by file URI then by startLine within each file', async () => {
+            mockTasks.length = 0;
+            const uriA = vscode.Uri.file('/alpha/package.json');
+            const uriZ = vscode.Uri.file('/zeta/package.json');
+
+            // Tasks in file /alpha: line 10 then line 2 (intentionally reversed)
+            const alphaLine10 = createTaskItem('compile', 'npm', uriA);
+            alphaLine10.taskFileUri = uriA;
+            alphaLine10.startLine = 10;
+
+            const alphaLine2 = createTaskItem('build', 'npm', uriA);
+            alphaLine2.taskFileUri = uriA;
+            alphaLine2.startLine = 2;
+
+            // Task in /zeta: comes after /alpha alphabetically
+            const zetaTask = createTaskItem('test', 'npm', uriZ);
+            zetaTask.taskFileUri = uriZ;
+            zetaTask.startLine = 0;
+
+            // Push in reverse-alphabetical-by-label order so alphabetical sort on labels
+            // does NOT match the expected output, proving the fix works.
+            mockTasks.push(zetaTask, alphaLine10, alphaLine2);
+            await service.refreshProvider('mockType');
+
+            const tasks = service.getAllTasks();
+            // Files: /alpha before /zeta (alphabetical)
+            // Within /alpha: startLine 2 (build) before startLine 10 (compile)
+            assert.strictEqual(tasks.length, 3, 'all three tasks should be present');
+            assert.strictEqual(tasks[0], alphaLine2, 'first task should be build (startLine 2 in /alpha)');
+            assert.strictEqual(tasks[1], alphaLine10, 'second task should be compile (startLine 10 in /alpha)');
+            assert.strictEqual(tasks[2], zetaTask, 'third task should be from /zeta');
+        });
+
+        test('tasks without a file URI are appended last, sorted by label', async () => {
+            mockTasks.length = 0;
+            const uri = vscode.Uri.file('/some/package.json');
+
+            const fileTask = createTaskItem('aaa', 'npm', uri);
+            fileTask.taskFileUri = uri;
+            fileTask.startLine = 0;
+
+            const noFileZ = createTaskItem('zzz', 'npm');
+            const noFileA = createTaskItem('aaa-no-file', 'npm');
+
+            mockTasks.push(noFileZ, fileTask, noFileA);
+            await service.refreshProvider('mockType');
+
+            const tasks = service.getAllTasks();
+            // File task comes first, then no-file tasks sorted by label
+            assert.strictEqual(tasks[0], fileTask, 'file task should come first');
+            assert.strictEqual(tasks[1].label, 'aaa-no-file', 'no-file tasks sorted alphabetically');
+            assert.strictEqual(tasks[2].label, 'zzz', 'no-file tasks sorted alphabetically');
+        });
+
+        test('IDs remain stable regardless of provider insertion order', async () => {
+            // Run once with tasks in one order, record IDs, then swap order and check IDs match.
+            mockTasks.length = 0;
+            const uri = vscode.Uri.file('/project/package.json');
+
+            const taskA = createTaskItem('alpha', 'npm', uri);
+            taskA.taskFileUri = uri;
+            taskA.startLine = 0;
+            const taskZ = createTaskItem('zeta', 'npm', uri);
+            taskZ.taskFileUri = uri;
+            taskZ.startLine = 5;
+
+            mockTasks.push(taskZ, taskA); // Z before A in provider
+            await service.refreshProvider('mockType');
+            const idAlpha1 = taskA.id;
+            const idZeta1 = taskZ.id;
+
+            // Reset and push in opposite order
+            (service as any).allTasks = [];
+            (service as any).fileTaskMap = new Map();
+            (service as any).taskMap = new Map();
+            (service as any).providerTasks = new Map();
+            mockTasks.length = 0;
+
+            const taskA2 = createTaskItem('alpha', 'npm', uri);
+            taskA2.taskFileUri = uri;
+            taskA2.startLine = 0;
+            const taskZ2 = createTaskItem('zeta', 'npm', uri);
+            taskZ2.taskFileUri = uri;
+            taskZ2.startLine = 5;
+
+            mockTasks.push(taskA2, taskZ2); // A before Z this time
+            await service.refreshProvider('mockType');
+            const idAlpha2 = taskA2.id;
+            const idZeta2 = taskZ2.id;
+
+            assert.strictEqual(idAlpha1, idAlpha2, 'alpha ID should be stable regardless of insertion order');
+            assert.strictEqual(idZeta1, idZeta2, 'zeta ID should be stable regardless of insertion order');
+        });
+    });
+
 });
