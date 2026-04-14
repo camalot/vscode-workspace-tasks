@@ -146,10 +146,11 @@ export function computeStats(metrics: ITaskMetrics): ITaskMetricsComputed {
 
   // Duration stats from ring buffer (sorted copy)
   const sorted = [...metrics.recentDurations].sort((a, b) => a - b);
-  const avgDurationMs = completed > 0 && metrics.totalDurationMs > 0
-    ? metrics.totalDurationMs / (metrics.recentDurations.length > 0 ? metrics.recentDurations.length : completed)
-    : undefined;
-
+  const recentDurationTotalMs = metrics.recentDurations.reduce((sum, duration) => sum + duration, 0);
+  const avgDurationMs =
+    metrics.recentDurations.length > 0
+      ? recentDurationTotalMs / metrics.recentDurations.length
+      : undefined;  
   // Success rate: only over non-terminated runs
   const successRate =
     completed === 0
