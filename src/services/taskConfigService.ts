@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import micromatch from 'micromatch';
+import * as micromatch from 'micromatch';
 
 export class TaskConfigService {
   private static instance: TaskConfigService;
