@@ -19,6 +19,9 @@ nav_order: 2
 
 ---
 
+{: .new }
+v1.7.0 introduces a powerful new environment variable system for environment variables and secrets.
+
 Full settings reference for all `workspaceTasks.envVars.*` configuration keys. For a
 conceptual overview, worked examples, and the fourteen-layer precedence table see
 [Task Environment Variables]({{ site.baseurl }}/features/task-environment-variables/).

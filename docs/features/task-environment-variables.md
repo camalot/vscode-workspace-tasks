@@ -18,6 +18,9 @@ nav_order: 10
 
 ---
 
+{: .new }
+v1.7.0 introduces a powerful new environment variable system for environment variables and secrets.
+
 Attach environment variables and secrets to any task — whether it comes from a
 `.workspace-tasks.json` file, a discovered `package.json` script, a `Makefile` target, or
 any other supported task type. Variables are merged in a deterministic fourteen-layer
