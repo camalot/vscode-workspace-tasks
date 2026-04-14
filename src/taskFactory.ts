@@ -1083,7 +1083,11 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
       for (const [key, entry] of envMap) {
         env[key] = entry.value;
       }
-      result.task.execution.options = { ...result.task.execution.options, env };
+      const existingEnv = result.task.execution.options?.env ?? {};
+      result.task.execution.options = {
+        ...result.task.execution.options,
+        env: { ...existingEnv, ...env },
+      };
     }
 
     // Phase 4: warn about suspicious keys in git-tracked files (fire-and-forget)
