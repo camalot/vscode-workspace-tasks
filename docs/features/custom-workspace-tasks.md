@@ -1,12 +1,12 @@
 ---
 layout: default
-title: 🛃 Custom Workspace Tasks
+title: 🛃 Workspace Tasks
 nav_order: 9
 parent: 🚀 Features
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
-# Custom Workspace Tasks
+# Workspace Tasks
 {: .no_toc }
 
 These are similar to `.vscode/tasks.json`, except you can define them as any task type.

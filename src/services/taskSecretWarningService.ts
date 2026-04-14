@@ -3,6 +3,8 @@ import * as cp from 'child_process';
 import * as path from 'path';
 import * as micromatch from 'micromatch';
 import { IResolvedEnvEntry } from './taskEnvTypes';
+import { IEnvFileReference } from './workspaceTasksService';
+import { TaskEnvFileResolver } from './taskEnvFileResolver';
 import { LoggerService } from './loggerService';
 
 const SUPPRESS_KEY_PREFIX = 'workspaceTasks.secretWarning.suppressed.';
@@ -52,6 +54,68 @@ export class TaskSecretWarningService {
    */
   public clearAllDiagnostics(): void {
     this.diagnosticCollection?.clear();
+  }
+
+  /**
+   * Proactively checks all files listed in `workspaceTasks.envVars.envFiles` and
+   * `workspaceTasks.envVars.secretFiles` against git on activation and config change.
+   *
+   * Emits a `DiagnosticSeverity.Warning` in the Problems panel for each file that is
+   * currently tracked by git.  No popup is shown — diagnostics only.
+   *
+   * Controlled by `workspaceTasks.envVars.warnIfGitTracked` (default `true`).
+   * When disabled, any previously emitted config-file diagnostics are cleared.
+   */
+  public async checkConfiguredEnvFilesForGitTracking(): Promise<void> {
+    if (!this.diagnosticCollection) {
+      return;
+    }
+
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const warnEnabled = config.get<boolean>('envVars.warnIfGitTracked', true);
+
+    if (!warnEnabled) {
+      this.clearConfigFileDiagnostics();
+      return;
+    }
+
+    const envFilesRef = config.get<IEnvFileReference>('envVars.envFiles') ?? [];
+    const secretFilesRef = config.get<IEnvFileReference>('envVars.secretFiles') ?? [];
+    const folders = vscode.workspace.workspaceFolders ?? [];
+
+    // Resolve all configured paths across workspace folders, deduplicating by absolute path.
+    const envFilePaths = new Set<string>();
+    const secretFilePaths = new Set<string>();
+
+    for (const folder of folders) {
+      const resolvedEnv = await TaskEnvFileResolver.resolveFileReferences(envFilesRef, folder.uri);
+      for (const p of resolvedEnv) {
+        envFilePaths.add(p);
+      }
+      const resolvedSecret = await TaskEnvFileResolver.resolveFileReferences(secretFilesRef, folder.uri);
+      for (const p of resolvedSecret) {
+        secretFilePaths.add(p);
+      }
+    }
+
+    // Clear stale config diagnostics before re-populating so removed files don't linger.
+    this.clearConfigFileDiagnostics();
+
+    for (const filePath of envFilePaths) {
+      const tracked = await this.isGitTracked(filePath);
+      if (tracked) {
+        this.logger.warn(`[TaskEnv] ${path.basename(filePath)} is configured in envFiles and is tracked by git.`);
+        this.addConfigEnvFileDiagnostic(filePath, 'envFiles');
+      }
+    }
+
+    for (const filePath of secretFilePaths) {
+      const tracked = await this.isGitTracked(filePath);
+      if (tracked) {
+        this.logger.warn(`[TaskEnv] ${path.basename(filePath)} is configured in secretFiles and is tracked by git.`);
+        this.addConfigEnvFileDiagnostic(filePath, 'secretFiles');
+      }
+    }
   }
 
   /**
@@ -208,6 +272,64 @@ export class TaskSecretWarningService {
     diag.code = 'secret-file-tracked';
     existing.push(diag);
     this.diagnosticCollection.set(uri, existing);
+  }
+
+  /**
+   * Emits a `DiagnosticSeverity.Warning` in the Problems panel for a file in
+   * `envFiles` or `secretFiles` that is tracked by git.  Avoids duplicates.
+   *
+   * Diagnostic codes: `'config-env-file-git-tracked'` / `'config-secret-file-git-tracked'`.
+   */
+  private addConfigEnvFileDiagnostic(filePath: string, settingKey: 'envFiles' | 'secretFiles'): void {
+    const uri = vscode.Uri.file(filePath);
+    const basename = path.basename(filePath);
+    const code = settingKey === 'envFiles' ? 'config-env-file-git-tracked' : 'config-secret-file-git-tracked';
+    const msg =
+      `\`${basename}\` is configured in workspaceTasks.envVars.${settingKey} and is tracked by git. ` +
+      `Files containing environment variables or secrets should be added to .gitignore to avoid ` +
+      `accidentally committing sensitive data. Consider using .secret files or VS Code SecretStorage instead.`;
+    const existing = [...(this.diagnosticCollection.get(uri) ?? [])];
+
+    if (existing.some((d) => d.message === msg)) {
+      return; // already reported
+    }
+
+    const diag = new vscode.Diagnostic(
+      new vscode.Range(0, 0, 0, 0),
+      msg,
+      vscode.DiagnosticSeverity.Warning,
+    );
+    diag.source = DIAGNOSTIC_SOURCE;
+    diag.code = code;
+    existing.push(diag);
+    this.diagnosticCollection.set(uri, existing);
+  }
+
+  /**
+   * Removes only config-file-git-tracking diagnostics (codes
+   * `'config-env-file-git-tracked'` and `'config-secret-file-git-tracked'`) from the
+   * collection without disturbing task-run-time diagnostics on the same files.
+   */
+  private clearConfigFileDiagnostics(): void {
+    const configCodes = new Set<string>(['config-env-file-git-tracked', 'config-secret-file-git-tracked']);
+    const urisToUpdate: vscode.Uri[] = [];
+
+    this.diagnosticCollection.forEach((uri, diagnostics) => {
+      if (diagnostics.some((d) => configCodes.has(d.code as string))) {
+        urisToUpdate.push(uri);
+      }
+    });
+
+    for (const uri of urisToUpdate) {
+      const remaining = (this.diagnosticCollection.get(uri) ?? []).filter(
+        (d) => !configCodes.has(d.code as string),
+      );
+      if (remaining.length === 0) {
+        this.diagnosticCollection.delete(uri);
+      } else {
+        this.diagnosticCollection.set(uri, remaining);
+      }
+    }
   }
 
   /**

@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -813,6 +813,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%"
               },
+              "nodejs": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.shellEnabledTaskTypes.nodejs%"
+              },
               "nushell": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.nushell%"
@@ -852,6 +856,7 @@
               "sh": true,
               "zsh": true,
               "fish": true,
+              "nodejs": true,
               "nushell": true,
               "perl": true,
               "pwsh": true,
@@ -880,6 +885,11 @@
                 "type": "string",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%",
                 "default": "fish"
+              },
+              "nodejs": {
+                "type": "string",
+                "description": "%config.workspaceTasks.shellEnabledTaskTypes.nodejs%",
+                "default": "node"
               },
               "nushell": {
                 "type": "string",
@@ -985,6 +995,13 @@
             "default": false,
             "description": "%config.workspaceTasks.groups.recentTasks.enabled%",
             "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%"
+          },
+          "workspaceTasks.secrets.showEmptyGroup": {
+            "type": "boolean",
+            "description": "%config.workspaceTasks.secrets.showEmptyGroup%",
+            "markdownDescription": "%config.workspaceTasks.secrets.showEmptyGroup.markdown%",
+            "default": false,
+            "scope": "resource"
           },
           "workspaceTasks.groups.compoundTasks.enabled": {
             "title": "%config.workspaceTasks.groups.compoundTasks.enabled%",
@@ -1295,6 +1312,13 @@
               }
             ],
             "default": [],
+            "scope": "resource"
+          },
+          "workspaceTasks.envVars.warnIfGitTracked": {
+            "type": "boolean",
+            "description": "%config.workspaceTasks.envVars.warnIfGitTracked%",
+            "markdownDescription": "%config.workspaceTasks.envVars.warnIfGitTracked.markdown%",
+            "default": true,
             "scope": "resource"
           },
           "workspaceTasks.envVars.secretPatterns": {

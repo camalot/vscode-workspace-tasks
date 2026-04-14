@@ -48,6 +48,7 @@ const BUILT_IN_SHELLS: Record<string, ShellConfig> = {
   ruby: { extensions: ['rb'], configKey: 'ruby', defaultInterpreter: 'ruby', requireShebang: false, useShebang: true },
   sh: { extensions: ['sh'], configKey: 'sh', defaultInterpreter: 'sh', requireShebang: false, useShebang: true },
   nushell: { extensions: ['nu'], configKey: 'nushell', defaultInterpreter: 'nu', requireShebang: false, useShebang: false },
+  nodejs: { extensions: ['js', 'mjs', 'cjs'], configKey: 'nodejs', defaultInterpreter: 'node', requireShebang: true, useShebang: true },
 };
 
 export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider {

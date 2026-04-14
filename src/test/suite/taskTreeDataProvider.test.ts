@@ -2575,5 +2575,98 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.deepStrictEqual(child.command!.arguments, ['db.password'],
         'Command arguments should be the secret key string');
     });
+
+    // ── secrets.showEmptyGroup setting ───────────────────────────────────────
+
+    /**
+     * Wraps a test callback with a getConfiguration mock that sets
+     * `secrets.showEmptyGroup` to `enabled` while preserving all other defaults.
+     */
+    function withShowEmptySecretsGroup(enabled: boolean, callback: () => Promise<void>): Promise<void> {
+      const currentGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'secrets.showEmptyGroup') { return enabled as unknown as T; }
+              // Preserve standard defaults used by the outer setup mock.
+              if (key === 'groups.compoundTasks.enabled') { return false as unknown as T; }
+              if (key === 'groups.enabled') { return true as unknown as T; }
+              if (key === 'groups.useParentFolder') { return false as unknown as T; }
+              if (key === 'groups.recentTasks.enabled') { return false as unknown as T; }
+              if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return true as unknown as T; }
+              if (key === 'groups.taskSeparator') { return '-' as unknown as T; }
+              if (key === 'groups.expanded') {
+                return { favorites: true, compoundTask: true, recent: true } as unknown as T;
+              }
+              return def as T;
+            },
+          };
+        }
+        return currentGetConfig(section);
+      };
+      return callback().finally(() => {
+        (vscode.workspace as any).getConfiguration = currentGetConfig;
+      });
+    }
+
+    test('showEmptyGroup=false and no secrets: Secrets group absent (regression)', async () => {
+      // Default behaviour: secrets group hidden when storage is empty.
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys([]);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.strictEqual(secretsGroup, undefined, 'Secrets group should be absent with no secrets and showEmptyGroup=false');
+    });
+
+    test('showEmptyGroup=true and no secrets: Secrets group is present with no children', async () => {
+      await withShowEmptySecretsGroup(true, async () => {
+        stubServicesForOrganize([]);
+        const localCtx = createMockContextWithSecretKeys([]);
+        resetProviderSingleton();
+        const provider = new TestableTaskTreeDataProvider(localCtx);
+
+        const roots = await provider.getChildren();
+        const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+        assert.ok(secretsGroup, 'Secrets group should be present when showEmptyGroup=true even with no secrets');
+        assert.strictEqual(secretsGroup!.label, 'Secrets');
+        assert.strictEqual(secretsGroup!.children.length, 0, 'Empty secrets group should have no children');
+      });
+    });
+
+    test('showEmptyGroup=true and secrets exist: Secrets group still renders children normally', async () => {
+      await withShowEmptySecretsGroup(true, async () => {
+        stubServicesForOrganize([]);
+        const localCtx = createMockContextWithSecretKeys(['existing.key']);
+        resetProviderSingleton();
+        const provider = new TestableTaskTreeDataProvider(localCtx);
+
+        const roots = await provider.getChildren();
+        const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+        assert.ok(secretsGroup, 'Secrets group should be present');
+        assert.strictEqual(secretsGroup!.children.length, 1, 'Secrets group should still render its children');
+        assert.strictEqual(secretsGroup!.children[0].label, 'existing.key');
+      });
+    });
+
+    test('showEmptyGroup=true empty group: tooltip indicates no secrets are stored', async () => {
+      await withShowEmptySecretsGroup(true, async () => {
+        stubServicesForOrganize([]);
+        const localCtx = createMockContextWithSecretKeys([]);
+        resetProviderSingleton();
+        const provider = new TestableTaskTreeDataProvider(localCtx);
+
+        const roots = await provider.getChildren();
+        const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+        assert.ok(secretsGroup, 'Secrets group should be present');
+        assert.ok(
+          (secretsGroup!.tooltip as string)?.includes('No secrets stored'),
+          `Tooltip should indicate no secrets are stored, got: ${secretsGroup!.tooltip}`,
+        );
+      });
+    });
   });
 });

@@ -238,6 +238,34 @@ This is advisory only — the task still runs. To eliminate the warning, move th
 
 ---
 
+## Git-Tracked File Warnings
+
+{: .new }
+Added in v1.7.1
+
+In addition to the per-key secret-pattern warning, the extension proactively checks whether any
+files listed in `workspaceTasks.envVars.envFiles` or `workspaceTasks.envVars.secretFiles` are
+tracked by git. If they are, a warning is written to the **Problems** panel at startup and
+whenever those settings change.
+
+A file tracked by git means its contents — including any tokens, passwords, or other sensitive
+values — could be committed to version control and exposed in your repository history.
+
+**Remediation options:**
+
+1. Add the file to `.gitignore` and optionally run `git rm --cached <file>` to stop tracking it.
+2. Move sensitive values into VS Code `SecretStorage` (see [Managing Secrets](#managing-secrets)).
+3. Use a `.secret` file that is already gitignored for values you want to keep local.
+
+To silence all git-tracking warnings, set
+[`workspaceTasks.envVars.warnIfGitTracked`]({{ site.baseurl }}/configuration/environment/environment-variables/#workspacetasksenvvarswarnifgittracked)
+to `false`.
+
+For the full settings reference see
+[Environment Variables Settings]({{ site.baseurl }}/configuration/environment/environment-variables/#workspacetasksenvvarswarnifgittracked).
+
+---
+
 ## Managing Secrets
 
 Secrets can be managed via the **Secrets tree group** in the task view or via the Command Palette.

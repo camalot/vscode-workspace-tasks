@@ -39,8 +39,7 @@ export class TaskIconService {
     // create generic map and merge with provided map
     const genericMap: { [key: string]: string } = {
       'npm': 'npm',
-      'node': 'npm',
-      'nodejs': 'npm',
+      'node': 'nodejs',
       'yarn': 'npm',
       'dockerfile': 'docker',
       'docker-compose': 'docker'

@@ -49,6 +49,12 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       this._onDidChangeTreeData.fire();
     });
 
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('workspaceTasks.secrets.showEmptyGroup')) {
+        this._onDidChangeTreeData.fire();
+      }
+    });
+
     // Restore collapseLevel from workspace state (default to 0)
     // Actually we only care about restoring if it was 0, as other modes are temporary toggles usually?
     // But if persistence is tricky for groups, maybe we just default to 0.
@@ -300,6 +306,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const includeVsCodeCompoundTasks = config.get<boolean>('compoundTasks.includeVsCodeCompoundTasks', true);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
     const sortingEnabled = config.get<boolean>('tasks.sortingEnabled', true);
+    const showEmptySecretsGroup = config.get<boolean>('secrets.showEmptyGroup', false);
     const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
       favorites: true,
       compoundTask: true,
@@ -1187,8 +1194,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     // Add remaining project roots
     rootItems.push(...workspaceRoots);
 
-    // Add Secrets group at the end (only when secrets exist)
-    if (secretKeys.length > 0) {
+    // Add Secrets group at the end (only when secrets exist, or when showEmptySecretsGroup is enabled)
+    if (secretKeys.length > 0 || showEmptySecretsGroup) {
       const secretsGroupId = this.makeId('secrets', rootSalt);
       const secretsGroup = new TaskItem(
         'Secrets',
@@ -1198,7 +1205,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       secretsGroup.id = secretsGroupId;
       secretsGroup.iconPath = new vscode.ThemeIcon('key');
       secretsGroup.contextValue = 'secrets';
-      secretsGroup.tooltip = 'Secrets stored in VS Code SecretStorage';
+      secretsGroup.tooltip = secretKeys.length > 0
+        ? 'Secrets stored in VS Code SecretStorage'
+        : 'No secrets stored. Use "Workspace Tasks: Store Secret" to add one.';
 
       for (const secretKey of secretKeys.slice().sort()) {
         const secretItem = new TaskItem(

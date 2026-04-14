@@ -73,3 +73,5 @@ Workspace Tasks supports flexible view placement:
   - First click: Collapse task type groups
   - Second click: Collapse workspace folders
   - Third click: Expand everything
+
+
