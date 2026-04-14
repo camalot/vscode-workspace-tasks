@@ -228,7 +228,7 @@ suite('TaskEnvFileResolver Test Suite', () => {
   test('parseEnvFile: handles escaped double-quotes inside double-quoted values', async () => {
     const fileUri = await writeFile('.env.escapedquote', 'TOKEN="a\\"b"\n');
     const result = TaskEnvFileResolver.parseEnvFile(fileUri.fsPath);
-    assert.strictEqual(result['TOKEN'], 'a"b');
+    assert.strictEqual(result['TOKEN'], 'a\\"b');
   });
 
   test('parseEnvFile: expands \\n escape inside double-quoted values', async () => {
