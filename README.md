@@ -14,28 +14,32 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ## 📑 Table of Contents
 
+- [📥 Installation](#installation)
+- [✔️ Requirements](#requirements)
+- [📖 Documentation ↗](https://camalot.github.io/vscode-workspace-tasks/)
 - [📷 Screenshots](#screenshots)
 - [✨ Key Features](#key-features)
-- [📖 Documentation](https://camalot.github.io/vscode-workspace-tasks/)
-- [📥 Installation](#installation)
-- [🛠️ Supported Task Types](#supported-task-types)
-- [🌱 Recent Tasks](#recent-tasks)
-- [⭐ Favorites](#favorites)
-- [📋 Compound Tasks (Queues)](#task-queues)
-- [🙈 Hide Tasks & Groups](#hide-tasks--groups)
-- [🕰️ Task History](#task-history)
-- [🔐 Secrets Management](#secrets-management)
+  - [🔍 Task Discovery ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/)
+    - [🛠️ Supported Task Types](#supported-task-types)
+  - [🌱 Recent Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/recents.html)
+  - [⭐ Favorites ↗](https://camalot.github.io/vscode-workspace-tasks/features/favorites.html)
+  - [📋 Compound Tasks (Queues) ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)
+  - [🔗 VSCode Compound Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/compound-tasks.html)
+  - [🙈 Hide Tasks & Groups ↗](https://camalot.github.io/vscode-workspace-tasks/features/hide-tasks.html)
+  - [🪄 Task Filtering ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering.html)
+  - [🕰️ Task History ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html)
+  - [📚 Task Metrics ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html#statistics-view)
+  - [🛃 Custom Workspace Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks.html)
+  - [🌐 Environment Variables ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html)
+    - [🔐 Secrets Management ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html#managing-secrets)
 - [⚙️ Configuration](#configuration)
-  - [⚙️ General](https://camalot.github.io/vscode-workspace-tasks/configuration/general/)
-  - [🔍 Task Discovery](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/)
-  - [🖥️ Display & Interaction](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/)
-  - [▶️ Task Execution](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/)
-  - [🌐 Environment](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/)
-  - [Custom Workspace Tasks](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks)
-  - [GitHub Actions Integration](#github-actions-integration)
-  - [Task Ignore Patterns](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering)
-- [🔧 Advanced Features](#advanced-features)
-- [✔️ Requirements](#requirements)
+  - [⚙️ General  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/general/)
+  - [🔍 Task Discovery  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/)
+  - [🖥️ Display & Interaction  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/)
+  - [▶️ Task Execution  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/)
+  - [🌐 Environment  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/)
+  - [Custom Workspace Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks)
+  - [Task Ignore Patterns ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering)
 - [🤝 Contributing](#contributing)
 - [📄 License](#license)
 
@@ -50,21 +54,21 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 <a id="key-features"></a>
 
-- **🔍 Automatic Task Discovery** - Scans your workspace for tasks from 20+ file types and build systems
+- **[🔍 Automatic Task Discovery ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/)** - Scans your workspace for tasks from 20+ file types and build systems
 - **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
-- **⭐ Favorites** - Pin frequently used tasks for instant access
-- **🌱 Recent Tasks** - Tracks the most recently executed tasks
-- **📋 Multiple Compound Tasks (Queues)** - Create and manage named sequences of tasks with sequential or parallel execution
+- **[⭐ Favorites ↗](https://camalot.github.io/vscode-workspace-tasks/features/favorites.html)** - Pin frequently used tasks for instant access
+- **[🌱 Recent Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/recents.html)** - Tracks the most recently executed tasks
+- **[📋 Multiple Compound Tasks (Queues) ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)** - Create and manage named sequences of tasks with sequential or parallel execution
 - **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
 - **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
 - **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
-- **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
-- **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
-- **🔐 Environment Variable & Secrets Management** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette
-- **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
-- **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
-- **🕰️ Task History, Statistics & Dashboard** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
+- **[🎭 GitHub Actions Support ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/github-actions.html)** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
+- **[📝 Custom Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks.html)** - Define reusable task templates with dynamic inputs
+- **[🔐 Environment Variable & Secrets Management ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html)** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette
+- **[🚫 Task Filtering ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering.html)** - Use `.tasksignore` files to exclude unwanted tasks
+- **[🙈 Hide Tasks & Groups ↗](https://camalot.github.io/vscode-workspace-tasks/features/hide-tasks.html)** - Hide individual tasks or entire task groups from view
+- **[🕰️ Task History, Statistics & Dashboard ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html)** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
 - **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 
@@ -116,10 +120,12 @@ kiro --install-extension darthminos.workspace-tasks
 windsurf --install-extension darthminos.workspace-tasks
 ```
 
+<a id="requirements"></a>
+
 ### ✔️ Requirements
 
 - **Visual Studio Code** 1.105.1 or later
-- **External tools** must be installed for task execution (see [Requirements](#requirements) section)
+- **External tools** must be installed for task execution (see [External Tools](https://camalot.github.io/vscode-workspace-tasks/getting-started/requirements.html#external-tool-requirements))
 
 ## 🛠️ Supported Task Types
 
@@ -211,208 +217,6 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 
 > The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#requirements) for details.
 
-<a id="recent-tasks"></a>
-
-## 🌱 Recent Tasks
-
-As you run tasks they are tracked in a dedicated section at the top of the task tree to easily be able to access again. State of recent tasks will persist between VSCode sessions.
-
-### Recent Tasks Configuration
-
-#### Recent Tasks Item Grouping
-
-When enabled, task items are grouped by the task type. Default is `false`.
-
-![Recent Tasks - Grouping](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/settings-groups-recenttasks-enabled.png)
-
-#### Maximum Recent Tasks
-
-The maximum number of task items to track in the recent tasks. Default is `20`.
-To disable tracking of recent tasks set to `0`.
-
-![Recent Tasks - Max Items](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/settings-recenttasks-maxitems.png)
-
-<a id="favorites"></a>
-
-## ⭐ Favorites
-
-Pin your most frequently used tasks for instant access. Favorites appear in a dedicated section at the top of the task tree, making your common operations just one click away.
-
-**How to Use:**
-
-1. Click the star icon (☆) next to any task to add it to favorites
-2. Access all favorited tasks from the "Favorites" group at the top
-3. Click the filled star (⭐) to remove from favorites
-
-**Features:**
-
-- **Quick Access** - All favorites in one place, organized by task type
-- **Persistent** - Saved automatically across Visual Studio Code sessions
-- **Workspace-Specific** - Each workspace maintains its own favorites list
-- **Visual Indicators** - Star icons show in both favorites section and original location
-- **Context Display** - Tasks show their workspace folder name in multi-root workspaces
-- **Settings Sync** - Favorites automatically sync across all your machines when VS Code Settings Sync is enabled
-
-**Perfect For:**
-
-- Build, test, and deploy tasks you use daily
-- Development scripts you run frequently
-- Tasks from different workspace folders you need regularly
-
-<a id="task-queues"></a>
-
-## 📋 Compound Tasks (Queues)
-
-Create and manage multiple named compound tasks (queues) to run tasks either **sequentially** (one at a time, stops on first failure) or **in parallel** (all simultaneously). Perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
-
-**How to Use:**
-
-1. Click the list icon next to any task
-2. Choose an existing compound task group (queue) or create a new one
-3. Drag and drop tasks to reorder them
-4. Run the entire compound task (queue) or start from a specific task
-5. Toggle between **sequential** and **parallel** execution using the arrow-swap button in the compound task (queue) action bar
-
-**Features:**
-
-- **Multiple Compound Tasks (Queues)** - Create separate compound tasks (queues) for different workflows (e.g., "Build", "Deploy", "CI Pipeline")
-- **Sequential or Parallel Execution** - Toggle each compound task's mode; the compound task icon reflects the current type
-- **Drag & Drop Reordering** - Easily reorder tasks within and across compound tasks (queues)
-- **Visual Context** - Each compound task item shows the task icon, label, workspace name, and file path
-- **Compound Task Controls** - Run entire compound task, start from specific task, or stop execution
-- **Compound Task Management** - Rename compound tasks, clear all tasks, or delete empty compound tasks
-- **Persistent Storage** - Compound tasks (queues) and their execution modes are saved and restored between sessions
-- **Status Indicators** - Real-time visual feedback with running/success/failure icons
-- **Settings Sync** - Compound tasks (queues) automatically sync across all your machines when VS Code Settings Sync is enabled
-
-**Example Workflow:**
-
-```text
-CI Pipeline Compound Task (Sequential):
-1. Install Dependencies (npm install)
-2. Lint Code (npm run lint)
-3. Run Tests (npm test)
-4. Build Production (npm run build)
-5. Deploy to Staging (deploy.sh)
-```
-
-Click on the navigation items for the compound task (queue) to run all tasks in sequence, rename the compound task (queue), or clear it.
-
-<a id="hide-tasks--groups"></a>
-
-## 🙈 Hide Tasks & Groups
-
-Declutter your task view by temporarily hiding individual tasks or entire task groups you don't need to see. Hidden items are dimmed when shown and can be easily restored.
-
-**How to Use:**
-
-1. Right-click on any task or task group
-2. Select "Hide Task" or "Hide Group" from the context menu
-3. Hidden items are removed from the default view
-4. Click "Show Hidden Tasks" button in the title bar to view all tasks including hidden ones
-5. When in "Show Hidden" mode, hidden items appear dimmed with a badge (●)
-6. Right-click a hidden item and select "Unhide" to restore it
-7. Click "Clear Hidden Tasks" to unhide everything and return to normal view
-
-**Features:**
-
-- **Selective Hiding** - Hide individual tasks or entire task groups (npm, maven, etc.)
-- **Hierarchical** - Hiding a group automatically hides all tasks within it
-- **Visual Feedback** - Hidden items appear dimmed with a badge when viewing all tasks
-- **Toggle Mode** - Quickly switch between filtered view and showing all tasks
-- **Persistent** - Hidden state is saved across Visual Studio Code sessions
-- **Easy Restore** - Unhide individual items or clear all hidden tasks at once
-
-**Perfect For:**
-
-- Hiding rarely-used task types in large monorepos
-- Temporarily removing test or build tasks from view
-- Focusing on specific task categories during development
-- Cleaning up the task tree without permanently removing tasks
-
-<a id="task-history"></a>
-
-## 🕰️ Task History
-
-Track and review all task executions with comprehensive history and statistics. Task History provides a **table view** with sortable execution details, a **Statistics view** for aggregated per-task metrics, and a **Dashboard** with interactive charts for a workspace-wide health overview.
-
-### Table View
-
-The Task History Table View provides a tabular, sortable view of all task executions with detailed information.
-
-![Task History Table](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-history-webview.png)
-
-**Features:**
-
-- **Status Filtering** - Filter by task status (Running, Success, Failed, Terminated)
-- **Sortable Columns** - Click any column header to sort tasks by that field
-- **Comprehensive Details** - View status, type, task name, source path, timestamp, exit code, and execution time
-- **Metrics Hint** - Each row shows the task's average duration and a flaky-streak badge (if the task has failed 3+ times consecutively)
-- **Status Indicators** - Color-coded status labels/icons for quick identification
-  - 🟢 Success - Task completed successfully
-  - 🔴 Failed - Task exited with an error
-  - 🔵 Running - Task is currently executing
-  - 🟠 Terminated - Task was stopped manually
-- **Real-time Updates** - Automatically updates as tasks complete
-
-**How to Use:**
-
-1. Open the **Task History** panel
-2. Click column headers to sort by that field (click again to reverse order)
-3. Review detailed execution information including exact timestamps and durations
-4. Use the scrollable view to review extensive task history
-
-### Statistics View
-
-The Statistics View provides aggregated per-task execution metrics across all runs.
-
-![Task Statistics View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-statistics-webview.png)
-
-**Features:**
-
-- **Summary Bar** - Total tasks run today, all-time count, overall success rate, and total execution time
-- **Per-task Cards** - Success rate, total runs, avg/min/max/p95 duration, last run time, consecutive failure/success streak, peak hour, duration trend, and exit code histogram
-- **Clear Metrics** - Click the **✕** button on any card to clear that task's metrics data
-
-**How to Use:**
-
-1. Open the **Task History** panel
-2. Click the **Statistics** tab at the top
-3. Review per-task cards for performance trends and failure patterns
-4. Click **✕** on a card to reset metrics for that task
-5. To clear all metrics, use the **Clear All Task Metrics** command (`workspaceTasks.metrics.clearAll`) from the Command Palette
-
-### Dashboard
-
-The Dashboard tab provides an at-a-glance, workspace-wide view of task health using interactive [Chart.js](https://www.chartjs.org/) charts that automatically adapt to your VS Code color theme.
-
-![Task Dashboard](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-1.png)
-
-**Charts included:**
-
-- **Execution Outcomes** — Doughnut showing the workspace-wide split of successful, failed, and terminated runs
-- **Hourly Activity Pattern** — When the workspace is most active by hour of day
-- **Top Tasks by Run Count** — Most-executed tasks, ranked descending
-- **Success Rate by Task** — All tasks ranked worst-to-best; color-coded red / amber / green
-- **Duration Comparison** — Min / Avg / p95 / Max durations for the top tasks
-- **Daily Activity (14 days)** — Execution count per calendar day
-- **Duration Trend Sparklines** — Per-task trend lines; green = getting faster, red = getting slower
-- **Attention Required** — Table of flaky, low-success, or recently-failed tasks
-
-**How to Use:**
-
-1. Open the **Task History** panel
-2. Click the **Dashboard** tab at the top
-3. Charts populate automatically from your collected metrics and update as tasks run
-
-**Perfect For:**
-
-- Debugging task failures by reviewing exit codes and execution times
-- Monitoring build and deployment pipeline status
-- Tracking task performance over time with duration trends
-- Identifying flaky tasks (consecutive failures ≥ 3) at a glance
-- Auditing task executions in CI/CD workflows
-
 ## 🚀 Quick Start
 
 <a id="quick-start"></a>
@@ -442,350 +246,19 @@ All settings are grouped into five categories. See the [full configuration refer
 
 | Group | Description |
 | --- | --- |
-| [⚙️ General](https://camalot.github.io/vscode-workspace-tasks/configuration/general/) | Debug logging and task execution metrics |
-| [🔍 Task Discovery](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/) | Exclusion patterns, discovery depth, enabled task types, and shell-script detection |
-| [🖥️ Display & Interaction](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/) | Tree view grouping, click behaviour, action bar, icons, and recent-tasks |
-| [▶️ Task Execution](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/) | Terminal presentation, graceful stop delay, and compound-task execution modes |
-| [🌐 Environment](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/) | Executable paths for build tools and tool-specific settings |
-
-### GitHub Actions Integration
-
-Run GitHub Actions workflows locally using [act](https://github.com/nektos/act) to test workflows without pushing to GitHub. Workspace Tasks provides a rich interface for executing workflows with full input support.
-
-#### Features
-
-- **Automatic Discovery** - Scans `.github/workflows/*.yml` files
-- **Event Support** - Run workflows for `push`, `pull_request`, `workflow_dispatch`, and custom events
-- **Job Execution** - Run individual jobs from multi-job workflows
-- **Input Prompts** - Interactive prompts for `workflow_dispatch` inputs with validation
-- **Status Indicators** - Real-time visual feedback during execution
-
-#### Act Configuration
-
-Configure act in your Visual Studio Code settings (`settings.json`):
-
-```jsonc
-{
-  // Path to act executable
-  "workspaceTasks.applicationPath.act": "act",
-
-  // Environment files
-  "workspaceTasks.act.envFile": ".env",
-  "workspaceTasks.act.secretsFile": ".act.secrets",
-  "workspaceTasks.act.variablesFile": ".act.vars",
-
-  // Inline variables
-  "workspaceTasks.act.variables": {
-    "ENVIRONMENT": "development",
-    "VERSION": "1.0.0",
-  },
-}
-```
-
-#### Usage Example
-
-Given a workflow `.github/workflows/build.yml`:
-
-```yaml
-name: Build & Test
-on:
-  push:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment environment'
-        required: true
-        default: 'staging'
-        type: choice
-        options: [development, staging, production]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm run build
-```
-
-The task tree shows:
-
-```text
-GitHub Actions
-└── Build & Test
-    ├── Run Workflow (push)
-    ├── Run Workflow (workflow_dispatch)  ← Shows input prompts
-    └── Run Job: build
-```
-
-**Requirements:**
-
-- [act](https://github.com/nektos/act) installed on your system
-- [Docker](https://www.docker.com/) running (act uses containers)
-- Configure `workspaceTasks.applicationPath.act` if act is not in PATH
-
-**Tips:**
-
-- Store secrets in a `.secrets` file and add to `.gitignore`
-- Test `workflow_dispatch` inputs locally before pushing
-- Run individual jobs to debug specific workflow steps
-
-### Task Discovery Depth Control
-
-Control how deep the extension searches for tasks in your workspace directory structure. This helps improve performance in large monorepos or complex folder hierarchies.
-
-#### Configuration
-
-Set the maximum folder depth for task discovery in `settings.json`:
-
-```json
-{
-  "workspaceTasks.taskDiscovery.fetchDepth": 3
-}
-```
-
-- **`null` (default)** - Full recursive search through all subdirectories
-- **Positive integer (e.g., `1`, `2`, `4`)** - Limits search to specified depth below workspace root
-
-#### Depth Calculation
-
-Depth is measured from the workspace folder root:
-
-```text
-workspace-folder/          (depth 0)
-├── package.json          ✅ Discovered at depth 0
-└── src/                  (depth 1)
-    ├── Makefile          ✅ Discovered at depth 1
-    └── components/       (depth 2)
-        └── package.json  ✅ Discovered at depth 2 (if fetchDepth >= 2)
-```
-
-**Example: `fetchDepth: 1`**
-
-```text
-workspace-folder/
-├── package.json          ✅ Discovered (depth 0)
-└── services/
-    ├── api/
-    │   └── package.json  ❌ Not discovered (depth 2)
-    └── package.json      ✅ Discovered (depth 1)
-```
-
-#### When to Use
-
-- **Large Monorepos** - Set to `2` or `3` to discover main project tasks while skipping deep vendor/dependency folders
-- **Performance Issues** - Reduce depth if task discovery is slow
-- **Focused Workflows** - Limit to top-level tasks when working on specific projects
-- **Deep Structures** - Use `null` for full discovery in complex nested project layouts
-
-<a id="secrets-management"></a>
-
-## 🔐 Secrets Management
-
-Workspace Tasks integrates with VS Code's built-in `SecretStorage` API to store sensitive values (API keys, passwords, tokens) securely on your machine — encrypted at rest and never synced.
-
-### Secrets Tree Group
-
-When at least one secret is stored, a **Secrets** group appears at the top of the Workspace Tasks tree. Each entry shows the secret **key name** (never the value); hovering or right-clicking reveals all available actions.
-
-![Secrets tree group showing stored secret key entries](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/screenshots/secrets-tree.png)
-
-#### Action Bar (per secret item)
-
-| Icon | Action | Description |
-|------|--------|-------------|
-| `$(copy)` | **Copy Secret Key** | Copies the key name to the clipboard |
-| `$(edit)` | **Update Secret** | Prompts for a new value and updates the stored secret |
-| `$(trash)` | **Delete Secret** | Prompts for confirmation and permanently removes the secret |
-
-> **Tip:** Double-clicking a secret item copies its key name to the clipboard.
-
-#### Right-Click Context Menu (secret item)
-
-The context menu for each secret item exposes the same three actions: **Copy Secret Key**, **Update Secret**, and **Delete Secret**.
-
-#### Right-Click Context Menu (Secrets group header)
-
-Right-clicking the **Secrets** group header provides the **Store Secret** action to add a new secret without opening the Command Palette.
-
-### Command Palette
-
-All secrets operations are also available keyboard-first via the Command Palette (`Ctrl+Shift+P` / `⇧⌘P`):
-
-| Command | Description |
-|---------|-------------|
-| `Workspace Tasks: Store Secret` | Prompts for a key name and value; saves to SecretStorage |
-| `Workspace Tasks: Update Secret` | Shows a QuickPick of existing keys; prompts for the new value |
-| `Workspace Tasks: Delete Secret` | Shows a QuickPick of existing keys; deletes after confirmation |
-| `Workspace Tasks: Copy Secret Key` | Shows a QuickPick of existing keys; copies the selected key name to the clipboard |
-
-### Using Secrets in Tasks
-
-Map stored secrets to environment variable names using the `secrets` field in your task configuration:
-
-```jsonc
-{
-  "workspaceTasks.envVars.taskEnv": [
-    {
-      "match": { "taskType": "npm" },
-      "secrets": {
-        "NPM_TOKEN": "myapp.npm-publish-token",
-        "DB_PASSWORD": "myapp.db-password"
-      }
-    }
-  ]
-}
-```
-
-For full details on the fourteen-layer precedence model, secret file support, and per-task rules, see the [Environment Variables & Secrets documentation](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables/).
+| [⚙️ General ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/general/) | Debug logging and task execution metrics |
+| [🔍 Task Discovery ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/) | Exclusion patterns, discovery depth, enabled task types, and shell-script detection |
+| [🖥️ Display & Interaction ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/) | Tree view grouping, click behaviour, action bar, icons, and recent-tasks |
+| [▶️ Task Execution ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/) | Terminal presentation, graceful stop delay, and compound-task execution modes |
+| [🌐 Environment ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/) | Executable paths for build tools and tool-specific settings |
 
 ---
-
-## 🔧 Advanced Features
-
-<a id="advanced-features"></a>
-
-### View Placement and Layout
-
-**Multiple View Options:**
-
-- **Dedicated Sidebar** - Access Workspace Tasks from the Activity Bar for a dedicated panel
-- **Explorer Integration** - View tasks alongside your files in the Explorer panel
-
-  ![Explorer View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/explorer-view.png)
-
-- **Dockable Window** - Drag the Explorer view to any location (left, right, bottom panel, or floating)
-- **Synchronized State** - Both views share the same state—actions in one view reflect in the other
-
-**View Management:**
-
-- Right-click on the Explorer view header to move it to different panels
-- Drag the view to create a split layout with other views
-- Use both views simultaneously for different workflows (e.g., sidebar for quick access, panel for detailed task management)
-
-### Execution and Navigation
-
-**Running Tasks:**
-
-- **Single Click** - Click the play button (▶️) to run immediately
-- **Terminal Output** - Task output appears in the integrated terminal with status indicators
-- **Multiple Tasks** - Run multiple tasks simultaneously in separate terminals
-- **Command Palette** - Use `Ctrl+Shift+P` / `Cmd+Shift+P` to search and run tasks by name
-
-**Stopping & Restarting Tasks:**
-
-- **Stop Button** - Click the stop button (⏹) next to running tasks to terminate a running or unresponsive task.
-- **Restart Button** - Click the restart button (🔄️) next to running tasks to stop the currently executing task and run it again.
-- **Status Tracking** - Visual indicators show running/success/failure states
-
-**Navigation:**
-
-- **Quick File Access** - Double-click tasks to jump to their definition in the source file
-- **Line Precision** - Opens files at the exact line where tasks are defined
-- **File Path Display** - Hover over tasks to see full paths and commands
-- **Hierarchical Browsing** - Tree structure shows workspace → task type → individual tasks
-
-**Additional Actions:**
-
-- **Refresh Tasks** - Manually refresh to pick up changes without reloading Visual Studio Code
-- **Collapse/Expand** - Use the collapse all button (⊟) to toggle view states:
-  - First click: Collapse task type groups
-  - Second click: Collapse workspace folders
-  - Third click: Expand everything
-
-### Supported File Patterns
-
-Each task type watches specific file patterns:
-
-| Task Type | Patterns | Notes |
-| --- | --- | --- |
-| npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
-| Ant | `**/*.xml` | Parses build file targets |
-| cake | `**/*.cake` | Cake build targets from `Task("...")` declarations |
-| cargo-make | `**/{Makefile.toml,*.toml}` | Rust task runner from TOML files (requires Cargo) |
-| Composer | `**/composer.json` | PHP dependency scripts |
-| Gradle | `**/*.gradle` | Java/Android build tasks |
-| Grunt | `**/Gruntfile.js` | Registered tasks |
-| Gulp | `**/gulpfile.{js,mjs}` | Exported tasks |
-| Just | `**/{justfile,.justfile,*.just}` | Command recipes |
-| Jupyter | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
-| Make | `**/Makefile` | Build targets |
-| Maven | `**/pom.xml` | Lifecycle goals |
-| mise | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
-| MSBuild | `**/*.{csproj,vbproj,sln}` | .NET project targets |
-| Pipenv | `**/Pipfile` | Python scripts |
-| Poe the Poet | `**/pyproject.toml` | Python task runner |
-| Poetry | `**/pyproject.toml` | Python scripts |
-| Shell | `**/*.{sh,bash,ps1,bat,cmd}` | Executable scripts |
-| Docker | `**/Dockerfile*` | Container builds |
-| Docker Compose | `**/docker-compose.yml` | Service orchestration |
-| GitHub Actions | `**/.github/workflows/*.yml` | CI/CD workflows |
-| Visual Studio Code | `**/.vscode/tasks.json`, user-level `tasks.json` | Native Visual Studio Code tasks (workspace and user-level) |
-| Workspace | `.workspace-tasks.json` | Custom tasks |
-
-All patterns respect `.gitignore` and `.tasksignore` exclusions.
-
-<a id="requirements"></a>
-
-## 📋 Requirements
-
-### Visual Studio Code Version
-
-- **Minimum:** Visual Studio Code 1.105.1 or later
-
-### External Tools
-
-The extension discovers tasks regardless of whether tools are installed, but **execution requires** the corresponding tool in your system PATH:
-
-**Package Managers:**
-
-- [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/) for npm tasks
-- [pnpm](https://pnpm.io/) for pnpm tasks
-- [Yarn](https://yarnpkg.com/) for Yarn tasks
-- [Composer](https://getcomposer.org/) for PHP Composer tasks
-- [Pipenv](https://pipenv.pypa.io/) for Python Pipenv tasks
-- [Poe the Poet](https://poethepoet.natn.io/) for Python Poe tasks
-- [Poetry](https://python-poetry.org/) for Python Poetry tasks
-
-**Build Systems:**
-
-- [Apache Ant](https://ant.apache.org/) for Ant tasks
-- [Gradle](https://gradle.org/) for Gradle tasks
-- [MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild) for .NET tasks
-- [Make](https://www.gnu.org/software/make/) for Makefile tasks
-- [Cake](https://cakebuild.net/) installed with `dotnet tool install` for Cake build script tasks
-
-**Task Runners:**
-
-- [Cargo](https://doc.rust-lang.org/cargo/) and [cargo-make](https://sagiegurari.github.io/cargo-make/) for cargo-make tasks
-- [Grunt](https://gruntjs.com/) for Grunt tasks
-- [Gulp](https://gulpjs.com/) for Gulp tasks
-- [Just](https://github.com/casey/just) for Just tasks
-- [mise](https://mise.jdx.dev/) for mise tasks
-
-**DevOps:**
-
-- [Docker](https://www.docker.com/) for Docker and Docker Compose tasks
-- [act](https://github.com/nektos/act) and Docker for GitHub Actions workflows
-
-**Data Science & Notebooks:**
-
-- [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) for Jupyter Notebook tasks
-  - The extension must be installed and a Jupyter Server must be configured
-  - See the [Jupyter Extension documentation](https://code.visualstudio.com/docs/datascience/jupyter-notebooks) for setup instructions
-  - Jupyter Notebooks (`.ipynb` files) appear as parent tasks with individual code cells as child tasks
-  - Clicking on a task opens the notebook; running executes the selected cell
-
-**Scripts:**
-
-- Bash, Zsh, or other shell interpreters for shell scripts
-- PowerShell for `.ps1` scripts
-- Command Prompt for `.bat` and `.cmd` scripts
-
-> **Installation Instructions:** Visit each tool's official website (linked above) for installation guides specific to your operating system.
 
 <a id="contributing"></a>
 
 ## 🤝 Contributing
+
+[Full Contributing Guide ↗](https://camalot.github.io/vscode-workspace-tasks/contributing/)
 
 Contributions are welcome! If you'd like to improve Workspace Tasks, here's how:
 
@@ -798,22 +271,12 @@ Contributions are welcome! If you'd like to improve Workspace Tasks, here's how:
 
 ### Development Setup
 
-```bash
-# Clone the repository
-git clone https://github.com/camalot/vscode-workspace-tasks.git
-cd vscode-workspace-tasks
-
-# Install dependencies
-npm install
-
-# Open in Visual Studio Code
-code .
-
-# Start the watch task to compile TypeScript
-npm run watch
-
-# Press F5 to launch the Extension Development Host
-```
+1. **Fork the repository**: `gh repo fork camalot/vscode-workspace-tasks`
+2. **Open in Visual Studio Code**: `code vscode-workspace-tasks`
+3. **Reopen in Dev Container**: When prompted, reopen the project in the recommended dev container for a consistent development environment
+4. **Install dependencies**: `npm install`
+5. **Run the extension**: Press `F5` to launch a new Extension Development Host instance with the extension loaded
+6. **Run tests**: `npm test` to run unit tests and `npm run test:coverage` for coverage reports
 
 ### Guidelines
 
@@ -822,21 +285,6 @@ npm run watch
 - Add tests for new features when applicable
 - Update documentation for user-facing changes
 - Ensure all tests pass before submitting
-
-### Test Reports
-
-- Run `npm run test:coverage` to generate coverage and test analytics reports for CI uploads.
-- Coverage output: `coverage/lcov.info`
-- JUnit test results output: `coverage/junit.xml`
-
-### Project Structure
-
-- `src/` - TypeScript source code
-  - `providers/` - Task providers for each task type
-  - `services/` - Shared services (caching, configuration, etc.)
-  - `libs/` - Utility libraries
-- `res/` - Resources (icons, schemas, syntaxes)
-- `sample/` - Sample workspaces for testing
 
 ## 📦 Contributors
 

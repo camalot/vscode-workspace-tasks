@@ -111,7 +111,7 @@ When reporting a bug, please include:
 ```markdown
 **Environment:**
 
-- Visual Studio Code: 1.95.0
+- Visual Studio Code: 1.105.1
 - Extension: 2.0.0
 - OS: Windows 11
 

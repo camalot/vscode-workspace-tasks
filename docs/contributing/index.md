@@ -31,22 +31,12 @@ Contributions are welcome! If you'd like to improve Workspace Tasks, here's how 
 
 ## Development Setup
 
-```bash
-# Clone the repository
-git clone https://github.com/camalot/vscode-workspace-tasks.git
-cd vscode-workspace-tasks
-
-# Install dependencies
-npm install
-
-# Open in Visual Studio Code
-code .
-
-# Start the watch task to compile TypeScript
-npm run watch
-
-# Press F5 to launch the Extension Development Host
-```
+1. **Fork the repository**: `gh repo fork camalot/vscode-workspace-tasks`
+2. **Open in Visual Studio Code**: `code vscode-workspace-tasks`
+3. **Reopen in Dev Container**: When prompted, reopen the project in the recommended dev container for a consistent development environment
+4. **Install dependencies**: `npm install`
+5. **Run the extension**: Press `F5` to launch a new Extension Development Host instance with the extension loaded
+6. **Run tests**: `npm test` to run unit tests and `npm run test:coverage` for coverage reports
 
 ---
 
@@ -65,6 +55,18 @@ npm run watch
 {: .tree}
 
 ``` text
+docs/                  Documentation (this site)
+├── _includes/         Reusable markdown snippets
+├── _plugins/          Jekyll plugins for custom functionality
+├── _sass/             Stylesheets for custom styling
+├── configuration/     Configuration settings documentation
+├── contributing/      Contributing guidelines
+├── features/          Feature documentation
+├── getting-started/   Getting started guides
+├── performance/       Performance optimization guides
+├── task-types/        Task types documentation
+└── troubleshooting/   Troubleshooting guides
+
 src/                   TypeScript source code
 ├── commands/          Command implementations
 ├── common/            Shared base classes
@@ -125,4 +127,4 @@ This project is licensed under the [Apache 2.0 License](https://github.com/camal
 
 ## Code of Conduct
 
-Please read the [Code of Conduct](https://github.com/camalot/vscode-workspace-tasks/blob/develop/CODE_OF_CONDUCT.md) before contributing.
+Please read the [Code of Conduct](contributing/code_of_conduct) before contributing.
