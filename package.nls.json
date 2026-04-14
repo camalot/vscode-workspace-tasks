@@ -11,15 +11,15 @@
   "config.group.taskEnv.title": "Task Environment Variables",
 
   "config.workspaceTasks.envVars.env": "Global environment variables applied to all tasks.",
-  "config.workspaceTasks.envVars.env.markdown": "Key-value pairs that are merged into every task's environment. Values from higher-precedence sources override these.",
+  "config.workspaceTasks.envVars.env.markdown": "Key-value pairs that are merged into every task's environment. Values from higher-precedence sources override these. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarsenv)",
   "config.workspaceTasks.envVars.envFiles": "One or more .env files loaded for all tasks (string, string array, or include/exclude glob object).",
-  "config.workspaceTasks.envVars.envFiles.markdown": "Paths/globs resolved relative to the workspace root. Glob expansions are sorted alphabetically. Supports a single path, an ordered array, or `{ include, exclude }` object.",
+  "config.workspaceTasks.envVars.envFiles.markdown": "Paths/globs resolved relative to the workspace root. Glob expansions are sorted alphabetically. Supports a single path, an ordered array, or `{ include, exclude }` object. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarsenvfiles)",
   "config.workspaceTasks.envVars.secretFiles": "One or more .secret files loaded for all tasks. Values never trigger secret-pattern warnings.",
-  "config.workspaceTasks.envVars.secretFiles.markdown": "Same format as `workspaceTasks.envVars.envFiles`. Files with a `.secret` extension are treated as explicitly secret — keys are injected without triggering the secret-name warning.",
+  "config.workspaceTasks.envVars.secretFiles.markdown": "Same format as `workspaceTasks.envVars.envFiles`. Files with a `.secret` extension are treated as explicitly secret — keys are injected without triggering the secret-name warning. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarssecretfiles)",
   "config.workspaceTasks.envVars.secretPatterns": "Key-name patterns that trigger a warning when a matching variable is declared in a non-secret source (e.g. env block or .env file).",
-  "config.workspaceTasks.envVars.secretPatterns.markdown": "Supports glob-style wildcard patterns (e.g. `*_TOKEN`). Variables whose names match these patterns but originate from a `.secret` file or VS Code SecretStorage are **never** warned about.",
+  "config.workspaceTasks.envVars.secretPatterns.markdown": "Supports glob-style wildcard patterns (e.g. `*_TOKEN`). Variables whose names match these patterns but originate from a `.secret` file or VS Code SecretStorage are **never** warned about. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarssecretfiles)",
   "config.workspaceTasks.envVars.taskEnv": "Per-task environment rules — inject env vars and secrets into any discovered task by matching on task name, type, source file, and/or workspace folder.",
-  "config.workspaceTasks.envVars.taskEnv.markdown": "Each rule has a `match` object (AND logic) and optional `env`, `envFiles`, `secretFiles`, and `secrets` properties. All matching rules are applied in array order; later rules override earlier rules per key.",
+  "config.workspaceTasks.envVars.taskEnv.markdown": "Each rule has a `match` object (AND logic) and optional `env`, `envFiles`, `secretFiles`, and `secrets` properties. All matching rules are applied in array order; later rules override earlier rules per key. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarstaskenv)",
 
   "command.addToFavorites": "Add to Favorites",
   "command.removeFromFavorites": "Remove from Favorites",
@@ -40,6 +40,8 @@
   "command.metrics.clearWorkspace": "Clear Workspace Metrics",
   "command.env.storeSecret": "Store Secret",
   "command.env.deleteSecret": "Delete Secret",
+  "command.env.updateSecret": "Update Secret",
+  "command.env.copySecretKey": "Copy Secret Key",
   "command.env.inspect": "Inspect Task Environment",
   "command.stopTask": "Stop Task",
   "command.stopCompoundTask": "Stop Compound Task (Queue)",
@@ -77,6 +79,7 @@
   "tree.recentTasks": "Recent Tasks",
 
   "config.workspaceTasks.debug": "Enable debug logging for Workspace Tasks",
+  "config.workspaceTasks.debug.markdown": "When enabled, the extension will output detailed debug logs to the WorkspaceTasks Output Channel. This can help with troubleshooting issues. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/general/debugging#workspacetasksdebug)",
 
   "config.workspaceTasks.task.actionBar": "Select which items should be shown in the task action bar for each task. This allows you to customize the actions available for tasks in the workspace. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-action.html#workspacetaskstaskactionbar)",
 
@@ -220,7 +223,7 @@
   "config.workspaceTasks.groups.compoundTasks.enabled.markdown": "When enabled, compound tasks (previously called 'Queues') will be grouped together in the task view. Otherwise, each compound task will be shown at the root level of the task view. [read more](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html#vscode-compound-tasks-in-the-compound-tasks-group)",
 
   "config.workspaceTasks.groups.expanded": "Expanded Groups",
-  "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, compound tasks, and recent tasks.",
+  "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, compound tasks, and recent tasks. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-grouping.html#workspacetasksgroupsexpanded)",
   "config.workspaceTasks.groups.expanded.favorites": "Favorites",
   "config.workspaceTasks.groups.expanded.compoundTasks": "Compound Tasks (Queues)",
   "config.workspaceTasks.groups.expanded.queue.deprecated": "Deprecated: use 'compoundTask' instead. Controls whether the Compound Tasks group is expanded by default.",
@@ -247,7 +250,7 @@
   "config.workspaceTasks.metrics.retentionDays.markdown": "Task metrics for tasks that have not run within this many days will be pruned when the extension starts. Set to `0` (the default) to keep metrics indefinitely. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/metrics.html#workspacetasksmetricsretentiondays)",
 
   "config.workspaceTasks.compoundTasks.defaultExecutionType": "Default Compound Task Execution Type",
-  "config.workspaceTasks.compoundTasks.defaultExecutionType.markdown": "Specify the default execution type for compound tasks (previously called 'Queues'). Options are 'sequential' or 'parallel'.",
+  "config.workspaceTasks.compoundTasks.defaultExecutionType.markdown": "Specify the default execution type for compound tasks (previously called 'Queues'). Options are 'sequential' or 'parallel'. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/compound-tasks.html#workspacetaskscompoundtasksdefaultexecutiontype)",
 
   "config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks": "Include Visual Studio Code Compound Tasks",
   "config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks.markdown": "When enabled along with `workspaceTasks.groups.compoundTasks.enabled`, compound tasks defined in Visual Studio Code (using `type: 'compound'` in `tasks.json`) will be included in the `Compound Tasks` group. They will still be defined in the normal tree structure based on their `group` and `label` even if this setting is disabled. [read more](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html#vscode-compound-tasks-in-the-compound-tasks-group)",
@@ -265,14 +268,14 @@
   "workspaceTasks.act.secretsFile.markdown": "Specify the path to a .env file containing secrets for Act. This file will be used to provide secret values when running GitHub Actions locally with Act. For examples of the file format see the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure). [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/github-actions.html#workspacetasksactsecretsfile)",
 
   "workspaceTasks.act.variables": "Variables for Act",
-  "workspaceTasks.act.variables.markdown": "Variables to pass to 'act'. Each key-value pair represents a variable name and its corresponding value.",
+  "workspaceTasks.act.variables.markdown": "Variables to pass to 'act'. Each key-value pair represents a variable name and its corresponding value. These variables will be made available to the GitHub Actions workflows when running locally with Act. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/act#workspacetasksactvariables)",
   "workspaceTasks.act.variablesFile": "Path to Act variables file",
   "workspaceTasks.act.variablesFile.markdown": "Path to the variables file for `act`. The file format is the same as `.env` file format. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/github-actions.html#workspacetasksactvariablesfile)",
 
   "config.workspaceTasks.applicationPath.ant": "Path to Ant executable",
   "config.workspaceTasks.applicationPath.ant.markdown": "Specify the path to the Ant executable. On Windows, if the path ends with `ant`, `.bat` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathant)",
   "config.workspaceTasks.ant.ansicon.enabled": "Enable ANSICON for Ant tasks",
-  "config.workspaceTasks.ant.ansicon.enabled.markdown": "When enabled, ANSICON will be used for Ant tasks to provide colored output in the terminal.",
+  "config.workspaceTasks.ant.ansicon.enabled.markdown": "When enabled, ANSICON will be used for Ant tasks to provide colored output in the terminal. This requires that the `workspaceTasks.applicationPath.ansicon` setting is configured with the path to the ANSICON executable. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/ant.html#workspacetasksantansiconenabled)",
   "config.workspaceTasks.applicationPath.ansicon": "Path to ANSICON executable",
   "config.workspaceTasks.applicationPath.ansicon.markdown": "Specify the path to the ANSICON executable. This is used to enable colored output for Ant tasks in the terminal. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathansicon)",
 
@@ -292,16 +295,16 @@
   "config.workspaceTasks.applicationPath.pipenv.markdown": "Specify the path to the [Pipenv](https://pipenv.pypa.io/en/latest/) executable. On Windows, if the path ends with `pipenv`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathpipenv)",
 
   "config.workspaceTasks.applicationPath.poe": "Path to Poe the Poet executable",
-  "config.workspaceTasks.applicationPath.poe.markdown": "Specify the path to the [Poe the Poet](https://poethepoet.natn.io/) executable. On Windows, if the path ends with `poe`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+  "config.workspaceTasks.applicationPath.poe.markdown": "Specify the path to the [Poe the Poet](https://poethepoet.natn.io/) executable. On Windows, if the path ends with `poe`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/#workspacetasksapplicationpathpoe)",
 
   "config.workspaceTasks.applicationPath.poetry": "Path to Poetry executable",
-  "config.workspaceTasks.applicationPath.poetry.markdown": "Specify the path to the [Poetry](https://python-poetry.org/) executable. On Windows, if the path ends with `poetry`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+  "config.workspaceTasks.applicationPath.poetry.markdown": "Specify the path to the [Poetry](https://python-poetry.org/) executable. On Windows, if the path ends with `poetry`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/#workspacetasksapplicationpathpoetry)",
 
   "config.workspaceTasks.applicationPath.make": "Path to Make executable",
   "config.workspaceTasks.applicationPath.make.markdown": "Specify the path to the Make executable. On Windows, if the path ends with `make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathmake)",
 
   "config.workspaceTasks.applicationPath.rake": "Path to Rake executable",
-  "config.workspaceTasks.applicationPath.rake.markdown": "Specify the path to the [Rake](https://ruby.github.io/rake/) executable. On all platforms, '~/` will be expanded to the user's home directory.",
+  "config.workspaceTasks.applicationPath.rake.markdown": "Specify the path to the [Rake](https://ruby.github.io/rake/) executable. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/#workspacetasksapplicationpathrake)",
 
   "config.workspaceTasks.applicationPath.maven": "Path to Maven executable",
   "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathmaven)",
@@ -310,22 +313,22 @@
   "config.workspaceTasks.applicationPath.deno.markdown": "Specify the path to the [Deno](https://deno.land/) executable. On Windows, if the path ends with `deno`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathdeno)",
 
   "config.workspaceTasks.applicationPath.cargo": "Path to Cargo executable",
-  "config.workspaceTasks.applicationPath.cargo.markdown": "Specify the path to the [Cargo](https://doc.rust-lang.org/cargo/) executable. On Windows, if the path ends with `cargo`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+  "config.workspaceTasks.applicationPath.cargo.markdown": "Specify the path to the [Cargo](https://doc.rust-lang.org/cargo/) executable. On Windows, if the path ends with `cargo`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/#workspacetasksapplicationpathcargo)",
 
   "config.workspaceTasks.applicationPath.cargo-make": "Path to cargo-make executable",
-  "config.workspaceTasks.applicationPath.cargo-make.markdown": "Specify the path to the [cargo-make](https://sagiegurari.github.io/cargo-make/) executable. cargo-make is a Rust task runner and build tool using TOML-based Makefile.toml files. On Windows, if the path ends with `cargo-make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory.",
+  "config.workspaceTasks.applicationPath.cargo-make.markdown": "Specify the path to the [cargo-make](https://sagiegurari.github.io/cargo-make/) executable. cargo-make is a Rust task runner and build tool using TOML-based Makefile.toml files. On Windows, if the path ends with `cargo-make`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/#workspacetasksapplicationpathcargo-make)",
 
   "config.workspaceTasks.enabledTaskTypes.cmake": "CMake",
   "config.workspaceTasks.applicationPath.cmake": "Path to CMake executable",
-  "config.workspaceTasks.applicationPath.cmake.markdown": "Specify the path to the [CMake](https://cmake.org/) executable. On Windows, if the path ends with `cmake`, `.exe` will be appended automatically. On all platforms, `~/` will be expanded to the user's home directory. Note that if cmake is already in your PATH, you can leave this the default value.",
+  "config.workspaceTasks.applicationPath.cmake.markdown": "Specify the path to the [CMake](https://cmake.org/) executable. On Windows, if the path ends with `cmake`, `.exe` will be appended automatically. On all platforms, `~/` will be expanded to the user's home directory. Note that if cmake is already in your PATH, you can leave this the default value. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetasksapplicationpathcmake)",
   "config.workspaceTasks.cmake.buildDirectory": "CMake build directory",
-  "config.workspaceTasks.cmake.buildDirectory.markdown": "Relative path from the `CMakeLists.txt` directory to the CMake binary (build) directory. Absolute paths are also accepted. Defaults to `build`.",
+  "config.workspaceTasks.cmake.buildDirectory.markdown": "Relative path from the `CMakeLists.txt` directory to the CMake binary (build) directory. Absolute paths are also accepted. Defaults to `build`. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakebuilddirectory)",
   "config.workspaceTasks.cmake.buildType": "CMake build type",
-  "config.workspaceTasks.cmake.buildType.markdown": "The CMake build type passed as `-DCMAKE_BUILD_TYPE` during configuration and `--config` during the build step. One of `Debug`, `Release`, `RelWithDebInfo`, or `MinSizeRel`.",
+  "config.workspaceTasks.cmake.buildType.markdown": "The CMake build type passed as `-DCMAKE_BUILD_TYPE` during configuration and `--config` during the build step. One of `Debug`, `Release`, `RelWithDebInfo`, or `MinSizeRel`. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakebuildtype)",
   "config.workspaceTasks.cmake.buildType.debug": "Debug build with no optimization and full debug information.",
   "config.workspaceTasks.cmake.buildType.release": "Fully optimized release build with no debug information.",
   "config.workspaceTasks.cmake.buildType.relwithdebinfo": "Optimized build that also includes debug information.",
   "config.workspaceTasks.cmake.buildType.minsizerel": "Optimized for minimum binary size.",
   "config.workspaceTasks.cmake.generator": "CMake generator",
-  "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default."
+  "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakegenerator)"
 }

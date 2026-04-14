@@ -32,6 +32,19 @@ function makeEnvMap(entries: Record<string, string>): Map<string, IResolvedEnvEn
   return map;
 }
 
+function makeSecretEnvMap(entries: Record<string, { value: string; source: IResolvedEnvEntry['source'] }>): Map<string, IResolvedEnvEntry> {
+  const map = new Map<string, IResolvedEnvEntry>();
+  for (const [key, { value, source }] of Object.entries(entries)) {
+    map.set(key, {
+      value,
+      source,
+      sourceLabel: source,
+      isSecret: true,
+    });
+  }
+  return map;
+}
+
 // ---------------------------------------------------------------------------
 // Suite
 // ---------------------------------------------------------------------------
@@ -139,5 +152,60 @@ suite('Task Factory — Env Injection (Phase 3)', () => {
     assert.strictEqual(created.native, false);
     const execution = created.task.execution as vscode.ShellExecution;
     assert.deepStrictEqual(execution.options?.env, { SHELL_VAR: 'shell_value' });
+  });
+
+  test('injects secret values (isSecret=true, taskSecretFile source) into execution env', async () => {
+    service.resolveTaskEnv = async () =>
+      makeSecretEnvMap({ DB_PASSWORD: { value: 'hunter2', source: 'taskSecretFile' } });
+
+    const pkgPath = path.join(rootPath, 'package.json');
+    const uri = vscode.Uri.file(pkgPath);
+    const item = makeItem('deploy', 'npm', uri);
+
+    const created = await createTaskForItem(item);
+
+    assert.ok(created, 'Should return a CreatedTask');
+    assert.strictEqual(created.native, false);
+    const execution = created.task.execution as vscode.ShellExecution;
+    assert.deepStrictEqual(execution.options?.env, { DB_PASSWORD: 'hunter2' });
+  });
+
+  test('injects secret values (isSecret=true, ruleSecretStorage source) into execution env', async () => {
+    service.resolveTaskEnv = async () =>
+      makeSecretEnvMap({ DEPLOY_TOKEN: { value: 'tok-abc', source: 'ruleSecretStorage' } });
+
+    const pkgPath = path.join(rootPath, 'package.json');
+    const uri = vscode.Uri.file(pkgPath);
+    const item = makeItem('publish', 'npm', uri);
+
+    const created = await createTaskForItem(item);
+
+    assert.ok(created, 'Should return a CreatedTask');
+    assert.strictEqual(created.native, false);
+    const execution = created.task.execution as vscode.ShellExecution;
+    assert.deepStrictEqual(execution.options?.env, { DEPLOY_TOKEN: 'tok-abc' });
+  });
+
+  test('injects mixed secret and non-secret values into execution env', async () => {
+    const mixedMap = new Map<string, IResolvedEnvEntry>([
+      ['NODE_ENV', { value: 'production', source: 'globalSetting', sourceLabel: 'global.env', isSecret: false }],
+      ['DB_PASSWORD', { value: 's3cr3t', source: 'taskSecretFile', sourceLabel: 'task.secretFile', isSecret: true }],
+      ['API_TOKEN', { value: 'mytoken', source: 'ruleSecretStorage', sourceLabel: 'rule.secretStorage', isSecret: true }],
+    ]);
+    service.resolveTaskEnv = async () => mixedMap;
+
+    const pkgPath = path.join(rootPath, 'package.json');
+    const uri = vscode.Uri.file(pkgPath);
+    const item = makeItem('start', 'npm', uri);
+
+    const created = await createTaskForItem(item);
+
+    assert.ok(created, 'Should return a CreatedTask');
+    const execution = created.task.execution as vscode.ShellExecution;
+    assert.deepStrictEqual(execution.options?.env, {
+      NODE_ENV: 'production',
+      DB_PASSWORD: 's3cr3t',
+      API_TOKEN: 'mytoken',
+    });
   });
 });

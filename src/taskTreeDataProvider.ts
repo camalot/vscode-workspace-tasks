@@ -35,6 +35,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   private refreshTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   private context: vscode.ExtensionContext;
+  private cachedSecretKeys: string[] = [];
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -144,6 +145,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     this._onDidChangeTreeData.fire();
   }
 
+  /** Refresh local tree data if the provider singleton has been initialized. */
+  public static tryRefreshLocal(): void {
+    TaskTreeDataProvider.instance?.refreshLocal();
+  }
+
   async collapseAllTaskGroups(): Promise<void> {
     if (this.views.length === 0) {
       return;
@@ -205,6 +211,14 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     } else {
       const cacheService = TaskCacheService.getInstance();
       const allTasks = cacheService.getAllTasks();
+      // Refresh stored-secret key list before building the tree so the Secrets group is current.
+      if (this.context?.secrets) {
+        try {
+          this.cachedSecretKeys = await this.context.secrets.keys();
+        } catch {
+          this.cachedSecretKeys = [];
+        }
+      }
       this.currentRoots = this.organizeTasks(allTasks);
 
       // Inject a loading placeholder for each in-flight provider that has not yet committed tasks.
@@ -277,7 +291,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     return salt ? `${base}:${salt}` : base;
   }
 
-  private organizeTasks(tasks: TaskItem[]): TaskItem[] {
+  private organizeTasks(tasks: TaskItem[], secretKeys: string[] = this.cachedSecretKeys): TaskItem[] {
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const groupsEnabled = config.get<boolean>('groups.enabled', true);
     const useParentFolder = config.get<boolean>('groups.useParentFolder', false);
@@ -1159,6 +1173,43 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     // Add remaining project roots
     rootItems.push(...workspaceRoots);
+
+    // Add Secrets group at the end (only when secrets exist)
+    if (secretKeys.length > 0) {
+      const secretsGroupId = this.makeId('secrets', rootSalt);
+      const secretsGroup = new TaskItem(
+        'Secrets',
+        this.getExpandedState(secretsGroupId, vscode.TreeItemCollapsibleState.Collapsed),
+        'secrets',
+      );
+      secretsGroup.id = secretsGroupId;
+      secretsGroup.iconPath = new vscode.ThemeIcon('key');
+      secretsGroup.contextValue = 'secrets';
+      secretsGroup.tooltip = 'Secrets stored in VS Code SecretStorage';
+
+      for (const secretKey of secretKeys.slice().sort()) {
+        const secretItem = new TaskItem(
+          secretKey,
+          vscode.TreeItemCollapsibleState.None,
+          'storedSecret',
+        );
+        secretItem.id = `secret:${secretKey}`;
+        secretItem.iconPath = new vscode.ThemeIcon('lock');
+        secretItem.contextValue = 'storedSecret';
+        secretItem.tooltip = `SecretStorage key: ${secretKey}`;
+        secretItem.parent = secretsGroup;
+        // Override the default run-task click behaviour: double-click (or single-click)
+        // should copy the key name to clipboard, not attempt to run a task.
+        secretItem.command = {
+          command: 'workspaceTasks.env.copySecretKey',
+          title: 'Copy Secret Key',
+          arguments: [secretKey],
+        };
+        secretsGroup.children.push(secretItem);
+      }
+
+      rootItems.push(secretsGroup);
+    }
 
     return rootItems;
   }

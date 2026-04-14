@@ -95,6 +95,53 @@ When enabled, a **Recent Tasks** group is shown at the top of the task tree, sur
 
 ---
 
+### workspaceTasks.groups.compoundTasks.enabled
+
+**Type:** `boolean`
+**Default:** `false`
+
+When enabled, a **Compound Tasks** group is shown at the top of the task tree, listing all defined compound task sequences for quick access. Has no effect if compound tasks are not configured.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.groups.compoundTasks.enabled": true
+}
+```
+
+---
+
+### workspaceTasks.groups.expanded
+
+**Type:** `object`
+**Default:** `{ "favorites": true, "compoundTask": true, "recent": true }`
+
+Controls which special group headers are **expanded** by default when the task tree loads. Each property corresponds to one of the pinned groups at the top of the tree. Set a key to `false` to start that group collapsed.
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `favorites` | `boolean` | `true` | Whether the **Favorites** group starts expanded |
+| `compoundTask` | `boolean` | `true` | Whether the **Compound Tasks** group starts expanded |
+| `recent` | `boolean` | `true` | Whether the **Recent Tasks** group starts expanded |
+| `queue` | `boolean` | — | **Deprecated.** Use `compoundTask` instead |
+
+> **Note:** The `queue` key is retained for backward compatibility only. Set `compoundTask` instead.
+
+**Example — collapse Recent Tasks on startup:**
+
+```json
+{
+  "workspaceTasks.groups.expanded": {
+    "favorites": true,
+    "compoundTask": true,
+    "recent": false
+  }
+}
+```
+
+---
+
 ## Related
 
 - [Recent Tasks](../../features/recents)

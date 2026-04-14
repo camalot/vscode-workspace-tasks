@@ -292,4 +292,58 @@ suite('InspectTaskEnvCommand Test Suite', () => {
 
     assert.ok(infoMessages.some((m) => m.includes('No tasks')));
   });
+
+  // ── Source label verification for all rule sources ─────────────────────────
+
+  test('shows rule.secretFile source label for ruleSecretFile entry (value redacted)', async () => {
+    resolvedEnvMap.set('DB_CREDS', makeEntry('secret-creds', 'ruleSecretFile', true, '/project/.secrets'));
+    const item = makeTaskItem('deploy', 'shell');
+    await cmd.run(item);
+
+    const tableLines = channelLines.filter((l) => l.includes('DB_CREDS'));
+    assert.ok(tableLines.length > 0, 'Should render DB_CREDS');
+    assert.ok(tableLines[0].includes('rule.secretFile'), 'Should show rule.secretFile source label');
+    assert.ok(tableLines[0].includes('***'), 'Secret value should be redacted');
+    assert.ok(!tableLines[0].includes('secret-creds'), 'Raw value must not appear');
+  });
+
+  test('shows rule.env source label for ruleEnv entry', async () => {
+    resolvedEnvMap.set('NPM_REGISTRY', makeEntry('https://example.com', 'ruleEnv', false));
+    const item = makeTaskItem('publish', 'npm');
+    await cmd.run(item);
+
+    const tableLines = channelLines.filter((l) => l.includes('NPM_REGISTRY'));
+    assert.ok(tableLines.length > 0, 'Should render NPM_REGISTRY');
+    assert.ok(tableLines[0].includes('rule.env'), 'Should show rule.env source label');
+  });
+
+  test('shows warning section for suspicious keys from ruleEnv source', async () => {
+    resolvedEnvMap.set('APP_SECRET_KEY', makeEntry('abc123', 'ruleEnv', false));
+    const item = makeTaskItem('deploy', 'npm');
+    await cmd.run(item);
+
+    assert.ok(channelLines.some((l) => l.includes('Warning')), 'Should show warning section');
+    assert.ok(channelLines.some((l) => l.includes('APP_SECRET_KEY')), 'Warning should mention APP_SECRET_KEY');
+  });
+
+  test('does not show warning for ruleSecretFile entry even if key matches pattern', async () => {
+    resolvedEnvMap.set('APP_TOKEN', makeEntry('tok', 'ruleSecretFile', true));
+    const item = makeTaskItem('deploy', 'npm');
+    await cmd.run(item);
+
+    assert.ok(!channelLines.some((l) => l.includes('Warning')), 'ruleSecretFile entry must NOT trigger warning');
+  });
+
+  test('an npm task with matching ruleEnv rule shows rule-sourced entries in table', async () => {
+    // Simulate: npm task has no workspace-tasks.json, only rule-based env
+    resolvedEnvMap.set('NPM_CONFIG_REGISTRY', makeEntry('https://registry.npmjs.org', 'ruleEnv', false));
+    resolvedEnvMap.set('PUBLISH_TOKEN', makeEntry('***hidden***', 'ruleSecretStorage', true));
+    const npmItem = makeTaskItem('publish', 'npm');
+    await cmd.run(npmItem);
+
+    assert.ok(channelLines.some((l) => l.includes('NPM_CONFIG_REGISTRY')), 'Rule env entry should appear');
+    assert.ok(channelLines.some((l) => l.includes('PUBLISH_TOKEN')), 'Rule secret entry should appear');
+    assert.ok(channelLines.some((l) => l.includes('rule.env')), 'rule.env source should be shown');
+    assert.ok(channelLines.some((l) => l.includes('rule.secretStorage')), 'rule.secretStorage source should be shown');
+  });
 });

@@ -1,6 +1,7 @@
 import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
 import { TaskEnvService } from '../services/taskEnvService';
+import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 
 /**
  * Command: `workspaceTasks.env.storeSecret`
@@ -15,7 +16,7 @@ export class StoreSecretCommand extends BaseCommand {
     super('env.storeSecret', context);
   }
 
-  async run(): Promise<void> {
+  async run(_arg?: unknown): Promise<void> {
     const key = await vscode.window.showInputBox({
       title: 'Store Secret — Key Name',
       prompt: 'Enter the SecretStorage key (e.g. myapp.deploy-token)',
@@ -43,6 +44,7 @@ export class StoreSecretCommand extends BaseCommand {
 
     await this.context.secrets.store(key.trim(), value);
     TaskEnvService.getInstance().fireEnvSourcesChanged();
+    TaskTreeDataProvider.tryRefreshLocal();
 
     void vscode.window.showInformationMessage(`Secret "${key.trim()}" stored successfully.`);
   }

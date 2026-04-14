@@ -338,10 +338,19 @@ export class TaskEnvService {
     this.fileWatchers.forEach((w) => w.dispose());
     this.fileWatchers = [];
 
-    const patterns = [
+    const patterns: string[] = [
       ...this.extractWatchPatterns(this.globalEnvFiles),
       ...this.extractWatchPatterns(this.globalSecretFiles),
     ];
+
+    // Also watch envFiles/secretFiles declared in taskEnv rules
+    for (const rule of this.taskEnvRules) {
+      if (rule.enabled !== false) {
+        patterns.push(...this.extractWatchPatterns(rule.envFiles));
+        patterns.push(...this.extractWatchPatterns(rule.secretFiles));
+      }
+    }
+
     const uniquePatterns = [...new Set(patterns)];
     if (uniquePatterns.length === 0) {
       return;

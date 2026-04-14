@@ -137,10 +137,12 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Invalidate the task cache when env/secret sources change so the next task run
-  // picks up the fresh variable values.
+  // picks up the fresh variable values.  Also clear stale secret-warning diagnostics
+  // so they are re-evaluated on the next task run.
   context.subscriptions.push(
     TaskEnvService.getInstance().onDidChangeEnvSources(() => {
       TaskFilesService.getInstance().invalidateCache();
+      TaskSecretWarningService.getInstance().clearAllDiagnostics();
     })
   );
 

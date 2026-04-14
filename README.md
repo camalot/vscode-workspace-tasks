@@ -24,6 +24,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [📋 Compound Tasks (Queues)](#task-queues)
 - [🙈 Hide Tasks & Groups](#hide-tasks--groups)
 - [🕰️ Task History](#task-history)
+- [🔐 Secrets Management](#secrets-management)
 - [⚙️ Configuration](#configuration)
   - [⚙️ General](https://camalot.github.io/vscode-workspace-tasks/configuration/general/)
   - [🔍 Task Discovery](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/)
@@ -60,6 +61,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
 - **🎭 GitHub Actions Support** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** - Define reusable task templates with dynamic inputs
+- **🔐 Environment Variable & Secrets Management** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette
 - **🚫 Task Filtering** - Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** - Hide individual tasks or entire task groups from view
 - **🕰️ Task History, Statistics & Dashboard** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
@@ -574,6 +576,69 @@ workspace-folder/
 - **Performance Issues** - Reduce depth if task discovery is slow
 - **Focused Workflows** - Limit to top-level tasks when working on specific projects
 - **Deep Structures** - Use `null` for full discovery in complex nested project layouts
+
+<a id="secrets-management"></a>
+
+## 🔐 Secrets Management
+
+Workspace Tasks integrates with VS Code's built-in `SecretStorage` API to store sensitive values (API keys, passwords, tokens) securely on your machine — encrypted at rest and never synced.
+
+### Secrets Tree Group
+
+When at least one secret is stored, a **Secrets** group appears at the top of the Workspace Tasks tree. Each entry shows the secret **key name** (never the value); hovering or right-clicking reveals all available actions.
+
+![Secrets tree group showing stored secret key entries](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/screenshots/secrets-tree.png)
+
+#### Action Bar (per secret item)
+
+| Icon | Action | Description |
+|------|--------|-------------|
+| `$(copy)` | **Copy Secret Key** | Copies the key name to the clipboard |
+| `$(edit)` | **Update Secret** | Prompts for a new value and updates the stored secret |
+| `$(trash)` | **Delete Secret** | Prompts for confirmation and permanently removes the secret |
+
+> **Tip:** Double-clicking a secret item copies its key name to the clipboard.
+
+#### Right-Click Context Menu (secret item)
+
+The context menu for each secret item exposes the same three actions: **Copy Secret Key**, **Update Secret**, and **Delete Secret**.
+
+#### Right-Click Context Menu (Secrets group header)
+
+Right-clicking the **Secrets** group header provides the **Store Secret** action to add a new secret without opening the Command Palette.
+
+### Command Palette
+
+All secrets operations are also available keyboard-first via the Command Palette (`Ctrl+Shift+P` / `⇧⌘P`):
+
+| Command | Description |
+|---------|-------------|
+| `Workspace Tasks: Store Secret` | Prompts for a key name and value; saves to SecretStorage |
+| `Workspace Tasks: Update Secret` | Shows a QuickPick of existing keys; prompts for the new value |
+| `Workspace Tasks: Delete Secret` | Shows a QuickPick of existing keys; deletes after confirmation |
+| `Workspace Tasks: Copy Secret Key` | Shows a QuickPick of existing keys; copies the selected key name to the clipboard |
+
+### Using Secrets in Tasks
+
+Map stored secrets to environment variable names using the `secrets` field in your task configuration:
+
+```jsonc
+{
+  "workspaceTasks.envVars.taskEnv": [
+    {
+      "match": { "taskType": "npm" },
+      "secrets": {
+        "NPM_TOKEN": "myapp.npm-publish-token",
+        "DB_PASSWORD": "myapp.db-password"
+      }
+    }
+  ]
+}
+```
+
+For full details on the fourteen-layer precedence model, secret file support, and per-task rules, see the [Environment Variables & Secrets documentation](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables/).
+
+---
 
 ## 🔧 Advanced Features
 

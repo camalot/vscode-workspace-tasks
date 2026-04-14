@@ -506,6 +506,16 @@
         "icon": "$(trash)"
       },
       {
+        "command": "workspaceTasks.env.updateSecret",
+        "title": "%command.env.updateSecret%",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "workspaceTasks.env.copySecretKey",
+        "title": "%command.env.copySecretKey%",
+        "icon": "$(copy)"
+      },
+      {
         "command": "workspaceTasks.env.inspect",
         "title": "%command.env.inspect%",
         "icon": "$(symbol-variable)"
@@ -936,6 +946,7 @@
           },
           "workspaceTasks.groups.expanded": {
             "type": "object",
+            "additionalProperties": false,
             "markdownDescription": "%config.workspaceTasks.groups.expanded.markdown%",
             "properties": {
               "favorites": {
@@ -1197,7 +1208,9 @@
             "type": "object",
             "description": "%config.workspaceTasks.envVars.env%",
             "markdownDescription": "%config.workspaceTasks.envVars.env.markdown%",
-            "additionalProperties": { "type": "string" },
+            "additionalProperties": {
+              "type": "string"
+            },
             "default": {},
             "scope": "resource"
           },
@@ -1205,15 +1218,34 @@
             "description": "%config.workspaceTasks.envVars.envFiles%",
             "markdownDescription": "%config.workspaceTasks.envVars.envFiles.markdown%",
             "oneOf": [
-              { "type": "string" },
-              { "type": "array", "items": { "type": "string" } },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               {
                 "type": "object",
                 "properties": {
-                  "include": { "type": "array", "items": { "type": "string" } },
-                  "exclude": { "type": "array", "items": { "type": "string" } }
+                  "include": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "exclude": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
                 },
-                "required": ["include"],
+                "required": [
+                  "include"
+                ],
                 "additionalProperties": false
               }
             ],
@@ -1224,15 +1256,34 @@
             "description": "%config.workspaceTasks.envVars.secretFiles%",
             "markdownDescription": "%config.workspaceTasks.envVars.secretFiles.markdown%",
             "oneOf": [
-              { "type": "string" },
-              { "type": "array", "items": { "type": "string" } },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               {
                 "type": "object",
                 "properties": {
-                  "include": { "type": "array", "items": { "type": "string" } },
-                  "exclude": { "type": "array", "items": { "type": "string" } }
+                  "include": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "exclude": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
                 },
-                "required": ["include"],
+                "required": [
+                  "include"
+                ],
                 "additionalProperties": false
               }
             ],
@@ -1241,7 +1292,9 @@
           },
           "workspaceTasks.envVars.secretPatterns": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "%config.workspaceTasks.envVars.secretPatterns%",
             "markdownDescription": "%config.workspaceTasks.envVars.secretPatterns.markdown%",
             "default": [
@@ -1263,7 +1316,9 @@
             "scope": "resource",
             "items": {
               "type": "object",
-              "required": ["match"],
+              "required": [
+                "match"
+              ],
               "additionalProperties": false,
               "properties": {
                 "match": {
@@ -1278,15 +1333,29 @@
                     "taskType": {
                       "description": "Task source/type (e.g. 'npm', 'shell'). Accepts a string or array of strings.",
                       "oneOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
                       ]
                     },
                     "source": {
                       "description": "Source file glob pattern(s) to match against the task definition file path.",
                       "oneOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
                       ]
                     },
                     "workspaceFolder": {
@@ -1298,20 +1367,41 @@
                 "env": {
                   "type": "object",
                   "description": "Inline environment variables to inject into matched tasks.",
-                  "additionalProperties": { "type": "string" }
+                  "additionalProperties": {
+                    "type": "string"
+                  }
                 },
                 "envFiles": {
                   "description": "One or more .env files to load for matched tasks.",
                   "oneOf": [
-                    { "type": "string" },
-                    { "type": "array", "items": { "type": "string" } },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     {
                       "type": "object",
                       "properties": {
-                        "include": { "type": "array", "items": { "type": "string" } },
-                        "exclude": { "type": "array", "items": { "type": "string" } }
+                        "include": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "exclude": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
                       },
-                      "required": ["include"],
+                      "required": [
+                        "include"
+                      ],
                       "additionalProperties": false
                     }
                   ]
@@ -1319,15 +1409,34 @@
                 "secretFiles": {
                   "description": "One or more .secret files to load for matched tasks (never triggers secret-pattern warnings).",
                   "oneOf": [
-                    { "type": "string" },
-                    { "type": "array", "items": { "type": "string" } },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     {
                       "type": "object",
                       "properties": {
-                        "include": { "type": "array", "items": { "type": "string" } },
-                        "exclude": { "type": "array", "items": { "type": "string" } }
+                        "include": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "exclude": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
                       },
-                      "required": ["include"],
+                      "required": [
+                        "include"
+                      ],
                       "additionalProperties": false
                     }
                   ]
@@ -1335,7 +1444,9 @@
                 "secrets": {
                   "type": "object",
                   "description": "Maps environment variable names to VS Code SecretStorage keys.",
-                  "additionalProperties": { "type": "string" }
+                  "additionalProperties": {
+                    "type": "string"
+                  }
                 },
                 "enabled": {
                   "type": "boolean",
@@ -1470,7 +1581,7 @@
           "workspaceTasks.act.variablesFile": {
             "type": "string",
             "default": "",
-            "description": "Path to a file containing variables to pass to act (e.g. .vars).",
+            "markdownDescription": "%workspaceTasks.act.variablesFile.markdown%",
             "scope": "resource"
           },
           "workspaceTasks.act.variables": {
@@ -1478,7 +1589,6 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "%workspaceTasks.act.variables%",
             "markdownDescription": "%workspaceTasks.act.variables.markdown%",
             "scope": "resource"
           },
@@ -1597,6 +1707,11 @@
         {
           "command": "workspaceTasks.resetFilteredTasks",
           "group": "z_filter_reset@7",
+          "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
+        },
+        {
+          "command": "workspaceTasks.env.storeSecret",
+          "group": "z_secrets@1",
           "when": "view == workspaceTasksView || view == workspaceTasksExplorer"
         }
       ],
@@ -1857,6 +1972,46 @@
           "command": "workspaceTasks.unhideGroup",
           "when": "(viewItem =~ /^filteredWorkspace/ || viewItem =~ /^filteredType/ || viewItem =~ /^filteredFolder/) && workspaceTasks.showHiddenMode",
           "group": "taskFiltering@2"
+        },
+        {
+          "command": "workspaceTasks.env.storeSecret",
+          "when": "viewItem == secrets",
+          "group": "inline@1"
+        },
+        {
+          "command": "workspaceTasks.env.storeSecret",
+          "when": "viewItem == secrets",
+          "group": "1_secrets@1"
+        },
+        {
+          "command": "workspaceTasks.env.copySecretKey",
+          "when": "viewItem == storedSecret",
+          "group": "inline@1"
+        },
+        {
+          "command": "workspaceTasks.env.updateSecret",
+          "when": "viewItem == storedSecret",
+          "group": "inline@2"
+        },
+        {
+          "command": "workspaceTasks.env.deleteSecret",
+          "when": "viewItem == storedSecret",
+          "group": "inline@3"
+        },
+        {
+          "command": "workspaceTasks.env.copySecretKey",
+          "when": "viewItem == storedSecret",
+          "group": "1_secrets@1"
+        },
+        {
+          "command": "workspaceTasks.env.updateSecret",
+          "when": "viewItem == storedSecret",
+          "group": "1_secrets@2"
+        },
+        {
+          "command": "workspaceTasks.env.deleteSecret",
+          "when": "viewItem == storedSecret",
+          "group": "1_secrets@3"
         }
       ]
     }

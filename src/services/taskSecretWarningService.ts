@@ -7,6 +7,7 @@ import { LoggerService } from './loggerService';
 
 const SUPPRESS_KEY_PREFIX = 'workspaceTasks.secretWarning.suppressed.';
 const LEARN_MORE_URL = 'https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html';
+const DIAGNOSTIC_SOURCE = 'Workspace Tasks';
 
 /**
  * Singleton service that analyses a resolved env map for security risks and
@@ -25,6 +26,7 @@ export class TaskSecretWarningService {
   private static _instance: TaskSecretWarningService;
   private readonly logger = LoggerService.getInstance();
   private context?: vscode.ExtensionContext;
+  private diagnosticCollection!: vscode.DiagnosticCollection;
 
   private constructor() {}
 
@@ -36,7 +38,20 @@ export class TaskSecretWarningService {
   }
 
   public initialize(context: vscode.ExtensionContext): void {
+    // Dispose any previously created collection (e.g. when re-initialised in tests)
+    this.diagnosticCollection?.dispose();
     this.context = context;
+    this.diagnosticCollection = vscode.languages.createDiagnosticCollection('workspaceTasks');
+    context.subscriptions.push(this.diagnosticCollection);
+  }
+
+  /**
+   * Removes all diagnostics from the Problems panel.
+   * Called whenever env / secret sources change so that stale warnings are cleared
+   * before the next task run re-evaluates the files.
+   */
+  public clearAllDiagnostics(): void {
+    this.diagnosticCollection?.clear();
   }
 
   /**
@@ -79,6 +94,9 @@ export class TaskSecretWarningService {
         continue;
       }
 
+      // Add entries to the VS Code Problems panel
+      await this.addSuspiciousKeyDiagnostics(filePath, keys);
+
       const keyList = keys.map((k) => `\`${k}\``).join(', ');
       const basename = path.basename(filePath);
       const msg =
@@ -92,6 +110,7 @@ export class TaskSecretWarningService {
       if (action === 'Learn more') {
         await vscode.env.openExternal(vscode.Uri.parse(LEARN_MORE_URL));
       } else if (action === "Don't warn again") {
+        this.diagnosticCollection.delete(vscode.Uri.file(filePath));
         await this.suppress(filePath);
       }
     }
@@ -118,6 +137,9 @@ export class TaskSecretWarningService {
         continue;
       }
 
+      // Add entry to the VS Code Problems panel
+      this.addSecretFileDiagnostic(filePath);
+
       const basename = path.basename(filePath);
       const msg = `\`${basename}\` is tracked by git. Secret files should be gitignored.`;
 
@@ -127,9 +149,103 @@ export class TaskSecretWarningService {
       if (action === 'Learn more') {
         await vscode.env.openExternal(vscode.Uri.parse(LEARN_MORE_URL));
       } else if (action === "Don't warn again") {
+        this.diagnosticCollection.delete(vscode.Uri.file(filePath));
         await this.suppress(filePath);
       }
     }
+  }
+
+  // ── Diagnostics helpers ───────────────────────────────────────────────────
+
+  /**
+   * Adds `DiagnosticSeverity.Warning` entries to the Problems panel for each
+   * suspicious key in `keys` found in `filePath`.  Avoids duplicate entries
+   * across multiple `checkAndWarn` calls for the same file.
+   */
+  private async addSuspiciousKeyDiagnostics(filePath: string, keys: string[]): Promise<void> {
+    const uri = vscode.Uri.file(filePath);
+    const existing = [...(this.diagnosticCollection.get(uri) ?? [])];
+
+    for (const key of keys) {
+      const msg =
+        `Environment key \`${key}\` matches a secret pattern in a git-tracked file. ` +
+        `Move it to a \`.secret\` file or use "Workspace Tasks: Store Secret" to save it securely.`;
+
+      if (existing.some((d) => d.message === msg)) {
+        continue; // already reported
+      }
+
+      const range = await this.findKeyRangeInFile(filePath, key);
+      const diag = new vscode.Diagnostic(range, msg, vscode.DiagnosticSeverity.Warning);
+      diag.source = DIAGNOSTIC_SOURCE;
+      diag.code = 'suspicious-env-key';
+      existing.push(diag);
+    }
+
+    this.diagnosticCollection.set(uri, existing);
+  }
+
+  /**
+   * Adds a `DiagnosticSeverity.Warning` entry to the Problems panel indicating
+   * that a secret file is tracked by git.  Avoids duplicates.
+   */
+  private addSecretFileDiagnostic(filePath: string): void {
+    const uri = vscode.Uri.file(filePath);
+    const basename = path.basename(filePath);
+    const msg = `\`${basename}\` is tracked by git. Secret files should be gitignored.`;
+    const existing = [...(this.diagnosticCollection.get(uri) ?? [])];
+
+    if (existing.some((d) => d.message === msg)) {
+      return; // already reported
+    }
+
+    const diag = new vscode.Diagnostic(
+      new vscode.Range(0, 0, 0, 0),
+      msg,
+      vscode.DiagnosticSeverity.Warning,
+    );
+    diag.source = DIAGNOSTIC_SOURCE;
+    diag.code = 'secret-file-tracked';
+    existing.push(diag);
+    this.diagnosticCollection.set(uri, existing);
+  }
+
+  /**
+   * Attempts to locate the exact line and column of `key` inside `filePath`.
+   * Handles both `.json` files (`"KEY":` pattern) and `.env`-style files
+   * (`KEY=` / `export KEY=` pattern).  Falls back to `(0, 0, 0, 0)` on any
+   * failure (file not found, parse error, key not found).
+   */
+  private async findKeyRangeInFile(filePath: string, key: string): Promise<vscode.Range> {
+    try {
+      const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+      const lines = document.getText().split(/\r?\n/);
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const isJson = path.extname(filePath).toLowerCase() === '.json';
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (isJson) {
+          const m = new RegExp(`"(${escapedKey})"\\s*:`).exec(line);
+          if (m) {
+            const col = line.indexOf(m[0]);
+            return new vscode.Range(i, col, i, col + m[0].length);
+          }
+        } else {
+          // .env style: optional 'export ' prefix, optional whitespace around '='
+          const m = new RegExp(`^(?:export\\s+)?(${escapedKey})(?:\\s*=)`).exec(line.trimStart());
+          if (m) {
+            const col = line.indexOf(m[1]);
+            if (col >= 0) {
+              return new vscode.Range(i, col, i, col + key.length);
+            }
+          }
+        }
+      }
+    } catch {
+      // File not readable — fall back to the start of the file
+    }
+    return new vscode.Range(0, 0, 0, 0);
   }
 
   /**

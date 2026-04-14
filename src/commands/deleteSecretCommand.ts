@@ -1,6 +1,8 @@
 import BaseCommand from '../common/baseCommand';
 import * as vscode from 'vscode';
 import { TaskEnvService } from '../services/taskEnvService';
+import { TaskItem } from '../taskItem';
+import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 
 /**
  * Command: `workspaceTasks.env.deleteSecret`
@@ -14,7 +16,35 @@ export class DeleteSecretCommand extends BaseCommand {
     super('env.deleteSecret', context);
   }
 
-  async run(): Promise<void> {
+  async run(secretName?: string | TaskItem | unknown): Promise<void> {
+    // When invoked from the tree action bar / context menu, secretName is a TaskItem.
+    // When invoked from the command palette, it is undefined.
+    let key: string | undefined;
+    if (secretName instanceof TaskItem) {
+      key = (typeof secretName.label === 'string' ? secretName.label : secretName.originalLabel)?.trim() || undefined;
+    } else if (typeof secretName === 'string' && secretName.trim()) {
+      key = secretName.trim();
+    }
+
+    if (key) {
+      const confirmation = await vscode.window.showWarningMessage(
+        `Delete secret "${key}"? This cannot be undone.`,
+        { modal: true },
+        'Delete',
+      );
+
+      if (confirmation !== 'Delete') {
+        return;
+      }
+
+      await this.context.secrets.delete(key);
+      TaskEnvService.getInstance().fireEnvSourcesChanged();
+      TaskTreeDataProvider.tryRefreshLocal();
+
+      void vscode.window.showInformationMessage(`Secret "${key}" deleted.`);
+      return;
+    }
+    // Palette invocation: fall through to QuickPick flow below.
     const keys = await this.context.secrets.keys();
 
     if (keys.length === 0) {
@@ -47,6 +77,7 @@ export class DeleteSecretCommand extends BaseCommand {
 
     await this.context.secrets.delete(selected);
     TaskEnvService.getInstance().fireEnvSourcesChanged();
+    TaskTreeDataProvider.tryRefreshLocal();
 
     void vscode.window.showInformationMessage(`Secret "${selected}" deleted.`);
   }

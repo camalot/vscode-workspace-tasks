@@ -24,6 +24,7 @@ Workspace Tasks provides a rich set of features to help you discover, organize, 
 | [VSCode Compound Tasks](compound-tasks) | Wire multiple tasks together with `dependsOn` for sequential or parallel execution |
 | [Hide Tasks & Groups](hide-tasks) | Declutter your task view by hiding unused tasks |
 | [Task History](task-history) | Track and review all task executions with status and timing |
+| [Environment Variables & Secrets](task-environment-variables) | Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys from the tree view |
 
 ---
 

@@ -31,6 +31,7 @@ suite('TaskSecretWarningService Test Suite', () => {
 
   let originalShowWarningMessage: typeof vscode.window.showWarningMessage;
   let originalOpenExternal: typeof vscode.env.openExternal;
+  let originalOpenTextDocument: typeof vscode.workspace.openTextDocument;
   let originalIsGitTracked: TaskSecretWarningService['isGitTracked'];
 
   /** Records all warning messages shown during the test. */
@@ -47,13 +48,14 @@ suite('TaskSecretWarningService Test Suite', () => {
     gitTrackedFiles = new Set();
     workspaceStorage = new Map();
 
-    // Mock context with workspaceState
+    // Mock context with workspaceState and subscriptions
     mockContext = {
       workspaceState: {
         get: <T>(key: string) => workspaceStorage.get(key) as T | undefined,
         update: async (key: string, value: unknown) => { workspaceStorage.set(key, value); },
         keys: () => [...workspaceStorage.keys()],
       },
+      subscriptions: [],
     } as unknown as vscode.ExtensionContext;
 
     service.initialize(mockContext);
@@ -69,6 +71,11 @@ suite('TaskSecretWarningService Test Suite', () => {
     originalOpenExternal = vscode.env.openExternal;
     (vscode.env as any).openExternal = async () => true;
 
+    // Mock openTextDocument to avoid real filesystem access in tests.
+    // Returns an empty document so findKeyRangeInFile falls back to (0,0,0,0).
+    originalOpenTextDocument = vscode.workspace.openTextDocument.bind(vscode.workspace);
+    (vscode.workspace as any).openTextDocument = async (_uri: vscode.Uri) => ({ getText: () => '' });
+
     // Mock isGitTracked on the service instance
     originalIsGitTracked = service.isGitTracked.bind(service);
     service.isGitTracked = async (filePath: string) => gitTrackedFiles.has(filePath);
@@ -77,6 +84,7 @@ suite('TaskSecretWarningService Test Suite', () => {
   teardown(() => {
     (vscode.window as any).showWarningMessage = originalShowWarningMessage;
     (vscode.env as any).openExternal = originalOpenExternal;
+    (vscode.workspace as any).openTextDocument = originalOpenTextDocument;
     service.isGitTracked = originalIsGitTracked;
   });
 
@@ -286,5 +294,165 @@ suite('TaskSecretWarningService Test Suite', () => {
     await service.checkAndWarn('my-task', envMap, ['*_TOKEN']);
 
     assert.strictEqual(opened, true, 'Should open external URL when user clicks Learn more');
+  });
+
+  // ── Diagnostics (Problems panel) ────────────────────────────────────────
+
+  test('adds diagnostic to Problems panel for suspicious key in git-tracked file', async () => {
+    gitTrackedFiles.add('/project/.env');
+
+    const envMap = makeMap({
+      MY_TOKEN: makeEntry('abc', false, 'globalEnvFile', '/project/.env'),
+    });
+
+    await service.checkAndWarn('my-task', envMap, ['*_TOKEN']);
+
+    const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+    const diags = collection.get(vscode.Uri.file('/project/.env')) ?? [];
+    assert.strictEqual(diags.length, 1, 'Should have exactly one diagnostic');
+    assert.strictEqual(diags[0].severity, vscode.DiagnosticSeverity.Warning,
+      'Diagnostic severity should be Warning');
+    assert.ok(diags[0].message.includes('MY_TOKEN'),
+      'Diagnostic message should mention the key');
+    assert.strictEqual(diags[0].source, 'Workspace Tasks',
+      'Diagnostic source should be "Workspace Tasks"');
+    assert.strictEqual(diags[0].code, 'suspicious-env-key',
+      'Diagnostic code should be suspicious-env-key');
+  });
+
+  test('adds separate diagnostics per suspicious key in the same file', async () => {
+    gitTrackedFiles.add('/project/.env');
+
+    const envMap = makeMap({
+      MY_TOKEN: makeEntry('abc', false, 'globalEnvFile', '/project/.env'),
+      API_KEY:  makeEntry('xyz', false, 'globalEnvFile', '/project/.env'),
+    });
+
+    await service.checkAndWarn('my-task', envMap, ['*_TOKEN', 'API_KEY']);
+
+    const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+    const diags = collection.get(vscode.Uri.file('/project/.env')) ?? [];
+    assert.strictEqual(diags.length, 2, 'Should have one diagnostic per suspicious key');
+  });
+
+  test('adds diagnostic to Problems panel for git-tracked secret file', async () => {
+    gitTrackedFiles.add('/project/.secret');
+
+    const envMap = makeMap({
+      DB_PASSWORD: makeEntry('hunter2', true, 'globalSecretFile', '/project/.secret'),
+    });
+
+    await service.checkAndWarn('my-task', envMap, ['*_TOKEN']);
+
+    const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+    const diags = collection.get(vscode.Uri.file('/project/.secret')) ?? [];
+    assert.strictEqual(diags.length, 1, 'Should have one diagnostic for tracked secret file');
+    assert.strictEqual(diags[0].severity, vscode.DiagnosticSeverity.Warning);
+    assert.ok(diags[0].message.includes('tracked by git'));
+    assert.strictEqual(diags[0].code, 'secret-file-tracked');
+  });
+
+  test('no diagnostic is added when file is not git-tracked', async () => {
+    // gitTrackedFiles is empty — no file is git-tracked
+
+    const envMap = makeMap({
+      MY_TOKEN: makeEntry('abc', false, 'globalEnvFile', '/project/.env'),
+    });
+
+    await service.checkAndWarn('my-task', envMap, ['*_TOKEN']);
+
+    const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+    const diags = collection.get(vscode.Uri.file('/project/.env')) ?? [];
+    assert.strictEqual(diags.length, 0, 'Should have no diagnostics for untracked file');
+  });
+
+  test('diagnostic is removed from Problems panel when user chooses "Don\'t warn again"', async () => {
+    gitTrackedFiles.add('/project/.env');
+    warningAction = "Don't warn again";
+
+    const envMap = makeMap({
+      MY_TOKEN: makeEntry('abc', false, 'globalEnvFile', '/project/.env'),
+    });
+
+    await service.checkAndWarn('my-task', envMap, ['*_TOKEN']);
+
+    const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+    const diags = collection.get(vscode.Uri.file('/project/.env')) ?? [];
+    assert.strictEqual(diags.length, 0, 'Diagnostic should be cleared after suppression');
+  });
+
+  test('does not add duplicate diagnostics for the same key across multiple checkAndWarn calls', async () => {
+    gitTrackedFiles.add('/project/.env');
+
+    const envMap = makeMap({
+      MY_TOKEN: makeEntry('abc', false, 'globalEnvFile', '/project/.env'),
+    });
+
+    await service.checkAndWarn('task-a', envMap, ['*_TOKEN']);
+    await service.checkAndWarn('task-b', envMap, ['*_TOKEN']);
+
+    const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+    const diags = collection.get(vscode.Uri.file('/project/.env')) ?? [];
+    assert.strictEqual(diags.length, 1, 'Should not duplicate the same diagnostic across calls');
+  });
+
+  test('clearAllDiagnostics() removes all diagnostics from the Problems panel', async () => {
+    gitTrackedFiles.add('/project/.env');
+    gitTrackedFiles.add('/project/.secret');
+
+    const envMap = makeMap({
+      MY_TOKEN:    makeEntry('abc',    false, 'globalEnvFile',    '/project/.env'),
+      DB_PASSWORD: makeEntry('hunter2', true, 'globalSecretFile', '/project/.secret'),
+    });
+
+    await service.checkAndWarn('my-task', envMap, ['*_TOKEN']);
+
+    // Verify at least one diagnostic exists before clearing
+    const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+    const diagsBefore = collection.get(vscode.Uri.file('/project/.env')) ?? [];
+    assert.ok(diagsBefore.length > 0, 'Prerequisite: diagnostics should exist before clear');
+
+    service.clearAllDiagnostics();
+
+    const diagsAfter = collection.get(vscode.Uri.file('/project/.env')) ?? [];
+    assert.strictEqual(diagsAfter.length, 0, 'All diagnostics should be cleared');
+  });
+
+  test('findKeyRangeInFile returns correct range for .env file key', async () => {
+    const fileContent = '# Comment\nNODE_ENV=development\nMY_TOKEN=secret\n';
+    (vscode.workspace as any).openTextDocument = async (_uri: vscode.Uri) => ({
+      getText: () => fileContent,
+    });
+
+    const range = await (service as any).findKeyRangeInFile('/project/.env', 'MY_TOKEN') as vscode.Range;
+
+    assert.strictEqual(range.start.line, 2, 'Should find MY_TOKEN on line 2 (0-indexed)');
+    assert.strictEqual(range.start.character, 0, 'Should start at column 0');
+    assert.strictEqual(range.end.character, 'MY_TOKEN'.length, 'Should end after key name');
+  });
+
+  test('findKeyRangeInFile returns (0,0,0,0) when key is not present in file', async () => {
+    (vscode.workspace as any).openTextDocument = async (_uri: vscode.Uri) => ({
+      getText: () => 'NODE_ENV=development\n',
+    });
+
+    const range = await (service as any).findKeyRangeInFile('/project/.env', 'MISSING_KEY') as vscode.Range;
+
+    assert.strictEqual(range.start.line, 0);
+    assert.strictEqual(range.start.character, 0);
+    assert.strictEqual(range.end.line, 0);
+    assert.strictEqual(range.end.character, 0);
+  });
+
+  test('findKeyRangeInFile finds key in JSON file', async () => {
+    const fileContent = '{\n  "env": {\n    "MY_TOKEN": "abc"\n  }\n}';
+    (vscode.workspace as any).openTextDocument = async (_uri: vscode.Uri) => ({
+      getText: () => fileContent,
+    });
+
+    const range = await (service as any).findKeyRangeInFile('/project/settings.json', 'MY_TOKEN') as vscode.Range;
+
+    assert.strictEqual(range.start.line, 2, 'Should find MY_TOKEN on line 2');
+    assert.ok(range.start.character >= 0, 'Column should be within range');
   });
 });

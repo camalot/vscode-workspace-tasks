@@ -145,6 +145,99 @@ Pass a filename whose extension (or full name) VS Code file icon themes recogniz
 
 Filenames with unrecognized extensions fall back to the default task group icon.
 
+## Environment Variables
+
+Custom workspace tasks support per-task and language-block environment variables through four
+complementary fields. For a full explanation of precedence layers and the global settings tier,
+see [Task Environment Variables](task-environment-variables/).
+
+### `env` — Inline Key/Value Pairs
+
+Set variables directly in the task or language block. Per-task `env` overrides language-block
+`env` for the same key.
+
+```jsonc
+{
+  "shell": {
+    "version": "2.0.0",
+    "env": { "APP_ENV": "local" },
+    "tasks": [
+      {
+        "label": "Start Dev Server",
+        "command": "node server.js",
+        "env": { "PORT": "3000" }
+      }
+    ]
+  }
+}
+```
+
+### `envFiles` — Load from `.env` Files
+
+Accepts a single path/glob, an ordered array, or an include/exclude object. Variables from
+`.env` files whose names match `secretPatterns` trigger a warning in the Inspect command.
+
+```jsonc
+{
+  "shell": {
+    "version": "2.0.0",
+    "envFiles": { "include": [".env", ".env.*"], "exclude": ["**/.env.secret"] },
+    "tasks": [
+      {
+        "label": "Run Tests",
+        "command": "npm test",
+        "envFiles": ".env.test"
+      }
+    ]
+  }
+}
+```
+
+### `secretFiles` — Load from `.secret` Files
+
+Same format as `envFiles` but variables are tagged as secrets — they are **never** shown in
+plaintext in the Inspect command and never trigger the secret-pattern warning.
+
+```jsonc
+{
+  "shell": {
+    "tasks": [
+      {
+        "label": "Deploy",
+        "command": "deploy.sh",
+        "secretFiles": [".secrets", ".env.secret"]
+      }
+    ]
+  }
+}
+```
+
+### `secrets` — Reference VS Code SecretStorage
+
+Map environment variable names to VS Code `SecretStorage` keys (per-task only). The value is
+fetched at run time from the encrypted, per-machine store.
+
+To store a secret: open the Command Palette → **Workspace Tasks: Store Secret**.
+
+```jsonc
+{
+  "shell": {
+    "tasks": [
+      {
+        "label": "Deploy",
+        "command": "deploy.sh",
+        "secrets": {
+          "DEPLOY_TOKEN": "myapp.deploy-token",
+          "DB_PASSWORD": "myapp.db-password"
+        }
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## Schema Reference
 
 - **Top-level keys** - Task type identifiers (e.g., `dockerfile`, `shell`)
@@ -171,3 +264,7 @@ Filenames with unrecognized extensions fall back to the default task group icon.
   - **type** - The type of task. Examples include `"workspace"`, `"shell"`, `"process"`, etc.
   - **command** - Shell command (use `{{ .InputId }}` for variables)
   - **group** - Task group (`"build"`, `"test"`, etc.)
+  - **env** - Per-task inline environment variable overrides
+  - **envFiles** - Per-task `.env` file references (`string | string[] | { include, exclude }`)
+  - **secretFiles** - Per-task `.secret` file references (same format as `envFiles`)
+  - **secrets** - Per-task `SecretStorage` map (`Record<string, string>`: env var → storage key)

@@ -65,6 +65,9 @@ suite('TaskEnvService Test Suite', () => {
     (service as any).secretPatterns = [];
     (service as any).taskEnvRules = [];
     (service as any).fileWatchers = [];
+    // Reset the EventEmitter so tests that run after dispose() still get a live emitter
+    (service as any)._onDidChangeEnvSources = new vscode.EventEmitter<void>();
+    (service as any).onDidChangeEnvSources = (service as any)._onDidChangeEnvSources.event;
 
     mockConfigValues = {};
     mockFileContents = {};
@@ -499,5 +502,176 @@ suite('TaskEnvService Test Suite', () => {
     service.dispose();
 
     assert.strictEqual((service as any).fileWatchers.length, 0);
+  });
+
+  // ── Phase 7: File Watching & Cache Invalidation ───────────────────────────
+
+  test('File watcher: changing a watched file fires onDidChangeEnvSources', async () => {
+    let capturedChangeHandler: (() => void) | undefined;
+
+    const originalWorkspaceFoldersProp = Object.getOwnPropertyDescriptor(
+      vscode.workspace,
+      'workspaceFolders',
+    );
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      get: () => [{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }],
+      configurable: true,
+    });
+
+    (vscode.workspace as any).createFileSystemWatcher = () => ({
+      onDidChange: (handler: () => void) => {
+        capturedChangeHandler = handler;
+        return { dispose: () => {} };
+      },
+      onDidCreate: () => ({ dispose: () => {} }),
+      onDidDelete: () => ({ dispose: () => {} }),
+      dispose: () => {},
+    });
+
+    try {
+      (service as any).globalEnvFiles = '.env';
+      (service as any).setupFileWatchers();
+
+      let fired = false;
+      const disposable = service.onDidChangeEnvSources(() => { fired = true; });
+
+      assert.ok(capturedChangeHandler, 'onDidChange handler should have been registered');
+      capturedChangeHandler!();
+      assert.strictEqual(fired, true);
+
+      disposable.dispose();
+    } finally {
+      if (originalWorkspaceFoldersProp) {
+        Object.defineProperty(vscode.workspace, 'workspaceFolders', originalWorkspaceFoldersProp);
+      }
+    }
+  });
+
+  test('File watcher: creating a new env file fires onDidChangeEnvSources', async () => {
+    let capturedCreateHandler: (() => void) | undefined;
+
+    const originalWorkspaceFoldersProp = Object.getOwnPropertyDescriptor(
+      vscode.workspace,
+      'workspaceFolders',
+    );
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      get: () => [{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }],
+      configurable: true,
+    });
+
+    (vscode.workspace as any).createFileSystemWatcher = () => ({
+      onDidChange: () => ({ dispose: () => {} }),
+      onDidCreate: (handler: () => void) => {
+        capturedCreateHandler = handler;
+        return { dispose: () => {} };
+      },
+      onDidDelete: () => ({ dispose: () => {} }),
+      dispose: () => {},
+    });
+
+    try {
+      (service as any).globalSecretFiles = '.secrets';
+      (service as any).setupFileWatchers();
+
+      let fired = false;
+      const disposable = service.onDidChangeEnvSources(() => { fired = true; });
+
+      assert.ok(capturedCreateHandler, 'onDidCreate handler should have been registered');
+      capturedCreateHandler!();
+      assert.strictEqual(fired, true);
+
+      disposable.dispose();
+    } finally {
+      if (originalWorkspaceFoldersProp) {
+        Object.defineProperty(vscode.workspace, 'workspaceFolders', originalWorkspaceFoldersProp);
+      }
+    }
+  });
+
+  test('setupFileWatchers: rule envFiles and secretFiles patterns are also watched', async () => {
+    const watchedPatterns: string[] = [];
+
+    const originalWorkspaceFoldersProp = Object.getOwnPropertyDescriptor(
+      vscode.workspace,
+      'workspaceFolders',
+    );
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      get: () => [{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }],
+      configurable: true,
+    });
+
+    (vscode.workspace as any).createFileSystemWatcher = (pattern: vscode.RelativePattern) => {
+      watchedPatterns.push(pattern.pattern);
+      return {
+        onDidChange: () => ({ dispose: () => {} }),
+        onDidCreate: () => ({ dispose: () => {} }),
+        onDidDelete: () => ({ dispose: () => {} }),
+        dispose: () => {},
+      };
+    };
+
+    const rule: ITaskEnvRule = {
+      match: { taskType: 'npm' },
+      envFiles: '.env.rule',
+      secretFiles: '.secrets.rule',
+    };
+
+    try {
+      (service as any).globalEnvFiles = '.env.global';
+      (service as any).taskEnvRules = [rule];
+      (service as any).setupFileWatchers();
+
+      assert.ok(watchedPatterns.includes('.env.global'), 'global envFiles pattern should be watched');
+      assert.ok(watchedPatterns.includes('.env.rule'), 'rule envFiles pattern should be watched');
+      assert.ok(watchedPatterns.includes('.secrets.rule'), 'rule secretFiles pattern should be watched');
+    } finally {
+      if (originalWorkspaceFoldersProp) {
+        Object.defineProperty(vscode.workspace, 'workspaceFolders', originalWorkspaceFoldersProp);
+      }
+    }
+  });
+
+  test('setupFileWatchers: disabled rule patterns are not watched', async () => {
+    const watchedPatterns: string[] = [];
+
+    const originalWorkspaceFoldersProp = Object.getOwnPropertyDescriptor(
+      vscode.workspace,
+      'workspaceFolders',
+    );
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      get: () => [{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }],
+      configurable: true,
+    });
+
+    (vscode.workspace as any).createFileSystemWatcher = (pattern: vscode.RelativePattern) => {
+      watchedPatterns.push(pattern.pattern);
+      return {
+        onDidChange: () => ({ dispose: () => {} }),
+        onDidCreate: () => ({ dispose: () => {} }),
+        onDidDelete: () => ({ dispose: () => {} }),
+        dispose: () => {},
+      };
+    };
+
+    const disabledRule: ITaskEnvRule = {
+      match: { taskType: 'npm' },
+      envFiles: '.env.disabled-rule',
+      enabled: false,
+    };
+
+    try {
+      (service as any).taskEnvRules = [disabledRule];
+      (service as any).setupFileWatchers();
+
+      assert.strictEqual(
+        watchedPatterns.includes('.env.disabled-rule'),
+        false,
+        'disabled rule envFiles should not be watched',
+      );
+    } finally {
+      if (originalWorkspaceFoldersProp) {
+        Object.defineProperty(vscode.workspace, 'workspaceFolders', originalWorkspaceFoldersProp);
+      }
+    }
   });
 });

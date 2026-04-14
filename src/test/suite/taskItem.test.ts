@@ -276,3 +276,100 @@ suite('TaskItem.updateContextValue Test Suite', () => {
     (TaskStateManager as any).instance = origInstance;
   });
 });
+
+// ---------------------------------------------------------------------------
+// Secrets-related taskType tests (updateContextValue)
+// ---------------------------------------------------------------------------
+
+suite('TaskItem.updateContextValue — secrets taskTypes', () => {
+  setup(() => {
+    (TaskStateManager as any).instance = buildFakeStateManager();
+    (FavoritesService as any).instance = buildFakeFavoritesService();
+    (FilteredTaskService as any).instance = buildFakeFilteredTaskService();
+  });
+
+  teardown(() => {
+    (TaskStateManager as any).instance = undefined;
+    (FavoritesService as any).instance = undefined;
+    (FilteredTaskService as any).instance = undefined;
+  });
+
+  test('storedSecret taskType preserves contextValue = "storedSecret" and returns early', () => {
+    const item = new TaskItem('my.secret', vscode.TreeItemCollapsibleState.None, 'storedSecret');
+    item.id = 'secret:my.secret';
+    item.contextValue = 'storedSecret';
+    item.iconPath = new vscode.ThemeIcon('lock');
+
+    item.updateContextValue();
+
+    assert.strictEqual(item.contextValue, 'storedSecret', 'storedSecret contextValue must be preserved');
+    // Icon should be untouched — no task-running logic applied
+    assert.ok(
+      item.iconPath instanceof vscode.ThemeIcon && (item.iconPath as vscode.ThemeIcon).id === 'lock',
+      'storedSecret icon should remain lock after updateContextValue',
+    );
+  });
+
+  test('storedSecret taskType does not set resourceUri (early return)', () => {
+    const item = new TaskItem('my.secret', vscode.TreeItemCollapsibleState.None, 'storedSecret');
+    item.id = 'secret:my.secret';
+    item.contextValue = 'storedSecret';
+
+    item.updateContextValue();
+
+    // resourceUri is NOT set by the early-return branch
+    assert.strictEqual(item.resourceUri, undefined, 'resourceUri should not be set for storedSecret');
+  });
+
+  test('secrets taskType is treated as a group and gets "secrets" contextValue', () => {
+    const item = new TaskItem('Secrets', vscode.TreeItemCollapsibleState.Collapsed, 'secrets');
+    item.id = 'secrets:root';
+    item.contextValue = 'secrets';
+
+    item.updateContextValue();
+
+    // The group branch should set contextValue to the taskType name
+    assert.strictEqual(item.contextValue, 'secrets', 'secrets group contextValue should be "secrets"');
+  });
+
+  test('secrets group with all-filtered children gets dimmed resourceUri (not filteredSecrets contextValue)', () => {
+    const filteredChild = new TaskItem('hidden.key', vscode.TreeItemCollapsibleState.None, 'storedSecret');
+    filteredChild.id = 'secret:hidden.key';
+    filteredChild.contextValue = 'storedSecret';
+
+    const secretsGroup = new TaskItem('Secrets', vscode.TreeItemCollapsibleState.Collapsed, 'secrets');
+    secretsGroup.id = 'secrets-group';
+    secretsGroup.children = [filteredChild];
+    filteredChild.parent = secretsGroup;
+
+    // All children are filtered
+    (FilteredTaskService as any).instance = buildFakeFilteredTaskService(
+      new Set(['secret:hidden.key']),
+    );
+
+    secretsGroup.updateContextValue();
+
+    // contextValue stays as 'secrets' — it only changes to 'filteredSecrets' when the group itself is filtered
+    assert.strictEqual(secretsGroup.contextValue, 'secrets',
+      `Expected 'secrets', got '${secretsGroup.contextValue}'`);
+
+    // BUT the resourceUri fragment is 'dimmed' because all children are filtered
+    assert.strictEqual(secretsGroup.resourceUri?.fragment, 'dimmed',
+      `Expected resourceUri.fragment = 'dimmed', got '${secretsGroup.resourceUri?.fragment}'`);
+  });
+
+  test('secrets group explicitly filtered gets filteredSecrets contextValue', () => {
+    const secretsGroup = new TaskItem('Secrets', vscode.TreeItemCollapsibleState.Collapsed, 'secrets');
+    secretsGroup.id = 'secrets-group-explicit';
+
+    // The group itself is filtered
+    (FilteredTaskService as any).instance = buildFakeFilteredTaskService(
+      new Set(['secrets-group-explicit']),
+    );
+
+    secretsGroup.updateContextValue();
+
+    assert.strictEqual(secretsGroup.contextValue, 'filteredSecrets',
+      `Expected 'filteredSecrets', got '${secretsGroup.contextValue}'`);
+  });
+});
