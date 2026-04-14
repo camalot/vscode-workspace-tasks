@@ -225,6 +225,18 @@ suite('TaskEnvFileResolver Test Suite', () => {
     assert.strictEqual(result['PASSWORD'], 'my p@ss!');
   });
 
+  test('parseEnvFile: handles escaped double-quotes inside double-quoted values', async () => {
+    const fileUri = await writeFile('.env.escapedquote', 'TOKEN="a\\"b"\n');
+    const result = TaskEnvFileResolver.parseEnvFile(fileUri.fsPath);
+    assert.strictEqual(result['TOKEN'], 'a"b');
+  });
+
+  test('parseEnvFile: expands \\n escape inside double-quoted values', async () => {
+    const fileUri = await writeFile('.env.newline', 'MULTILINE="line1\\nline2"\n');
+    const result = TaskEnvFileResolver.parseEnvFile(fileUri.fsPath);
+    assert.strictEqual(result['MULTILINE'], 'line1\nline2');
+  });
+
   test('parseEnvFile: works identically for .secret files', async () => {
     const fileUri = await writeFile('.secrets', 'DEPLOY_TOKEN=abc123\nDB_PASSWORD=hunter2\n');
     const result = TaskEnvFileResolver.parseEnvFile(fileUri.fsPath);

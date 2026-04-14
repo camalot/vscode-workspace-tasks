@@ -140,6 +140,7 @@
     "webpack-cli": "^7.0.2"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "fast-xml-parser": "5.5.11",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
@@ -1307,10 +1308,15 @@
               "*_TOKEN",
               "*_KEY",
               "*_SECRET",
+              "API_KEY",
               "PASSWORD",
               "PASSWD",
               "CREDENTIALS",
-              "API_KEY"
+              "*_PASSWORD",
+              "*_PASSWD",
+              "*_CREDENTIALS",
+              "*_SECRET_ACCESS_KEY",
+              "*_CLIENT_SECRET"
             ],
             "scope": "resource"
           },

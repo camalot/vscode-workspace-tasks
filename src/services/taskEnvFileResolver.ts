@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { parse as dotenvParse } from 'dotenv';
 import { IEnvFileReference } from './workspaceTasksService';
 import { LoggerService } from './loggerService';
 
@@ -84,59 +85,17 @@ export class TaskEnvFileResolver {
   /**
    * Parses `.env`-format content into a key→value map.
    *
-   * Supports:
+   * Delegates to the `dotenv` library, which supports:
    * - `KEY=VALUE` and `export KEY=VALUE` syntax
-   * - Double-quoted values (strips quotes, expands `\n` and `\"`)
-   * - Single-quoted values (strips quotes, no escape processing)
+   * - Double-quoted values with proper escape handling (`\n`, `\"`, `\\`, etc.)
+   * - Single-quoted values (no escape processing)
    * - Inline comments on unquoted values (`KEY=value # comment`)
    * - Full-line comments (lines starting with `#`)
    * - Blank lines (ignored)
+   * - Multiline values in double-quoted strings
    */
   public static parseEnvContent(content: string): Record<string, string> {
-    const result: Record<string, string> = {};
-    const lines = content.split(/\r?\n/);
-    for (const raw of lines) {
-      const line = raw.trim();
-      if (!line || line.startsWith('#')) {
-        continue;
-      }
-      // Strip optional leading `export`
-      const withoutExport = line.startsWith('export ') ? line.slice(7).trimStart() : line;
-      const eqIndex = withoutExport.indexOf('=');
-      if (eqIndex === -1) {
-        continue;
-      }
-      const key = withoutExport.slice(0, eqIndex).trim();
-      if (!key) {
-        continue;
-      }
-      const rawValue = withoutExport.slice(eqIndex + 1);
-      result[key] = TaskEnvFileResolver.parseEnvValue(rawValue);
-    }
-    return result;
-  }
-
-  /** Parses the raw value portion of a `KEY=VALUE` pair. */
-  private static parseEnvValue(raw: string): string {
-    const trimmed = raw.trim();
-
-    if (trimmed.startsWith('"')) {
-      // Double-quoted: find closing quote, expand escape sequences
-      const closing = trimmed.indexOf('"', 1);
-      const inner = closing === -1 ? trimmed.slice(1) : trimmed.slice(1, closing);
-      return inner.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-    }
-
-    if (trimmed.startsWith("'")) {
-      // Single-quoted: find closing quote, no escape processing
-      const closing = trimmed.indexOf("'", 1);
-      return closing === -1 ? trimmed.slice(1) : trimmed.slice(1, closing);
-    }
-
-    // Unquoted: strip inline comment and trim
-    const commentIdx = trimmed.indexOf(' #');
-    const value = commentIdx === -1 ? trimmed : trimmed.slice(0, commentIdx);
-    return value.trim();
+    return dotenvParse(content);
   }
 
   // ---------------------------------------------------------------------------
