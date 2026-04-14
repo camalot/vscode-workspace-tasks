@@ -21,7 +21,10 @@ nav_order: 2
 
 ### workspaceTasks.tasks.sortingEnabled
 
-**Type:** `boolean`  
+{: .new }
+v1.7.0: Added `workspaceTasks.tasks.sortingEnabled` setting to control whether tasks are sorted alphabetically or displayed in definition order.
+
+**Type:** `boolean`
 **Default:** `true`
 
 Controls whether tasks are sorted alphabetically within their groups and type buckets. When enabled (the default), tasks are sorted alphabetically by label at every level of the tree. When disabled, tasks are displayed in the order they are defined in their source file (e.g. `package.json`, `Makefile`, `Taskfile.yml`) or discovered by the provider.
