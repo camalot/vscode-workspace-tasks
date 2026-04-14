@@ -199,6 +199,9 @@
   "config.workspaceTasks.shellPaths": "Specify Shell Interpreter Paths",
   "config.workspaceTasks.shellPaths.markdown": "Specify custom paths for shell interpreters. Use a key-value format where the key is the shell type (e.g., `bash`, `pwsh`) and the value is the path to the shell executable (e.g., `/usr/local/bin/bash`). This allows you to customize which shell interpreters are used for running shell tasks. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/shell-script.html#workspacetasksshellpaths)",
 
+  "config.workspaceTasks.tasks.sortingEnabled": "Sorting of Tasks",
+  "config.workspaceTasks.tasks.sortingEnabled.markdown": "When enabled, tasks will be sorted alphabetically within their groups. Otherwise, tasks will be displayed in the order they are discovered. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/tasks.html#workspacetaskstaskssortingenabled)",
+
   "config.workspaceTasks.groups.enabled": "Group Tasks",
 
   "config.workspaceTasks.groups.useParentFolder": "Use Parent Folder for Grouping",

@@ -299,6 +299,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const compoundTasksGroupEnabled = config.get<boolean>('groups.compoundTasks.enabled', false);
     const includeVsCodeCompoundTasks = config.get<boolean>('compoundTasks.includeVsCodeCompoundTasks', true);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
+    const sortingEnabled = config.get<boolean>('tasks.sortingEnabled', true);
     const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
       favorites: true,
       compoundTask: true,
@@ -922,11 +923,15 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           child.parent = typeItem;
         }
         // Sort favorites
-        typeItem.children.sort((a, b) => a.label.localeCompare(b.label));
+        if (sortingEnabled) {
+          typeItem.children.sort((a, b) => a.label.localeCompare(b.label));
+        }
         favGroup.children.push(typeItem);
       }
       // Sort favorite groups by name
-      favGroup.children.sort((a, b) => a.label.localeCompare(b.label));
+      if (sortingEnabled) {
+        favGroup.children.sort((a, b) => a.label.localeCompare(b.label));
+      }
     }
 
     // Add Recent Tasks Group
@@ -1062,7 +1067,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           flatTasks.push(...typeTasks);
         }
       }
-      flatTasks.sort((a, b) => a.label.localeCompare(b.label));
+      if (sortingEnabled) {
+        flatTasks.sort((a, b) => a.label.localeCompare(b.label));
+      }
 
       tasksRoot.children = flatTasks;
       for (const t of flatTasks) {
@@ -1071,11 +1078,14 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       workspaceRoots.push(tasksRoot);
     } else {
       // Sort workspaceIds by name using the lookup map
-      const sortedWorkspaceIds = Array.from(workspaceMap.keys()).sort((a, b) => {
-        const nameA = workspaceInfoMap.get(a) || '';
-        const nameB = workspaceInfoMap.get(b) || '';
-        return nameA.localeCompare(nameB);
-      });
+      const workspaceIdList = Array.from(workspaceMap.keys());
+      const sortedWorkspaceIds = sortingEnabled
+        ? workspaceIdList.sort((a, b) => {
+          const nameA = workspaceInfoMap.get(a) || '';
+          const nameB = workspaceInfoMap.get(b) || '';
+          return nameA.localeCompare(nameB);
+        })
+        : workspaceIdList;
 
       for (const workspaceId of sortedWorkspaceIds) {
         const projectMap = workspaceMap.get(workspaceId)!;
@@ -1109,9 +1119,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
               taskType,
               workspaceId,
               groupSalt,
+              sortingEnabled,
             );
           } else {
-            typeItem.children = this.groupTasksByName(typeTasks, taskSeparator);
+            typeItem.children = this.groupTasksByName(typeTasks, taskSeparator, '', sortingEnabled);
           }
 
           typeItem.parent = workspaceItem;
@@ -1126,7 +1137,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           workspaceItem.children.push(typeItem);
         }
         // Sort types by name
-        workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
+        if (sortingEnabled) {
+          workspaceItem.children.sort((a, b) => a.label.localeCompare(b.label));
+        }
 
         // Create correct context value now that children are populated (checks for all-hidden children)
         workspaceItem.updateContextValue();
@@ -1274,6 +1287,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     taskType: string,
     workspaceId: string,
     groupSalt: string,
+    sortEnabled: boolean = true,
   ): TaskItem[] {
     const folderGroups = new Map<string, TaskItem[]>();
     const rootTasks: TaskItem[] = [];
@@ -1311,23 +1325,25 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       // Update context value after setting the final ID
       folderItem.updateContextValue();
       folderItem.iconPath = vscode.ThemeIcon.Folder;
-      folderItem.children = this.groupTasksByName(tasks, separator);
+      folderItem.children = this.groupTasksByName(tasks, separator, '', sortEnabled);
       for (const child of folderItem.children) {
         child.parent = folderItem;
       }
       folderItem.updateContextValue();
       folderChildren.push(folderItem);
     }
-    folderChildren.sort((a, b) => a.label.localeCompare(b.label));
+    if (sortEnabled) {
+      folderChildren.sort((a, b) => a.label.localeCompare(b.label));
+    }
 
-    const rootChildren = this.groupTasksByName(rootTasks, separator);
+    const rootChildren = this.groupTasksByName(rootTasks, separator, '', sortEnabled);
 
     return [...folderChildren, ...rootChildren];
   }
 
-  public groupTasksByName(tasks: TaskItem[], separator: string, parentPath: string = ''): TaskItem[] {
+  public groupTasksByName(tasks: TaskItem[], separator: string, parentPath: string = '', sortEnabled: boolean = true): TaskItem[] {
     if (!separator) {
-      return tasks.sort((a, b) => a.label.localeCompare(b.label));
+      return sortEnabled ? tasks.sort((a, b) => a.label.localeCompare(b.label)) : tasks;
     }
 
     const rootItems: TaskItem[] = [];
@@ -1399,7 +1415,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       } else if (iconUri) {
         groupItem.iconPath = vscode.ThemeIcon.File;
       }
-      groupItem.children = this.groupTasksByName(groupTasks, separator, fullGroupName);
+      groupItem.children = this.groupTasksByName(groupTasks, separator, fullGroupName, sortEnabled);
       for (const child of groupItem.children) {
         child.parent = groupItem;
       }
@@ -1409,15 +1425,17 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     }
 
     // Sort groups/leafs? Usually folders first
-    rootItems.sort((a, b) => {
-      if (a.contextValue === 'folder' && b.contextValue !== 'folder') {
-        return -1;
-      }
-      if (a.contextValue !== 'folder' && b.contextValue === 'folder') {
-        return 1;
-      }
-      return a.label.localeCompare(b.label);
-    });
+    if (sortEnabled) {
+      rootItems.sort((a, b) => {
+        if (a.contextValue === 'folder' && b.contextValue !== 'folder') {
+          return -1;
+        }
+        if (a.contextValue !== 'folder' && b.contextValue === 'folder') {
+          return 1;
+        }
+        return a.label.localeCompare(b.label);
+      });
+    }
 
     // Add leafs if any? wait. rootItems has groups.
     // Actually I should just merge leafs into rootItems and then sort.
@@ -1426,15 +1444,17 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     rootItems.push(...leafs);
 
     // Sort again to ensure leafs are mixed or sorted properly
-    rootItems.sort((a, b) => {
-      // Folders first
-      const aIsFolder = a.contextValue === 'folder' ? 1 : 0;
-      const bIsFolder = b.contextValue === 'folder' ? 1 : 0;
-      if (aIsFolder !== bIsFolder) {
-        return bIsFolder - aIsFolder;
-      }
-      return a.label.localeCompare(b.label);
-    });
+    if (sortEnabled) {
+      rootItems.sort((a, b) => {
+        // Folders first
+        const aIsFolder = a.contextValue === 'folder' ? 1 : 0;
+        const bIsFolder = b.contextValue === 'folder' ? 1 : 0;
+        if (aIsFolder !== bIsFolder) {
+          return bIsFolder - aIsFolder;
+        }
+        return a.label.localeCompare(b.label);
+      });
+    }
 
     return rootItems;
   }

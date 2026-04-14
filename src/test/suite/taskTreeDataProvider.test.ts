@@ -1811,6 +1811,37 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const leafIdx = result.indexOf(leaf!);
       assert.ok(folderIdx < leafIdx, 'Folder should appear before leaf');
     });
+
+    test('sortEnabled=false preserves insertion order with no separator', () => {
+      const provider = new TaskTreeDataProvider(ctx);
+      const tasks = [
+        new TaskItem('z-task', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('a-task', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('m-task', vscode.TreeItemCollapsibleState.None, 'npm'),
+      ];
+      const result = provider.groupTasksByName(tasks, '', '', false);
+      assert.strictEqual(result.length, 3);
+      assert.strictEqual(result[0].label, 'z-task', 'First task should remain first');
+      assert.strictEqual(result[1].label, 'a-task', 'Second task should remain second');
+      assert.strictEqual(result[2].label, 'm-task', 'Third task should remain third');
+    });
+
+    test('sortEnabled=false preserves insertion order of groups and leafs', () => {
+      const provider = new TaskTreeDataProvider(ctx);
+      const tasks = [
+        new TaskItem('z:leaf', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('a:leaf', vscode.TreeItemCollapsibleState.None, 'npm'),
+        new TaskItem('m-standalone', vscode.TreeItemCollapsibleState.None, 'npm'),
+      ];
+      const result = provider.groupTasksByName(tasks, ':', '', false);
+      // Groups come first (z group, then a group), then standalone leaf
+      assert.strictEqual(result.length, 3, 'Should have 2 groups + 1 standalone');
+      assert.strictEqual(result[0].contextValue, 'folder', 'First result should be a folder group');
+      assert.strictEqual(result[0].label, 'z', 'First group should be z (insertion order)');
+      assert.strictEqual(result[1].contextValue, 'folder', 'Second result should be a folder group');
+      assert.strictEqual(result[1].label, 'a', 'Second group should be a (insertion order)');
+      assert.strictEqual(result[2].label, 'm-standalone', 'Standalone leaf should come last');
+    });
   });
 
   // ── onDidChangeTreeData listener ─────────────────────────────────────────
@@ -2039,6 +2070,54 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.notStrictEqual(id1, id2, 'Duplicate IDs should be made unique');
       // Second one should have a counter suffix
       assert.ok(id2?.includes('|'), 'Second duplicate should have a pipe counter suffix');
+    });
+  });
+
+  suite('sortingEnabled config in organizeTasks', () => {
+    test('tasks.sortingEnabled=false preserves task discovery order', async () => {
+      const uri = vscode.Uri.file('/root/package.json');
+      const taskZ = new TaskItem('z-task', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      taskZ.taskFileUri = uri;
+      taskZ.id = 'z-task-id';
+      taskZ.originalLabel = 'z-task';
+      const taskA = new TaskItem('a-task', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      taskA.taskFileUri = uri;
+      taskA.id = 'a-task-id';
+      taskA.originalLabel = 'a-task';
+
+      stubServicesForOrganize([taskZ, taskA]);
+
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: (key: string, defaultValue?: any) => {
+              if (key === 'tasks.sortingEnabled') { return false; }
+              if (key === 'groups.enabled') { return true; }
+              if (key === 'groups.useParentFolder') { return false; }
+              if (key === 'groups.recentTasks.enabled') { return false; }
+              if (key === 'groups.taskSeparator') { return ''; }
+              if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
+              return defaultValue;
+            },
+          };
+        }
+        return originalGetConfig.call(vscode.workspace, section);
+      };
+
+      try {
+        const provider = new TestableTaskTreeDataProvider(ctx);
+        const roots = await provider.getChildren();
+        const wsItem = roots.find((r) => r.taskType === 'workspace');
+        assert.ok(wsItem, 'Should have workspace item');
+        const typeItem = wsItem!.children[0];
+        assert.ok(typeItem, 'Should have type item');
+        // Tasks should appear in discovery order (z first, then a) rather than sorted (a first)
+        assert.strictEqual(typeItem.children[0].label, 'z-task', 'z-task should come first (discovery order)');
+        assert.strictEqual(typeItem.children[1].label, 'a-task', 'a-task should come second (discovery order)');
+      } finally {
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+      }
     });
   });
 

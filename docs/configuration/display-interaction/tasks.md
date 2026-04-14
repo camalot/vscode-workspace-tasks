@@ -19,6 +19,36 @@ nav_order: 2
 
 ---
 
+### workspaceTasks.tasks.sortingEnabled
+
+**Type:** `boolean`  
+**Default:** `true`
+
+Controls whether tasks are sorted alphabetically within their groups and type buckets. When enabled (the default), tasks are sorted alphabetically by label at every level of the tree. When disabled, tasks are displayed in the order they are defined in their source file (e.g. `package.json`, `Makefile`, `Taskfile.yml`) or discovered by the provider.
+
+Disabling this setting is useful when the definition order carries semantic meaning — for example, a `Makefile` where the first target is the default build target, or a `package.json` script list that is kept in workflow order.
+
+{: .note }
+> This setting affects task items only. Special groups such as **Favorites**, **Recent Tasks**, and **Compound Tasks** are always sorted by their own rules regardless of this setting.
+
+**Example — preserve definition order:**
+
+```json
+{
+  "workspaceTasks.tasks.sortingEnabled": false
+}
+```
+
+**Example — alphabetical order (default):**
+
+```json
+{
+  "workspaceTasks.tasks.sortingEnabled": true
+}
+```
+
+---
+
 ### workspaceTasks.task.singleClickAction
 
 **Type:** `string`

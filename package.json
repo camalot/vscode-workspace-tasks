@@ -930,6 +930,12 @@
       {
         "title": "%config.group.display.title%",
         "properties": {
+          "workspaceTasks.tasks.sortingEnabled": {
+            "title": "%config.workspaceTasks.tasks.sortingEnabled%",
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "%config.workspaceTasks.tasks.sortingEnabled.markdown%"
+          },
           "workspaceTasks.groups.enabled": {
             "title": "%config.workspaceTasks.groups.enabled%",
             "type": "boolean",
