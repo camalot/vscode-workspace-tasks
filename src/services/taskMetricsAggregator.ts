@@ -135,6 +135,50 @@ export function updateMetricsFromRecord(
 }
 
 // ---------------------------------------------------------------------------
+// EMA / variability helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Computes the Exponential Moving Average of an array of duration samples.
+ * Iterates oldest-to-newest (index 0 = oldest).
+ * Returns `undefined` when fewer than 3 samples are provided.
+ *
+ * @param durations - Array of duration values (oldest first).
+ * @param alpha     - Smoothing factor in (0, 1). Default 0.3.
+ */
+export function computeEma(durations: number[], alpha = 0.3): number | undefined {
+  if (durations.length < 3) { return undefined; }
+  let ema = durations[0];
+  for (let i = 1; i < durations.length; i++) {
+    ema = alpha * durations[i] + (1 - alpha) * ema;
+  }
+  return ema;
+}
+
+/**
+ * Classifies the coefficient of variation (σ/μ) of an array of duration samples.
+ * Returns `undefined` when fewer than 3 samples are provided.
+ *
+ * Thresholds:
+ * - Low:      CV < 0.15
+ * - Moderate: CV < 0.40
+ * - High:     CV ≥ 0.40
+ *
+ * @param durations - Array of duration values.
+ */
+export function computeVariability(durations: number[]): 'Low' | 'Moderate' | 'High' | undefined {
+  if (durations.length < 3) { return undefined; }
+  const n = durations.length;
+  const mean = durations.reduce((sum, d) => sum + d, 0) / n;
+  if (mean === 0) { return 'Low'; }
+  const variance = durations.reduce((sum, d) => sum + (d - mean) ** 2, 0) / n;
+  const cv = Math.sqrt(variance) / mean;
+  if (cv < 0.15) { return 'Low'; }
+  if (cv < 0.40) { return 'Moderate'; }
+  return 'High';
+}
+
+// ---------------------------------------------------------------------------
 // Computed stats
 // ---------------------------------------------------------------------------
 
@@ -201,6 +245,8 @@ export function computeStats(metrics: ITaskMetrics): ITaskMetricsComputed {
     peakHour,
     runFrequency,
     durationTrend,
+    typicalDurationMs: computeEma(metrics.recentDurations),
+    durationVariability: computeVariability(metrics.recentDurations),
   };
 }
 

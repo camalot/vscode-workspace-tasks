@@ -7,6 +7,7 @@ import { configuration } from './libs/configuration';
 import { IPresentationOptions } from './taskDefinition';
 import { LoggerService } from './services/loggerService';
 import { RecentTasksService } from './services/recentTasksService';
+import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -118,6 +119,7 @@ export class TaskRunner {
     TaskStateManager.getInstance().setStatus(id, 'running');
 
     try {
+      TaskDurationEstimateService.getInstance().startTracking(item, task);
       const execution = await vscode.tasks.executeTask(task);
       TaskStateManager.getInstance().setExecution(id, execution);
     } catch (e) {

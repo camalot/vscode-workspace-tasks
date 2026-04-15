@@ -13,6 +13,8 @@ import { FavoritesService } from './services/favoritesService';
 import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
+import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
+import { formatSeconds } from './common/formatSeconds';
 
 export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean; queue?: boolean; recent: boolean };
 export type RootTreeTypes = 'favorites' | 'compoundTask' | 'compoundTasks' | 'recent' | 'workspace';
@@ -47,6 +49,18 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     TaskCacheService.getInstance().onDidLoadingStateChange(() => {
       this._onDidChangeTreeData.fire();
+    });
+
+    TaskDurationEstimateService.getInstance().onDidUpdateEta((taskId) => {
+      // Targeted refresh for the specific task item — avoids a full tree re-render.
+      // Falls back to a full refresh when the item is not in the cache (e.g. compound
+      // task copies or tasks launched from Quick Open).
+      const cached = TaskCacheService.getInstance().getTaskById(taskId);
+      if (cached) {
+        this._onDidChangeTreeData.fire(cached);
+      } else {
+        this._onDidChangeTreeData.fire();
+      }
     });
 
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -192,7 +206,40 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   getTreeItem(element: TaskItem): vscode.TreeItem {
-    return element;
+    const etaDesc = TaskDurationEstimateService.getInstance().getEtaDescription(element.id ?? '');
+
+    // Pre-run tooltip only for leaf items (non-collapsible)
+    const estimate = element.collapsibleState === vscode.TreeItemCollapsibleState.None
+      ? TaskDurationEstimateService.getInstance().getPreRunEstimate(element)
+      : undefined;
+
+    // Fast path: no overrides → return element directly (zero allocation)
+    if (etaDesc === undefined && estimate === undefined) {
+      return element;
+    }
+
+    // Return a lightweight projection — a plain vscode.TreeItem with overrides applied.
+    // The cached element is never modified, preventing stale ETA text after a task stops.
+    const view: vscode.TreeItem = {
+      label:                    element.label,
+      id:                       element.id,
+      iconPath:                 element.iconPath,
+      description:              etaDesc ?? element.description,
+      tooltip:                  estimate
+        ? new vscode.MarkdownString(
+            `Estimated duration: ~${formatSeconds(estimate.emaMs)}` +
+            ` (based on ${estimate.sampleCount} runs` +
+            (estimate.variability ? `, variability: ${estimate.variability}` : '') + ')'
+          )
+        : element.tooltip,   // preserve existing tooltip when no estimate available
+      contextValue:             element.contextValue,
+      command:                  element.command,
+      collapsibleState:         element.collapsibleState,
+      resourceUri:              element.resourceUri,
+      accessibilityInformation: element.accessibilityInformation,
+      checkboxState:            element.checkboxState,
+    };
+    return view;
   }
 
   getParent(element: TaskItem): vscode.ProviderResult<TaskItem> {

@@ -9,6 +9,7 @@ import { CompoundTaskService } from '../../services/compoundTaskService';
 import { RecentTasksService } from '../../services/recentTasksService';
 import { TaskStateManager } from '../../taskStateManager';
 import { TaskIconService } from '../../services/taskIconService';
+import { TaskDurationEstimateService } from '../../services/taskDurationEstimateService';
 import constants from '../../libs/constants';
 
 // ─── Mock helpers ────────────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ function resetSingletons() {
   (RecentTasksService as any).instance = undefined;
   (TaskStateManager as any).instance = undefined;
   (TaskIconService as any).instance = undefined;
+  (TaskDurationEstimateService as any).instance = undefined;
 }
 
 /** Helper: reset only provider singleton without wiping services used by other suites */
@@ -220,7 +222,12 @@ suite('TaskTreeDataProvider Test Suite', () => {
   // ── Tree item basics ─────────────────────────────────────────────────────
 
   suite('Tree item methods', () => {
-    test('getTreeItem returns the passed element', () => {
+    test('getTreeItem returns the passed element when no ETA or estimate', () => {
+      // Ensure the service has no running estimates and no pre-run estimate.
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+
       const provider = new TaskTreeDataProvider(ctx);
       const item = new TaskItem('test', vscode.TreeItemCollapsibleState.None, 'npm');
       assert.strictEqual(provider.getTreeItem(item), item);
@@ -239,6 +246,80 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const provider = new TaskTreeDataProvider(ctx);
       const item = new TaskItem('item', vscode.TreeItemCollapsibleState.None, 'npm');
       assert.strictEqual(provider.getParent(item), undefined);
+    });
+
+    test('getTreeItem for running task with ETA returns projection with ETA description', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => '~30s remaining';
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.description = 'package.json';
+
+      const view = provider.getTreeItem(item);
+
+      // Should return a projection, not the original item
+      assert.notStrictEqual(view, item, 'expected a new projection object');
+      assert.strictEqual(view.description, '~30s remaining');
+      // Cache item must not be mutated
+      assert.strictEqual(item.description, 'package.json');
+    });
+
+    test('getTreeItem for idle task with >= 3 runs returns projection with estimate tooltip', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => ({
+        emaMs: 45_000,
+        variability: 'Low' as const,
+        sampleCount: 5,
+      });
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+
+      const view = provider.getTreeItem(item);
+
+      assert.notStrictEqual(view, item, 'expected a new projection object');
+      assert.ok(view.tooltip instanceof vscode.MarkdownString, 'tooltip should be a MarkdownString');
+      const tooltipText = (view.tooltip as vscode.MarkdownString).value;
+      assert.ok(tooltipText.includes('Estimated duration'), `tooltip missing expected text: ${tooltipText}`);
+      assert.ok(tooltipText.includes('5 runs'), `tooltip missing sample count: ${tooltipText}`);
+      assert.ok(tooltipText.includes('Low'), `tooltip missing variability: ${tooltipText}`);
+    });
+
+    test('getTreeItem for idle task with < 3 runs returns element unchanged', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const originalTooltip = 'build (npm)';
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.tooltip = originalTooltip;
+
+      const view = provider.getTreeItem(item);
+
+      // Fast path — same object returned
+      assert.strictEqual(view, item);
+      assert.strictEqual(view.tooltip, originalTooltip);
+    });
+
+    test('getTreeItem for collapsible item never requests pre-run estimate', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      const preRunCalls: TaskItem[] = [];
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (item: TaskItem) => {
+        preRunCalls.push(item);
+        return undefined;
+      };
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('folder', vscode.TreeItemCollapsibleState.Collapsed, 'npm');
+
+      provider.getTreeItem(item);
+
+      assert.strictEqual(preRunCalls.length, 0, 'getPreRunEstimate must not be called for collapsible items');
     });
   });
 

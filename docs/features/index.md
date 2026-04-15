@@ -25,6 +25,7 @@ Workspace Tasks provides a rich set of features to help you discover, organize, 
 | [Hide Tasks & Groups](hide-tasks) | Declutter your task view by hiding unused tasks |
 | [Task History](task-history) | Track and review all task executions with status and timing |
 | [Environment Variables & Secrets](task-environment-variables) | Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys from the tree view |
+| [Task Duration Estimates](task-duration-estimates) | See estimated run time while a task executes, in the hover tooltip before launch, and as a Typical Duration row in the Statistics tab |
 
 ---
 
@@ -73,5 +74,3 @@ Workspace Tasks supports flexible view placement:
   - First click: Collapse task type groups
   - Second click: Collapse workspace folders
   - Third click: Expand everything
-
-

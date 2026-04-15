@@ -83,6 +83,7 @@ $$\text{CV} = \frac{\sigma}{\mu}$$
 
 ### Phase 1 — EMA helpers in `taskMetricsAggregator.ts`
 
+
 **What:** Two pure functions (no I/O, easily unit-tested).
 
 **`computeEma(durations: number[], alpha?: number): number | undefined`**

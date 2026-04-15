@@ -65,6 +65,16 @@ export interface ITaskMetricsComputed {
    * Positive = getting slower, negative = getting faster, undefined = not enough data.
    */
   durationTrend: number | undefined;
+  /**
+   * Exponential Moving Average of recentDurations (successful + failed, excludes terminated).
+   * `undefined` when fewer than 3 samples are available.
+   */
+  typicalDurationMs: number | undefined;
+  /**
+   * Coefficient-of-variation bucket for recentDurations.
+   * `undefined` when fewer than 3 samples are available.
+   */
+  durationVariability: 'Low' | 'Moderate' | 'High' | undefined;
 }
 
 /** Metrics enriched with computed fields */

@@ -120,6 +120,7 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Task icons (per type) | ✅ | ✅ | |
 | Custom icons via settings | ❌ | ✅ | ✅ v1.8+ |
 | Task Monitor (fullscreen webview console) | ❌ | ✅ (v3+) | ❌ |
+| Estimated task duration display | ✅ | ❌ | ✅ v1.8.0 |
 
 ---
 
@@ -137,6 +138,7 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Stop `dependsOn` child tasks | ✅ | ❌ | |
 | Configurable terminal presentation | ✅ | ❌ | |
 | Graceful stop delay | ✅ | ❌ | |
+| Task Guard (confirm before running) | ✅ | ❌ | |
 
 ---
 
