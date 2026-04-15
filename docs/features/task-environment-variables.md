@@ -251,6 +251,8 @@ whenever those settings change.
 A file tracked by git means its contents — including any tokens, passwords, or other sensitive
 values — could be committed to version control and exposed in your repository history.
 
+![Git-tracked file warning in Problems panel](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/git-tracked-envfile-warning.png)
+
 **Remediation options:**
 
 1. Add the file to `.gitignore` and optionally run `git rm --cached <file>` to stop tracking it.

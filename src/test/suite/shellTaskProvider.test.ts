@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ShellTaskProvider } from '../../providers/shellTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
+import { TaskItem } from '../../taskItem';
 
 // Helper to build a file URI from the task-files/shell directory.
 // The compiled tests run from out/test/suite but task-files live in src/test/task-files,
@@ -474,8 +475,9 @@ suite('ShellTaskProvider Test Suite', () => {
       const realStat = await originalStat(filePath);
       if (filePath === withShebangUri.fsPath) {
         statCallIndex++;
-        // Return a different (incrementing) mtime each time to simulate modification
-        return { ...realStat, mtimeMs: statCallIndex * 10000 };
+        // Return a different (incrementing) mtime each time to simulate modification.
+        // isFile must be passed explicitly: spreading a Stats instance loses prototype methods.
+        return { ...realStat, mtimeMs: statCallIndex * 10000, isFile: () => true };
       }
       return realStat;
     };
@@ -768,5 +770,382 @@ suite('ShellTaskProvider Test Suite', () => {
     } finally {
       Object.defineProperty(vscode.workspace, 'fs', { value: originalWsFs, writable: true, configurable: true });
     }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Phase 7 — Extensionless shell script discovery
+// ═══════════════════════════════════════════════════════════════════════════════
+
+suite('Extensionless shell script discovery', () => {
+  let originalFindFiles: typeof vscode.workspace.findFiles;
+
+  // Outer-suite mockConfig is read from the parent closure; each test that needs
+  // extensionless enabled sets it via the shared mockConfig from the parent setup.
+  // Re-declare a local mockConfig so this suite is self-contained.
+  let mockConfig: Record<string, unknown>;
+  let originalGetConfig: typeof vscode.workspace.getConfiguration;
+  let originalAsRelativePath: typeof vscode.workspace.asRelativePath;
+  let originalTaskFilesFindFiles: typeof TaskFilesService.prototype.findFiles;
+
+  setup(() => {
+    originalFindFiles = (vscode.workspace as any).findFiles;
+    originalGetConfig = vscode.workspace.getConfiguration.bind(vscode.workspace);
+    originalAsRelativePath = vscode.workspace.asRelativePath.bind(vscode.workspace);
+
+    const filesService = TaskFilesService.getInstance();
+    originalTaskFilesFindFiles = filesService.findFiles.bind(filesService);
+
+    mockConfig = {
+      shellEnabledTaskTypes: {
+        bash: true, zsh: true, fish: true, pwsh: true, batch: true,
+        python: true, perl: true, ruby: true, sh: true, nushell: true,
+        other: false,
+        extensionless: false, // disabled by default
+      },
+      shellPaths: {},
+      shellAdditionalExtensions: {},
+    };
+
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return {
+          get: <T>(key: string, def?: T): T =>
+            (Object.prototype.hasOwnProperty.call(mockConfig, key) ? mockConfig[key] : def) as T,
+        };
+      }
+      return originalGetConfig(section);
+    };
+
+    (vscode.workspace as any).asRelativePath = (uri: vscode.Uri | string) => {
+      const fsPath = typeof uri === 'string' ? uri : uri.fsPath;
+      return fsPath;
+    };
+
+    // Default: TaskFilesService returns nothing (typed-extension paths)
+    filesService.findFiles = async () => [];
+
+    // Default: workspace.findFiles returns nothing (extensionless path)
+    (vscode.workspace as any).findFiles = async () => [];
+  });
+
+  teardown(() => {
+    (vscode.workspace as any).findFiles = originalFindFiles;
+    (vscode.workspace as any).getConfiguration = originalGetConfig;
+    (vscode.workspace as any).asRelativePath = originalAsRelativePath;
+    TaskFilesService.getInstance().findFiles = originalTaskFilesFindFiles;
+  });
+
+  // ── _processExtensionlessScripts: feature guard ───────────────────────────
+
+  test('extensionless disabled (default): _processExtensionlessScripts returns empty array', async () => {
+    // mockConfig already has extensionless: false
+    const provider = new ShellTaskProvider();
+    const items = await (provider as any)._processExtensionlessScripts();
+    assert.deepStrictEqual(items, []);
+  });
+
+  test('extensionless disabled: findFiles is never called', async () => {
+    let findFilesCalled = false;
+    (vscode.workspace as any).findFiles = async () => {
+      findFilesCalled = true;
+      return [];
+    };
+
+    const provider = new ShellTaskProvider();
+    await (provider as any)._processExtensionlessScripts();
+    assert.strictEqual(findFilesCalled, false, 'findFiles should not be called when extensionless is disabled');
+  });
+
+  // ── _processExtensionlessScripts: candidate filtering ─────────────────────
+
+  test('dotfiles are excluded from candidates before shebang check', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+
+    const dotfileUri = vscode.Uri.file('/workspace/.env');
+    (vscode.workspace as any).findFiles = async () => [dotfileUri];
+
+    const provider = new ShellTaskProvider();
+    let shebangCheckCalled = false;
+    (provider as any).checkForShebangAndReadInterpreter = async () => {
+      shebangCheckCalled = true;
+      return { hasShebang: true, interpreter: 'bash', isExecutable: true, fromCache: false };
+    };
+
+    const items = await (provider as any)._processExtensionlessScripts();
+    assert.strictEqual(shebangCheckCalled, false, 'Dotfiles must not reach shebang check');
+    assert.deepStrictEqual(items, []);
+  });
+
+  test('files with extensions are excluded from candidates', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+
+    const shFile = vscode.Uri.file('/workspace/script.sh');
+    const extlessFile = vscode.Uri.file('/workspace/my-script');
+    (vscode.workspace as any).findFiles = async () => [shFile, extlessFile];
+
+    const provider = new ShellTaskProvider();
+    const checkedPaths: string[] = [];
+    (provider as any).checkForShebangAndReadInterpreter = async (uri: vscode.Uri) => {
+      checkedPaths.push(uri.fsPath);
+      return { hasShebang: false, interpreter: '', isExecutable: false, fromCache: false };
+    };
+
+    await (provider as any)._processExtensionlessScripts();
+    assert.ok(!checkedPaths.includes(shFile.fsPath), '.sh file must not reach shebang check');
+    assert.ok(checkedPaths.includes(extlessFile.fsPath), 'Extensionless file must reach shebang check');
+  });
+
+  // ── _processExtensionlessScripts: shebang + executable requirements ────────
+
+  test('file with shebang but not executable is skipped', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    (vscode.workspace as any).findFiles = async () => [scriptUri];
+
+    const provider = new ShellTaskProvider();
+    (provider as any).checkForShebangAndReadInterpreter = async () =>
+      ({ hasShebang: true, interpreter: 'bash', isExecutable: false, fromCache: false });
+
+    const items = await (provider as any)._processExtensionlessScripts();
+    assert.deepStrictEqual(items, [], 'Non-executable files must be skipped even with shebang');
+  });
+
+  test('executable file without shebang is skipped', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    (vscode.workspace as any).findFiles = async () => [scriptUri];
+
+    const provider = new ShellTaskProvider();
+    (provider as any).checkForShebangAndReadInterpreter = async () =>
+      ({ hasShebang: false, interpreter: '', isExecutable: true, fromCache: false });
+
+    const items = await (provider as any)._processExtensionlessScripts();
+    assert.deepStrictEqual(items, [], 'Executable files without shebang must be skipped');
+  });
+
+  // ── _processExtensionlessScripts: TaskItem shape ──────────────────────────
+
+  test('file with shebang AND executable produces TaskItem with empty interpreter and useShebang=true', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    (vscode.workspace as any).findFiles = async () => [scriptUri];
+
+    const provider = new ShellTaskProvider();
+    (provider as any).checkForShebangAndReadInterpreter = async () =>
+      ({ hasShebang: true, interpreter: 'bash', isExecutable: true, fromCache: false });
+
+    const items = await (provider as any)._processExtensionlessScripts();
+    assert.strictEqual(items.length, 1, 'Should produce exactly one task');
+    assert.strictEqual(items[0].metadata?.interpreter, '', 'interpreter must be empty — OS kernel reads the shebang');
+    assert.strictEqual(items[0].metadata?.useShebang, true, 'useShebang must be true');
+    assert.strictEqual(items[0].metadata?.subType, 'extensionless', 'subType must be "extensionless"');
+  });
+
+  test('results are sorted deterministically by fsPath regardless of findFiles order', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+    const uriB = vscode.Uri.file('/workspace/z-script');
+    const uriA = vscode.Uri.file('/workspace/a-script');
+    (vscode.workspace as any).findFiles = async () => [uriB, uriA]; // deliberately reversed
+
+    const provider = new ShellTaskProvider();
+    (provider as any).checkForShebangAndReadInterpreter = async () =>
+      ({ hasShebang: true, interpreter: 'bash', isExecutable: true, fromCache: false });
+
+    const items = await (provider as any)._processExtensionlessScripts();
+    assert.strictEqual(items.length, 2);
+    assert.ok(
+      items[0].resourceUri!.fsPath < items[1].resourceUri!.fsPath,
+      'Items must be sorted by fsPath',
+    );
+  });
+
+  // ── getTasks: extensionless buffering integration ─────────────────────────
+
+  test('getTasks: extensionless result absent on first call, present on second after scan settles', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+
+    const scriptUri = vscode.Uri.file('/fakepath/buffered-script');
+    const provider = new ShellTaskProvider();
+    Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
+
+    (provider as any)._processExtensionlessScripts = async (): Promise<TaskItem[]> => {
+      return [(provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true)];
+    };
+
+    // First call — extensionlessResults is [] so the item is not in the return value,
+    // but the background scan promise is launched
+    const firstTasks = await provider.getTasks();
+    assert.ok(
+      !firstTasks.find((t) => t.resourceUri?.fsPath === scriptUri.fsPath),
+      'Extensionless result should not appear in first getTasks() (scan is background)',
+    );
+
+    // Drain the microtask queue so the .then() on the background promise runs
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Second call — extensionlessResults was populated by the settled scan
+    const secondTasks = await provider.getTasks();
+    const found = secondTasks.find((t) => t.resourceUri?.fsPath === scriptUri.fsPath);
+    assert.ok(found, 'Extensionless result must appear in second getTasks()');
+    assert.strictEqual(found?.metadata?.subType, 'extensionless');
+  });
+
+  // ── getTasks: onDidChangeExtensionlessTasks event ─────────────────────────
+
+  test('onDidChangeExtensionlessTasks fires once when scan results change', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+
+    const scriptUri = vscode.Uri.file('/fakepath/new-script');
+    const provider = new ShellTaskProvider();
+    Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
+
+    (provider as any)._processExtensionlessScripts = async (): Promise<TaskItem[]> => {
+      return [(provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true)];
+    };
+
+    let firedCount = 0;
+    provider.onDidChangeExtensionlessTasks(() => firedCount++);
+
+    await provider.getTasks(); // [] → [item]: change detected → event fires
+    await Promise.resolve();
+    await Promise.resolve();
+
+    assert.strictEqual(firedCount, 1, 'Event should fire once when results change');
+  });
+
+  test('onDidChangeExtensionlessTasks does not fire again when scan results are unchanged', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+
+    const scriptUri = vscode.Uri.file('/fakepath/stable-script');
+    const provider = new ShellTaskProvider();
+    Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
+
+    (provider as any)._processExtensionlessScripts = async (): Promise<TaskItem[]> => {
+      return [(provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true)];
+    };
+
+    let firedCount = 0;
+    provider.onDidChangeExtensionlessTasks(() => firedCount++);
+
+    // First cycle: [] → [item] → event fires
+    await provider.getTasks();
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.strictEqual(firedCount, 1, 'Should fire once after first change');
+
+    // Second cycle: [item] → [item] — no change, event must NOT fire again
+    await provider.getTasks();
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.strictEqual(firedCount, 1, 'Should NOT fire again when results are identical');
+  });
+
+  // ── checkForShebangAndReadInterpreter: cache behaviour ────────────────────
+
+  test('checkForShebangAndReadInterpreter: cache hit returns cached values without re-reading disk', async () => {
+    const provider = new ShellTaskProvider();
+    const fileUri = shellUri('my-script');
+
+    // Determine real mtime so the cache entry matches
+    const stat = await fs.promises.stat(fileUri.fsPath);
+    (provider as any).shebangCache.set(fileUri.fsPath, {
+      hasShebang: true,
+      interpreter: 'node',
+      isExecutable: true,
+      mtime: stat.mtimeMs,
+    });
+
+    let openCallCount = 0;
+    const originalOpen = fs.promises.open.bind(fs.promises);
+    (fs.promises as any).open = async (...args: Parameters<typeof fs.promises.open>) => {
+      if (String(args[0]) === fileUri.fsPath) { openCallCount++; }
+      return originalOpen(...args);
+    };
+
+    try {
+      const result = await (provider as any).checkForShebangAndReadInterpreter(fileUri);
+      assert.strictEqual(result.hasShebang, true, 'Should return cached hasShebang=true');
+      assert.strictEqual(result.interpreter, 'node', 'Should return cached interpreter');
+      assert.strictEqual(result.isExecutable, true, 'Should return cached isExecutable');
+      assert.strictEqual(result.fromCache, true, 'Should report a cache hit');
+      assert.strictEqual(openCallCount, 0, 'Must not open the file when cache is warm');
+    } finally {
+      (fs.promises as any).open = originalOpen;
+    }
+  });
+
+  test('checkForShebangAndReadInterpreter: stale mtime invalidates cache and re-reads disk', async () => {
+    const provider = new ShellTaskProvider();
+    const fileUri = shellUri('my-script');
+
+    // Pre-populate cache with a deliberately wrong mtime
+    (provider as any).shebangCache.set(fileUri.fsPath, {
+      hasShebang: false,
+      interpreter: '',
+      isExecutable: false,
+      mtime: 1, // stale
+    });
+
+    const result = await (provider as any).checkForShebangAndReadInterpreter(fileUri);
+    assert.strictEqual(result.fromCache, false, 'Stale mtime must produce a cache miss');
+    assert.strictEqual(result.hasShebang, true, 'my-script has a shebang — fresh read should detect it');
+  });
+
+  test('checkForShebangAndReadInterpreter: isExecutable reflects stat mode bit', async () => {
+    const provider = new ShellTaskProvider();
+    const fileUri = shellUri('my-script');
+
+    const originalStat = fs.promises.stat.bind(fs.promises);
+    // Return mode 0o644 (no execute bit) to verify the flag is derived from stat
+    (fs.promises as any).stat = async (p: string) => {
+      const real = await originalStat(p);
+      if (p === fileUri.fsPath) {
+        return { ...real, mode: 0o100644, isFile: () => true };
+      }
+      return real;
+    };
+
+    try {
+      const result = await (provider as any).checkForShebangAndReadInterpreter(fileUri);
+      if (process.platform !== 'win32') {
+        assert.strictEqual(result.isExecutable, false, 'mode 0o644 should yield isExecutable=false on non-Windows');
+      } else {
+        assert.strictEqual(result.isExecutable, true, 'Windows always returns isExecutable=true');
+      }
+    } finally {
+      (fs.promises as any).stat = originalStat;
+    }
+  });
+
+  // ── parseShebangInterpreter: env-stripping ────────────────────────────────
+
+  test('parseShebangInterpreter: /usr/bin/env prefix is stripped', () => {
+    const provider = new ShellTaskProvider();
+    const buf = Buffer.from('#!/usr/bin/env python3\n');
+    const result = (provider as any).parseShebangInterpreter(buf, buf.length);
+    assert.strictEqual(result, 'python3');
+  });
+
+  test('parseShebangInterpreter: /usr/bin/env -S flags are stripped', () => {
+    const provider = new ShellTaskProvider();
+    const buf = Buffer.from('#!/usr/bin/env -S node --experimental-vm-modules\n');
+    const result = (provider as any).parseShebangInterpreter(buf, buf.length);
+    assert.strictEqual(result, 'node');
+  });
+
+  test('parseShebangInterpreter: absolute path returns basename', () => {
+    const provider = new ShellTaskProvider();
+    const buf = Buffer.from('#!/bin/bash\n');
+    const result = (provider as any).parseShebangInterpreter(buf, buf.length);
+    assert.strictEqual(result, 'bash');
+  });
+
+  test('parseShebangInterpreter: empty shebang line returns empty string', () => {
+    const provider = new ShellTaskProvider();
+    const buf = Buffer.from('#!\n');
+    const result = (provider as any).parseShebangInterpreter(buf, buf.length);
+    assert.strictEqual(result, '');
   });
 });

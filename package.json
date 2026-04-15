@@ -845,6 +845,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.zsh%"
               },
+              "extensionless": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.shellEnabledTaskTypes.extensionless%"
+              },
               "other": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.other%"

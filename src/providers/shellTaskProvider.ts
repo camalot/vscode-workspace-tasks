@@ -37,6 +37,8 @@ interface ShellTypeBatch {
   cacheHits: number;
 }
 
+const EXTENSIONLESS_SHELL_TYPE = 'extensionless';
+
 const BUILT_IN_SHELLS: Record<string, ShellConfig> = {
   bash: { extensions: ['sh', 'bash'], configKey: 'bash', defaultInterpreter: 'bash', requireShebang: false, useShebang: true },
   zsh: { extensions: ['zsh'], configKey: 'zsh', defaultInterpreter: 'zsh', requireShebang: false, useShebang: true },
@@ -52,8 +54,13 @@ const BUILT_IN_SHELLS: Record<string, ShellConfig> = {
 };
 
 export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider {
-  private shebangCache = new Map<string, { hasShebang: boolean; mtime: number }>();
-  private shebangInFlight = new Map<string, Promise<boolean>>();
+  private shebangCache = new Map<string, { hasShebang: boolean; interpreter: string; isExecutable: boolean; mtime: number }>();
+  private shebangInFlight = new Map<string, Promise<{ hasShebang: boolean; interpreter: string; isExecutable: boolean }>>();
+
+  private readonly _onDidChangeExtensionlessTasks = new vscode.EventEmitter<void>();
+  public readonly onDidChangeExtensionlessTasks = this._onDidChangeExtensionlessTasks.event;
+  private extensionlessResults: TaskItem[] = [];
+  private _disposed = false;
 
   public clearShebangCache(): void {
     this.shebangCache.clear();
@@ -67,6 +74,11 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     }
     const glob = `**/*.{${Array.from(extensions).join(',')}}`;
     super('shell', glob);
+  }
+
+  public dispose(): void {
+    this._disposed = true;
+    this._onDidChangeExtensionlessTasks.dispose();
   }
 
   override getFilePatterns(): string[] {
@@ -198,6 +210,39 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
       this.logger.info(`[ShellTaskProvider] other: ${otherCount} task(s) in ${Date.now() - otherStart}ms`);
     }
 
+    // 3. Append buffered extensionless results from the previous background scan (if any)
+    for (const item of this.extensionlessResults) {
+      if (!processedFiles.has(item.resourceUri!.fsPath)) {
+        processedFiles.add(item.resourceUri!.fsPath);
+        tasks.push(item);
+      }
+    }
+
+    // 4. Kick off the next extensionless scan as a fire-and-forget background promise.
+    //    When done it stores results in `extensionlessResults` and fires the refresh event
+    //    so the treeview re-renders with the updated set.
+    //    Change detection prevents a feedback loop: if the scan yields the same file set as
+    //    before (stable workspace), the event is not re-fired and no further getTasks() call
+    //    is triggered by the subscriber in providers/index.ts.
+    this._processExtensionlessScripts()
+      .then((items) => {
+        if (this._disposed) {
+          return;
+        }
+        const prevPaths = new Set(this.extensionlessResults.map((i) => i.resourceUri!.fsPath));
+        const nextPaths = new Set(items.map((i) => i.resourceUri!.fsPath));
+        const changed =
+          prevPaths.size !== nextPaths.size || [...nextPaths].some((f) => !prevPaths.has(f));
+        this.extensionlessResults = items;
+        if (changed) {
+          this._onDidChangeExtensionlessTasks.fire();
+        }
+      })
+      .catch((err) => {
+        this.logger.warn(`[ShellTaskProvider] extensionless scan failed: ${err}`);
+        this.extensionlessResults = [];
+      });
+
     const totalMs = Date.now() - totalStart;
     this.logger.info(`[ShellTaskProvider] Completed — ${tasks.length} total shell task(s) loaded in ${totalMs}ms`);
 
@@ -264,6 +309,88 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     return { type, def, interpreter, items, elapsedMs, fileCount: files.length, shebangReads, cacheHits };
   }
 
+  /**
+   * Scans the workspace for files with no extension that contain a shebang line and
+   * returns them as shell task items. Only runs when `shellEnabledTaskTypes.extensionless`
+   * is `true` (default: `false`). Intended to be called as a background task from
+   * `getTasks()` — results are stored in `extensionlessResults` and surfaced via
+   * `onDidChangeExtensionlessTasks`.
+   */
+  public async _processExtensionlessScripts(): Promise<TaskItem[]> {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const enabledTypes = config.get<Record<string, boolean>>('shellEnabledTaskTypes') || {};
+
+    if (!enabledTypes[EXTENSIONLESS_SHELL_TYPE]) {
+      this.logger.debug('[ShellTaskProvider] extensionless discovery disabled; skipping');
+      return [];
+    }
+
+    if (!TaskConfigService.getInstance().isTaskTypeEnabled('shell')) {
+      this.logger.debug('[ShellTaskProvider] shell task type disabled; skipping extensionless discovery');
+      return [];
+    }
+
+    const scanStart = Date.now();
+    this.logger.debug('[ShellTaskProvider] Starting extensionless shell script discovery');
+
+    const excludeGlob = `{${constants.GLOB_GLOBAL_EXCLUDE},${constants.GLOB_EXTENSIONLESS_EXCLUDE}}`;
+    const allFiles = await vscode.workspace.findFiles('**/*', excludeGlob);
+
+    // Keep only true extensionless files: no extension and no leading dot (hides .env, .gitignore, etc.)
+    const candidates = allFiles.filter((uri) => {
+      const base = path.basename(uri.fsPath);
+      return path.extname(base) === '' && !base.startsWith('.');
+    });
+
+    this.logger.debug(`[ShellTaskProvider] ${candidates.length} extensionless candidate(s) after filtering`);
+
+    // Parallel shebang check — same pattern as _processShellType
+    const checkResults = await Promise.allSettled(
+      candidates.map(async (file) => {
+        const result = await this.checkForShebangAndReadInterpreter(file);
+        return { file, ...result };
+      }),
+    );
+
+    const items: TaskItem[] = [];
+    let shebangReads = 0;
+    let cacheHits = 0;
+
+    // Sort results deterministically by fsPath before emitting
+    const resolved = checkResults
+      .filter(
+        (r): r is PromiseFulfilledResult<{ file: vscode.Uri; hasShebang: boolean; interpreter: string; isExecutable: boolean; fromCache: boolean }> =>
+          r.status === 'fulfilled',
+      )
+      .map((r) => r.value)
+      .sort((a, b) => a.file.fsPath.localeCompare(b.file.fsPath));
+
+    for (const { file, hasShebang, isExecutable, fromCache } of resolved) {
+      if (fromCache) {
+        cacheHits++;
+      } else {
+        shebangReads++;
+      }
+
+      // Both conditions must hold: shebang present AND file is executable.
+      // The file is run directly (e.g. `./my-script`); the kernel reads the shebang
+      // to invoke the correct interpreter, so no interpreter extraction is needed.
+      if (!hasShebang || !isExecutable) {
+        continue;
+      }
+
+      items.push(this.createShellTaskItem(file, '', EXTENSIONLESS_SHELL_TYPE, true));
+    }
+
+    const elapsedMs = Date.now() - scanStart;
+    this.logger.info(
+      `[ShellTaskProvider] extensionless: ${items.length} task(s) from ${candidates.length} candidate(s) in ${elapsedMs}ms` +
+        ` (${shebangReads} shebang reads, ${cacheHits} cache hits)`,
+    );
+
+    return items;
+  }
+
   private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string, useShebang = false): TaskItem {
     const filename = path.basename(resourceUri.fsPath);
     const iconPath = TaskIconService.getInstance().getTaskIcon(subType) || vscode.ThemeIcon.File;
@@ -292,55 +419,103 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     return item;
   }
 
-  private async checkForShebang(uri: vscode.Uri): Promise<{ hasShebang: boolean; fromCache: boolean }> {
+  /**
+   * Parses the interpreter name from a shebang buffer.
+   * Strips `/usr/bin/env`, `env`, and any leading `env` flags (e.g. `-S`, `-v`).
+   * Returns the bare executable name (e.g. `'python3'`, `'node'`, `'bash'`).
+   */
+  private parseShebangInterpreter(buffer: Uint8Array, bytesRead: number): string {
+    const text = Buffer.from(buffer.subarray(0, bytesRead)).toString('utf8');
+    const firstLine = text.split('\n')[0];
+    if (!firstLine.startsWith('#!')) {
+      return '';
+    }
+    const args = firstLine.slice(2).trim().split(/\s+/).filter(Boolean);
+    if (args.length === 0) {
+      return '';
+    }
+    const executable = path.basename(args[0]);
+    if (executable === 'env') {
+      // Skip env flags (e.g. -S, -v, --split-string) to find the real interpreter
+      let i = 1;
+      while (i < args.length && args[i].startsWith('-')) {
+        i++;
+      }
+      return i < args.length ? path.basename(args[i]) : '';
+    }
+    return executable;
+  }
+
+  /**
+   * Reads up to `MAX_SHEBANG_READ_BYTES` bytes of a file to detect a shebang and parse
+   * the interpreter name. Results are cached by file path + mtime. Concurrent calls for
+   * the same path are coalesced to a single `open()` via the in-flight map.
+   */
+  private async checkForShebangAndReadInterpreter(
+    uri: vscode.Uri,
+  ): Promise<{ hasShebang: boolean; interpreter: string; isExecutable: boolean; fromCache: boolean }> {
     try {
       if (uri.scheme === 'file') {
         const stat = await fs.promises.stat(uri.fsPath);
+        if (!stat.isFile()) {
+          return { hasShebang: false, interpreter: '', isExecutable: false, fromCache: false };
+        }
+        // On Windows there is no execute-bit concept; treat every file as executable so the
+        // shebang check remains the sole guard on that platform.
+        const isExecutable = process.platform !== 'win32' ? (stat.mode & 0o111) !== 0 : true;
         const mtime = stat.mtimeMs;
         const cached = this.shebangCache.get(uri.fsPath);
         if (cached && cached.mtime === mtime) {
           this.logger.debug(`[ShellTaskProvider] shebang cache hit: ${uri.fsPath}`);
-          return { hasShebang: cached.hasShebang, fromCache: true };
+          return { hasShebang: cached.hasShebang, interpreter: cached.interpreter, isExecutable: cached.isExecutable, fromCache: true };
         }
         // Coalesce concurrent reads for the same file path to avoid duplicate open() calls
         const inFlight = this.shebangInFlight.get(uri.fsPath);
         if (inFlight) {
-          this.logger.debug(`[ShellTaskProvider] shebang cache hit: ${uri.fsPath}`);
-          const hasShebang = await inFlight;
-          return { hasShebang, fromCache: true };
+          this.logger.debug(`[ShellTaskProvider] shebang in-flight hit: ${uri.fsPath}`);
+          const result = await inFlight;
+          return { ...result, fromCache: true };
         }
         this.logger.debug(`[ShellTaskProvider] shebang cache miss (read): ${uri.fsPath}`);
         // Build and register the read promise synchronously before the first await
         // so any concurrent caller for this path sees it immediately
-        const readPromise = (async () => {
+        const readPromise = (async (): Promise<{ hasShebang: boolean; interpreter: string; isExecutable: boolean }> => {
           const handle = await fs.promises.open(uri.fsPath, 'r');
           try {
-            const buffer = new Uint8Array(2);
-            const { bytesRead } = await handle.read(buffer, 0, 2, 0);
+            const buffer = new Uint8Array(constants.MAX_SHEBANG_READ_BYTES);
+            const { bytesRead } = await handle.read(buffer, 0, constants.MAX_SHEBANG_READ_BYTES, 0);
             const hasShebang = bytesRead >= 2 && buffer[0] === 0x23 && buffer[1] === 0x21; // #!
-            this.shebangCache.set(uri.fsPath, { hasShebang, mtime });
-            return hasShebang;
+            const interpreter = hasShebang ? this.parseShebangInterpreter(buffer, bytesRead) : '';
+            this.shebangCache.set(uri.fsPath, { hasShebang, interpreter, isExecutable, mtime });
+            return { hasShebang, interpreter, isExecutable };
           } finally {
             await handle.close();
           }
         })();
         this.shebangInFlight.set(uri.fsPath, readPromise);
         try {
-          const hasShebang = await readPromise;
-          return { hasShebang, fromCache: false };
+          const result = await readPromise;
+          return { ...result, fromCache: false };
         } finally {
           this.shebangInFlight.delete(uri.fsPath);
         }
       } else {
-        // Fallback for virtual filesystems — no caching
+        // Fallback for virtual filesystems — no caching; treat as executable
         const data = await vscode.workspace.fs.readFile(uri);
         if (data.byteLength < 2) {
-          return { hasShebang: false, fromCache: false };
+          return { hasShebang: false, interpreter: '', isExecutable: false, fromCache: false };
         }
-        return { hasShebang: data[0] === 0x23 && data[1] === 0x21, fromCache: false }; // #!
+        const hasShebang = data[0] === 0x23 && data[1] === 0x21; // #!
+        const interpreter = hasShebang ? this.parseShebangInterpreter(data as Uint8Array, data.byteLength) : '';
+        return { hasShebang, interpreter, isExecutable: true, fromCache: false };
       }
     } catch (e) {
-      return { hasShebang: false, fromCache: false };
+      return { hasShebang: false, interpreter: '', isExecutable: false, fromCache: false };
     }
+  }
+
+  private async checkForShebang(uri: vscode.Uri): Promise<{ hasShebang: boolean; fromCache: boolean }> {
+    const { hasShebang, fromCache } = await this.checkForShebangAndReadInterpreter(uri);
+    return { hasShebang, fromCache };
   }
 }

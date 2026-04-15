@@ -248,7 +248,8 @@ Evaluation order — first matching rule wins:
   "pwsh": true,
   "python": true,
   "ruby": true,
-  "other": true
+  "other": true,
+  "extensionless": false
 }
 ```
 
@@ -267,6 +268,7 @@ Enable or disable individual shell-script sub-types. This allows fine-grained co
 - **sh** - POSIX Shell
 - **zsh** - Zsh
 - **other** - Any extension registered via `workspaceTasks.shellAdditionalExtensions`
+- **extensionless** - Extensionless files that have a shebang line (`#!`) **and** an executable bit (`chmod +x`) — [disabled by default; see below](#extensionless-shell-scripts)
 
 **Example:**
 
@@ -379,3 +381,46 @@ When the extension processes a shell-script file it applies two independent chec
 
 {: .note}
 > If a script has a shebang but is not marked executable, direct execution will fail. Either make the script executable or configure `workspaceTasks.shellPaths` with the desired interpreter — the configured interpreter is always used when no shebang is present.
+
+---
+
+## Extensionless Shell Scripts
+
+{: .new }
+> **Opt-in feature** — disabled by default. Enable with `workspaceTasks.shellEnabledTaskTypes.extensionless: true`.
+
+The extension can discover shell scripts that have **no file extension** (e.g. scripts named `build`, `deploy`, `run`). Because scanning every extensionless file in a workspace has measurable I/O overhead, this feature is **off by default**.
+
+### Requirements
+
+A file is included as an extensionless task only when **both** conditions are met:
+
+1. **Shebang line** — the first two bytes are `#!` (e.g. `#!/usr/bin/env bash`).
+2. **Executable bit** — the file has at least one execute permission bit set (`chmod +x`). On Windows, where execute bits do not exist, any extensionless file with a shebang is included automatically.
+
+### Execution model
+
+Extensionless tasks are run **directly** — the extension does not extract the interpreter from the shebang. Instead the OS kernel reads the shebang at launch time and invokes the correct interpreter. This means the task command is simply the relative file path (e.g. `./build`), and no additional configuration is needed regardless of which interpreter the shebang names.
+
+### Performance
+
+When enabled, extensionless discovery runs as a **background scan** that is independent of the main shell-type discovery. The treeview populates first with typed-extension scripts (`.sh`, `.py`, etc.) and then refreshes a second time when the extensionless scan completes. The shebang cache is shared with typed-extension scripts so repeated refreshes are fast. Results from the previous scan are returned synchronously on subsequent `getTasks()` calls.
+
+To minimise I/O, the following directories are excluded from the scan before any file reads:
+
+`node_modules`, `.git`, `.venv`, `dist`, `out`, `build`, `coverage`, `.vscode`, `.vscode-test`
+
+Additionally, hidden files (names starting with `.`) are excluded at the filtering stage — files such as `.env` and `.gitignore` have an empty extension but are not scripts.
+
+### Enabling
+
+```json
+{
+  "workspaceTasks.shellEnabledTaskTypes": {
+    "extensionless": true
+  }
+}
+```
+
+{: .warning}
+> In large workspaces with many extensionless files the first scan may take a noticeable amount of time. Use the extension's built-in exclusion patterns (`workspaceTasks.excludePatterns`) to limit the scan scope if needed.

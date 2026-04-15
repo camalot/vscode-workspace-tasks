@@ -155,6 +155,7 @@
   "config.workspaceTasks.shellEnabledTaskTypes.ruby": "Ruby",
   "config.workspaceTasks.shellEnabledTaskTypes.sh": "Shell",
   "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
+  "config.workspaceTasks.shellEnabledTaskTypes.extensionless": "Extensionless Shell Scripts",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
   "config.workspaceTasks.task.stopGracefulDelayMilliseconds": "Stop Graceful Delay (Milliseconds)",

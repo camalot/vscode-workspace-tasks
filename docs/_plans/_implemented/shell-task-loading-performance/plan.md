@@ -241,11 +241,13 @@ This preserves the existing deduplication precedence (the first type that claims
 ### Step 2.1 — Add an mtime-keyed shebang cache to `ShellTaskProvider`
 
 Add a private field:
+
 ```typescript
 private shebangCache = new Map<string, { hasShebang: boolean; mtime: number }>();
 ```
 
 In `checkForShebang(uri: vscode.Uri)`:
+
 1. For `file://` URIs, `stat` the file to get `mtimeMs`
 2. Look up `uri.fsPath` in `shebangCache`
 3. If cached **and** `mtime` matches → return cached `hasShebang`

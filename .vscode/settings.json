@@ -38,6 +38,7 @@
         "endfor",
         "endmacro",
         "endraw",
+        "Extensionless",
         "favorited",
         "gradlew",
         "gulpfile",

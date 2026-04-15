@@ -47,6 +47,8 @@ const constants: Record<string, any> = {
   GLOB_VENV: '**/.venv/Scripts/{activate.bat,activate.fish,Activate.ps1,deactivate.bat}',
   GLOB_CMAKE: '**/CMakeLists.txt',
   GLOB_CAKE: '**/*.cake',
+  GLOB_EXTENSIONLESS_EXCLUDE: '**/node_modules/**,**/.git/**,**/.venv/**,**/dist/**,**/out/**,**/build/**,**/coverage/**,**/.vscode/**,**/.vscode-test/**',
+  MAX_SHEBANG_READ_BYTES: 255,
 };
 
 export default constants;
