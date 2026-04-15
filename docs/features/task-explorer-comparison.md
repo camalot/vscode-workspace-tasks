@@ -74,7 +74,7 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Ruby scripts | ✅ | ✅ (v1.12+) | |
 | Perl scripts | ✅ | ✅ (v1.12+) | ✅ |
 | NSIS scripts | ❌ | ✅ (v1.12+) | ❌ |
-| Shell scripts without extension | ❌ | ✅ (v2.6+) | ✅ |
+| Shell scripts without extension | ✅ | ✅ (v2.6+) | ✅ v1.8.0 |
 | Jupyter Notebooks | ✅ | ❌ | |
 | Custom Workspace Tasks (`.workspace-tasks.json`) | ✅ | ❌ | |
 | App-Publisher | ❌ | ✅ (v1.19+) | ❌ |
