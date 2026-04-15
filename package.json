@@ -605,10 +605,6 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.bun%"
               },
-              "shell": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
-              },
               "cake": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.cake%"
@@ -681,6 +677,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.msbuild%"
               },
+              "mise": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.mise%"
+              },
               "npm": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.npm%"
@@ -709,6 +709,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.ruby%"
               },
+              "shell": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
+              },
               "typescript": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.typescript%"
@@ -732,10 +736,6 @@
               "workspace": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.workspace%"
-              },
-              "mise": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.mise%"
               }
             },
             "default": {
@@ -767,12 +767,12 @@
               "rake": true,
               "typescript": true,
               "yarn": false,
+              "mise": true,
               "pnpm": false,
               "venv": true,
               "vscode": true,
               "webpack": true,
-              "workspace": true,
-              "mise": true
+              "workspace": true
             }
           },
           "workspaceTasks.enabledTaskTypePatterns": {

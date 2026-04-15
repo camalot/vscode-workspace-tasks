@@ -134,6 +134,7 @@
         "poe": false,
         "poetry": false,
         "rake": false,
-        "venv": false
+        "venv": false,
+        "mise": false
     }
 }
