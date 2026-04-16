@@ -111,14 +111,14 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Sidebar view (Activity Bar) | ✅ | ✅ | |
 | Explorer panel view | ✅ | ✅ | |
 | Hierarchical tree (workspace → type → file → task) | ✅ | ✅ | |
-| Task grouping by separator character | ❌ | ✅ (v1.23+, up to 15 levels in v3) | |
+| Task grouping by separator character | ✅ | ✅ (v1.23+, up to 15 levels in v3) | |
 | Hide individual tasks | ✅ | ❌ | |
 | Hide task groups | ✅ | ❌ | |
 | Animated running-task icon | ✅ | ✅ | |
 | Status bar message while task runs | ❌ | ✅ (v1.26+) | |
 | Configurable click action (run vs. open) | ✅ | ✅ (v1.30+) | |
 | Task icons (per type) | ✅ | ✅ | |
-| Custom icons via settings | ❌ | ✅ | ✅ v1.8+ |
+| Custom icons via settings | ℹ️ (limited support currently) | ✅ | ✅ v1.8+ |
 | Task Monitor (fullscreen webview console) | ❌ | ✅ (v3+) | ❌ |
 | Estimated task duration display | ✅ | ❌ | ✅ v1.8.0 |
 | Run Guard (confirm before running) | ✅ | ❌ | ✅ v1.8.0 |
