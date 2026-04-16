@@ -42,7 +42,6 @@ export class TaskRunGuardDecorationProvider implements vscode.FileDecorationProv
 
     return {
       badge: '🛡️',
-      color: new vscode.ThemeColor('list.warningForeground'),
       tooltip: 'This task requires confirmation before running',
       propagate: false,
     };
