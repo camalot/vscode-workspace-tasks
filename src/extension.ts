@@ -139,10 +139,16 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Listen for guard changes and refresh tree
+  // Listen for guard changes and refresh tree.
+  // Use refreshLocal() rather than refresh() so that:
+  //  - Manual guard toggles (Solution C) re-render without a full cache rebuild.
+  //  - Definition-level guard changes from .workspace-tasks.json (Solution B) are
+  //    reflected immediately: onDidChangeGuards now also fires on TaskCacheService
+  //    .onDidUpdate, so the tree re-evaluates the guarded contextValue projection in
+  //    getTreeItem() without triggering a second full provider refresh.
   context.subscriptions.push(
     TaskRunGuardService.getInstance().onDidChangeGuards(() => {
-      taskTreeDataProvider.refresh();
+      taskTreeDataProvider.refreshLocal();
     })
   );
 

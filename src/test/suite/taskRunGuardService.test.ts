@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { TaskRunGuardService } from '../../services/taskRunGuardService';
+import { TaskCacheService } from '../../services/taskCacheService';
 import { TaskItem } from '../../taskItem';
 
 // ---------------------------------------------------------------------------
@@ -328,11 +329,154 @@ suite('TaskRunGuardService Test Suite', () => {
       'canonical ID should be removed when removeGuard is called with fav:-prefixed item');
   });
 
+  // ── onDidUpdate from TaskCacheService fires onDidChangeGuards ────────────────
+
+  test('initialize subscribes to TaskCacheService.onDidUpdate and fires onDidChangeGuards', () => {
+    const cacheUpdateEmitter = new vscode.EventEmitter<void>();
+    const originalCacheInstance = (TaskCacheService as any).instance;
+    (TaskCacheService as any).instance = {
+      onDidUpdate: cacheUpdateEmitter.event,
+      getAllTasks: () => [],
+    };
+
+    const ctx = makeContext();
+    (ctx.subscriptions as any) = [];
+    service.initialize(ctx);
+
+    let guardChangesFired = 0;
+    service.onDidChangeGuards(() => { guardChangesFired++; });
+
+    // Simulate cache update (e.g. .workspace-tasks.json saved with confirm: changed)
+    cacheUpdateEmitter.fire();
+
+    assert.strictEqual(guardChangesFired, 1,
+      'onDidChangeGuards should fire when TaskCacheService.onDidUpdate fires (covers definition-level guard changes)');
+
+    // Clean up
+    (TaskCacheService as any).instance = originalCacheInstance;
+    cacheUpdateEmitter.dispose();
+  });
+
+  test('initialize: multiple cache updates each fire onDidChangeGuards', () => {
+    const cacheUpdateEmitter = new vscode.EventEmitter<void>();
+    const originalCacheInstance = (TaskCacheService as any).instance;
+    (TaskCacheService as any).instance = {
+      onDidUpdate: cacheUpdateEmitter.event,
+      getAllTasks: () => [],
+    };
+
+    const ctx = makeContext();
+    (ctx.subscriptions as any) = [];
+    service.initialize(ctx);
+
+    let guardChangesFired = 0;
+    service.onDidChangeGuards(() => { guardChangesFired++; });
+
+    cacheUpdateEmitter.fire();
+    cacheUpdateEmitter.fire();
+    cacheUpdateEmitter.fire();
+
+    assert.strictEqual(guardChangesFired, 3, 'each cache update should independently fire onDidChangeGuards');
+
+    (TaskCacheService as any).instance = originalCacheInstance;
+    cacheUpdateEmitter.dispose();
+  });
+
+  test('cache update populates _definitionGuardIds from items with guardedByDefinition=true', () => {
+    const cacheUpdateEmitter = new vscode.EventEmitter<void>();
+    const originalCacheInstance = (TaskCacheService as any).instance;
+    const guardedItem = makeItem('Great Southern Trendkill', 'pantera:task-id');
+    guardedItem.guardedByDefinition = true;
+    const ungurdedItem = makeItem('Walk', 'pantera:walk-id');
+    (TaskCacheService as any).instance = {
+      onDidUpdate: cacheUpdateEmitter.event,
+      getAllTasks: () => [guardedItem, ungurdedItem],
+    };
+
+    const ctx = makeContext();
+    (ctx.subscriptions as any) = [];
+    service.initialize(ctx);
+
+    // Before cache update: set is empty
+    assert.strictEqual((service as any)._definitionGuardIds.size, 0);
+
+    cacheUpdateEmitter.fire();
+
+    // After cache update: only the guarded item's canonical ID is in the set
+    assert.strictEqual((service as any)._definitionGuardIds.has('pantera:task-id'), true,
+      'canonical ID of guarded item should be in _definitionGuardIds');
+    assert.strictEqual((service as any)._definitionGuardIds.has('pantera:walk-id'), false,
+      'unguarded item ID should not be in _definitionGuardIds');
+    assert.strictEqual((service as any)._definitionGuardIds.size, 1);
+
+    (TaskCacheService as any).instance = originalCacheInstance;
+    cacheUpdateEmitter.dispose();
+  });
+
+  test('isGuarded returns true via _definitionGuardIds even when item.guardedByDefinition is not set (stale item ref)', () => {
+    // This tests the core bug fix: VS Code may pass a stale item reference to getTreeItem()
+    // that was created before the cache rebuild and does not have guardedByDefinition set.
+    // isGuarded must still return true because _definitionGuardIds contains the item's ID.
+    const cacheUpdateEmitter = new vscode.EventEmitter<void>();
+    const originalCacheInstance = (TaskCacheService as any).instance;
+    const cachedItem = makeItem('Great Southern Trendkill', 'confirm-task-id');
+    cachedItem.guardedByDefinition = true;
+    (TaskCacheService as any).instance = {
+      onDidUpdate: cacheUpdateEmitter.event,
+      getAllTasks: () => [cachedItem],
+    };
+
+    const ctx = makeContext();
+    (ctx.subscriptions as any) = [];
+    service.initialize(ctx);
+    cacheUpdateEmitter.fire(); // triggers _rebuildDefinitionGuards
+
+    // Simulate a stale item reference: same ID, but guardedByDefinition is NOT set
+    const staleItem = makeItem('Great Southern Trendkill', 'confirm-task-id');
+    // staleItem.guardedByDefinition is undefined — as if it was created before the file save
+
+    assert.strictEqual(service.isGuarded(staleItem), true,
+      'isGuarded should return true via _definitionGuardIds even when item.guardedByDefinition is not set');
+
+    (TaskCacheService as any).instance = originalCacheInstance;
+    cacheUpdateEmitter.dispose();
+  });
+
+  test('_definitionGuardIds is cleared when cache updates and no items are guarded by definition', () => {
+    const cacheUpdateEmitter = new vscode.EventEmitter<void>();
+    const originalCacheInstance = (TaskCacheService as any).instance;
+    const guardedItem = makeItem('confirm-task', 'confirm-task-id');
+    guardedItem.guardedByDefinition = true;
+    let cachedItems: any[] = [guardedItem];
+    (TaskCacheService as any).instance = {
+      onDidUpdate: cacheUpdateEmitter.event,
+      getAllTasks: () => cachedItems,
+    };
+
+    const ctx = makeContext();
+    (ctx.subscriptions as any) = [];
+    service.initialize(ctx);
+
+    // First update: item is guarded
+    cacheUpdateEmitter.fire();
+    assert.strictEqual((service as any)._definitionGuardIds.has('confirm-task-id'), true);
+
+    // Second update: confirm removed from file, item no longer guarded
+    const unguardedItem = makeItem('confirm-task', 'confirm-task-id'); // no guardedByDefinition
+    cachedItems = [unguardedItem];
+    cacheUpdateEmitter.fire();
+    assert.strictEqual((service as any)._definitionGuardIds.has('confirm-task-id'), false,
+      '_definitionGuardIds should be cleared when item no longer has guardedByDefinition');
+    assert.strictEqual(service.isGuarded(unguardedItem), false,
+      'isGuarded should return false after confirm is removed from the task definition');
+
+    (TaskCacheService as any).instance = originalCacheInstance;
+    cacheUpdateEmitter.dispose();
+  });
+
   // ── patterns reloaded on config change ────────────────────────────────────
 
   test('patterns are reloaded when settings change and event fires', async () => {
-    // Start with no patterns
-    stubPatterns([]);
     const onDidChangeConfigEmitter = new vscode.EventEmitter<vscode.ConfigurationChangeEvent>();
     const ctx = makeContext();
     (ctx.subscriptions as any) = [];
