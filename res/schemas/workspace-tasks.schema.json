@@ -201,6 +201,11 @@
                 "type": "object",
                 "description": "Maps environment variable names to VS Code SecretStorage keys. Values are fetched from SecretStorage at run time and never trigger secret-pattern warnings.",
                 "additionalProperties": { "type": "string" }
+              },
+              "confirm": {
+                "type": "boolean",
+                "description": "When true, the task will prompt for confirmation before it runs.",
+                "default": false
               }
             },
             "required": ["label", "command", "type"]

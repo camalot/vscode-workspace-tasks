@@ -12,12 +12,7 @@ has_children: true
 
 Settings that control which tasks the extension finds and how it discovers them — including which files and directories to scan, how deeply to search, which task-type providers are active, and how shell-script tasks are identified.
 
-<!-- markdownlint-disable-next-line MD022 -->
-## Table of Contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
+---
 
 ## Defined Task Types Discovery Patterns
 

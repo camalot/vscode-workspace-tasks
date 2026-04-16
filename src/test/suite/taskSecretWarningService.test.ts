@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { TaskSecretWarningService } from '../../services/taskSecretWarningService';
+import { TaskEnvFileResolver } from '../../services/taskEnvFileResolver';
 import { IResolvedEnvEntry } from '../../services/taskEnvTypes';
 
 // ---------------------------------------------------------------------------
@@ -454,5 +455,190 @@ suite('TaskSecretWarningService Test Suite', () => {
 
     assert.strictEqual(range.start.line, 2, 'Should find MY_TOKEN on line 2');
     assert.ok(range.start.character >= 0, 'Column should be within range');
+  });
+
+  // ── checkConfiguredEnvFilesForGitTracking ─────────────────────────────────
+
+  suite('checkConfiguredEnvFilesForGitTracking', () => {
+    let subOriginalGetConfiguration: typeof vscode.workspace.getConfiguration;
+    let originalResolveFileReferences: typeof TaskEnvFileResolver.resolveFileReferences;
+    let originalWorkspaceFoldersDescriptor: PropertyDescriptor | undefined;
+
+    /** Paths returned by the mocked resolveFileReferences for envFiles */
+    let resolvedEnvFiles: string[];
+    /** Paths returned by the mocked resolveFileReferences for secretFiles */
+    let resolvedSecretFiles: string[];
+    /** Controls the mocked value of workspaceTasks.envVars.warnIfGitTracked */
+    let warnEnabled: boolean;
+
+    setup(() => {
+      resolvedEnvFiles = [];
+      resolvedSecretFiles = [];
+      warnEnabled = true;
+
+      // Mock getConfiguration.
+      // Sentinel values ('env-marker', 'secret-marker') let the resolveFileReferences mock
+      // return different paths depending on which setting is being resolved.
+      subOriginalGetConfiguration = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'envVars.warnIfGitTracked') { return warnEnabled as unknown as T; }
+              if (key === 'envVars.envFiles') { return 'env-marker' as unknown as T; }
+              if (key === 'envVars.secretFiles') { return 'secret-marker' as unknown as T; }
+              return def as T;
+            },
+          };
+        }
+        return subOriginalGetConfiguration(section);
+      };
+
+      // Ensure workspaceFolders always has at least one entry so the internal loop runs.
+      originalWorkspaceFoldersDescriptor = Object.getOwnPropertyDescriptor(vscode.workspace, 'workspaceFolders');
+      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+        get: () => [{ uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 }],
+        configurable: true,
+      });
+
+      // Stub resolveFileReferences to avoid real filesystem/glob operations.
+      originalResolveFileReferences = TaskEnvFileResolver.resolveFileReferences.bind(TaskEnvFileResolver) as any;
+      (TaskEnvFileResolver as any).resolveFileReferences = async (ref: any, _folder: any): Promise<string[]> => {
+        if (ref === 'env-marker') { return [...resolvedEnvFiles]; }
+        if (ref === 'secret-marker') { return [...resolvedSecretFiles]; }
+        return [];
+      };
+    });
+
+    teardown(() => {
+      (vscode.workspace as any).getConfiguration = subOriginalGetConfiguration;
+      if (originalWorkspaceFoldersDescriptor) {
+        Object.defineProperty(vscode.workspace, 'workspaceFolders', originalWorkspaceFoldersDescriptor);
+      }
+      (TaskEnvFileResolver as any).resolveFileReferences = originalResolveFileReferences;
+    });
+
+    /** Convenience: returns diagnostics for the given absolute path from the service's collection. */
+    function getDiagnostics(filePath: string): readonly vscode.Diagnostic[] {
+      const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+      return collection.get(vscode.Uri.file(filePath)) ?? [];
+    }
+
+    test('warnIfGitTracked disabled: no diagnostics emitted even when file is git-tracked', async () => {
+      warnEnabled = false;
+      resolvedEnvFiles = ['/project/.env'];
+      gitTrackedFiles.add('/project/.env');
+
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      const diags = getDiagnostics('/project/.env');
+      assert.strictEqual(diags.length, 0, 'No diagnostics should be emitted when warnIfGitTracked is false');
+    });
+
+    test('envFiles: git-tracked file produces config-env-file-git-tracked diagnostic', async () => {
+      resolvedEnvFiles = ['/project/.env'];
+      gitTrackedFiles.add('/project/.env');
+
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      const diags = getDiagnostics('/project/.env');
+      assert.strictEqual(diags.length, 1, 'Should have exactly one diagnostic');
+      assert.strictEqual(diags[0].code, 'config-env-file-git-tracked',
+        `Diagnostic code should be config-env-file-git-tracked, got: ${diags[0].code}`);
+      assert.strictEqual(diags[0].severity, vscode.DiagnosticSeverity.Warning);
+      assert.strictEqual(diags[0].source, 'Workspace Tasks');
+      assert.ok(
+        diags[0].message.includes('envFiles'),
+        `Diagnostic message should mention 'envFiles', got: ${diags[0].message}`,
+      );
+      assert.ok(
+        diags[0].message.includes('.gitignore'),
+        `Diagnostic message should recommend .gitignore, got: ${diags[0].message}`,
+      );
+    });
+
+    test('secretFiles: git-tracked file produces config-secret-file-git-tracked diagnostic', async () => {
+      resolvedSecretFiles = ['/project/.secret'];
+      gitTrackedFiles.add('/project/.secret');
+
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      const diags = getDiagnostics('/project/.secret');
+      assert.strictEqual(diags.length, 1, 'Should have exactly one diagnostic');
+      assert.strictEqual(diags[0].code, 'config-secret-file-git-tracked',
+        `Diagnostic code should be config-secret-file-git-tracked, got: ${diags[0].code}`);
+      assert.strictEqual(diags[0].severity, vscode.DiagnosticSeverity.Warning);
+      assert.ok(
+        diags[0].message.includes('secretFiles'),
+        `Diagnostic message should mention 'secretFiles', got: ${diags[0].message}`,
+      );
+    });
+
+    test('non-tracked envFiles file produces no diagnostic', async () => {
+      resolvedEnvFiles = ['/project/.env'];
+      // gitTrackedFiles is empty — file is not tracked by git
+
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      const diags = getDiagnostics('/project/.env');
+      assert.strictEqual(diags.length, 0, 'Non-tracked file should produce no diagnostic');
+    });
+
+    test('clearConfigFileDiagnostics: preserves task-run diagnostics', async () => {
+      // Add a pre-existing task-run diagnostic (suspicious-env-key) on the same file.
+      const collection = (service as any).diagnosticCollection as vscode.DiagnosticCollection;
+      const uri = vscode.Uri.file('/project/.env');
+      const taskRunDiag = new vscode.Diagnostic(
+        new vscode.Range(0, 0, 0, 0),
+        'Environment key `MY_TOKEN` matches a secret pattern in a git-tracked file.',
+        vscode.DiagnosticSeverity.Warning,
+      );
+      taskRunDiag.source = 'Workspace Tasks';
+      taskRunDiag.code = 'suspicious-env-key';
+      collection.set(uri, [taskRunDiag]);
+
+      // Produce a config-file diagnostic on the same file.
+      resolvedEnvFiles = ['/project/.env'];
+      gitTrackedFiles.add('/project/.env');
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      let diags = collection.get(uri) ?? [];
+      assert.strictEqual(diags.length, 2, 'Prerequisite: both task-run and config-file diagnostics should exist');
+
+      // Clear only config-file diagnostics.
+      (service as any).clearConfigFileDiagnostics();
+
+      diags = collection.get(uri) ?? [];
+      assert.strictEqual(diags.length, 1, 'Should retain the task-run diagnostic after clearing config diagnostics');
+      assert.strictEqual(diags[0].code, 'suspicious-env-key', 'Surviving diagnostic should be the task-run one');
+    });
+
+    test('re-run after disabling warnIfGitTracked clears existing config diagnostics', async () => {
+      // First run with the setting enabled — should produce a diagnostic.
+      resolvedEnvFiles = ['/project/.env'];
+      gitTrackedFiles.add('/project/.env');
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      let diags = getDiagnostics('/project/.env');
+      assert.strictEqual(diags.length, 1, 'Prerequisite: diagnostic should exist after first run');
+
+      // Second run with the setting disabled — diagnostic should be cleared.
+      warnEnabled = false;
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      diags = getDiagnostics('/project/.env');
+      assert.strictEqual(diags.length, 0, 'Config diagnostic should be removed after disabling warnIfGitTracked');
+    });
+
+    test('duplicate calls do not create duplicate diagnostics', async () => {
+      resolvedEnvFiles = ['/project/.env'];
+      gitTrackedFiles.add('/project/.env');
+
+      await service.checkConfiguredEnvFilesForGitTracking();
+      await service.checkConfiguredEnvFilesForGitTracking();
+
+      const diags = getDiagnostics('/project/.env');
+      assert.strictEqual(diags.length, 1, 'Should not duplicate config-file diagnostics across repeated calls');
+    });
   });
 });

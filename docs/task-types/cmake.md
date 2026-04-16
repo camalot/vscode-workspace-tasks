@@ -1,6 +1,6 @@
 ---
 layout: default
-title: CMake
+title: Ⓜ️ CMake
 parent: 📱 Supported Task Types
 nav_order: 8
 ---

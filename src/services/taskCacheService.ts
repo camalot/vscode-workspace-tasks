@@ -402,9 +402,13 @@ export class TaskCacheService {
         ? (task.scope as vscode.WorkspaceFolder).uri.toString()
         : undefined;
 
-    // 1) Match by workspace folder if available (highest priority when scope is specified)
+    // 1) Match by workspace folder — narrow candidates but don't return immediately.
+    // When only one candidate is in the target folder we can return it directly.
+    // When multiple candidates share the same folder (e.g. an npm task and a grunt task
+    // both in the workspace root) we narrow the list and fall through to step 2 so that
+    // the task *type* can break the tie.
     if (taskScopeFolder) {
-      const byFolder = candidates.find((item) => {
+      const byFolder = candidates.filter((item) => {
         const itemUri = item.taskFileUri || item.resourceUri;
         if (!itemUri) {
           return false;
@@ -412,8 +416,36 @@ export class TaskCacheService {
         const itemFolder = vscode.workspace.getWorkspaceFolder(itemUri);
         return itemFolder?.uri.toString() === taskScopeFolder;
       });
-      if (byFolder) {
-        return byFolder;
+      if (byFolder.length === 1) {
+        return byFolder[0];
+      }
+      if (byFolder.length > 1) {
+        // Narrow to folder-matched candidates and let subsequent steps disambiguate by type.
+        candidates.splice(0, candidates.length, ...byFolder);
+      }
+    }
+
+    // 1.5) When the definition has no path (e.g. VS Code's npm extension omits `path` for
+    // root-level package.json tasks, but includes it for subdirectory tasks like
+    // `{ path: 'nodejs/' }`), the absence of `path` means the task is at the workspace
+    // root. Filter out candidates whose task file lives in a subdirectory, preferring
+    // the item directly inside the scope folder.
+    if (!defPath && taskScopeFolder && candidates.length > 1) {
+      const scopeFsPath =
+        task.scope && typeof task.scope !== 'number'
+          ? (task.scope as vscode.WorkspaceFolder).uri.fsPath.toLowerCase()
+          : undefined;
+      if (scopeFsPath) {
+        const atRoot = candidates.filter((item) => {
+          const itemUri = item.taskFileUri || item.resourceUri;
+          if (!itemUri || itemUri.scheme !== 'file') { return false; }
+          const dir = path.dirname(itemUri.fsPath).toLowerCase();
+          return dir === scopeFsPath;
+        });
+        if (atRoot.length === 1) { return atRoot[0]; }
+        if (atRoot.length > 1) {
+          candidates.splice(0, candidates.length, ...atRoot);
+        }
       }
     }
 

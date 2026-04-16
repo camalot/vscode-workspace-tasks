@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { WorkspaceTasksService } from '../../services/workspaceTasksService';
 import { TaskFilesService } from '../../services/taskFilesService';
+import { TaskCacheService } from '../../services/taskCacheService';
 
 // Helper to wait for async operations if needed
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -143,6 +144,45 @@ suite('WorkspaceTasksService Test Suite', () => {
         await service.getProviders();
 
         assert.strictEqual(loadCount, 1, 'loadWorkspaceConfig should be called once when configLoaded is false');
+    });
+
+    test('getTasks reloads config when configLoaded is false even when config is non-empty', async () => {
+        // Pre-populate config with stale data (confirm=false) and mark as NOT loaded.
+        // This simulates the state after a .workspace-tasks.json file save: the watcher
+        // sets configLoaded=false but the old config object still has entries.
+        (service as any).config = {
+            myLang: {
+                tasks: [{ label: 'My Task', type: 'workspace', command: 'old-cmd', confirm: false }],
+                inputs: [],
+                version: '1.0',
+            },
+        };
+        (service as any).configLoaded = false;
+
+        // Save and restore loadWorkspaceConfig so the singleton is not poisoned for later tests.
+        const originalLoadWorkspaceConfig = (service as any).loadWorkspaceConfig.bind(service);
+        let loadCount = 0;
+        (service as any).loadWorkspaceConfig = async () => {
+            loadCount++;
+            (service as any).config = {
+                myLang: {
+                    tasks: [{ label: 'My Task', type: 'workspace', command: 'new-cmd', confirm: true }],
+                    inputs: [],
+                    version: '1.0',
+                },
+            };
+            (service as any).configLoaded = true;
+        };
+
+        try {
+            const tasks = await service.getTasks('myLang');
+            assert.strictEqual(loadCount, 1, 'loadWorkspaceConfig should be called when configLoaded is false');
+            assert.strictEqual(tasks.length, 1);
+            assert.strictEqual(tasks[0].command, 'new-cmd', 'Should return refreshed config, not stale');
+            assert.strictEqual(tasks[0].confirm, true, 'confirm should reflect updated value from file');
+        } finally {
+            (service as any).loadWorkspaceConfig = originalLoadWorkspaceConfig;
+        }
     });
 
     test('loadWorkspaceConfig registers dynamic globs with TaskFilesService', async () => {
@@ -379,6 +419,7 @@ suite('WorkspaceTasksService Test Suite', () => {
                 inputs: []
             }
         };
+        (service as any).configLoaded = true;
 
         const uri = vscode.Uri.file('/path/to/script.py');
         const cmd = await service.resolveTaskCommand('t1', langId, uri);
@@ -393,6 +434,7 @@ suite('WorkspaceTasksService Test Suite', () => {
                 inputs: [{ "id": "MyVar", "type": "promptString", "description": "Enter value" }]
             }
         };
+        (service as any).configLoaded = true;
 
         vscode.window.showInputBox = async (opts?: vscode.InputBoxOptions) => {
             if (opts) {
@@ -413,6 +455,7 @@ suite('WorkspaceTasksService Test Suite', () => {
                  inputs: [{ "id": "MyVar", "type": "promptString", "description": "Desc", "default": "defaultValue" }]
              }
          };
+         (service as any).configLoaded = true;
 
          vscode.window.showInputBox = async (opts?: vscode.InputBoxOptions) => {
              if (opts) {
@@ -434,6 +477,7 @@ suite('WorkspaceTasksService Test Suite', () => {
                 inputs: [{ "id": "MyVar", "type": "promptString", "description": "Desc", "default": "${workspaceFolderBasename}" }]
             }
         };
+        (service as any).configLoaded = true;
 
         const uri = vscode.Uri.file('/root/myProject/file.txt');
         vscode.workspace.getWorkspaceFolder = (_u: vscode.Uri) => ({ uri: vscode.Uri.file('/root/myProject'), name: 'myProject', index: 0 });
@@ -458,6 +502,7 @@ suite('WorkspaceTasksService Test Suite', () => {
                 inputs: [{ "id": "PickVar", "type": "pickString", "description": "Pick one", "options": ["A", "B"] }]
             }
         };
+        (service as any).configLoaded = true;
 
         // @ts-ignore
         vscode.window.showQuickPick = async (items: any[], _opts: vscode.QuickPickOptions) => {
@@ -477,6 +522,7 @@ suite('WorkspaceTasksService Test Suite', () => {
                 inputs: [{ "id": "MyVar", "type": "promptString", "description": "Desc" }]
             }
         };
+        (service as any).configLoaded = true;
 
         vscode.window.showInputBox = async () => undefined;
 
@@ -496,6 +542,7 @@ suite('WorkspaceTasksService Test Suite', () => {
                 inputs: []
             }
         };
+        (service as any).configLoaded = true;
 
         const cmd = await service.resolveTaskCommand('tUnknown', langId, vscode.Uri.file('foo'));
         assert.strictEqual(cmd, 'echo {{ .Unknown }}');
@@ -505,6 +552,7 @@ suite('WorkspaceTasksService Test Suite', () => {
         (service as any).config = {
             "MyLang": { tasks: [], inputs: [], version: "1" }
         };
+        (service as any).configLoaded = true;
         const config = service.getLanguageConfig('mylang');
         assert.ok(config);
         assert.strictEqual(config?.version, "1");
@@ -524,6 +572,7 @@ suite('WorkspaceTasksService Test Suite', () => {
          (service as any).config = {
              [langId]: { tasks: [], inputs: [], version: '1' }
          };
+         (service as any).configLoaded = true;
          // @ts-ignore
          const cmd = await service.resolveTaskCommand('unknownTask', langId, vscode.Uri.file('/'));
          assert.strictEqual(cmd, undefined);
@@ -563,8 +612,108 @@ suite('WorkspaceTasksService Test Suite', () => {
     });
 
     test('initialize sets context', () => {
-        const ctx: any = { extensionPath: '/ext' };
+        const ctx: any = { extensionPath: '/ext', subscriptions: [] };
         service.initialize(ctx);
         assert.strictEqual((service as any).context, ctx);
+    });
+
+    test('initialize registers file watcher that resets configLoaded on change/create/delete', async () => {
+        let changeCallback: (() => void) | undefined;
+        let createCallback: (() => void) | undefined;
+        let deleteCallback: (() => void) | undefined;
+
+        const originalCreateFileSystemWatcher = vscode.workspace.createFileSystemWatcher;
+        (vscode.workspace as any).createFileSystemWatcher = (pattern: string) => {
+            assert.strictEqual(pattern, '**/.workspace-tasks.json', 'watcher should target .workspace-tasks.json');
+            return {
+                onDidChange: (cb: () => void) => { changeCallback = cb; return { dispose: () => {} }; },
+                onDidCreate: (cb: () => void) => { createCallback = cb; return { dispose: () => {} }; },
+                onDidDelete: (cb: () => void) => { deleteCallback = cb; return { dispose: () => {} }; },
+                dispose: () => {},
+            };
+        };
+
+        // Stub refreshProvider to avoid actual cache operations in this test.
+        const cacheService = TaskCacheService.getInstance();
+        const originalRefreshProvider = cacheService.refreshProvider.bind(cacheService);
+        cacheService.refreshProvider = async () => {};
+
+        try {
+            const ctx: any = { extensionPath: '/ext', subscriptions: [] };
+            await service.initialize(ctx);
+
+            assert.ok(changeCallback, 'onDidChange callback should be registered');
+            assert.ok(createCallback, 'onDidCreate callback should be registered');
+            assert.ok(deleteCallback, 'onDidDelete callback should be registered');
+
+            // Simulate file change → configLoaded should be reset
+            (service as any).configLoaded = true;
+            changeCallback!();
+            assert.strictEqual((service as any).configLoaded, false, 'configLoaded should be false after file change');
+
+            // Simulate file create → configLoaded should be reset
+            (service as any).configLoaded = true;
+            createCallback!();
+            assert.strictEqual((service as any).configLoaded, false, 'configLoaded should be false after file create');
+
+            // Simulate file delete → configLoaded should be reset
+            (service as any).configLoaded = true;
+            deleteCallback!();
+            assert.strictEqual((service as any).configLoaded, false, 'configLoaded should be false after file delete');
+        } finally {
+            (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
+            cacheService.refreshProvider = originalRefreshProvider;
+        }
+    });
+
+    test('initialize registers file watcher that calls refreshProvider workspace-task on change/create/delete', async () => {
+        let changeCallback: (() => void) | undefined;
+        let createCallback: (() => void) | undefined;
+        let deleteCallback: (() => void) | undefined;
+
+        const originalCreateFileSystemWatcher = vscode.workspace.createFileSystemWatcher;
+        (vscode.workspace as any).createFileSystemWatcher = (_pattern: string) => {
+            return {
+                onDidChange: (cb: () => void) => { changeCallback = cb; return { dispose: () => {} }; },
+                onDidCreate: (cb: () => void) => { createCallback = cb; return { dispose: () => {} }; },
+                onDidDelete: (cb: () => void) => { deleteCallback = cb; return { dispose: () => {} }; },
+                dispose: () => {},
+            };
+        };
+
+        const refreshedTypes: string[] = [];
+        const cacheService = TaskCacheService.getInstance();
+        const originalRefreshProvider = cacheService.refreshProvider.bind(cacheService);
+        cacheService.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        try {
+            const ctx: any = { extensionPath: '/ext', subscriptions: [] };
+            await service.initialize(ctx);
+
+            refreshedTypes.length = 0;
+
+            // File change → refreshProvider('workspace-task') should be called
+            changeCallback!();
+            // Allow the microtask/promise to resolve
+            await Promise.resolve();
+            assert.ok(refreshedTypes.includes('workspace-task'), 'refreshProvider should be called with workspace-task on file change');
+
+            refreshedTypes.length = 0;
+
+            // File create → refreshProvider('workspace-task') should be called
+            createCallback!();
+            await Promise.resolve();
+            assert.ok(refreshedTypes.includes('workspace-task'), 'refreshProvider should be called with workspace-task on file create');
+
+            refreshedTypes.length = 0;
+
+            // File delete → refreshProvider('workspace-task') should be called
+            deleteCallback!();
+            await Promise.resolve();
+            assert.ok(refreshedTypes.includes('workspace-task'), 'refreshProvider should be called with workspace-task on file delete');
+        } finally {
+            (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
+            cacheService.refreshProvider = originalRefreshProvider;
+        }
     });
 });

@@ -720,8 +720,12 @@
         return;
       }
 
-      // Sort cards by totalExecutions desc
-      entries.sort((a, b) => (b[1].totalExecutions || 0) - (a[1].totalExecutions || 0));
+      // Sort cards by lastRunAt desc (most recently run tasks first)
+      entries.sort((a, b) => {
+        const tA = a[1].lastRunAt ? new Date(a[1].lastRunAt).getTime() : 0;
+        const tB = b[1].lastRunAt ? new Date(b[1].lastRunAt).getTime() : 0;
+        return tB - tA;
+      });
 
       panel.innerHTML = '';
       entries.forEach(([key, m]) => {
@@ -779,6 +783,13 @@
 
       // Avg duration
       body.appendChild(makeStatCell('Avg Duration', () => ({ text: formatDuration(m.avgDurationMs) })));
+
+      // Typical duration (EMA with variability)
+      body.appendChild(makeStatCell('Typical Duration', () => {
+        if (m.typicalDurationMs === undefined) { return { text: '—' }; }
+        const varLabel = m.durationVariability ? ` (${m.durationVariability})` : '';
+        return { text: `${formatDuration(m.typicalDurationMs)}${varLabel}` };
+      }));
 
       // Min / Max
       body.appendChild(makeStatCell('Min / Max', () => ({

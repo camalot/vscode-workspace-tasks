@@ -13,6 +13,9 @@ import { FavoritesService } from './services/favoritesService';
 import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
+import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
+import { TaskRunGuardService } from './services/taskRunGuardService';
+import { formatSeconds } from './common/formatSeconds';
 
 export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean; queue?: boolean; recent: boolean };
 export type RootTreeTypes = 'favorites' | 'compoundTask' | 'compoundTasks' | 'recent' | 'workspace';
@@ -47,6 +50,24 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
 
     TaskCacheService.getInstance().onDidLoadingStateChange(() => {
       this._onDidChangeTreeData.fire();
+    });
+
+    TaskDurationEstimateService.getInstance().onDidUpdateEta((taskId) => {
+      // Targeted refresh for the specific task item — avoids a full tree re-render.
+      // Falls back to a full refresh when the item is not in the cache (e.g. compound
+      // task copies or tasks launched from Quick Open).
+      const cached = TaskCacheService.getInstance().getTaskById(taskId);
+      if (cached) {
+        this._onDidChangeTreeData.fire(cached);
+      } else {
+        this._onDidChangeTreeData.fire();
+      }
+    });
+
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('workspaceTasks.secrets.showEmptyGroup')) {
+        this._onDidChangeTreeData.fire();
+      }
     });
 
     // Restore collapseLevel from workspace state (default to 0)
@@ -186,7 +207,47 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   getTreeItem(element: TaskItem): vscode.TreeItem {
-    return element;
+    const etaDesc = TaskDurationEstimateService.getInstance().getEtaDescription(element.id ?? '');
+
+    // Pre-run tooltip only for leaf items (non-collapsible)
+    const estimate = element.collapsibleState === vscode.TreeItemCollapsibleState.None
+      ? TaskDurationEstimateService.getInstance().getPreRunEstimate(element)
+      : undefined;
+
+    // Guard context value projection: leaf items only, never mutates the cached element
+    const isGuardedLeaf = element.collapsibleState === vscode.TreeItemCollapsibleState.None
+      && TaskRunGuardService.getInstance().isGuarded(element);
+    const guardedContextValue = isGuardedLeaf
+      ? (() => { const base = element.contextValue ?? ''; return 'guarded' + base.charAt(0).toUpperCase() + base.slice(1); })()
+      : undefined;
+
+    // Fast path: no overrides → return element directly (zero allocation)
+    if (etaDesc === undefined && estimate === undefined && guardedContextValue === undefined) {
+      return element;
+    }
+
+    // Return a lightweight projection — a plain vscode.TreeItem with overrides applied.
+    // The cached element is never modified, preventing stale ETA text after a task stops.
+    const view: vscode.TreeItem = {
+      label:                    element.label,
+      id:                       element.id,
+      iconPath:                 element.iconPath,
+      description:              etaDesc ?? element.description,
+      tooltip:                  estimate
+        ? new vscode.MarkdownString(
+            `Estimated duration: ~${formatSeconds(estimate.emaMs)}` +
+            ` (based on ${estimate.sampleCount} runs` +
+            (estimate.variability ? `, variability: ${estimate.variability}` : '') + ')'
+          )
+        : element.tooltip,   // preserve existing tooltip when no estimate available
+      contextValue:             guardedContextValue ?? element.contextValue,
+      command:                  element.command,
+      collapsibleState:         element.collapsibleState,
+      resourceUri:              element.resourceUri,
+      accessibilityInformation: element.accessibilityInformation,
+      checkboxState:            element.checkboxState,
+    };
+    return view;
   }
 
   getParent(element: TaskItem): vscode.ProviderResult<TaskItem> {
@@ -300,6 +361,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const includeVsCodeCompoundTasks = config.get<boolean>('compoundTasks.includeVsCodeCompoundTasks', true);
     const taskSeparator = config.get<string>('groups.taskSeparator', '-');
     const sortingEnabled = config.get<boolean>('tasks.sortingEnabled', true);
+    const showEmptySecretsGroup = config.get<boolean>('secrets.showEmptyGroup', false);
     const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
       favorites: true,
       compoundTask: true,
@@ -1187,8 +1249,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     // Add remaining project roots
     rootItems.push(...workspaceRoots);
 
-    // Add Secrets group at the end (only when secrets exist)
-    if (secretKeys.length > 0) {
+    // Add Secrets group at the end (only when secrets exist, or when showEmptySecretsGroup is enabled)
+    if (secretKeys.length > 0 || showEmptySecretsGroup) {
       const secretsGroupId = this.makeId('secrets', rootSalt);
       const secretsGroup = new TaskItem(
         'Secrets',
@@ -1198,7 +1260,9 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       secretsGroup.id = secretsGroupId;
       secretsGroup.iconPath = new vscode.ThemeIcon('key');
       secretsGroup.contextValue = 'secrets';
-      secretsGroup.tooltip = 'Secrets stored in VS Code SecretStorage';
+      secretsGroup.tooltip = secretKeys.length > 0
+        ? 'Secrets stored in VS Code SecretStorage'
+        : 'No secrets stored. Use "Workspace Tasks: Store Secret" to add one.';
 
       for (const secretKey of secretKeys.slice().sort()) {
         const secretItem = new TaskItem(

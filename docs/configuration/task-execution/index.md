@@ -12,16 +12,9 @@ has_children: true
 
 Settings that govern runtime task behaviour — terminal presentation, stop-on-request handling, and compound-task (queue) execution modes.
 
-<!-- markdownlint-disable-next-line MD022 -->
-## Table of Contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
-
 ---
 
-## Sub-sections
+## Next Steps
 
 | Page | Description |
 | --- | --- |

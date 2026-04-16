@@ -70,10 +70,10 @@ suite('TaskIconService Test Suite', () => {
     assert.strictEqual(result?.DisplayUri?.fsPath, fallback.fsPath);
   });
 
-  test('getTaskTypeIcon maps node to npm and returns icon pair when both files exist', () => {
+  test('getTaskTypeIcon maps node to nodejs and returns icon pair when both files exist', () => {
     const tmpDir = fs.mkdtempSync(tmpPrefix);
     try {
-      writeIconPair(tmpDir, 'npm');
+      writeIconPair(tmpDir, 'nodejs');
       const service = TaskIconService.getInstance().initialize({
         extensionPath: tmpDir,
       } as unknown as vscode.ExtensionContext);
@@ -81,8 +81,8 @@ suite('TaskIconService Test Suite', () => {
       const result = service.getTaskTypeIcon('node');
 
       assert.ok(result?.TaskIcon);
-      assert.ok(result?.TaskIcon?.light.fsPath.endsWith(path.join('light', 'npm.svg')));
-      assert.ok(result?.TaskIcon?.dark.fsPath.endsWith(path.join('dark', 'npm.svg')));
+      assert.ok(result?.TaskIcon?.light.fsPath.endsWith(path.join('light', 'nodejs.svg')));
+      assert.ok(result?.TaskIcon?.dark.fsPath.endsWith(path.join('dark', 'nodejs.svg')));
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -227,7 +227,7 @@ suite('TaskIconService Test Suite', () => {
     test('returns built-in TaskIcon when SVG pair exists for the type', () => {
       const tmpDir = fs.mkdtempSync(tmpPrefix);
       try {
-        writeIconPair(tmpDir, 'npm');
+        writeIconPair(tmpDir, 'nodejs');
         const service = TaskIconService.getInstance().initialize({
           extensionPath: tmpDir,
         } as unknown as vscode.ExtensionContext);
@@ -235,8 +235,8 @@ suite('TaskIconService Test Suite', () => {
         const result = service.resolveWorkspaceTaskTypeIcon('node');
 
         assert.ok(result.TaskIcon, 'TaskIcon should be set for known type');
-        assert.ok(result.TaskIcon!.light.fsPath.endsWith(path.join('light', 'npm.svg')));
-        assert.ok(result.TaskIcon!.dark.fsPath.endsWith(path.join('dark', 'npm.svg')));
+        assert.ok(result.TaskIcon!.light.fsPath.endsWith(path.join('light', 'nodejs.svg')));
+        assert.ok(result.TaskIcon!.dark.fsPath.endsWith(path.join('dark', 'nodejs.svg')));
       } finally {
         fs.rmSync(tmpDir, { recursive: true, force: true });
       }

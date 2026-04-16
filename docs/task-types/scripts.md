@@ -30,6 +30,7 @@ nav_order: 4
 | Tool | File Patterns | Notes |
 | --- | --- | --- |
 | **Shell Scripts** | `**/*.{sh,bash,zsh,fish,ps1,bat,cmd}` | Executable scripts |
+| **Extensionless Shell Scripts** | *(no extension)* | Shebang + executable bit required; [opt-in only](../configuration/task-discovery/discovery#extensionless-shell-scripts) |
 | **Python Virtual Environments** | `.venv/Scripts/` | Activation scripts |
 | **[Jupyter Notebook](https://jupyter.org/)** | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
 | **Visual Studio Code Tasks** | `**/.vscode/tasks.json`, user-level `tasks.json` | Native VS Code tasks |

@@ -19,27 +19,6 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - [📖 Documentation ↗](https://camalot.github.io/vscode-workspace-tasks/)
 - [📷 Screenshots](#screenshots)
 - [✨ Key Features](#key-features)
-  - [🔍 Task Discovery ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/)
-    - [🛠️ Supported Task Types](#supported-task-types)
-  - [🌱 Recent Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/recents.html)
-  - [⭐ Favorites ↗](https://camalot.github.io/vscode-workspace-tasks/features/favorites.html)
-  - [📋 Compound Tasks (Queues) ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)
-  - [🔗 VSCode Compound Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/compound-tasks.html)
-  - [🙈 Hide Tasks & Groups ↗](https://camalot.github.io/vscode-workspace-tasks/features/hide-tasks.html)
-  - [🪄 Task Filtering ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering.html)
-  - [🕰️ Task History ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html)
-  - [📚 Task Metrics ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html#statistics-view)
-  - [🛃 Custom Workspace Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks.html)
-  - [🌐 Environment Variables ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html)
-    - [🔐 Secrets Management ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html#managing-secrets)
-- [⚙️ Configuration](#configuration)
-  - [⚙️ General  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/general/)
-  - [🔍 Task Discovery  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/)
-  - [🖥️ Display & Interaction  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/)
-  - [▶️ Task Execution  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/)
-  - [🌐 Environment  ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/)
-  - [Custom Workspace Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks)
-  - [Task Ignore Patterns ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering)
 - [🤝 Contributing](#contributing)
 - [📄 License](#license)
 
@@ -65,12 +44,14 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
 - **[🎭 GitHub Actions Support ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/github-actions.html)** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **[📝 Custom Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks.html)** - Define reusable task templates with dynamic inputs
-- **[🔐 Environment Variable & Secrets Management ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html)** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette
+- **[🔐 Environment Variable & Secrets Management ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html)** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette; git-tracked env/secret files are flagged in the Problems panel to prevent accidental credential exposure
 - **[🚫 Task Filtering ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering.html)** - Use `.tasksignore` files to exclude unwanted tasks
 - **[🙈 Hide Tasks & Groups ↗](https://camalot.github.io/vscode-workspace-tasks/features/hide-tasks.html)** - Hide individual tasks or entire task groups from view
 - **[🕰️ Task History, Statistics & Dashboard ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html)** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
 - **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
+- **[🛡️ Run Guard ↗](https://camalot.github.io/vscode-workspace-tasks/features/run-guard.html)** - Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern
+- **[🕜 Estimated Task Duration ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-duration-estimates.html)** - View estimated duration for tasks based on historical execution data
 
 ## 📥 Installation
 
@@ -202,7 +183,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/vscode.png" width="32" alt="Visual Studio Code" title="Visual Studio Code"/>
 </p>
 
-- **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`
+- **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`; extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
 - **Python Virtual Environments** - Activation scripts in `.venv/Scripts/`
 - **[Jupyter Notebook](https://jupyter.org/)** - Execute notebook cells from `*.ipynb` files
   - **Requirements:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed

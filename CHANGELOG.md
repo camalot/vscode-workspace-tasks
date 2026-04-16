@@ -1,3 +1,44 @@
+## [1.8.0] - 2026-04-16
+
+### 🚀 Features
+
+- Nodejs script support
+
+- Warn if dotenv or .secrets file is git tracked
+
+- Option to show secrets tree item, even when empty
+
+- Support for extensionless scripts that are executable and have shebang
+
+- Calculate estimated task duration
+
+- Run Guard - Enable run confirmation on tasks
+
+
+### 🐛 Bug Fixes
+
+- Workspace-tasks not updating when saving
+
+- Resolve run guard refresh on workspace-tasks defined confirm property
+
+
+### 📚 Documentation
+
+- Update documentation and readme by @camalot
+
+- Documentation for feature comparison of task explorer and new features
+
+- Update documentation to support katex
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Workspace settings changes
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.7.0...v1.8.0
+
 ## [1.7.0] - 2026-04-14
 
 ### 🚀 Features

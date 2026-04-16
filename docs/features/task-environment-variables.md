@@ -2,7 +2,7 @@
 layout: default
 title: 🔐 Environment Variables
 parent: 🚀 Features
-nav_order: 10
+nav_order: 11
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
@@ -158,7 +158,7 @@ Use a settings rule to inject credentials into any discovered `npm publish` scri
 Store the secret value once:
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-2. Run **Workspace Tasks: Store Secret**
+2. Run **Workspace Tasks: Add New Secret**
 3. Enter key: `myapp.npm-publish-token`
 4. Enter value: `<your npm token>`
 
@@ -234,7 +234,37 @@ The default patterns are: `*_TOKEN`, `*_KEY`, `*_SECRET`, `PASSWORD`, `PASSWD`, 
 `API_KEY`.
 
 This is advisory only — the task still runs. To eliminate the warning, move the value to a
-`.secret` file or into `SecretStorage` via **Workspace Tasks: Store Secret**.
+`.secret` file or into `SecretStorage` via **Workspace Tasks: Add New Secret**.
+
+---
+
+## Git-Tracked File Warnings
+
+{: .new }
+Added in v1.7.1
+
+In addition to the per-key secret-pattern warning, the extension proactively checks whether any
+files listed in `workspaceTasks.envVars.envFiles` or `workspaceTasks.envVars.secretFiles` are
+tracked by git. If they are, a warning is written to the **Problems** panel at startup and
+whenever those settings change.
+
+A file tracked by git means its contents — including any tokens, passwords, or other sensitive
+values — could be committed to version control and exposed in your repository history.
+
+![Git-tracked file warning in Problems panel](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/git-tracked-envfile-warning.png)
+
+**Remediation options:**
+
+1. Add the file to `.gitignore` and optionally run `git rm --cached <file>` to stop tracking it.
+2. Move sensitive values into VS Code `SecretStorage` (see [Managing Secrets](#managing-secrets)).
+3. Use a `.secret` file that is already gitignored for values you want to keep local.
+
+To silence all git-tracking warnings, set
+[`workspaceTasks.envVars.warnIfGitTracked`]({{ site.baseurl }}/configuration/environment/environment-variables/#workspacetasksenvvarswarnifgittracked)
+to `false`.
+
+For the full settings reference see
+[Environment Variables Settings]({{ site.baseurl }}/configuration/environment/environment-variables/#workspacetasksenvvarswarnifgittracked).
 
 ---
 
@@ -244,13 +274,13 @@ Secrets can be managed via the **Secrets tree group** in the task view or via th
 
 ### Storing a Secret
 
-**From the tree view:** Right-click the **Secrets** group (or click `$(add)` in its action bar) and
-select **Store Secret**.
+**From the tree view:** Click `$(add)` in the action bar of the **Secrets** group, or right-click
+the group and select **Add New Secret**.
 
 **From the Command Palette:**
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-2. Run **Workspace Tasks: Store Secret**
+2. Run **Workspace Tasks: Add New Secret**
 3. Enter a storage key (e.g. `myapp.deploy-token`)
 4. Enter the secret value
 
@@ -330,7 +360,7 @@ DB_PASSWORD                   ***                           task.secretFile     
 
 ⚠  Warning — keys below match secret patterns but are not from a secure source:
    API_KEY  (source: global.env, file: settings.json)
-   Consider moving them to a .secret file or use "Workspace Tasks: Store Secret".
+   Consider moving them to a .secret file or use "Workspace Tasks: Add New Secret".
 ```
 
 Secret values are always shown as `***`. The source column identifies where each variable came
@@ -362,8 +392,8 @@ The action bar on each secret item provides three one-click operations:
 
 The same three actions are available in the right-click context menu on any secret item.
 
-**Right-clicking the Secrets group** exposes an **Add New Secret** action (also available in the
-`…` overflow menu in the view title bar).
+**Right-clicking the Secrets group** exposes an **Add New Secret** action (also available via
+`$(add)` in the action bar).
 
 ### Managing Secrets from the Command Palette
 
@@ -371,7 +401,7 @@ All secret operations are also available without using the tree view:
 
 | Command | Description |
 |---------|-------------|
-| **Workspace Tasks: Store Secret** | Prompts for a key name and value, stores in SecretStorage |
+| **Workspace Tasks: Add New Secret** | Prompts for a key name and value, stores in SecretStorage |
 | **Workspace Tasks: Delete Secret** | Shows a QuickPick of keys — choose one and confirm |
 | **Workspace Tasks: Update Secret** | Shows a QuickPick of keys — choose one and enter a new value |
 | **Workspace Tasks: Copy Secret Key** | Shows a QuickPick of keys — copies the chosen key name to clipboard |

@@ -7,6 +7,8 @@ import { configuration } from './libs/configuration';
 import { IPresentationOptions } from './taskDefinition';
 import { LoggerService } from './services/loggerService';
 import { RecentTasksService } from './services/recentTasksService';
+import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
+import { TaskRunGuardService } from './services/taskRunGuardService';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -28,7 +30,15 @@ export class TaskRunner {
     return TaskRunner.instance;
   }
 
-  public async runTask(item: TaskItem, args?: string): Promise<void> {
+  public async runTask(item: TaskItem, args?: string, skipGuard = false): Promise<boolean> {
+    // Guard check (must be before any state mutations)
+    if (!skipGuard) {
+      const confirmed = await TaskRunGuardService.getInstance().confirmIfNeeded(item);
+      if (!confirmed) {
+        return false; // User declined — task not run, state unchanged
+      }
+    }
+
     // Allow tasks that don't have a resourceUri (global workspace tasks).
     // Use file's folder as cwd when available, otherwise fall back to the first workspace folder or process.cwd().
     let task: vscode.Task | undefined;
@@ -51,7 +61,7 @@ export class TaskRunner {
       const itemUri = (item.taskFileUri || item.resourceUri)?.toString() ?? '(none)';
       this.logger.debug(`[TaskRunner] Could not create runnable task for '${taskLabel}': taskType='${item.taskType}', id='${item.id ?? '(none)'}', uri='${itemUri}', contextValue='${item.contextValue ?? '(none)'}'`);
       vscode.window.showWarningMessage(`No runnable task could be created for '${taskLabel}'.`);
-      return;
+      return false;
     }
     task = created.task;
 
@@ -118,6 +128,7 @@ export class TaskRunner {
     TaskStateManager.getInstance().setStatus(id, 'running');
 
     try {
+      TaskDurationEstimateService.getInstance().startTracking(item, task);
       const execution = await vscode.tasks.executeTask(task);
       TaskStateManager.getInstance().setExecution(id, execution);
     } catch (e) {
@@ -127,6 +138,7 @@ export class TaskRunner {
       vscode.window.showErrorMessage(`Failed to run task: ${e}`);
       throw e;
     }
+    return true;
   }
 
   public async runCompoundTask(compoundTaskName: string, startItem?: TaskItem) {
@@ -170,7 +182,8 @@ export class TaskRunner {
               return;
             }
             try {
-              await this.runTask(item);
+              const ran = await this.runTask(item);
+              if (ran === false) { return; } // guard cancelled → skip this item
               await this.waitForTask(item);
             } catch (e) {
               vscode.window.showErrorMessage(`Compound task '${compoundTaskName}': Failed to launch '${item.label}'.`);
@@ -189,7 +202,8 @@ export class TaskRunner {
             continue;
           }
           try {
-            await this.runTask(item);
+            const ran = await this.runTask(item);
+            if (ran === false) { break; } // guard cancelled → stop sequence
             // runTask starts execution but returns effectively immediately after launch.
             // We need to WAIT for the task to finish.
             const status = await this.waitForTask(item);

@@ -17,11 +17,11 @@ export class RestartTaskCommand extends BaseCommand {
       execution.terminate();
       // Wait a moment to ensure termination
       setTimeout(() => {
-        TaskRunner.getInstance().runTask(item);
+        TaskRunner.getInstance().runTask(item, undefined, true);
       }, 500);
     } else {
       // If not running, just run the task
-      TaskRunner.getInstance().runTask(item);
+      TaskRunner.getInstance().runTask(item, undefined, true);
     }
   }
 }

@@ -10,18 +10,11 @@ has_children: true
 # Environment Settings
 {: .no_toc }
 
-Settings that specify where external tool executables are located and fine-tune tool-specific behaviour. Most settings in this group are filesystem paths to build tools, task runners, and script interpreters.
-
-<!-- markdownlint-disable-next-line MD022 -->
-## Table of Contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
+Settings that specify where external tool executables are located and fine-tune tool-specific behavior. Most settings in this group are filesystem paths to build tools, task runners, and script interpreters.
 
 ---
 
-## Sub-sections
+## Next Steps
 
 | Page | Description |
 | --- | --- |

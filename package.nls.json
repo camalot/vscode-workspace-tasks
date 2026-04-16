@@ -8,7 +8,7 @@
   "config.group.display.title": "Display & Interaction",
   "config.group.execution.title": "Task Execution",
   "config.group.environment.title": "Environment",
-  "config.group.taskEnv.title": "Task Environment Variables",
+  "config.group.taskEnv.title": "Environment Variables",
 
   "config.workspaceTasks.envVars.env": "Global environment variables applied to all tasks.",
   "config.workspaceTasks.envVars.env.markdown": "Key-value pairs that are merged into every task's environment. Values from higher-precedence sources override these. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarsenv)",
@@ -18,6 +18,10 @@
   "config.workspaceTasks.envVars.secretFiles.markdown": "Same format as `workspaceTasks.envVars.envFiles`. Files with a `.secret` extension are treated as explicitly secret — keys are injected without triggering the secret-name warning. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarssecretfiles)",
   "config.workspaceTasks.envVars.secretPatterns": "Key-name patterns that trigger a warning when a matching variable is declared in a non-secret source (e.g. env block or .env file).",
   "config.workspaceTasks.envVars.secretPatterns.markdown": "Supports glob-style wildcard patterns (e.g. `*_TOKEN`). Variables whose names match these patterns but originate from a `.secret` file or VS Code SecretStorage are **never** warned about. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarssecretfiles)",
+  "config.workspaceTasks.envVars.warnIfGitTracked": "When enabled, emits a warning in the Problems panel for any file listed in envFiles or secretFiles that is tracked by git.",
+  "config.workspaceTasks.envVars.warnIfGitTracked.markdown": "When `true`, Workspace Tasks checks all files resolved from `workspaceTasks.envVars.envFiles` and `workspaceTasks.envVars.secretFiles` against git and reports a warning in the Problems panel for any file that is tracked. Files containing environment variables or secrets should be added to `.gitignore` to avoid accidentally committing sensitive data. Set to `false` to disable this check entirely. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarswarnifgittracked)",
+  "config.workspaceTasks.secrets.showEmptyGroup": "When enabled, the Secrets group is always shown in the treeview even when no secrets are stored.",
+  "config.workspaceTasks.secrets.showEmptyGroup.markdown": "When `true`, the **Secrets** group is always visible in the Workspace Tasks treeview, even when VS Code SecretStorage contains no secrets. This provides a consistent treeview layout and makes it easier to discover the secrets feature. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/general/secrets.html#workspacetaskssecretsshowemptygroup)",
   "config.workspaceTasks.envVars.taskEnv": "Per-task environment rules — inject env vars and secrets into any discovered task by matching on task name, type, source file, and/or workspace folder.",
   "config.workspaceTasks.envVars.taskEnv.markdown": "Each rule has a `match` object (AND logic) and optional `env`, `envFiles`, `secretFiles`, and `secrets` properties. All matching rules are applied in array order; later rules override earlier rules per key. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/environment-variables.html#workspacetasksenvvarstaskenv)",
 
@@ -38,7 +42,7 @@
   "command.metrics.clearTask": "Clear Task Metrics",
   "command.metrics.clearAll": "Clear All Task Metrics",
   "command.metrics.clearWorkspace": "Clear Workspace Metrics",
-  "command.env.storeSecret": "Store Secret",
+  "command.env.storeSecret": "Add New Secret",
   "command.env.deleteSecret": "Delete Secret",
   "command.env.updateSecret": "Update Secret",
   "command.env.copySecretKey": "Copy Secret Key",
@@ -143,6 +147,7 @@
   "config.workspaceTasks.shellEnabledTaskTypes.bash": "Bash",
   "config.workspaceTasks.shellEnabledTaskTypes.batch": "Batch",
   "config.workspaceTasks.shellEnabledTaskTypes.fish": "Fish",
+  "config.workspaceTasks.shellEnabledTaskTypes.nodejs": "NodeJS",
   "config.workspaceTasks.shellEnabledTaskTypes.nushell": "NuShell",
   "config.workspaceTasks.shellEnabledTaskTypes.perl": "Perl",
   "config.workspaceTasks.shellEnabledTaskTypes.pwsh": "PowerShell",
@@ -150,12 +155,16 @@
   "config.workspaceTasks.shellEnabledTaskTypes.ruby": "Ruby",
   "config.workspaceTasks.shellEnabledTaskTypes.sh": "Shell",
   "config.workspaceTasks.shellEnabledTaskTypes.zsh": "Zsh",
+  "config.workspaceTasks.shellEnabledTaskTypes.extensionless": "Extensionless Shell Scripts",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
   "config.workspaceTasks.task.stopGracefulDelayMilliseconds": "Stop Graceful Delay (Milliseconds)",
   "config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown": "The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT). [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/general.html#workspacetaskstaskstopgracefuldelaymilliseconds)",
   "config.workspaceTasks.task.stopCompoundDependencies": "Stop Compound Dependencies",
   "config.workspaceTasks.task.stopCompoundDependencies.markdown": "When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action will also stop any currently running dependency tasks referenced by `dependsOn`. [read more](https://camalot.github.io/vscode-workspace-tasks/features/compound-tasks.html#workspacetaskstaskstopcompounddependencies)",
+
+  "config.workspaceTasks.task.confirmPatterns": "Task Confirmation Patterns",
+  "config.workspaceTasks.task.confirmPatterns.markdown": "Array of strings (treated as regular expressions, case-insensitive) matched against task labels. Tasks whose labels match any pattern will prompt for confirmation before running. Example: `[\"deploy.*\", \"db:drop\", \"terraform apply\"]`. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks.html#workspacetaskstaskconfirmpatterns)",
 
 
   "config.workspaceTasks.task.iconType": "Choose the Icon Type for Tasks",

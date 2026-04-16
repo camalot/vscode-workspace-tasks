@@ -10,6 +10,7 @@ import {
   IResolvedEnvEntry,
   EnvEntrySource,
 } from './taskEnvTypes';
+import { TaskSecretWarningService } from './taskSecretWarningService';
 import { LoggerService } from './loggerService';
 
 /**
@@ -72,9 +73,12 @@ export class TaskEnvService {
         this.loadConfig();
         this.setupFileWatchers();
         this._onDidChangeEnvSources.fire();
+        TaskSecretWarningService.getInstance().checkConfiguredEnvFilesForGitTracking();
       }
     });
     context.subscriptions.push(this.configDisposable);
+
+    await TaskSecretWarningService.getInstance().checkConfiguredEnvFilesForGitTracking();
   }
 
   /**

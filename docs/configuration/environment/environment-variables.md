@@ -94,6 +94,47 @@ secret-pattern warning. The same three forms are accepted as `envFiles`.
 
 ---
 
+### workspaceTasks.envVars.warnIfGitTracked
+
+{: .new }
+Added in v1.8.0
+
+**Type:** `boolean`
+**Default:** `true`
+
+When `true`, the extension checks every file listed in `workspaceTasks.envVars.envFiles` and
+`workspaceTasks.envVars.secretFiles` against git at startup and whenever those settings change.
+If any file is **tracked by git**, a `DiagnosticSeverity.Warning` is written to the
+**Problems** panel identifying which setting configured the file and recommending remediation.
+
+There is no pop-up notification — warnings appear only in the Problems panel so they
+remain visible without interrupting your workflow.
+
+| Diagnostic code | Setting that listed the file |
+|---|---|
+| `config-env-file-git-tracked` | `workspaceTasks.envVars.envFiles` |
+| `config-secret-file-git-tracked` | `workspaceTasks.envVars.secretFiles` |
+
+**Recommended action:** Add git-tracked env/secret files to `.gitignore`. For highly sensitive
+values (tokens, passwords), move them to VS Code `SecretStorage` via
+**Workspace Tasks: Add New Secret** and reference them with the `secrets` field.
+
+Setting this to `false` silences all git-tracking warnings and clears any previously emitted
+diagnostics:
+
+```jsonc
+{
+  "workspaceTasks.envVars.warnIfGitTracked": false
+}
+```
+
+{: .warning }
+This setting defaults to `true`. If you upgrade from v1.7.0 and have git-tracked `.env` or
+`.secret` files, you will see warnings in the Problems panel immediately after upgrading. Use
+the guidance above to remediate or set the option to `false` to suppress them.
+
+---
+
 ### workspaceTasks.envVars.secretPatterns
 
 **Type:** `string[]`
@@ -191,13 +232,13 @@ wins.
 
 ## Commands
 
-### `workspaceTasks.env.storeSecret` — Store Secret
+### `workspaceTasks.env.storeSecret` — Add New Secret
 
 Prompts for a storage key and a secret value, then saves the value in VS Code `SecretStorage`.
 The value is encrypted at rest, not synced to other machines, and accessible via the `secrets`
 field in `taskEnv` rules or in per-task `.workspace-tasks.json` `secrets` maps.
 
-**Command palette:** `Workspace Tasks: Store Secret`
+**Command palette:** `Workspace Tasks: Add New Secret`
 
 ---
 

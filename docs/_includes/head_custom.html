@@ -1,3 +1,10 @@
+{% assign math = page.math | default: layout.math | default: site.math %}
+
+{% case math %}
+{% when "katex" %}
+{% include katex.html %}
+{% endcase %}
+
 <!--
   Tell the browser (and Dark Reader) this site already handles its own colour
   modes, preventing Dark Reader from rewriting background-image URLs to blobs.

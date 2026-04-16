@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -141,7 +141,7 @@
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "fast-xml-parser": "5.5.11",
+    "fast-xml-parser": "5.5.12",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
     "smol-toml": "^1.6.1",
@@ -431,6 +431,18 @@
         "icon": "$(arrow-swap)"
       },
       {
+        "command": "workspaceTasks.addRunGuard",
+        "title": "Add Run Guard",
+        "icon": "$(shield)",
+        "category": "Workspace Tasks"
+      },
+      {
+        "command": "workspaceTasks.removeRunGuard",
+        "title": "Remove Run Guard",
+        "icon": "$(shield)",
+        "category": "Workspace Tasks"
+      },
+      {
         "command": "workspaceTasks.hideTask",
         "title": "%command.hideTask%",
         "icon": "$(eye-closed)"
@@ -499,7 +511,7 @@
       {
         "command": "workspaceTasks.env.storeSecret",
         "title": "%command.env.storeSecret%",
-        "icon": "$(lock)"
+        "icon": "$(add)"
       },
       {
         "command": "workspaceTasks.env.deleteSecret",
@@ -605,10 +617,6 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.bun%"
               },
-              "shell": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
-              },
               "cake": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.cake%"
@@ -681,6 +689,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.msbuild%"
               },
+              "mise": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.mise%"
+              },
               "npm": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.npm%"
@@ -709,6 +721,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.ruby%"
               },
+              "shell": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
+              },
               "typescript": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.typescript%"
@@ -732,10 +748,6 @@
               "workspace": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.workspace%"
-              },
-              "mise": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.mise%"
               }
             },
             "default": {
@@ -767,12 +779,12 @@
               "rake": true,
               "typescript": true,
               "yarn": false,
+              "mise": true,
               "pnpm": false,
               "venv": true,
               "vscode": true,
               "webpack": true,
-              "workspace": true,
-              "mise": true
+              "workspace": true
             }
           },
           "workspaceTasks.enabledTaskTypePatterns": {
@@ -813,6 +825,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%"
               },
+              "nodejs": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.shellEnabledTaskTypes.nodejs%"
+              },
               "nushell": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.nushell%"
@@ -841,6 +857,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.zsh%"
               },
+              "extensionless": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.shellEnabledTaskTypes.extensionless%"
+              },
               "other": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.other%"
@@ -852,6 +872,7 @@
               "sh": true,
               "zsh": true,
               "fish": true,
+              "nodejs": true,
               "nushell": true,
               "perl": true,
               "pwsh": true,
@@ -880,6 +901,11 @@
                 "type": "string",
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.fish%",
                 "default": "fish"
+              },
+              "nodejs": {
+                "type": "string",
+                "description": "%config.workspaceTasks.shellEnabledTaskTypes.nodejs%",
+                "default": "node"
               },
               "nushell": {
                 "type": "string",
@@ -985,6 +1011,13 @@
             "default": false,
             "description": "%config.workspaceTasks.groups.recentTasks.enabled%",
             "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%"
+          },
+          "workspaceTasks.secrets.showEmptyGroup": {
+            "type": "boolean",
+            "description": "%config.workspaceTasks.secrets.showEmptyGroup%",
+            "markdownDescription": "%config.workspaceTasks.secrets.showEmptyGroup.markdown%",
+            "default": false,
+            "scope": "resource"
           },
           "workspaceTasks.groups.compoundTasks.enabled": {
             "title": "%config.workspaceTasks.groups.compoundTasks.enabled%",
@@ -1125,6 +1158,15 @@
       {
         "title": "%config.group.execution.title%",
         "properties": {
+          "workspaceTasks.task.confirmPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.task.confirmPatterns.markdown%",
+            "scope": "resource"
+          },
           "workspaceTasks.task.stopGracefulDelayMilliseconds": {
             "type": "number",
             "default": 5000,
@@ -1295,6 +1337,13 @@
               }
             ],
             "default": [],
+            "scope": "resource"
+          },
+          "workspaceTasks.envVars.warnIfGitTracked": {
+            "type": "boolean",
+            "description": "%config.workspaceTasks.envVars.warnIfGitTracked%",
+            "markdownDescription": "%config.workspaceTasks.envVars.warnIfGitTracked.markdown%",
+            "default": true,
             "scope": "resource"
           },
           "workspaceTasks.envVars.secretPatterns": {
@@ -2024,6 +2073,16 @@
           "command": "workspaceTasks.env.deleteSecret",
           "when": "viewItem == storedSecret",
           "group": "1_secrets@3"
+        },
+        {
+          "command": "workspaceTasks.addRunGuard",
+          "when": "view =~ /workspaceTasks(View|Explorer)/ && viewItem =~ /[Tt]ask$/ && !(viewItem =~ /guarded/) && !(viewItem =~ /[Cc]ompound/)",
+          "group": "9_guard@1"
+        },
+        {
+          "command": "workspaceTasks.removeRunGuard",
+          "when": "view =~ /workspaceTasks(View|Explorer)/ && viewItem =~ /guarded[A-Za-z]*[Tt]ask$/",
+          "group": "9_guard@1"
         }
       ]
     }

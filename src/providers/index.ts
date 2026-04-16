@@ -27,6 +27,7 @@ import { CakeTaskProvider } from './cakeTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 import { TaskFilesService } from '../services/taskFilesService';
+import { TaskCacheService } from '../services/taskCacheService';
 
 type TaskProviderConstructor =
   | (new () => BunTaskProvider)
@@ -101,6 +102,17 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
         taskTreeDataProvider.registerProvider(providerInstance);
       } else {
         logger.error('[Providers] taskTreeDataProvider instance not found.');
+      }
+
+      // Subscribe to the extensionless-scan completion event emitted by ShellTaskProvider.
+      // When a background scan finishes with a changed result set, refresh the shell
+      // provider's cache and let TaskCacheService's onDidUpdate propagate to the tree.
+      if (providerInstance instanceof ShellTaskProvider) {
+        context.subscriptions.push(
+          providerInstance.onDidChangeExtensionlessTasks(async () => {
+            await TaskCacheService.getInstance().refreshProvider('shell');
+          }),
+        );
       }
     } catch (err) {
       logger.error(`[Providers] Failed to register task provider ${ProviderClass.name}:`, err);

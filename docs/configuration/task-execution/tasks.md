@@ -19,6 +19,44 @@ nav_order: 1
 
 ---
 
+### workspaceTasks.task.confirmPatterns
+
+{: .new }
+Added in v1.8.0
+
+**Type:** `array` of `string`
+**Default:** `[]`
+**Scope:** `resource`
+
+Array of regular expression strings (case-insensitive) matched against task labels. Any task whose label matches at least one pattern will require confirmation before it runs. This is the _pattern-matching_ source for the [Run Guard](../../features/run-guard) feature.
+
+Patterns are evaluated against the task's **original label** (before any grouping prefix is added). Invalid regex strings are silently skipped.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.task.confirmPatterns": [
+    "deploy.*",
+    "db:drop",
+    "terraform apply",
+    ".*:prod$"
+  ]
+}
+```
+
+| Pattern | Matches |
+| --- | --- |
+| `deploy.*` | `deploy`, `deploy-prod`, `deploy to staging` |
+| `db:drop` | `db:drop` (exact) |
+| `.*:prod$` | `deploy:prod`, `release:prod` |
+| `terraform` | Any label containing `terraform` |
+
+{: .tip }
+Combine `confirmPatterns` with the [Manual Toggle](../../features/run-guard#manual-toggle) and the [Definition Flag](../../features/run-guard#definition-flag) for layered protection. All three sources may be active at once — the dialog only appears once per run regardless.
+
+---
+
 ### workspaceTasks.task.presentationOptions
 
 **Type:** `object`
@@ -134,5 +172,6 @@ When `true`, stopping a compound task (queue) also stops all of its `dependsOn` 
 
 ## Related
 
+- [Run Guard](../../features/run-guard)
 - [Compound Tasks](../../features/task-queues)
 - [Running Tasks](../../features/running-tasks)

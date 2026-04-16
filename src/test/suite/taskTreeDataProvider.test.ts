@@ -9,6 +9,8 @@ import { CompoundTaskService } from '../../services/compoundTaskService';
 import { RecentTasksService } from '../../services/recentTasksService';
 import { TaskStateManager } from '../../taskStateManager';
 import { TaskIconService } from '../../services/taskIconService';
+import { TaskDurationEstimateService } from '../../services/taskDurationEstimateService';
+import { TaskRunGuardService } from '../../services/taskRunGuardService';
 import constants from '../../libs/constants';
 
 // ─── Mock helpers ────────────────────────────────────────────────────────────
@@ -62,6 +64,8 @@ function resetSingletons() {
   (RecentTasksService as any).instance = undefined;
   (TaskStateManager as any).instance = undefined;
   (TaskIconService as any).instance = undefined;
+  (TaskDurationEstimateService as any).instance = undefined;
+  (TaskRunGuardService as any)._instance = undefined;
 }
 
 /** Helper: reset only provider singleton without wiping services used by other suites */
@@ -220,7 +224,12 @@ suite('TaskTreeDataProvider Test Suite', () => {
   // ── Tree item basics ─────────────────────────────────────────────────────
 
   suite('Tree item methods', () => {
-    test('getTreeItem returns the passed element', () => {
+    test('getTreeItem returns the passed element when no ETA or estimate', () => {
+      // Ensure the service has no running estimates and no pre-run estimate.
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+
       const provider = new TaskTreeDataProvider(ctx);
       const item = new TaskItem('test', vscode.TreeItemCollapsibleState.None, 'npm');
       assert.strictEqual(provider.getTreeItem(item), item);
@@ -239,6 +248,142 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const provider = new TaskTreeDataProvider(ctx);
       const item = new TaskItem('item', vscode.TreeItemCollapsibleState.None, 'npm');
       assert.strictEqual(provider.getParent(item), undefined);
+    });
+
+    test('getTreeItem for running task with ETA returns projection with ETA description', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => '~30s remaining';
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.description = 'package.json';
+
+      const view = provider.getTreeItem(item);
+
+      // Should return a projection, not the original item
+      assert.notStrictEqual(view, item, 'expected a new projection object');
+      assert.strictEqual(view.description, '~30s remaining');
+      // Cache item must not be mutated
+      assert.strictEqual(item.description, 'package.json');
+    });
+
+    test('getTreeItem for idle task with >= 3 runs returns projection with estimate tooltip', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => ({
+        emaMs: 45_000,
+        variability: 'Low' as const,
+        sampleCount: 5,
+      });
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+
+      const view = provider.getTreeItem(item);
+
+      assert.notStrictEqual(view, item, 'expected a new projection object');
+      assert.ok(view.tooltip instanceof vscode.MarkdownString, 'tooltip should be a MarkdownString');
+      const tooltipText = (view.tooltip as vscode.MarkdownString).value;
+      assert.ok(tooltipText.includes('Estimated duration'), `tooltip missing expected text: ${tooltipText}`);
+      assert.ok(tooltipText.includes('5 runs'), `tooltip missing sample count: ${tooltipText}`);
+      assert.ok(tooltipText.includes('Low'), `tooltip missing variability: ${tooltipText}`);
+    });
+
+    test('getTreeItem for idle task with < 3 runs returns element unchanged', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const originalTooltip = 'build (npm)';
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.tooltip = originalTooltip;
+
+      const view = provider.getTreeItem(item);
+
+      // Fast path — same object returned
+      assert.strictEqual(view, item);
+      assert.strictEqual(view.tooltip, originalTooltip);
+    });
+
+    test('getTreeItem for collapsible item never requests pre-run estimate', () => {
+      const etaService = TaskDurationEstimateService.getInstance();
+      const preRunCalls: TaskItem[] = [];
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (item: TaskItem) => {
+        preRunCalls.push(item);
+        return undefined;
+      };
+
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('folder', vscode.TreeItemCollapsibleState.Collapsed, 'npm');
+
+      provider.getTreeItem(item);
+
+      assert.strictEqual(preRunCalls.length, 0, 'getPreRunEstimate must not be called for collapsible items');
+    });
+
+    // ── Guard context value projection ───────────────────────────────────────
+
+    function stubGuardService(isGuardedResult: boolean) {
+      (TaskRunGuardService as any)._instance = {
+        isGuarded: () => isGuardedResult,
+        onDidChangeGuards: () => ({ dispose: () => {} }),
+      };
+    }
+
+    function stubEtaServiceNoOverrides() {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+    }
+
+    test('getTreeItem — not guarded leaf: returns element unchanged', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(false);
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.contextValue = 'task';
+      const result = provider.getTreeItem(item);
+      assert.strictEqual(result, item, 'should return the same element reference');
+    });
+
+    test('getTreeItem — guarded leaf task: returns projection with contextValue = guardedTask', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(true);
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('deploy', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.contextValue = 'task';
+      const result = provider.getTreeItem(item);
+      assert.notStrictEqual(result, item, 'should return a new projection object');
+      assert.strictEqual(result.contextValue, 'guardedTask');
+      // Cached element must not be mutated
+      assert.strictEqual(item.contextValue, 'task');
+    });
+
+    test('getTreeItem — guarded favorite leaf: returns projection with contextValue = guardedFavoriteTask', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(true);
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('deploy', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.contextValue = 'favoriteTask';
+      const result = provider.getTreeItem(item);
+      assert.notStrictEqual(result, item);
+      assert.strictEqual(result.contextValue, 'guardedFavoriteTask');
+      assert.strictEqual(item.contextValue, 'favoriteTask');
+    });
+
+    test('getTreeItem — guarded group item: returns element unchanged (no guard prefix on groups)', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(true); // guard returns true, but collapsibleState prevents prefix
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('folder', vscode.TreeItemCollapsibleState.Collapsed, 'npm');
+      item.contextValue = 'compoundTask';
+      const result = provider.getTreeItem(item);
+      // Collapsible items must never get the guard prefix
+      assert.strictEqual(result, item, 'group/collapsible items should be returned unchanged');
+      assert.strictEqual(result.contextValue, 'compoundTask');
     });
   });
 
@@ -2574,6 +2719,99 @@ suite('TaskTreeDataProvider Test Suite', () => {
         `Expected copySecretKey, got: ${child.command!.command}`);
       assert.deepStrictEqual(child.command!.arguments, ['db.password'],
         'Command arguments should be the secret key string');
+    });
+
+    // ── secrets.showEmptyGroup setting ───────────────────────────────────────
+
+    /**
+     * Wraps a test callback with a getConfiguration mock that sets
+     * `secrets.showEmptyGroup` to `enabled` while preserving all other defaults.
+     */
+    function withShowEmptySecretsGroup(enabled: boolean, callback: () => Promise<void>): Promise<void> {
+      const currentGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'secrets.showEmptyGroup') { return enabled as unknown as T; }
+              // Preserve standard defaults used by the outer setup mock.
+              if (key === 'groups.compoundTasks.enabled') { return false as unknown as T; }
+              if (key === 'groups.enabled') { return true as unknown as T; }
+              if (key === 'groups.useParentFolder') { return false as unknown as T; }
+              if (key === 'groups.recentTasks.enabled') { return false as unknown as T; }
+              if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return true as unknown as T; }
+              if (key === 'groups.taskSeparator') { return '-' as unknown as T; }
+              if (key === 'groups.expanded') {
+                return { favorites: true, compoundTask: true, recent: true } as unknown as T;
+              }
+              return def as T;
+            },
+          };
+        }
+        return currentGetConfig(section);
+      };
+      return callback().finally(() => {
+        (vscode.workspace as any).getConfiguration = currentGetConfig;
+      });
+    }
+
+    test('showEmptyGroup=false and no secrets: Secrets group absent (regression)', async () => {
+      // Default behaviour: secrets group hidden when storage is empty.
+      stubServicesForOrganize([]);
+      const localCtx = createMockContextWithSecretKeys([]);
+      resetProviderSingleton();
+      const provider = new TestableTaskTreeDataProvider(localCtx);
+
+      const roots = await provider.getChildren();
+      const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+      assert.strictEqual(secretsGroup, undefined, 'Secrets group should be absent with no secrets and showEmptyGroup=false');
+    });
+
+    test('showEmptyGroup=true and no secrets: Secrets group is present with no children', async () => {
+      await withShowEmptySecretsGroup(true, async () => {
+        stubServicesForOrganize([]);
+        const localCtx = createMockContextWithSecretKeys([]);
+        resetProviderSingleton();
+        const provider = new TestableTaskTreeDataProvider(localCtx);
+
+        const roots = await provider.getChildren();
+        const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+        assert.ok(secretsGroup, 'Secrets group should be present when showEmptyGroup=true even with no secrets');
+        assert.strictEqual(secretsGroup!.label, 'Secrets');
+        assert.strictEqual(secretsGroup!.children.length, 0, 'Empty secrets group should have no children');
+      });
+    });
+
+    test('showEmptyGroup=true and secrets exist: Secrets group still renders children normally', async () => {
+      await withShowEmptySecretsGroup(true, async () => {
+        stubServicesForOrganize([]);
+        const localCtx = createMockContextWithSecretKeys(['existing.key']);
+        resetProviderSingleton();
+        const provider = new TestableTaskTreeDataProvider(localCtx);
+
+        const roots = await provider.getChildren();
+        const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+        assert.ok(secretsGroup, 'Secrets group should be present');
+        assert.strictEqual(secretsGroup!.children.length, 1, 'Secrets group should still render its children');
+        assert.strictEqual(secretsGroup!.children[0].label, 'existing.key');
+      });
+    });
+
+    test('showEmptyGroup=true empty group: tooltip indicates no secrets are stored', async () => {
+      await withShowEmptySecretsGroup(true, async () => {
+        stubServicesForOrganize([]);
+        const localCtx = createMockContextWithSecretKeys([]);
+        resetProviderSingleton();
+        const provider = new TestableTaskTreeDataProvider(localCtx);
+
+        const roots = await provider.getChildren();
+        const secretsGroup = roots.find((r) => r.taskType === 'secrets');
+        assert.ok(secretsGroup, 'Secrets group should be present');
+        assert.ok(
+          (secretsGroup!.tooltip as string)?.includes('No secrets stored'),
+          `Tooltip should indicate no secrets are stored, got: ${secretsGroup!.tooltip}`,
+        );
+      });
     });
   });
 });

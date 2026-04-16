@@ -352,6 +352,44 @@ suite('TaskHistoryTableViewProvider Test Suite', () => {
     assert.strictEqual(entry.hourlyRunCounts, undefined, 'hourlyRunCounts should be stripped');
   });
 
+  test('metrics sent to webview include typicalDurationMs', async () => {
+    fakeMetrics = {
+      'npm:build:workspace': {
+        totalExecutions: 5,
+        recentDurations: [100, 200, 300],
+        hourlyRunCounts: new Array(24).fill(0),
+        typicalDurationMs: 210,
+        durationVariability: 'Low',
+      } as unknown as ITaskMetricsWithComputed,
+    };
+    const { view, postedMessages } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+
+    const entry = (postedMessages[0] as any).data.metrics['npm:build:workspace'];
+    assert.ok(entry !== undefined);
+    assert.strictEqual(entry.typicalDurationMs, 210, 'typicalDurationMs should be present in webview payload');
+  });
+
+  test('metrics sent to webview include durationVariability', async () => {
+    fakeMetrics = {
+      'npm:build:workspace': {
+        totalExecutions: 5,
+        recentDurations: [100, 200, 300],
+        hourlyRunCounts: new Array(24).fill(0),
+        typicalDurationMs: 210,
+        durationVariability: 'Moderate',
+      } as unknown as ITaskMetricsWithComputed,
+    };
+    const { view, postedMessages } = makeFakeWebviewView();
+    provider.resolveWebviewView(view, {} as vscode.WebviewViewResolveContext, {} as vscode.CancellationToken);
+    await flushDebounce();
+
+    const entry = (postedMessages[0] as any).data.metrics['npm:build:workspace'];
+    assert.ok(entry !== undefined);
+    assert.strictEqual(entry.durationVariability, 'Moderate', 'durationVariability should be present in webview payload');
+  });
+
   // -------------------------------------------------------------------------
   // Webview message handler — clearMetrics
   // -------------------------------------------------------------------------

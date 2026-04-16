@@ -6,6 +6,8 @@ import {
   updateMetricsFromRecord,
   computeStats,
   computeMetricsWithStats,
+  computeEma,
+  computeVariability,
 } from '../../services/taskMetricsAggregator';
 
 // ---------------------------------------------------------------------------
@@ -300,5 +302,82 @@ suite('computeMetricsWithStats', () => {
     assert.strictEqual(result.totalExecutions, 1);
     assert.strictEqual(result.successRate, 100);
     assert.strictEqual(result.isFlaky, false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeEma
+// ---------------------------------------------------------------------------
+
+suite('computeEma', () => {
+  test('returns undefined for fewer than 3 inputs', () => {
+    assert.strictEqual(computeEma([]), undefined);
+    assert.strictEqual(computeEma([1000]), undefined);
+    assert.strictEqual(computeEma([1000, 2000]), undefined);
+  });
+
+  test('returns correct EMA for exactly 3 inputs', () => {
+    // seed = 1000, then: 0.3*2000 + 0.7*1000 = 1300, then: 0.3*3000 + 0.7*1300 = 1810
+    const result = computeEma([1000, 2000, 3000]);
+    assert.ok(result !== undefined);
+    assert.ok(Math.abs(result - 1810) < 0.001, `expected ~1810, got ${result}`);
+  });
+
+  test('converges toward the most recent value for a large uniform input', () => {
+    const durations = Array(20).fill(5000);
+    const result = computeEma(durations);
+    assert.ok(result !== undefined);
+    // All values equal → EMA should equal the constant value
+    assert.ok(Math.abs(result - 5000) < 0.001, `expected ~5000, got ${result}`);
+  });
+
+  test('converges toward most recent when value increases sharply', () => {
+    // Start with many low values then spike high at the end.
+    const durations = [...Array(20).fill(1000), 10000];
+    const emaLow = computeEma(Array(21).fill(1000))!;
+    const result = computeEma(durations)!;
+    assert.ok(result > emaLow, 'EMA should move toward the high recent value');
+  });
+
+  test('respects custom alpha', () => {
+    // alpha=1 means EMA equals the last value
+    const result = computeEma([1000, 2000, 9999], 1);
+    assert.ok(result !== undefined);
+    assert.ok(Math.abs(result - 9999) < 0.001, `expected 9999, got ${result}`);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeVariability
+// ---------------------------------------------------------------------------
+
+suite('computeVariability', () => {
+  test('returns undefined for fewer than 3 inputs', () => {
+    assert.strictEqual(computeVariability([]), undefined);
+    assert.strictEqual(computeVariability([1000]), undefined);
+    assert.strictEqual(computeVariability([1000, 2000]), undefined);
+  });
+
+  test('returns Low for stable identical inputs (CV = 0)', () => {
+    assert.strictEqual(computeVariability([1000, 1000, 1000, 1000]), 'Low');
+  });
+
+  test('returns Low for CV just below 0.15', () => {
+    // mean=100, stddev ~14 → CV ~0.14
+    assert.strictEqual(computeVariability([86, 100, 114]), 'Low');
+  });
+
+  test('returns Moderate for CV between 0.15 and 0.40', () => {
+    // mean=100, stddev ~25 → CV ~0.25
+    assert.strictEqual(computeVariability([75, 100, 125]), 'Moderate');
+  });
+
+  test('returns High for high variance inputs (CV >= 0.40)', () => {
+    // mean=100, large spread → CV >> 0.40
+    assert.strictEqual(computeVariability([10, 100, 1000]), 'High');
+  });
+
+  test('handles mean of zero gracefully (all zeros)', () => {
+    assert.strictEqual(computeVariability([0, 0, 0]), 'Low');
   });
 });

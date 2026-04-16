@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Cake Build
+title: 🍰 Cake Build
 parent: 📱 Supported Task Types
 nav_order: 9
 ---

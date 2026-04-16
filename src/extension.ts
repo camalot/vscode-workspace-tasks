@@ -12,9 +12,12 @@ import { FavoritesService } from './services/favoritesService';
 import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
+import { TaskRunGuardService } from './services/taskRunGuardService';
+import { TaskRunGuardDecorationProvider } from './services/taskRunGuardDecorationProvider';
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
 import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
 import { TaskMetricsService } from './services/taskMetricsService';
+import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { loadCommands } from './commands/index';
 import { findTerminalForTask } from './commands/stopTask';
 import { registerTaskProviders } from './providers/index';
@@ -45,6 +48,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Initialize TaskMetricsService now that TaskHistoryService is ready
   TaskMetricsService.getInstance().initialize(context);
+  TaskDurationEstimateService.getInstance().initialize(context);
 
   context.subscriptions.push(
     historyTreeView,
@@ -74,6 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Enable Settings Sync for favorites and compound tasks so they sync across machines
   context.globalState.setKeysForSync(['favorites', 'savedQueues']);
   FilteredTaskService.getInstance().initialize(context);
+  TaskRunGuardService.getInstance().initialize(context);
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   await taskTreeDataProvider.initialize(context);
 
@@ -82,6 +87,11 @@ export async function activate(context: vscode.ExtensionContext) {
   // Register FileDecorationProvider for dimming filtered tasks
   const decorationProvider = new FilteredTaskDecorationProvider();
   context.subscriptions.push(vscode.window.registerFileDecorationProvider(decorationProvider));
+
+  // Register FileDecorationProvider for guarded task badge
+  context.subscriptions.push(
+    vscode.window.registerFileDecorationProvider(new TaskRunGuardDecorationProvider())
+  );
 
   const resetTimers = new Map<string, NodeJS.Timeout>();
 
@@ -125,6 +135,19 @@ export async function activate(context: vscode.ExtensionContext) {
     FilteredTaskService.getInstance().onDidChange(() => {
       updateFilteredTasksContext();
       decorationProvider.refresh(); // Refresh decorations when filtered tasks change
+      taskTreeDataProvider.refreshLocal();
+    })
+  );
+
+  // Listen for guard changes and refresh tree.
+  // Use refreshLocal() rather than refresh() so that:
+  //  - Manual guard toggles (Solution C) re-render without a full cache rebuild.
+  //  - Definition-level guard changes from .workspace-tasks.json (Solution B) are
+  //    reflected immediately: onDidChangeGuards now also fires on TaskCacheService
+  //    .onDidUpdate, so the tree re-evaluates the guarded contextValue projection in
+  //    getTreeItem() without triggering a second full provider refresh.
+  context.subscriptions.push(
+    TaskRunGuardService.getInstance().onDidChangeGuards(() => {
       taskTreeDataProvider.refreshLocal();
     })
   );
