@@ -38,8 +38,11 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📝 Custom Tasks** — Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** — Use `.tasksignore` files to exclude unwanted tasks
 - **🙈 Hide Tasks & Groups** — Hide individual tasks or entire task groups from view
-- **💾 Persistent State** — Favorites and Compound Tasks (Queues) are saved across Visual Studio Code sessions
-- **☁️ Settings Sync** — Sync your favorites and Compound Tasks (Queues) across multiple machines via VS Code's Settings Sync
+- **[🕰️ Task History, Statistics & Dashboard ↗](features/task-history)** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
+- **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
+- **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
+- **[🛡️ Run Guard ↗](features/run-guard)** - Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern
+- **[🕜 Estimated Task Duration ↗](features/task-duration-estimates)** - View estimated duration for tasks based on historical execution data
 
 ---
 
