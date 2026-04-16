@@ -1,4 +1,5 @@
-﻿<#
+﻿#!/usr/bin/env pwsh
+<#
 .SYNOPSIS
     Loads environment variables from .secrets file for local testing.
 

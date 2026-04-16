@@ -56,6 +56,7 @@ aux_links:
     - "https://github.com/camalot/vscode-workspace-tasks"
 
 aux_links_new_tab: true
+math: katex
 
 # Back to top link — replaced by custom FAB button (see _includes/footer_custom.html)
 back_to_top: false

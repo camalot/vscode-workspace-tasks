@@ -35,6 +35,7 @@
         "Dockable",
         "drilldown",
         "ecent",
+        "endcase",
         "endfor",
         "endmacro",
         "endraw",
@@ -45,6 +46,7 @@
         "iltered",
         "ipynb",
         "justfile",
+        "katex",
         "kiro",
         "Laravel",
         "libasound",
@@ -55,6 +57,7 @@
         "libnspr",
         "libnss",
         "libxss",
+        "magick",
         "makefiles",
         "Metas",
         "Microtask",
@@ -135,6 +138,11 @@
         "poetry": false,
         "rake": false,
         "venv": false,
-        "mise": false
-    }
+        "mise": false,
+        "eslint": false,
+        "webpack": false,
+        "typescript": false,
+        "vscode": false
+    },
+    "workspaceTasks.groups.recentTasks.enabled": false
 }

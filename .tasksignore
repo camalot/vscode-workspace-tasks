@@ -7,7 +7,6 @@ src/test/task-files
 .devcontainer/**
 docs/_plugins/**
 .github/linters/**
-# .vscode/tasks.json@npm: test
-# .vscode/tasks.json@npm: compile
-# .vscode/tasks.json@npm: watch
 .vscode/tasks.json@npm: *
+package.json@npm: *
+package.json@bundle-chartjs

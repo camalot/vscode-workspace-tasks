@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 
 # set the output image size from argument
 param(

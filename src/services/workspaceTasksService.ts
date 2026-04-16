@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { TaskFilesService } from './taskFilesService';
+import { TaskCacheService } from './taskCacheService';
 import { parseJsonWithComments } from '../libs/jsonUtils';
 import { LoggerService } from './loggerService';
 
@@ -77,10 +78,15 @@ export class WorkspaceTasksService {
     this.configLoaded = false;
     await this.loadWorkspaceConfig();
 
-    // Watch for .workspace-tasks.json file changes so the config is reloaded on the
-    // next provider refresh instead of returning stale data after a save.
+    // Watch for .workspace-tasks.json file changes so the config is reloaded and the
+    // task cache is immediately refreshed whenever the file is saved or recreated.
     const wsTasksWatcher = vscode.workspace.createFileSystemWatcher('**/.workspace-tasks.json');
-    const resetConfig = () => { this.configLoaded = false; };
+    const resetConfig = () => {
+      this.configLoaded = false;
+      TaskCacheService.getInstance().refreshProvider('workspace-task').catch((e) => {
+        this.logger.error('[WorkspaceTasksService] Failed to refresh workspace-task provider after config change', e);
+      });
+    };
     wsTasksWatcher.onDidChange(resetConfig);
     wsTasksWatcher.onDidCreate(resetConfig);
     wsTasksWatcher.onDidDelete(resetConfig);
@@ -233,7 +239,7 @@ export class WorkspaceTasksService {
   }
 
   public async getTasks(languageId: string): Promise<FileTaskDefinition[]> {
-    if (!this.configLoaded && Object.keys(this.config).length === 0) {
+    if (!this.configLoaded) {
       await this.loadWorkspaceConfig();
     }
 
@@ -246,7 +252,7 @@ export class WorkspaceTasksService {
     languageId: string,
     resourceUri: vscode.Uri,
   ): Promise<string | undefined> {
-    if (!this.configLoaded && Object.keys(this.config).length === 0) {
+    if (!this.configLoaded) {
       await this.loadWorkspaceConfig();
     }
     let config = this.config[languageId];
