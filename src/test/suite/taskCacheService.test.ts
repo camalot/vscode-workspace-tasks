@@ -294,6 +294,106 @@ suite('TaskCacheService Test Suite', () => {
         assert.strictEqual(match, itemScoped);
     });
 
+    test('findMatchingTask - Disambiguates by definition.path absence for root-level task', async () => {
+        // Reproduce the scenario: two npm tasks with the same label in different package.json
+        // files relative to the same workspace folder (e.g. /ws/package.json and
+        // /ws/nodejs/package.json). VS Code's npm provider omits `path` for the root-level
+        // task and includes it for subdirectory tasks.  When the root task fires
+        // onDidStartTask (no `path` in definition), findMatchingTask must return the ROOT
+        // item and NOT mark the nodejs item as running.
+        const wsFolder: vscode.WorkspaceFolder = { uri: vscode.Uri.file('/ws'), name: 'ws', index: 0 };
+        const rootPkgUri    = vscode.Uri.file('/ws/package.json');
+        const nodejsPkgUri  = vscode.Uri.file('/ws/nodejs/package.json');
+
+        const rootNpmItem = createTaskItem('long-running', 'npm', rootPkgUri);
+        rootNpmItem.taskFileUri = rootPkgUri;
+
+        const nodejsNpmItem = createTaskItem('long-running', 'npm', nodejsPkgUri);
+        nodejsNpmItem.taskFileUri = nodejsPkgUri;
+
+        // nodejs/package.json sorts alphabetically before package.json — push in that order
+        // to confirm step 1.5 does NOT simply pick the first entry.
+        mockTasks.push(nodejsNpmItem, rootNpmItem);
+        await service.refreshProvider('mockType');
+
+        vscode.workspace.getWorkspaceFolder = (u: vscode.Uri) => {
+            if (u.fsPath.startsWith(wsFolder.uri.fsPath)) { return wsFolder; }
+            return undefined;
+        };
+
+        // Native npm task for root package.json: no `path` in definition (VS Code behaviour).
+        const rootNpmTask = createVsCodeTask('long-running', { type: 'npm', script: 'long-running' }, wsFolder);
+
+        const match = service.findMatchingTask(rootNpmTask);
+        assert.ok(match, 'Should find a match');
+        assert.strictEqual(match, rootNpmItem,
+            'Should return root package.json item (no definition.path → task is at workspace root)');
+    });
+
+    test('findMatchingTask - Disambiguates by definition.path presence for subdirectory task', async () => {
+        // Counterpart: the SUBDIRECTORY task fires onDidStartTask with `path: 'nodejs/'`.
+        // findMatchingTask must return the nodejs item.
+        const wsFolder: vscode.WorkspaceFolder = { uri: vscode.Uri.file('/ws'), name: 'ws', index: 0 };
+        const rootPkgUri    = vscode.Uri.file('/ws/package.json');
+        const nodejsPkgUri  = vscode.Uri.file('/ws/nodejs/package.json');
+
+        const rootNpmItem = createTaskItem('long-running', 'npm', rootPkgUri);
+        rootNpmItem.taskFileUri = rootPkgUri;
+
+        const nodejsNpmItem = createTaskItem('long-running', 'npm', nodejsPkgUri);
+        nodejsNpmItem.taskFileUri = nodejsPkgUri;
+
+        mockTasks.push(nodejsNpmItem, rootNpmItem);
+        await service.refreshProvider('mockType');
+
+        vscode.workspace.getWorkspaceFolder = (u: vscode.Uri) => {
+            if (u.fsPath.startsWith(wsFolder.uri.fsPath)) { return wsFolder; }
+            return undefined;
+        };
+
+        // Native npm task for nodejs/package.json includes `path: 'nodejs'`.
+        const nodejsNpmTask = createVsCodeTask('long-running', { type: 'npm', script: 'long-running', path: 'nodejs' }, wsFolder);
+
+        const match = service.findMatchingTask(nodejsNpmTask);
+        assert.ok(match, 'Should find a match');
+        assert.strictEqual(match, nodejsNpmItem,
+            'Should return nodejs item (definition.path = nodejs/ identifies subdirectory)');
+    });
+
+    test('findMatchingTask - Disambiguates by type when same-named tasks share folder', async () => {
+        // Reproduce the npm vs grunt "long-running" scenario: two tasks with the same label
+        // in the same workspace folder but different types (npm / grunt).
+        // When VS Code fires onDidStartTask for the npm execution, findMatchingTask must
+        // return the npm item — not the grunt item that sorts alphabetically first.
+        const wsFolder: vscode.WorkspaceFolder = { uri: vscode.Uri.file('/ws'), name: 'ws', index: 0 };
+
+        const gruntUri = vscode.Uri.file('/ws/grunt/Gruntfile.js');
+        const npmUri   = vscode.Uri.file('/ws/package.json');
+
+        const gruntItem = createTaskItem('long-running', 'grunt', gruntUri);
+        gruntItem.taskFileUri = gruntUri;
+
+        const npmItem = createTaskItem('long-running', 'npm', npmUri);
+        npmItem.taskFileUri = npmUri;
+
+        // Push grunt first (replicates the alphabetical ordering in allTasks).
+        mockTasks.push(gruntItem, npmItem);
+        await service.refreshProvider('mockType');
+
+        // Mock workspace folder resolution so both items resolve to the same folder.
+        vscode.workspace.getWorkspaceFolder = (u: vscode.Uri) => {
+            if (u.fsPath.startsWith(wsFolder.uri.fsPath)) { return wsFolder; }
+            return undefined;
+        };
+
+        // Simulate the native npm task fired by VS Code (no `path` property — matches both by label).
+        const npmTask = createVsCodeTask('long-running', { type: 'npm', script: 'long-running' }, wsFolder);
+
+        const match = service.findMatchingTask(npmTask);
+        assert.ok(match, 'Should find a match');
+        assert.strictEqual(match, npmItem, 'Should return the npm item, not the grunt item');
+    });
+
     test('findMatchingTask - Prefers top-level item over dependsOn child clone', async () => {
         // Simulate a tasks.json with Task A (dependsOn Task B) and Task B.
         // vscodeTaskProvider builds a child clone of Task B under Task A.

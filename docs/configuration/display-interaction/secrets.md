@@ -36,7 +36,7 @@ Code `SecretStorage`. Set this to `true` to always show the group, even when it 
 
 When the group is empty and this option is `true`, hovering over the group shows a tooltip
 indicating that no secrets are currently stored and directing you to the
-**Workspace Tasks: Store Secret** command.
+**Workspace Tasks: Add New Secret** command.
 
 ```jsonc
 {

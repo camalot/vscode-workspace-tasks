@@ -14,6 +14,7 @@ import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
+import { TaskRunGuardService } from './services/taskRunGuardService';
 import { formatSeconds } from './common/formatSeconds';
 
 export type ExpandedTaskGroups = { favorites: boolean; compoundTask: boolean; queue?: boolean; recent: boolean };
@@ -213,8 +214,15 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       ? TaskDurationEstimateService.getInstance().getPreRunEstimate(element)
       : undefined;
 
+    // Guard context value projection: leaf items only, never mutates the cached element
+    const isGuardedLeaf = element.collapsibleState === vscode.TreeItemCollapsibleState.None
+      && TaskRunGuardService.getInstance().isGuarded(element);
+    const guardedContextValue = isGuardedLeaf
+      ? (() => { const base = element.contextValue ?? ''; return 'guarded' + base.charAt(0).toUpperCase() + base.slice(1); })()
+      : undefined;
+
     // Fast path: no overrides → return element directly (zero allocation)
-    if (etaDesc === undefined && estimate === undefined) {
+    if (etaDesc === undefined && estimate === undefined && guardedContextValue === undefined) {
       return element;
     }
 
@@ -232,7 +240,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
             (estimate.variability ? `, variability: ${estimate.variability}` : '') + ')'
           )
         : element.tooltip,   // preserve existing tooltip when no estimate available
-      contextValue:             element.contextValue,
+      contextValue:             guardedContextValue ?? element.contextValue,
       command:                  element.command,
       collapsibleState:         element.collapsibleState,
       resourceUri:              element.resourceUri,

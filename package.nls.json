@@ -42,7 +42,7 @@
   "command.metrics.clearTask": "Clear Task Metrics",
   "command.metrics.clearAll": "Clear All Task Metrics",
   "command.metrics.clearWorkspace": "Clear Workspace Metrics",
-  "command.env.storeSecret": "Store Secret",
+  "command.env.storeSecret": "Add New Secret",
   "command.env.deleteSecret": "Delete Secret",
   "command.env.updateSecret": "Update Secret",
   "command.env.copySecretKey": "Copy Secret Key",
@@ -162,6 +162,9 @@
   "config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown": "The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT). [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/general.html#workspacetaskstaskstopgracefuldelaymilliseconds)",
   "config.workspaceTasks.task.stopCompoundDependencies": "Stop Compound Dependencies",
   "config.workspaceTasks.task.stopCompoundDependencies.markdown": "When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action will also stop any currently running dependency tasks referenced by `dependsOn`. [read more](https://camalot.github.io/vscode-workspace-tasks/features/compound-tasks.html#workspacetaskstaskstopcompounddependencies)",
+
+  "config.workspaceTasks.task.confirmPatterns": "Task Confirmation Patterns",
+  "config.workspaceTasks.task.confirmPatterns.markdown": "Array of strings (treated as regular expressions, case-insensitive) matched against task labels. Tasks whose labels match any pattern will prompt for confirmation before running. Example: `[\"deploy.*\", \"db:drop\", \"terraform apply\"]`. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks.html#workspacetaskstaskconfirmpatterns)",
 
 
   "config.workspaceTasks.task.iconType": "Choose the Icon Type for Tasks",

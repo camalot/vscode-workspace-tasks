@@ -431,6 +431,18 @@
         "icon": "$(arrow-swap)"
       },
       {
+        "command": "workspaceTasks.addRunGuard",
+        "title": "Add Run Guard",
+        "icon": "$(shield)",
+        "category": "Workspace Tasks"
+      },
+      {
+        "command": "workspaceTasks.removeRunGuard",
+        "title": "Remove Run Guard",
+        "icon": "$(shield)",
+        "category": "Workspace Tasks"
+      },
+      {
         "command": "workspaceTasks.hideTask",
         "title": "%command.hideTask%",
         "icon": "$(eye-closed)"
@@ -499,7 +511,7 @@
       {
         "command": "workspaceTasks.env.storeSecret",
         "title": "%command.env.storeSecret%",
-        "icon": "$(lock)"
+        "icon": "$(add)"
       },
       {
         "command": "workspaceTasks.env.deleteSecret",
@@ -1146,6 +1158,15 @@
       {
         "title": "%config.group.execution.title%",
         "properties": {
+          "workspaceTasks.task.confirmPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.task.confirmPatterns.markdown%",
+            "scope": "resource"
+          },
           "workspaceTasks.task.stopGracefulDelayMilliseconds": {
             "type": "number",
             "default": 5000,
@@ -2052,6 +2073,16 @@
           "command": "workspaceTasks.env.deleteSecret",
           "when": "viewItem == storedSecret",
           "group": "1_secrets@3"
+        },
+        {
+          "command": "workspaceTasks.addRunGuard",
+          "when": "view =~ /workspaceTasks(View|Explorer)/ && viewItem =~ /[Tt]ask$/ && !(viewItem =~ /guarded/) && !(viewItem =~ /[Cc]ompound/)",
+          "group": "9_guard@1"
+        },
+        {
+          "command": "workspaceTasks.removeRunGuard",
+          "when": "view =~ /workspaceTasks(View|Explorer)/ && viewItem =~ /guarded[A-Za-z]*[Tt]ask$/",
+          "group": "9_guard@1"
         }
       ]
     }

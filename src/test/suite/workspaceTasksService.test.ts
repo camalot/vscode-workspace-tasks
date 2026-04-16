@@ -563,8 +563,51 @@ suite('WorkspaceTasksService Test Suite', () => {
     });
 
     test('initialize sets context', () => {
-        const ctx: any = { extensionPath: '/ext' };
+        const ctx: any = { extensionPath: '/ext', subscriptions: [] };
         service.initialize(ctx);
         assert.strictEqual((service as any).context, ctx);
+    });
+
+    test('initialize registers file watcher that resets configLoaded on change/create/delete', async () => {
+        let changeCallback: (() => void) | undefined;
+        let createCallback: (() => void) | undefined;
+        let deleteCallback: (() => void) | undefined;
+
+        const originalCreateFileSystemWatcher = vscode.workspace.createFileSystemWatcher;
+        (vscode.workspace as any).createFileSystemWatcher = (pattern: string) => {
+            assert.strictEqual(pattern, '**/.workspace-tasks.json', 'watcher should target .workspace-tasks.json');
+            return {
+                onDidChange: (cb: () => void) => { changeCallback = cb; return { dispose: () => {} }; },
+                onDidCreate: (cb: () => void) => { createCallback = cb; return { dispose: () => {} }; },
+                onDidDelete: (cb: () => void) => { deleteCallback = cb; return { dispose: () => {} }; },
+                dispose: () => {},
+            };
+        };
+
+        try {
+            const ctx: any = { extensionPath: '/ext', subscriptions: [] };
+            await service.initialize(ctx);
+
+            assert.ok(changeCallback, 'onDidChange callback should be registered');
+            assert.ok(createCallback, 'onDidCreate callback should be registered');
+            assert.ok(deleteCallback, 'onDidDelete callback should be registered');
+
+            // Simulate file change → configLoaded should be reset
+            (service as any).configLoaded = true;
+            changeCallback!();
+            assert.strictEqual((service as any).configLoaded, false, 'configLoaded should be false after file change');
+
+            // Simulate file create → configLoaded should be reset
+            (service as any).configLoaded = true;
+            createCallback!();
+            assert.strictEqual((service as any).configLoaded, false, 'configLoaded should be false after file create');
+
+            // Simulate file delete → configLoaded should be reset
+            (service as any).configLoaded = true;
+            deleteCallback!();
+            assert.strictEqual((service as any).configLoaded, false, 'configLoaded should be false after file delete');
+        } finally {
+            (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
+        }
     });
 });

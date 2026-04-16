@@ -10,6 +10,7 @@ import { RecentTasksService } from '../../services/recentTasksService';
 import { TaskStateManager } from '../../taskStateManager';
 import { TaskIconService } from '../../services/taskIconService';
 import { TaskDurationEstimateService } from '../../services/taskDurationEstimateService';
+import { TaskRunGuardService } from '../../services/taskRunGuardService';
 import constants from '../../libs/constants';
 
 // ─── Mock helpers ────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ function resetSingletons() {
   (TaskStateManager as any).instance = undefined;
   (TaskIconService as any).instance = undefined;
   (TaskDurationEstimateService as any).instance = undefined;
+  (TaskRunGuardService as any)._instance = undefined;
 }
 
 /** Helper: reset only provider singleton without wiping services used by other suites */
@@ -320,6 +322,68 @@ suite('TaskTreeDataProvider Test Suite', () => {
       provider.getTreeItem(item);
 
       assert.strictEqual(preRunCalls.length, 0, 'getPreRunEstimate must not be called for collapsible items');
+    });
+
+    // ── Guard context value projection ───────────────────────────────────────
+
+    function stubGuardService(isGuardedResult: boolean) {
+      (TaskRunGuardService as any)._instance = {
+        isGuarded: () => isGuardedResult,
+        onDidChangeGuards: () => ({ dispose: () => {} }),
+      };
+    }
+
+    function stubEtaServiceNoOverrides() {
+      const etaService = TaskDurationEstimateService.getInstance();
+      (etaService as any).getEtaDescription = (_id: string) => undefined;
+      (etaService as any).getPreRunEstimate = (_item: TaskItem) => undefined;
+    }
+
+    test('getTreeItem — not guarded leaf: returns element unchanged', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(false);
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.contextValue = 'task';
+      const result = provider.getTreeItem(item);
+      assert.strictEqual(result, item, 'should return the same element reference');
+    });
+
+    test('getTreeItem — guarded leaf task: returns projection with contextValue = guardedTask', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(true);
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('deploy', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.contextValue = 'task';
+      const result = provider.getTreeItem(item);
+      assert.notStrictEqual(result, item, 'should return a new projection object');
+      assert.strictEqual(result.contextValue, 'guardedTask');
+      // Cached element must not be mutated
+      assert.strictEqual(item.contextValue, 'task');
+    });
+
+    test('getTreeItem — guarded favorite leaf: returns projection with contextValue = guardedFavoriteTask', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(true);
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('deploy', vscode.TreeItemCollapsibleState.None, 'npm');
+      item.contextValue = 'favoriteTask';
+      const result = provider.getTreeItem(item);
+      assert.notStrictEqual(result, item);
+      assert.strictEqual(result.contextValue, 'guardedFavoriteTask');
+      assert.strictEqual(item.contextValue, 'favoriteTask');
+    });
+
+    test('getTreeItem — guarded group item: returns element unchanged (no guard prefix on groups)', () => {
+      stubEtaServiceNoOverrides();
+      stubGuardService(true); // guard returns true, but collapsibleState prevents prefix
+      const provider = new TaskTreeDataProvider(ctx);
+      const item = new TaskItem('folder', vscode.TreeItemCollapsibleState.Collapsed, 'npm');
+      item.contextValue = 'compoundTask';
+      const result = provider.getTreeItem(item);
+      // Collapsible items must never get the guard prefix
+      assert.strictEqual(result, item, 'group/collapsible items should be returned unchanged');
+      assert.strictEqual(result.contextValue, 'compoundTask');
     });
   });
 

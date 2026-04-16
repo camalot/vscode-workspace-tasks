@@ -39,6 +39,8 @@ import * as deleteSecret from './deleteSecretCommand';
 import * as updateSecret from './updateSecretCommand';
 import * as copySecretKey from './copySecretKeyCommand';
 import * as inspectTaskEnv from './inspectTaskEnvCommand';
+import * as addRunGuard from './addRunGuard';
+import * as removeRunGuard from './removeRunGuard';
 
 import { LoggerService } from '../services/loggerService';
 
@@ -86,6 +88,8 @@ export function loadCommands(context: vscode.ExtensionContext) {
     updateSecret,
     copySecretKey,
     inspectTaskEnv,
+    addRunGuard,
+    removeRunGuard,
   ];
 
   for (const mod of modules) {

@@ -39,6 +39,9 @@ export class TaskItem extends vscode.TreeItem {
 
   public metadata?: any;
 
+  /** Set to true when the task definition file includes `"confirm": true` (Solution B). */
+  public guardedByDefinition?: boolean;
+
   public onOpenActionCommand?: vscode.Command;
   public onRunActionCommand?: vscode.Command;
   public onRunWithArgsActionCommand?: vscode.Command;

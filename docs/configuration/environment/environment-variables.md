@@ -117,7 +117,7 @@ remain visible without interrupting your workflow.
 
 **Recommended action:** Add git-tracked env/secret files to `.gitignore`. For highly sensitive
 values (tokens, passwords), move them to VS Code `SecretStorage` via
-**Workspace Tasks: Store Secret** and reference them with the `secrets` field.
+**Workspace Tasks: Add New Secret** and reference them with the `secrets` field.
 
 Setting this to `false` silences all git-tracking warnings and clears any previously emitted
 diagnostics:
@@ -232,13 +232,13 @@ wins.
 
 ## Commands
 
-### `workspaceTasks.env.storeSecret` — Store Secret
+### `workspaceTasks.env.storeSecret` — Add New Secret
 
 Prompts for a storage key and a secret value, then saves the value in VS Code `SecretStorage`.
 The value is encrypted at rest, not synced to other machines, and accessible via the `secrets`
 field in `taskEnv` rules or in per-task `.workspace-tasks.json` `secrets` maps.
 
-**Command palette:** `Workspace Tasks: Store Secret`
+**Command palette:** `Workspace Tasks: Add New Secret`
 
 ---
 

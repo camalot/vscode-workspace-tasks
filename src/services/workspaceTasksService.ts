@@ -33,6 +33,8 @@ export interface FileTaskDefinition {
   envFiles?: IEnvFileReference;
   secretFiles?: IEnvFileReference;
   secrets?: Record<string, string>;
+  /** When true the task will prompt for confirmation before running (Solution B guard). */
+  confirm?: boolean;
 }
 
 interface LanguageTaskConfig {
@@ -74,6 +76,15 @@ export class WorkspaceTasksService {
     this.context = context;
     this.configLoaded = false;
     await this.loadWorkspaceConfig();
+
+    // Watch for .workspace-tasks.json file changes so the config is reloaded on the
+    // next provider refresh instead of returning stale data after a save.
+    const wsTasksWatcher = vscode.workspace.createFileSystemWatcher('**/.workspace-tasks.json');
+    const resetConfig = () => { this.configLoaded = false; };
+    wsTasksWatcher.onDidChange(resetConfig);
+    wsTasksWatcher.onDidCreate(resetConfig);
+    wsTasksWatcher.onDidDelete(resetConfig);
+    context.subscriptions.push(wsTasksWatcher);
   }
 
   private async loadWorkspaceConfig() {

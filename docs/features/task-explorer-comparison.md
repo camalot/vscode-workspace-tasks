@@ -121,6 +121,7 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Custom icons via settings | ❌ | ✅ | ✅ v1.8+ |
 | Task Monitor (fullscreen webview console) | ❌ | ✅ (v3+) | ❌ |
 | Estimated task duration display | ✅ | ❌ | ✅ v1.8.0 |
+| Run Guard (confirm before running) | ✅ | ❌ | ✅ v1.8.0 |
 
 ---
 

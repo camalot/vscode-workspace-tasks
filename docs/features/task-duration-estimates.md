@@ -2,7 +2,7 @@
 layout: default
 title: ⏱️ Task Duration Estimates
 parent: 🚀 Features
-nav_order: 11
+nav_order: 12
 ---
 <!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
 
@@ -18,6 +18,9 @@ nav_order: 11
 {:toc}
 
 ---
+
+{: .new }
+Added in v1.8.0
 
 ## Overview
 

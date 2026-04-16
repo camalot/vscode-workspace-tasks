@@ -10,14 +10,7 @@ has_children: true
 # General Settings
 {: .no_toc }
 
-General-purpose settings that cover operational behaviour and task metrics. Use these settings to enable diagnostic logging and configure how task execution metrics are collected and retained.
-
-<!-- markdownlint-disable-next-line MD022 -->
-## Table of Contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
+General-purpose settings that cover operational behavior and task metrics. Use these settings to enable diagnostic logging and configure how task execution metrics are collected and retained.
 
 ---
 

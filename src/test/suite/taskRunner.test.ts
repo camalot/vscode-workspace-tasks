@@ -8,6 +8,7 @@ import { LoggerService } from '../../services/loggerService';
 import { FavoritesService } from '../../services/favoritesService';
 import { FilteredTaskService } from '../../services/filteredTaskService';
 import { RecentTasksService } from '../../services/recentTasksService';
+import { TaskRunGuardService } from '../../services/taskRunGuardService';
 
 // CommonJS module references for monkey-patching
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -68,6 +69,9 @@ suite('TaskRunner Test Suite', () => {
   ): Partial<TaskStateManager> {
     return {
       getTaskId: (item: TaskItem) => item.originalLabel || item.label,
+      // Test IDs are simple label strings without fav:/recent:/queue: prefixes;
+      // normalizeTaskId is a no-op in this context.
+      normalizeTaskId: (id: string) => id,
       getStatus: (id: string) => getStatusOverride ? getStatusOverride(id) : (stateMap.get(id) ?? 'idle'),
       setStatus: (id: string, status: TaskStatus) => {
         stateMap.set(id, status);
@@ -154,6 +158,7 @@ suite('TaskRunner Test Suite', () => {
     (RecentTasksService as any).instance = undefined;
     (LoggerService as any).instance = undefined;
     (CompoundTaskService as any).instance = undefined;
+    (TaskRunGuardService as any)._instance = undefined;
   });
 
   // -------------------------------------------------------------------------
@@ -929,5 +934,150 @@ suite('TaskRunner Test Suite', () => {
     const status = await promise;
 
     assert.strictEqual(status, 'running');
+  });
+
+  // -------------------------------------------------------------------------
+  // runTask — guard integration
+  // -------------------------------------------------------------------------
+
+  function stubGuard(confirmedValue: boolean) {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: () => Promise.resolve(confirmedValue),
+      isGuarded: () => !confirmedValue,
+    };
+  }
+
+  test('runTask — not guarded: calls executeTask and returns true', async () => {
+    stubGuard(true); // confirmIfNeeded always passes
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+    const item = makeTaskItem('build');
+    const result = await runner.runTask(item);
+    assert.strictEqual(result, true);
+    assert.strictEqual(executedTasks.length, 1);
+  });
+
+  test('runTask — guarded, user confirms: calls executeTask and returns true', async () => {
+    stubGuard(true); // user confirmed
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+    const item = makeTaskItem('deploy');
+    const result = await runner.runTask(item);
+    assert.strictEqual(result, true);
+    assert.strictEqual(executedTasks.length, 1);
+  });
+
+  test('runTask — guarded, user cancels: does NOT call executeTask, returns false, no status change', async () => {
+    stubGuard(false); // user cancelled
+    const item = makeTaskItem('deploy');
+    const result = await runner.runTask(item);
+    assert.strictEqual(result, false);
+    assert.strictEqual(executedTasks.length, 0);
+    // Status should remain unchanged (not set to 'running')
+    assert.strictEqual(stateMap.get('deploy'), undefined);
+  });
+
+  test('runTask — guarded + skipGuard:true: skips dialog, calls executeTask, returns true', async () => {
+    // confirmIfNeeded would return false if called, but skipGuard bypasses it entirely
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: () => { throw new Error('confirmIfNeeded should not be called with skipGuard=true'); },
+      isGuarded: () => true,
+    };
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+    const item = makeTaskItem('deploy');
+    const result = await runner.runTask(item, undefined, true);
+    assert.strictEqual(result, true);
+    assert.strictEqual(executedTasks.length, 1);
+  });
+
+  // -------------------------------------------------------------------------
+  // runCompoundTask — guard integration
+  // -------------------------------------------------------------------------
+
+  function makeCompoundItem(label: string): TaskItem {
+    const item = makeTaskItem(label);
+    item.id = label;
+    return item;
+  }
+
+  function setupCompoundService(tasks: TaskItem[], executionType: 'sequential' | 'parallel' = 'sequential') {
+    const token = { cancelled: false };
+    (CompoundTaskService as any).instance = {
+      getCompoundTask: () => tasks,
+      getCompoundTaskExecutionType: () => executionType,
+      markCompoundTaskRunning: () => token,
+      markCompoundTaskStopped: () => {},
+      isItemDefinitelyNotRunnable: () => false,
+      onCompoundTaskStateChanged: () => ({ dispose: () => {} }),
+    };
+    return token;
+  }
+
+  test('runCompoundTask sequential — guard cancelled at step 2: steps 3+ not run', async () => {
+    const item1 = makeCompoundItem('task1');
+    const item2 = makeCompoundItem('task2');
+    const item3 = makeCompoundItem('task3');
+    setupCompoundService([item1, item2, item3]);
+
+    let callCount = 0;
+    // task1 passes, task2 cancelled, task3 should never run
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: (item: TaskItem) => {
+        callCount++;
+        return Promise.resolve(item.id !== 'task2');
+      },
+      isGuarded: () => false,
+    };
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+
+    // Stub waitForTask to immediately resolve with success
+    (runner as any).waitForTask = () => Promise.resolve('success');
+
+    await runner.runCompoundTask('test');
+
+    assert.ok(executedTasks.length < 3, `Expected fewer than 3 tasks launched, got ${executedTasks.length}`);
+    // task1 should have run, task2 cancelled, task3 skipped
+    assert.strictEqual(executedTasks.length, 1);
+  });
+
+  test('runCompoundTask sequential — step 2 fails naturally: breaks on failure-status check', async () => {
+    const item1 = makeCompoundItem('task1');
+    const item2 = makeCompoundItem('task2');
+    const item3 = makeCompoundItem('task3');
+    setupCompoundService([item1, item2, item3]);
+
+    stubGuard(true); // no guard cancellation
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+
+    let waitCallCount = 0;
+    (runner as any).waitForTask = (_item: TaskItem) => {
+      waitCallCount++;
+      // task2 (second call) returns failure
+      return Promise.resolve(waitCallCount === 2 ? 'failure' : 'success');
+    };
+
+    await runner.runCompoundTask('test');
+
+    // Only task1 and task2 started; task3 skipped after task2 failure
+    assert.strictEqual(executedTasks.length, 2);
+    assert.ok(errors.length > 0, 'Expected an error message for the failed task');
+  });
+
+  test('runCompoundTask parallel — guard cancelled for one item: only that item skipped, others run', async () => {
+    const item1 = makeCompoundItem('task1');
+    const item2 = makeCompoundItem('task2');
+    const item3 = makeCompoundItem('task3');
+    setupCompoundService([item1, item2, item3], 'parallel');
+
+    // task2 is cancelled; task1 and task3 proceed
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: (item: TaskItem) => Promise.resolve(item.id !== 'task2'),
+      isGuarded: () => false,
+    };
+    taskFactoryModule.createTaskForItem = async () => makeCreatedTask(true);
+    (runner as any).waitForTask = () => Promise.resolve('success');
+
+    await runner.runCompoundTask('test');
+
+    // Only task1 and task3 should have been executed (task2 was guard-cancelled)
+    assert.strictEqual(executedTasks.length, 2);
   });
 });

@@ -1,0 +1,7 @@
+It now updated the task when the task definition was changed, but when i ran the now guarded task, it did not require confirmation.
+
+If the task definition in .workspace-tasks.json contains confirm: true, it does not confirm, but it shows that the task has "Run Guard" enabled.
+
+If the .workspace-tasks.json task has Run Guard enabled from the right-click menu, the task confirms when executing.
+
+If the .workspace-tasks.json task has Run Guard enabled from the confirmPattern setting, the task confirms when executing.

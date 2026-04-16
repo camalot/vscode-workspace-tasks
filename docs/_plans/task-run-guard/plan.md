@@ -14,7 +14,7 @@ chain:
 3. **Solution A — Pattern matching** (settings `confirmPatterns` string array): lowest priority;
    broadest coverage; works for any task type including discovered tasks.
 
-A visual `!` badge (via `FileDecorationProvider`) marks guarded items directly in the tree. The
+A visual `🛡️` badge (via `FileDecorationProvider`) marks guarded items directly in the tree. The
 guard integrates into compound task sequential execution — if the user cancels any step, the
 compound task stops. Parallel compound tasks show individual modal dialogs per guarded task
 (Phase 1 limitation; a pre-flight batch confirm is a Phase 2 enhancement).
@@ -97,7 +97,7 @@ TaskItem.updateContextValue()
   └─ [NEW] if guardService.isGuarded(this): prefix contextValue with 'guarded'
 
 TaskRunGuardDecorationProvider (new)
-  └─ badge: '!' + ThemeColor('list.warningForeground') for guarded task URIs
+  └─ badge: '🛡️' + ThemeColor('list.warningForeground') for guarded task URIs
 
 Commands (Solution C)
   ├── workspaceTasks.addRunGuard    ← shown when viewItem !~ /guarded/
@@ -286,7 +286,7 @@ export class TaskRunGuardService {
     if (!this.isGuarded(item)) { return true; }
     const label = item.originalLabel ?? (typeof item.label === 'string' ? item.label : 'this task');
     const choice = await vscode.window.showWarningMessage(
-      `Run guarded task "${label}"?`,
+      `"${label}" is marked as a guarded task. Are you sure you want to run it?`,
       { modal: true },
       'Run Task'
     );
@@ -566,7 +566,7 @@ export class TaskRunGuardDecorationProvider implements vscode.FileDecorationProv
     if (!isGuarded) { return undefined; }
 
     return {
-      badge: '!',
+      badge: '🛡️',
       color: new vscode.ThemeColor('list.warningForeground'),
       tooltip: 'This task requires confirmation before running',
       propagate: false,

@@ -12,6 +12,8 @@ import { FavoritesService } from './services/favoritesService';
 import { CompoundTaskService } from './services/compoundTaskService';
 import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
+import { TaskRunGuardService } from './services/taskRunGuardService';
+import { TaskRunGuardDecorationProvider } from './services/taskRunGuardDecorationProvider';
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
 import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
 import { TaskMetricsService } from './services/taskMetricsService';
@@ -76,6 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Enable Settings Sync for favorites and compound tasks so they sync across machines
   context.globalState.setKeysForSync(['favorites', 'savedQueues']);
   FilteredTaskService.getInstance().initialize(context);
+  TaskRunGuardService.getInstance().initialize(context);
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   await taskTreeDataProvider.initialize(context);
 
@@ -84,6 +87,11 @@ export async function activate(context: vscode.ExtensionContext) {
   // Register FileDecorationProvider for dimming filtered tasks
   const decorationProvider = new FilteredTaskDecorationProvider();
   context.subscriptions.push(vscode.window.registerFileDecorationProvider(decorationProvider));
+
+  // Register FileDecorationProvider for guarded task badge
+  context.subscriptions.push(
+    vscode.window.registerFileDecorationProvider(new TaskRunGuardDecorationProvider())
+  );
 
   const resetTimers = new Map<string, NodeJS.Timeout>();
 
@@ -128,6 +136,13 @@ export async function activate(context: vscode.ExtensionContext) {
       updateFilteredTasksContext();
       decorationProvider.refresh(); // Refresh decorations when filtered tasks change
       taskTreeDataProvider.refreshLocal();
+    })
+  );
+
+  // Listen for guard changes and refresh tree
+  context.subscriptions.push(
+    TaskRunGuardService.getInstance().onDidChangeGuards(() => {
+      taskTreeDataProvider.refresh();
     })
   );
 

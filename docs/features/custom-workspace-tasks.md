@@ -1,7 +1,7 @@
 ---
 layout: default
 title: 🛃 Workspace Tasks
-nav_order: 9
+nav_order: 10
 parent: 🚀 Features
 ---
 
@@ -217,7 +217,7 @@ plaintext in the Inspect command and never trigger the secret-pattern warning.
 Map environment variable names to VS Code `SecretStorage` keys (per-task only). The value is
 fetched at run time from the encrypted, per-machine store.
 
-To store a secret: open the Command Palette → **Workspace Tasks: Store Secret**.
+To store a secret: open the Command Palette → **Workspace Tasks: Add New Secret**.
 
 ```jsonc
 {
@@ -268,3 +268,4 @@ To store a secret: open the Command Palette → **Workspace Tasks: Store Secret*
   - **envFiles** - Per-task `.env` file references (`string | string[] | { include, exclude }`)
   - **secretFiles** - Per-task `.secret` file references (same format as `envFiles`)
   - **secrets** - Per-task `SecretStorage` map (`Record<string, string>`: env var → storage key)
+  - **confirm** - `boolean` (default `false`) — when `true`, a confirmation dialog is shown before the task runs. See [Run Guard](run-guard) for details.

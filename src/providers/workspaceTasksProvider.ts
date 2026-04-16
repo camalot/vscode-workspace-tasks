@@ -125,6 +125,9 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
               }
             }
             tasks.push(item);
+            if (taskDef.confirm) {
+              item.guardedByDefinition = true;
+            }
           }
           this.logger.debug(`[WorkspaceTasksProvider] Provider "${provider}" (no-file path) added ${taskDefs.length} task(s).`);
         }
@@ -166,6 +169,9 @@ export class WorkspaceTasksProvider extends BaseTaskProvider implements TaskProv
             }
           }
           tasks.push(item);
+          if (taskDef.confirm) {
+            item.guardedByDefinition = true;
+          }
         }
       }
       this.logger.debug(`[WorkspaceTasksProvider] Provider "${provider}" added ${taskDefs.length} task(s) from ${files.length} file(s).`);
