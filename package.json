@@ -1910,11 +1910,6 @@
           "group": "4_compoundTask@2"
         },
         {
-          "command": "workspaceTasks.setCompoundTaskExecutionType",
-          "when": "viewItem == compoundTask",
-          "group": "4_compoundTask@1"
-        },
-        {
           "command": "workspaceTasks.renameCompoundTask",
           "when": "viewItem == compoundTask || viewItem == favoriteCompoundTask",
           "group": "compoundTask_manage@1"
