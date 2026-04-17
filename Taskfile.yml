@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+  default:
+    desc: Print a greeting message
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  # Simple string format
+  hello: echo "Hello World"
+
+  # Array format
+  build:
+    - go mod tidy
+    - go build ./...
+
+  # Full object format
+  deploy:
+    desc: Deploy the application
+    cmds:
+      - ./scripts/deploy.sh
