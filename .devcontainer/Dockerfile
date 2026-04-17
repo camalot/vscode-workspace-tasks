@@ -129,6 +129,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
 && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
 && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin"
 
+# install codecov uploader
+RUN CODECOV_VERSION="latest" && \
+  curl -fsSL "https://uploader.codecov.io/${CODECOV_VERSION}/codecov" -o "/home/${USERNAME}/bin/codecov" && \
+  chmod +x "/home/${USERNAME}/bin/codecov"
+
 COPY files/home/vscode/ /home/${USERNAME}/
 
 RUN git clone --depth=1 'https://github.com/romkatv/powerlevel10k.git' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" \
