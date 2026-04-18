@@ -3,6 +3,7 @@ layout: default
 title: ▶️ Task Runners
 parent: 📱 Supported Task Types
 nav_order: 2
+has_children: true
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

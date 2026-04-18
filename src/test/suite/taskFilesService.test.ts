@@ -445,6 +445,39 @@ ignore.me
         assert.strictEqual((service as any).cacheInvalidated, false, 'Cache should remain valid');
     });
 
+    test('findFiles with registered patterns applies exclude globs on cached results', async function() {
+        this.timeout(60000);
+        (service as any).registeredPatterns.clear();
+        service.invalidateCache();
+
+        await createFile('findfiles-excludes/allowed/a.json');
+        await createFile('findfiles-excludes/vendor/b.json');
+        await createFile('findfiles-excludes/allowed/skip.json');
+
+        await waitForFilesIndexed('**/findfiles-excludes/**/*.json', 3);
+
+        const glob = '**/findfiles-excludes/**/*.json';
+        service.registerPatterns([glob]);
+        service.invalidateCache();
+
+        const all = await service.findFiles([glob]);
+        const allRelevant = all.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+        assert.strictEqual(allRelevant.length, 3, 'Baseline should include all matching files');
+
+        const filtered = await service.findFiles([glob], [
+            '**/findfiles-excludes/vendor/**',
+            '**/findfiles-excludes/**/skip.json',
+        ]);
+        const filteredRelevant = filtered.filter(u => u.fsPath.startsWith(testFolder.fsPath));
+
+        assert.strictEqual(filteredRelevant.length, 1, 'Exclude globs should remove vendor and skip.json files');
+        assert.strictEqual(
+            filteredRelevant.some(u => u.fsPath.endsWith(path.join('findfiles-excludes', 'allowed', 'a.json'))),
+            true,
+            'Allowed file should remain after excludes',
+        );
+    });
+
     test('invalidateCache works correctly', async function() {
         this.timeout(60000);
         (service as any).registeredPatterns.clear();
@@ -1305,6 +1338,35 @@ package.json@build`;
             assert.ok(rFiltered.some(u => u.fsPath === uriA.fsPath), 'src/ Cargo.toml should appear in filtered result');
             assert.ok(rUnfiltered.some(u => u.fsPath === uriB.fsPath), 'vendor/ Cargo.toml should appear in unfiltered result');
             assert.ok(rUnfiltered.some(u => u.fsPath === uriA.fsPath), 'src/ Cargo.toml should appear in unfiltered result');
+        });
+
+        test('coalesced uncovered path forwards only common excludes to vscode.findFiles', async () => {
+            const uriA = vscode.Uri.file('/workspace/src/Cargo.toml');
+            const uriB = vscode.Uri.file('/workspace/vendor/Cargo.toml');
+            let capturedExcludeGlob: string | undefined;
+
+            (vscode.workspace as any).findFiles = async (pattern: string, exclude?: string) => {
+                if (pattern.includes('.tasksignore')) { return []; }
+                findFilesCalls.push(pattern);
+                capturedExcludeGlob = exclude;
+                // Simulate VS Code applying the forwarded exclude glob.
+                if (exclude?.includes('**/vendor/**')) {
+                    return [uriA];
+                }
+                return [uriA, uriB];
+            };
+
+            const [r1, r2] = await Promise.all([
+                service.findFiles(['**/Cargo.toml'], ['**/vendor/**', '**/tmp/**']),
+                service.findFiles(['**/Cargo.toml'], ['**/vendor/**', '**/cache/**']),
+            ]);
+
+            assert.strictEqual(findFilesCalls.length, 1, 'Concurrent uncovered queries should still coalesce');
+            assert.strictEqual(capturedExcludeGlob, '**/vendor/**', 'Only common exclude should be forwarded to VS Code query');
+            assert.ok(!r1.some(u => u.fsPath === uriB.fsPath), 'First request should exclude vendor path');
+            assert.ok(!r2.some(u => u.fsPath === uriB.fsPath), 'Second request should exclude vendor path');
+            assert.ok(r1.some(u => u.fsPath === uriA.fsPath), 'First request should keep non-excluded path');
+            assert.ok(r2.some(u => u.fsPath === uriA.fsPath), 'Second request should keep non-excluded path');
         });
 
         test('errors from the batch query are propagated to all waiting callers', async () => {

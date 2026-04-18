@@ -1,8 +1,8 @@
 ---
 layout: default
 title: 🦊 GitLab CI (gitlab-ci-local)
-parent: 📱 Supported Task Types
-nav_order: 11
+parent: 🚦 DevOps & Containers
+nav_order: 2
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

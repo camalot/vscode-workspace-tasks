@@ -1,8 +1,8 @@
 ---
 layout: default
 title: 🧑‍💻 GitHub Actions
-parent: 📱 Supported Task Types
-nav_order: 5
+parent: 🚦 DevOps & Containers
+nav_order: 1
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

@@ -3,6 +3,7 @@ layout: default
 title: 🚦 DevOps & Containers
 parent: 📱 Supported Task Types
 nav_order: 3
+has_children: true
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
@@ -22,16 +23,16 @@ nav_order: 3
 <p align="left">
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/docker.png" width="32" alt="Docker" title="Docker"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/gitlab-ci.png" width="32" alt="GitLab CI" title="GitLab CI"/>
 </p>
 <!-- markdownlint-enable MD033 -->
 
 | Tool | File Patterns | Notes |
 | --- | --- | --- |
 | **[Docker](https://www.docker.com/)** | `**/Dockerfile*` | Container build tasks |
-| **[Docker Compose](https://docs.docker.com/compose/)** | `**/docker-compose.yml` | Service orchestration |
-| **[GitHub Actions](https://github.com/features/actions)** | `**/.github/workflows/*.yml` | CI/CD workflows via [act](https://github.com/nektos/act) |
-
-See [GitHub Actions Integration](github-actions) for local workflow execution details.
+| **[Docker Compose](https://docs.docker.com/compose/)** | `**/docker-compose.{yml,yaml}` | Service orchestration |
+| **[GitHub Actions](https://github.com/features/actions)** | `**/.github/workflows/*.{yml,yaml}` | CI/CD workflows via [act](https://github.com/nektos/act) |
+| **[GitLab CI](https://docs.gitlab.com/ee/ci/)** | `**/.gitlab-ci.{yml,yaml}` / `user-defined` | CI/CD workflows via GitLab CI |
 
 ---
 

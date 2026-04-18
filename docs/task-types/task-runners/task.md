@@ -1,8 +1,8 @@
 ---
 layout: default
 title: ✅ Task (go-task)
-parent: 📱 Supported Task Types
-nav_order: 10
+parent: ▶️ Task Runners
+nav_order: 3
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

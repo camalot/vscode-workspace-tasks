@@ -95,6 +95,7 @@
     "docs:serve": "~/bin/build-docs --serve",
     "docs:serve:watch": "~/bin/build-docs --serve",
     "docs:build:serve": "~/bin/build-docs --build --serve",
+    "docs:generate:glob-patterns": "node scripts/generate-glob-patterns.js",
     "watch": "npm run watch:webpack",
     "watch:tsc": "tsc --noEmit --watch",
     "watch:tests": "tsc -p . -w --outDir out",
