@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "name": "build",
+      "task": "build",
+      "desc": "Build the application",
+      "summary": "",
+      "aliases": ["b", "bld"],
+      "up_to_date": false,
+      "location": {
+        "line": 12,
+        "column": 3,
+        "taskfile": "/workspace/Taskfile.yml"
+      }
+    },
+    {
+      "name": "test",
+      "task": "test",
+      "desc": "Run the test suite",
+      "summary": "",
+      "aliases": [],
+      "up_to_date": false,
+      "location": {
+        "line": 18,
+        "column": 3,
+        "taskfile": "/workspace/Taskfile.yml"
+      }
+    }
+  ],
+  "location": "/workspace/Taskfile.yml"
+}

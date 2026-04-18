@@ -225,7 +225,7 @@ export class TaskItem extends vscode.TreeItem {
       });
 
       // Determine base context value considering filtered state
-      let baseContext = (this.taskType === 'jupyter') ? 'jupyterTask' : 'task';
+      let baseContext = (this.taskType === 'jupyter') ? 'jupyterTask' : (this.taskType === 'taskfile') ? 'taskfileTask' : 'task';
 
       // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
       // Note: This check relies on contextValue being set before updateContextValue call
@@ -237,7 +237,7 @@ export class TaskItem extends vscode.TreeItem {
       } else if (this.contextValue === 'recentTask' || (this.contextValue && this.contextValue.includes('recentTask'))) {
         baseContext = isFavorite ? 'favoriteRecentTask' : 'recentTask';
       } else if (isFavorite) {
-        baseContext = 'favoriteTask';
+        baseContext = (this.taskType === 'taskfile') ? 'favoriteTaskfileTask' : 'favoriteTask';
       }
 
       // Add filtered prefix if the task is in the filtered set

@@ -40,6 +40,7 @@ nav_order: 2
 | **[Just](https://github.com/casey/just)** | `**/{justfile,.justfile,*.just}` | Command recipes |
 | **[Make](https://www.gnu.org/software/make/)** | `**/Makefile` | Build targets |
 | **[mise](https://mise.jdx.dev/)** | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
+| **[Task (go-task)](https://taskfile.dev/)** | `**/Taskfile.{yml,yaml}`, `**/Taskfile.dist.{yml,yaml}` | CLI-based discovery; requires `task` on `PATH` |
 | **[CMake](https://cmake.org/)** | `**/CMakeLists.txt` | `add_custom_target` and `add_executable` targets |
 | **[Cake Build](https://cakebuild.net/)** | `**/*.cake` | `Task("...")` declarations; requires `dotnet cake` |
 

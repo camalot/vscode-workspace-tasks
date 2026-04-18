@@ -23,6 +23,7 @@ import { PoeTaskProvider } from './providers/poeTaskProvider';
 import { CargoMakeTaskProvider } from './providers/cargoMakeTaskProvider';
 import { CMakeTaskProvider } from './providers/cmakeTaskProvider';
 import { CakeTaskProvider } from './providers/cakeTaskProvider';
+import { TaskfileTaskProvider } from './providers/taskfileTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -41,7 +42,7 @@ export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
   'maven', 'gradle', 'composer', 'shell', 'grunt', 'gulp', 'ant',
   'workspace-task', 'github-actions', 'vscode', 'makefile', 'dockerfile',
   'pipenv', 'venv', 'msbuild', 'justfile', 'cmake', 'cake',
-  'poe', 'poetry', 'cargo-make',
+  'poe', 'poetry', 'cargo-make', 'taskfile',
 ]);
 
 /**
@@ -1057,6 +1058,39 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         shellExec,
       );
       return { task, command: full, cwd: cakeCwd, native: false };
+    }
+    case 'taskfile': {
+      const taskfileProvider = new TaskfileTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: taskCmd, args: taskInitialArgs, cwd: taskCwd } = taskfileProvider.getCommand(workspaceFolder?.uri);
+
+      const taskArgs = taskInitialArgs ? [...taskInitialArgs] : [];
+      const globalTaskfilePath = typeof item.metadata?.globalTaskfilePath === 'string'
+        ? item.metadata.globalTaskfilePath
+        : undefined;
+
+      if (globalTaskfilePath) {
+        taskArgs.push('--taskfile', globalTaskfilePath);
+      } else if (item.taskFileUri) {
+        taskArgs.push('--taskfile', item.taskFileUri.fsPath);
+      }
+      taskArgs.push(taskLabel);
+      if (args) {
+        taskArgs.push(...args.split(' '));
+      }
+
+      const full = `${taskCmd} ${taskArgs.join(' ')}`;
+      const taskFileCwd = item.taskFileUri ? path.dirname(item.taskFileUri.fsPath) : taskCwd;
+      const shellExec = new vscode.ShellExecution(taskCmd, taskArgs, { cwd: taskFileCwd });
+
+      const task = new vscode.Task(
+        { type: 'taskfile', task: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'taskfile',
+        shellExec,
+      );
+      return { task, command: full, cwd: taskFileCwd, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

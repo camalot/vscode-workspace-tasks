@@ -24,6 +24,7 @@
         "streetsidesoftware.code-spell-checker",
         "jasonnutter.vscode-codeowners",
         "mikestead.dotenv",
+        "ms-vscode.powershell",
         "dotenv.dotenv-vscode",
         "darthminos.workspace-tasks",
         "DavidAnson.vscode-markdownlint",

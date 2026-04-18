@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "name": "build:ci",
+      "task": "build:ci",
+      "desc": "Build using CI profile",
+      "summary": "",
+      "aliases": [],
+      "up_to_date": false,
+      "location": {
+        "line": 7,
+        "column": 3,
+        "taskfile": "/workspace/backend/Taskfile.ci.yml"
+      }
+    }
+  ],
+  "location": "/workspace/backend/Taskfile.ci.yml"
+}

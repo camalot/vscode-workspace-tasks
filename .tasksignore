@@ -5,6 +5,7 @@ sample/sample-workspace-tasks/**
 src/test/task-files
 **/package.json@build
 .devcontainer/**
+!.devcontainer/Dockerfile
 docs/_plugins/**
 .github/linters/**
 .vscode/tasks.json@npm: *

@@ -161,6 +161,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
 - **[mise](https://mise.jdx.dev/)** - Tasks from `mise.toml` or `mise-tasks/` directory
+- **[Task (go-task)](https://taskfile.dev/)** - Tasks from `Taskfile.yml` (CLI-based discovery)
 - **[Cake Build](https://cakebuild.net/)** - Tasks from `*.cake` scripts via `Task("...")`
 
 ### DevOps & Containers

@@ -130,9 +130,12 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
 && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin"
 
 # install codecov uploader
-RUN CODECOV_VERSION="latest" && \
-  curl -fsSL "https://uploader.codecov.io/${CODECOV_VERSION}/codecov" -o "/home/${USERNAME}/bin/codecov" && \
-  chmod +x "/home/${USERNAME}/bin/codecov"
+RUN curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
+  && chmod +x "/home/${USERNAME}/bin/codecov"
+
+# install task (https://taskfile.dev/), a modern alternative to Make written in Go
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash - && \
+  sudo apt-get install -y task
 
 COPY files/home/vscode/ /home/${USERNAME}/
 

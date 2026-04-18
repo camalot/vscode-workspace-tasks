@@ -24,6 +24,7 @@ import { MavenTaskProvider } from './mavenTaskProvider';
 import { JupyterTaskProvider } from './jupyterTaskProvider';
 import { CMakeTaskProvider } from './cmakeTaskProvider';
 import { CakeTaskProvider } from './cakeTaskProvider';
+import { TaskfileTaskProvider } from './taskfileTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 import { TaskFilesService } from '../services/taskFilesService';
@@ -57,7 +58,8 @@ type TaskProviderConstructor =
   | (new () => RakeTaskProvider)
   | (new () => JupyterTaskProvider)
   | (new () => CMakeTaskProvider)
-  | (new () => CakeTaskProvider);
+  | (new () => CakeTaskProvider)
+  | (new () => TaskfileTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
   const logger = LoggerService.getInstance();
@@ -90,6 +92,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     JupyterTaskProvider,
     CMakeTaskProvider,
     CakeTaskProvider,
+    TaskfileTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   const filesService = TaskFilesService.getInstance();

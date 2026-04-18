@@ -71,7 +71,9 @@
     "poetry",
     "make",
     "cmake",
-    "cake"
+    "cake",
+    "task",
+    "taskfile"
   ],
   "categories": [
     "Other"
@@ -368,6 +370,11 @@
         "command": "workspaceTasks.restartTask",
         "title": "%command.restartTask%",
         "icon": "$(debug-restart)"
+      },
+      {
+        "command": "workspaceTasks.taskfile.watchTask",
+        "title": "%command.workspaceTasks.taskfile.watchTask%",
+        "icon": "$(eye)"
       },
       {
         "command": "workspaceTasks.removeFromRecentTasks",
@@ -748,6 +755,10 @@
               "workspace": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.workspace%"
+              },
+              "taskfile": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.taskfile%"
               }
             },
             "default": {
@@ -784,7 +795,8 @@
               "venv": true,
               "vscode": true,
               "webpack": true,
-              "workspace": true
+              "workspace": true,
+              "taskfile": true
             }
           },
           "workspaceTasks.enabledTaskTypePatterns": {
@@ -1626,6 +1638,41 @@
             "markdownDescription": "%config.workspaceTasks.applicationPath.rake.markdown%",
             "default": "rake"
           },
+          "workspaceTasks.applicationPath.taskfile": {
+            "type": "string",
+            "description": "%config.workspaceTasks.applicationPath.taskfile%",
+            "markdownDescription": "%config.workspaceTasks.applicationPath.taskfile.markdown%",
+            "default": "task",
+            "scope": "resource"
+          },
+          "workspaceTasks.taskfile.showAliases": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "%config.workspaceTasks.taskfile.showAliases.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.taskfile.additionalFilePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.taskfile.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+
+          "workspaceTasks.taskfile.discoverGlobalTaskfile": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "%config.workspaceTasks.taskfile.discoverGlobalTaskfile.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.taskfile.enableWatchMode": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "%config.workspaceTasks.taskfile.enableWatchMode.markdown%",
+            "scope": "resource"
+          },
           "workspaceTasks.ant.ansicon.enabled": {
             "type": "boolean",
             "description": "%config.workspaceTasks.ant.ansicon.enabled%",
@@ -1938,6 +1985,16 @@
           "command": "workspaceTasks.metrics.clearTask",
           "when": "viewItem =~ /[tT]ask$/ && !(viewItem =~ /[cC]ompound[Tt]ask/) && config.workspaceTasks.metrics.scope != 'disabled'",
           "group": "z_metrics@1"
+        },
+        {
+          "command": "workspaceTasks.taskfile.watchTask",
+          "when": "viewItem =~ /[Tt]askfile[Tt]ask/ && !(viewItem =~ /running/) && config.workspaceTasks.taskfile.enableWatchMode",
+          "group": "inline@3"
+        },
+        {
+          "command": "workspaceTasks.taskfile.watchTask",
+          "when": "viewItem =~ /[Tt]askfile[Tt]ask/ && !(viewItem =~ /running/) && config.workspaceTasks.taskfile.enableWatchMode",
+          "group": "taskfile@1"
         },
         {
           "command": "workspaceTasks.restartTask",
