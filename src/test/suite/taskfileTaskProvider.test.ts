@@ -67,7 +67,7 @@ suite('TaskfileTaskProvider Test Suite', () => {
   });
 
   suite('getSystemTasks', () => {
-    const fakeHome = '/workspace';
+    const fakeHome = os.tmpdir();
     const variants = [
       'Taskfile.yml',
       'taskfile.yml',
