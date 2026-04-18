@@ -27,8 +27,6 @@ has_children: true
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/mise.png" width="32" alt="mise" title="mise"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo.png" width="32" alt="cargo" title="cargo"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cargo-make.png" width="32" alt="cargo-make" title="cargo-make"/>
-  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cmake.png" width="32" alt="CMake" title="CMake"/>
-  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cake.png" width="32" alt="Cake" title="Cake Build"/>
 </p>
 <!-- markdownlint-enable MD033 -->
 
@@ -42,8 +40,6 @@ has_children: true
 | **[Make](https://www.gnu.org/software/make/)** | `**/Makefile` | Build targets |
 | **[mise](https://mise.jdx.dev/)** | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |
 | **[Task (go-task)](https://taskfile.dev/)** | `**/Taskfile.{yml,yaml}`, `**/Taskfile.dist.{yml,yaml}` | CLI-based discovery; requires `task` on `PATH` |
-| **[CMake](https://cmake.org/)** | `**/CMakeLists.txt` | `add_custom_target` and `add_executable` targets |
-| **[Cake Build](https://cakebuild.net/)** | `**/*.cake` | `Task("...")` declarations; requires `dotnet cake` |
 
 ---
 

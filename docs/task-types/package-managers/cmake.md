@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Ⓜ️ CMake
-parent: ▶️ Task Runners
+parent: 📦 Packages & Build Tools
 nav_order: 2
 ---
 

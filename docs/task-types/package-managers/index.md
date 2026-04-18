@@ -31,6 +31,8 @@ nav_order: 1
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/ant.png" width="32" alt="Ant" title="Ant"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/maven.png" width="32" alt="Maven" title="Maven"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/msbuild.png" width="32" alt="MSBuild" title="MSBuild"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cmake.png" width="32" alt="CMake" title="CMake"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/cake.png" width="32" alt="Cake" title="Cake Build"/>
 </p>
 <!-- markdownlint-enable MD033 -->
 
@@ -48,6 +50,8 @@ nav_order: 1
 | **[Apache Maven](https://maven.apache.org/)** | `**/pom.xml` | Lifecycle goals |
 | **[Gradle](https://gradle.org/)** | `**/*.gradle` | Java/Android build tasks |
 | **[MSBuild](https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild)** | `**/*.{csproj,vbproj,sln}` | .NET project targets |
+| **[CMake](https://cmake.org/)** | `**/CMakeLists.txt` | `add_custom_target` and `add_executable` targets |
+| **[Cake Build](https://cakebuild.net/)** | `**/*.cake` | `Task("...")` declarations; requires `dotnet cake` |
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: default
 title: 🍰 Cake
-parent: ▶️ Task Runners
+parent: 📦 Packages & Build Tools
 nav_order: 1
 ---
 
