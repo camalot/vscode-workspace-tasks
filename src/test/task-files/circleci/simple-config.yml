@@ -1,0 +1,8 @@
+version: 2.1
+
+jobs:
+  hello:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run: echo hello

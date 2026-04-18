@@ -1,6 +1,6 @@
 <!-- AUTO-GENERATED: npm run docs:generate:glob-patterns -->
 
-{: .table .table-dark .table-striped }
+{: .table table-dark table-striped }
 | Constant | Pattern | Should Match Examples |
 | --- | --- | --- |
 | <code>GLOB_GLOBAL_EXCLUDE</code> | <code>**/node_modules/**,**/.git/**,**/__pycache__/**,**/vendor/bundle/**</code> |  |

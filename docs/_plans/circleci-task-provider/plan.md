@@ -78,10 +78,7 @@ circleci
   - `circleci local execute -c <config-file> <job-name>`
 - Optional processed-config mode for 2.1 configs:
   - Generate processed YAML first, then run `local execute -c <processed-file>`.
-- Workflows run through internal sequential orchestration:
-   - Resolve workflow job list from `workflows.<name>.jobs`
-   - Execute each job one-at-a-time using normal CircleCI job execution
-   - On failure, launch error, or stop request: halt workflow and do not start remaining jobs
+- Workflows run through internal sequential orchestration by resolving the workflow job list from `workflows.<name>.jobs`, executing each job one-at-a-time using normal CircleCI job execution, and halting on failure, launch error, or stop request so remaining jobs are not started.
 - Parallel/fan-out workflow semantics are linearized locally in v1.
 
 ---
@@ -104,7 +101,7 @@ short task type IDs used throughout `taskFactory.ts` and settings schemas.
   - `jobs` map keys
   - `workflows.<workflowName>.jobs` references
 - Build workflow group nodes and attach referenced jobs.
-- Include jobs not referenced by workflows in an `unassigned`/`jobs` grouping section.
+- Include **all defined jobs** in a `jobs` grouping section so individual jobs are always directly runnable, regardless of workflow membership.
 
 Rationale: CircleCI CLI does not expose a direct machine-readable job listing equivalent to
 `gitlab-ci-local --list-json`.
@@ -113,10 +110,7 @@ Rationale: CircleCI CLI does not expose a direct machine-readable job listing eq
 
 - Workflows are shown and runnable.
 - A workflow run is translated into a sequential queue of CircleCI job items.
-- Execution reuses existing compound-sequence behavior from `TaskRunner.runCompoundTask`:
-   - wait for each job to complete
-   - stop sequence on failure/cancel
-   - never continue after explicit stop
+- Execution reuses existing compound-sequence behavior from `TaskRunner.runCompoundTask`: wait for each job to complete, stop sequence on failure/cancel, and never continue after explicit stop.
 - Job children remain individually runnable as standalone job runs.
 
 Rationale: aligns with user request to run full workflows locally despite CircleCI CLI limitations,
@@ -125,8 +119,7 @@ while reusing proven queue/compound orchestration behavior already implemented i
 ### 4) Scoped Workflow Identity
 
 - Workflow orchestration names must be unique per config file and workflow label.
-- Use a scoped internal key pattern, for example:
-   - `circleci@<configPath>::<workflowName>`
+- Use a scoped internal key pattern, for example `circleci@<configPath>::<workflowName>`.
 
 Rationale: avoids collisions for identical workflow names across multiple workspace folders or files.
 
@@ -171,9 +164,7 @@ Rationale: balances correctness for 2.1/orb-heavy configs with performance and s
    - optional extensibility settings:
      - `workspaceTasks.circleci.additionalFilePatterns`
 9. Add localization keys to `package.nls.json` for all new settings.
-10. Add icon assets for `circleci` task type if needed for parity with devops group icons:
-   - `res/icons/light/circleci.svg` and `res/icons/dark/circleci.svg`
-   - generated png counterparts if project currently expects them.
+10. Add icon assets for `circleci` task type if needed for parity with devops group icons (`res/icons/light/circleci.svg` and `res/icons/dark/circleci.svg`), plus generated png counterparts if project currently expects them.
 
 ### B) Tests
 

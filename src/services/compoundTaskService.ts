@@ -32,6 +32,7 @@ export class CompoundTaskService {
   private compoundTasks: Map<string, TaskItem[]> = new Map();
   private compoundTaskTypes: Map<string, CompoundTaskExecutionType> = new Map();
   private runningCompoundTasks: Map<string, CompoundTaskCancellationToken> = new Map();
+  private transientCompoundTasks: Set<string> = new Set();
   private context: vscode.ExtensionContext | undefined;
   private readonly logger = LoggerService.getInstance();
   // The storage key remains as "savedQueues" for backwards compatibility with the old format and to avoid breaking existing data, but the feature is now called "compound tasks" in the UI and code.
@@ -172,6 +173,9 @@ export class CompoundTaskService {
     // updateContextValue() and is never a real filesystem path.
     const filteredCompoundTasks = new Map<string, TaskItem[]>();
     for (const [name, tasks] of this.compoundTasks) {
+      if (this.transientCompoundTasks.has(name)) {
+        continue;
+      }
       const validTasks = tasks.filter((task) => {
         const uri = task.taskFileUri;
         if (!uri) { return true; } // Keep tasks without a real file URI (e.g. workspace-level tasks)
@@ -197,7 +201,14 @@ export class CompoundTaskService {
    * Includes compound tasks that have no valid tasks in the current workspace (ghost tasks).
    */
   public getAllCompoundTasksRaw(): Map<string, TaskItem[]> {
-    return new Map(this.compoundTasks);
+    const raw = new Map<string, TaskItem[]>();
+    for (const [name, tasks] of this.compoundTasks) {
+      if (this.transientCompoundTasks.has(name)) {
+        continue;
+      }
+      raw.set(name, tasks);
+    }
+    return raw;
   }
 
   /**
@@ -353,6 +364,9 @@ export class CompoundTaskService {
     const serializedCompoundTasks: Record<string, SerializedCompoundTask> = {};
 
     for (const [name, tasks] of this.compoundTasks) {
+      if (this.transientCompoundTasks.has(name)) {
+        continue;
+      }
       if (tasks.length > 0) {
         serializedCompoundTasks[name] = {
           executionType: this.compoundTaskTypes.get(name) ?? 'sequential',
@@ -371,12 +385,31 @@ export class CompoundTaskService {
     this.context.workspaceState.update(this.STORAGE_KEY, serializedCompoundTasks);
   }
 
+  /**
+   * Creates an in-memory compound task that is never persisted to storage.
+   */
+  public createTransientCompoundTask(name: string, items: TaskItem[], executionType: CompoundTaskExecutionType = 'sequential') {
+    this.compoundTasks.set(name, items);
+    this.compoundTaskTypes.set(name, executionType);
+    this.transientCompoundTasks.add(name);
+  }
+
+  /**
+   * Clears a transient in-memory compound task and running state.
+   */
+  public clearTransientCompoundTask(name: string) {
+    this.cancelCompoundTask(name);
+    this.compoundTasks.delete(name);
+    this.compoundTaskTypes.delete(name);
+    this.transientCompoundTasks.delete(name);
+  }
+
   public getCompoundTask(name: string): TaskItem[] | undefined {
     return this.compoundTasks.get(name);
   }
 
   public getCompoundTaskNames(): string[] {
-    return Array.from(this.compoundTasks.keys());
+    return Array.from(this.compoundTasks.keys()).filter((name) => !this.transientCompoundTasks.has(name));
   }
 
   private getConfigDefaultExecutionType(): CompoundTaskExecutionType {

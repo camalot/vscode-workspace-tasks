@@ -110,6 +110,7 @@
   "config.workspaceTasks.enabledTaskTypes.docker": "Docker",
   "config.workspaceTasks.enabledTaskTypes.eslint": "ESLint",
   "config.workspaceTasks.enabledTaskTypes.github-actions": "GitHub Actions",
+  "config.workspaceTasks.enabledTaskTypes.circleci": "CircleCI",
   "config.workspaceTasks.enabledTaskTypes.go": "Go",
   "config.workspaceTasks.enabledTaskTypes.gradle": "Gradle",
   "config.workspaceTasks.enabledTaskTypes.grunt": "Grunt",
@@ -275,6 +276,9 @@
   "config.workspaceTasks.applicationPath.act": "Path to Act executable",
   "config.workspaceTasks.applicationPath.act.markdown": "Act allows you to run GitHub Actions locally. Specify the path to the [Act](https://github.com/nektos/act) executable. On Windows, if the path ends with `act`, `.exe` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathact)",
 
+  "config.workspaceTasks.applicationPath.circleci": "Path to CircleCI CLI executable",
+  "config.workspaceTasks.applicationPath.circleci.markdown": "Specify the path to the [CircleCI CLI](https://circleci.com/docs/guides/toolkit/local-cli/) executable. On Windows, if the path ends with `circleci`, `.exe` will be appended automatically. On all platforms, `~/` will be expanded to the user's home directory. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/circleci.html)",
+
   "workspaceTasks.act.envFile": "Path to Act environment variables file",
   "workspaceTasks.act.envFile.markdown": "Specify the path to a .env file containing environment variables for Act. This file will be used to provide environment variable values when running GitHub Actions locally with Act. For examples of the file format see the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure). [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/github-actions.html#workspacetasksactenvfile)",
 
@@ -333,6 +337,8 @@
   "config.workspaceTasks.gitlabCiLocal.unsetVariable.markdown": "Array of variable names to unset, passed via `--unset-variable`. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#variables)",
   "config.workspaceTasks.gitlabCiLocal.remoteVariables.markdown": "Array of remote variable sources passed via `--remote-variables`. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#variables)",
   "config.workspaceTasks.gitlabCiLocal.home.markdown": "Override the home directory used by `gitlab-ci-local` via `--home`. Leave empty to use the default. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#home)",
+  "config.workspaceTasks.circleci.additionalFilePatterns.markdown": "Additional glob patterns for discovering CircleCI config files beyond the built-in `**/.circleci/config.{yml,yaml}` pattern. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/devops/circleci.html)",
+  "config.workspaceTasks.circleci.configProcessing.markdown": "Control how CircleCI config preprocessing is handled before local execution. `auto` uses direct local execution by default, `always` always preprocesses first, and `never` skips preprocessing. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/devops/circleci.html)",
   "config.workspaceTasks.taskfile.showAliases": "Show Task aliases as child tree items under their primary task.",
   "config.workspaceTasks.taskfile.showAliases.markdown": "Show Task aliases as child tree items under their primary task. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/task.html#aliases-in-the-tree)",
   "config.workspaceTasks.taskfile.additionalFilePatterns": "Additional glob patterns for discovering Taskfiles with non-standard names (e.g. **/Taskfile.ci.yml). Merged with the built-in patterns.",

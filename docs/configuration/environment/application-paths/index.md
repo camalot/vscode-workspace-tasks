@@ -19,6 +19,7 @@ Some tools have dedicated sub-pages with additional tool-specific settings:
 | --- | --- |
 | [Act](act) | Run GitHub Actions locally with `act` |
 | [Ant](ant) | Ant build tool and ANSICON settings |
+| [CircleCI CLI](circleci) | Run CircleCI jobs locally with `circleci` |
 | [CMake](cmake) | CMake build system settings |
 
 <!-- markdownlint-disable-next-line MD022 -->

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { TaskEnvService } from './services/taskEnvService';
@@ -25,6 +26,7 @@ import { CMakeTaskProvider } from './providers/cmakeTaskProvider';
 import { CakeTaskProvider } from './providers/cakeTaskProvider';
 import { TaskfileTaskProvider } from './providers/taskfileTaskProvider';
 import { GitlabCiTaskProvider } from './providers/gitlabCiTaskProvider';
+import { CircleCiTaskProvider } from './providers/circleCiTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -44,7 +46,25 @@ export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
   'workspace-task', 'github-actions', 'vscode', 'makefile', 'dockerfile',
   'pipenv', 'venv', 'msbuild', 'justfile', 'cmake', 'cake',
   'poe', 'poetry', 'cargo-make', 'taskfile', 'gitlab-ci',
+  'circleci',
 ]);
+
+function ensureCircleCiTmpDir(baseDir: string): string {
+  const dir = path.join(baseDir, '.circleci', '.workspace-tasks-temp');
+  fs.mkdirSync(dir, { recursive: true });
+
+  const localBuildConfigPath = path.join(dir, 'local_build_config.yml');
+  try {
+    const stat = fs.statSync(localBuildConfigPath);
+    if (stat.isDirectory()) {
+      fs.rmSync(localBuildConfigPath, { recursive: true, force: true });
+    }
+  } catch {
+    // Ignore ENOENT and other transient fs errors; CircleCI will recreate as needed.
+  }
+
+  return dir;
+}
 
 /**
  * Builds the raw task without env injection. Used internally by `createTaskForItem`.
@@ -1143,6 +1163,59 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         shellExec,
       );
       return { task, command: full, cwd: ciCwd, native: false };
+    }
+    case 'circleci': {
+      if (item.metadata?.type && item.metadata.type !== 'job') {
+        return undefined;
+      }
+      if (!item.taskFileUri) {
+        return undefined;
+      }
+
+      const circleProvider = new CircleCiTaskProvider();
+      const { command: circleCmd, args: providerArgs } = circleProvider.getCommand(item.taskFileUri);
+      const circleArgs = [...(providerArgs ?? [])];
+
+      const circleConfig = vscode.workspace.getConfiguration('workspaceTasks');
+      const processing = circleConfig.get<'auto' | 'always' | 'never'>('circleci.configProcessing', 'auto');
+
+      // For now, local execution is always through `circleci local execute`.
+      // `configProcessing` is reserved for a future enhancement where
+      // config processing can be piped to a generated file before execution.
+      void processing;
+
+      const circleWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+      const circleCwd = circleWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+      const circleTempDir = ensureCircleCiTmpDir(circleCwd);
+      const configPath = circleWorkspaceFolder
+        ? path.relative(circleWorkspaceFolder.uri.fsPath, item.taskFileUri.fsPath) || path.basename(item.taskFileUri.fsPath)
+        : item.taskFileUri.fsPath;
+
+      circleArgs.push(
+        'local',
+        'execute',
+        '--temp-dir',
+        circleTempDir,
+        '-c',
+        configPath,
+        taskLabel,
+      );
+
+      if (args) {
+        circleArgs.push(...args.split(' '));
+      }
+
+      const shellExec = new vscode.ShellExecution(circleCmd, circleArgs, { cwd: circleCwd });
+      const full = `${circleCmd} ${circleArgs.join(' ')}`;
+
+      const task = new vscode.Task(
+        { type: 'circleci', job: taskLabel, path: item.taskFileUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'circleci',
+        shellExec,
+      );
+      return { task, command: full, cwd: circleCwd, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

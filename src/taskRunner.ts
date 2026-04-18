@@ -9,6 +9,7 @@ import { LoggerService } from './services/loggerService';
 import { RecentTasksService } from './services/recentTasksService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { TaskRunGuardService } from './services/taskRunGuardService';
+import { getCircleCiWorkflowRunId } from './libs/circleCiWorkflowRunId';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -37,6 +38,10 @@ export class TaskRunner {
       if (!confirmed) {
         return false; // User declined — task not run, state unchanged
       }
+    }
+
+    if (item.taskType === 'circleci' && item.metadata?.type === 'workflow') {
+      return this.runCircleCiWorkflow(item);
     }
 
     // Allow tasks that don't have a resourceUri (global workspace tasks).
@@ -138,6 +143,62 @@ export class TaskRunner {
       vscode.window.showErrorMessage(`Failed to run task: ${e}`);
       throw e;
     }
+    return true;
+  }
+
+  private async runCircleCiWorkflow(item: TaskItem): Promise<boolean> {
+    const compoundTaskService = CompoundTaskService.getInstance();
+    const workflowRunId = getCircleCiWorkflowRunId(item);
+    if (!workflowRunId) {
+      vscode.window.showWarningMessage(`Unable to run workflow '${item.label}': missing workflow context.`);
+      return false;
+    }
+
+    const workflowJobs = Array.isArray(item.metadata?.workflowJobs)
+      ? (item.metadata.workflowJobs as string[])
+      : [];
+
+    const childJobs = item.children.filter((child) => child.taskType === 'circleci' && child.metadata?.type === 'job');
+    let jobsToRun = childJobs;
+
+    if (jobsToRun.length === 0 && workflowJobs.length > 0 && item.taskFileUri) {
+      jobsToRun = workflowJobs.map((jobName) => {
+        const jobItem = new TaskItem(
+          jobName,
+          vscode.TreeItemCollapsibleState.None,
+          'circleci',
+          item.taskFileUri,
+        );
+        jobItem.taskFileUri = item.taskFileUri;
+        jobItem.metadata = { type: 'job', jobName, workflowName: item.metadata?.workflowName };
+        return jobItem;
+      });
+    }
+
+    if (jobsToRun.length === 0) {
+      vscode.window.showWarningMessage(`Workflow '${item.label}' has no runnable jobs.`);
+      return false;
+    }
+
+    item.metadata = {
+      ...(item.metadata ?? {}),
+      workflowRunId,
+    };
+
+    const stateManager = TaskStateManager.getInstance();
+    const workflowId = stateManager.getTaskId(item);
+    stateManager.clearAllBlocks();
+    RecentTasksService.getInstance().addRecentTask(workflowId);
+    stateManager.setStatus(workflowId, 'running');
+
+    try {
+      compoundTaskService.createTransientCompoundTask(workflowRunId, jobsToRun, 'sequential');
+      await this.runCompoundTask(workflowRunId);
+    } finally {
+      compoundTaskService.clearTransientCompoundTask(workflowRunId);
+      stateManager.setStatus(workflowId, 'idle');
+    }
+
     return true;
   }
 

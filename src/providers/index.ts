@@ -26,6 +26,7 @@ import { CMakeTaskProvider } from './cmakeTaskProvider';
 import { CakeTaskProvider } from './cakeTaskProvider';
 import { TaskfileTaskProvider } from './taskfileTaskProvider';
 import { GitlabCiTaskProvider } from './gitlabCiTaskProvider';
+import { CircleCiTaskProvider } from './circleCiTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 import { TaskFilesService } from '../services/taskFilesService';
@@ -61,7 +62,8 @@ type TaskProviderConstructor =
   | (new () => CMakeTaskProvider)
   | (new () => CakeTaskProvider)
   | (new () => TaskfileTaskProvider)
-  | (new () => GitlabCiTaskProvider);
+  | (new () => GitlabCiTaskProvider)
+  | (new () => CircleCiTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
   const logger = LoggerService.getInstance();
@@ -96,6 +98,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     CakeTaskProvider,
     TaskfileTaskProvider,
     GitlabCiTaskProvider,
+    CircleCiTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   const filesService = TaskFilesService.getInstance();

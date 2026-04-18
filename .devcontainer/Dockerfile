@@ -119,7 +119,8 @@ RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsof
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash - && \
   curl -fsSL "https://gitlab-ci-local-ppa.firecow.dk/gitlab-ci-local.sources" -o "/etc/apt/sources.list.d/gitlab-ci-local.sources" \
   && apt-get update \
-  && apt-get install -y gitlab-ci-local task
+  && apt-get install -y gitlab-ci-local task \
+  && curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | bash
 
 WORKDIR /workspace
 

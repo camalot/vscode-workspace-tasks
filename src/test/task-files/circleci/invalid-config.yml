@@ -1,0 +1,5 @@
+version: 2.1
+jobs:
+  broken
+    docker:
+      - image: cimg/base:stable

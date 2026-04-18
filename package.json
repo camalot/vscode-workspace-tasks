@@ -664,6 +664,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.github-actions%"
               },
+              "circleci": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.circleci%"
+              },
               "gitlab-ci": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.gitlab-ci%"
@@ -782,6 +786,7 @@
               "docker": true,
               "eslint": true,
               "github-actions": true,
+              "circleci": true,
               "go": true,
               "gradle": true,
               "grunt": true,
@@ -1550,6 +1555,13 @@
             "markdownDescription": "%config.workspaceTasks.applicationPath.act.markdown%",
             "scope": "resource"
           },
+          "workspaceTasks.applicationPath.circleci": {
+            "type": "string",
+            "default": "circleci",
+            "description": "%config.workspaceTasks.applicationPath.circleci%",
+            "markdownDescription": "%config.workspaceTasks.applicationPath.circleci.markdown%",
+            "scope": "resource"
+          },
           "workspaceTasks.applicationPath.ansicon": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.ansicon%",
@@ -1801,6 +1813,26 @@
             "type": "string",
             "default": "",
             "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.home.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.circleci.additionalFilePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.circleci.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.circleci.configProcessing": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "always",
+              "never"
+            ],
+            "default": "auto",
+            "markdownDescription": "%config.workspaceTasks.circleci.configProcessing.markdown%",
             "scope": "resource"
           }
         }
