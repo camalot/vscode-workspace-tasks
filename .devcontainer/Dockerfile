@@ -134,8 +134,8 @@ RUN curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${US
   && chmod +x "/home/${USERNAME}/bin/codecov"
 
 # install task (https://taskfile.dev/), a modern alternative to Make written in Go
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash - && \
-  sudo apt-get install -y task
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash - && \
+  apt-get install -y task
 
 COPY files/home/vscode/ /home/${USERNAME}/
 
