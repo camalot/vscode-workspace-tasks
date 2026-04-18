@@ -28,7 +28,7 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     /etc/apt/keyrings/yarn*.gpg 2>/dev/null || true
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends apt-utils xauth 2>&1 \
+  && apt-get install -y --no-install-recommends apt-utils xauth apt-transport-https 2>&1 \
   && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg \
   && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide \
   && apt-get install -y --no-install-recommends nano vim zsh ripgrep cmake imagemagick \
@@ -113,6 +113,14 @@ RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsof
   && apt-get install -y dotnet-sdk-10.0 \
   && dotnet tool install Cake.Tool --version 6.1.0
 
+
+# install task (https://taskfile.dev/), a modern alternative to Make written in Go
+# install gitlab-ci-local (https://gitlab-ci-local.dev/), a tool to run GitLab CI pipelines locally
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash - && \
+  curl -fsSL "https://gitlab-ci-local-ppa.firecow.dk/gitlab-ci-local.sources" -o "/etc/apt/sources.list.d/gitlab-ci-local.sources" \
+  && apt-get update \
+  && apt-get install -y gitlab-ci-local task
+
 WORKDIR /workspace
 
 # Add venv to PATH for all users
@@ -132,10 +140,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
 # install codecov uploader
 RUN curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
   && chmod +x "/home/${USERNAME}/bin/codecov"
-
-# install task (https://taskfile.dev/), a modern alternative to Make written in Go
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash - && \
-  apt-get install -y task
 
 COPY files/home/vscode/ /home/${USERNAME}/
 

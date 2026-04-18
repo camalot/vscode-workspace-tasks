@@ -1,0 +1,18 @@
+[
+  {
+    "name": "skip-me",
+    "description": "This job is intentionally disabled",
+    "stage": "build",
+    "when": "never",
+    "allow_failure": false,
+    "needs": []
+  },
+  {
+    "name": "also-skip",
+    "description": "Another intentionally disabled job",
+    "stage": "test",
+    "when": "never",
+    "allow_failure": false,
+    "needs": []
+  }
+]

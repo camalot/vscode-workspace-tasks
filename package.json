@@ -73,7 +73,10 @@
     "cmake",
     "cake",
     "task",
-    "taskfile"
+    "taskfile",
+    "gitlab",
+    "gitlab-ci",
+    "gitlab-ci-local"
   ],
   "categories": [
     "Other"
@@ -660,6 +663,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.github-actions%"
               },
+              "gitlab-ci": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.gitlab-ci%"
+              },
               "go": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.go%"
@@ -732,13 +739,13 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.shell%"
               },
+              "taskfile": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.taskfile%"
+              },
               "typescript": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.typescript%"
-              },
-              "yarn": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.yarn%"
               },
               "venv": {
                 "type": "boolean",
@@ -756,9 +763,9 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.workspace%"
               },
-              "taskfile": {
+              "yarn": {
                 "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.taskfile%"
+                "description": "%config.workspaceTasks.enabledTaskTypes.yarn%"
               }
             },
             "default": {
@@ -796,7 +803,8 @@
               "vscode": true,
               "webpack": true,
               "workspace": true,
-              "taskfile": true
+              "taskfile": true,
+              "gitlab-ci": true
             }
           },
           "workspaceTasks.enabledTaskTypePatterns": {
@@ -1645,6 +1653,13 @@
             "default": "task",
             "scope": "resource"
           },
+          "workspaceTasks.applicationPath.gitlabCiLocal": {
+            "type": "string",
+            "description": "%config.workspaceTasks.applicationPath.gitlabCiLocal%",
+            "markdownDescription": "%config.workspaceTasks.applicationPath.gitlabCiLocal.markdown%",
+            "default": "gitlab-ci-local",
+            "scope": "resource"
+          },
           "workspaceTasks.taskfile.showAliases": {
             "type": "boolean",
             "default": false,
@@ -1660,7 +1675,6 @@
             "markdownDescription": "%config.workspaceTasks.taskfile.additionalFilePatterns.markdown%",
             "scope": "resource"
           },
-
           "workspaceTasks.taskfile.discoverGlobalTaskfile": {
             "type": "boolean",
             "default": false,
@@ -1738,6 +1752,54 @@
             "description": "%config.workspaceTasks.cmake.generator%",
             "markdownDescription": "%config.workspaceTasks.cmake.generator.markdown%",
             "default": "",
+            "scope": "resource"
+          },
+          "workspaceTasks.gitlabCiLocal.additionalFilePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.gitlabCiLocal.variablesFile": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.variablesFile.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.gitlabCiLocal.variable": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.variable.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.gitlabCiLocal.unsetVariable": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.unsetVariable.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.gitlabCiLocal.remoteVariables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.remoteVariables.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.gitlabCiLocal.home": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.home.markdown%",
             "scope": "resource"
           }
         }

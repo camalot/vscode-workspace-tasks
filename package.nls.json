@@ -135,6 +135,7 @@
   "config.workspaceTasks.enabledTaskTypes.workspace": "Workspace Tasks",
   "config.workspaceTasks.enabledTaskTypes.mise": "Mise",
   "config.workspaceTasks.enabledTaskTypes.taskfile": "Task (go-task)",
+  "config.workspaceTasks.enabledTaskTypes.gitlab-ci": "GitLab CI",
 
   "config.workspaceTasks.enabledTaskTypePatterns": "Enabled Task Type Patterns",
   "config.workspaceTasks.enabledTaskTypePatterns.markdown": "Glob patterns matched against **internal task type names** (e.g. `dockerfile`, `justfile`) to **enable**. When non-empty, acts as a whitelist — only matching types are shown. `disabledTaskTypePatterns` takes precedence. Uses [micromatch](https://github.com/micromatch/micromatch) glob syntax. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/discovery#workspacetasksenabledtasktypepatterns)",
@@ -321,6 +322,17 @@
 
   "config.workspaceTasks.applicationPath.taskfile": "Path to Task executable",
   "config.workspaceTasks.applicationPath.taskfile.markdown": "Specify the path to the [Task](https://taskfile.dev/) executable. On Windows, if the path ends with `task`, `.exe` will be appended automatically. On all platforms, `~/` will be expanded to the user's home directory. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathtask)",
+
+  "config.workspaceTasks.applicationPath.gitlabCiLocal": "Path to gitlab-ci-local executable",
+  "config.workspaceTasks.applicationPath.gitlabCiLocal.markdown": "Specify the path to the [gitlab-ci-local](https://github.com/firecow/gitlab-ci-local) executable. On all platforms, `~/` will be expanded to the user's home directory. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/gitlab-ci-local.html)",
+
+  "config.group.gitlabCiLocal.title": "GitLab CI Local",
+  "config.workspaceTasks.gitlabCiLocal.additionalFilePatterns.markdown": "Additional glob patterns for discovering `.gitlab-ci.yml` files with non-standard names or locations. Merged with the built-in `**/.gitlab-ci.yml` pattern. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#custom-file-patterns)",
+  "config.workspaceTasks.gitlabCiLocal.variablesFile.markdown": "Path to a YAML file containing CI/CD variables passed to `gitlab-ci-local` via `--variables-file`. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#variables)",
+  "config.workspaceTasks.gitlabCiLocal.variable.markdown": "Array of `KEY=VALUE` strings passed to `gitlab-ci-local` via `--variable`. Example: `[\"MY_VAR=hello\"]`. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#variables)",
+  "config.workspaceTasks.gitlabCiLocal.unsetVariable.markdown": "Array of variable names to unset, passed via `--unset-variable`. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#variables)",
+  "config.workspaceTasks.gitlabCiLocal.remoteVariables.markdown": "Array of remote variable sources passed via `--remote-variables`. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#variables)",
+  "config.workspaceTasks.gitlabCiLocal.home.markdown": "Override the home directory used by `gitlab-ci-local` via `--home`. Leave empty to use the default. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/gitlab-ci.html#home)",
   "config.workspaceTasks.taskfile.showAliases": "Show Task aliases as child tree items under their primary task.",
   "config.workspaceTasks.taskfile.showAliases.markdown": "Show Task aliases as child tree items under their primary task. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/task.html#aliases-in-the-tree)",
   "config.workspaceTasks.taskfile.additionalFilePatterns": "Additional glob patterns for discovering Taskfiles with non-standard names (e.g. **/Taskfile.ci.yml). Merged with the built-in patterns.",

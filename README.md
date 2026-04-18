@@ -174,6 +174,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Docker](https://www.docker.com/)** - Build tasks from `Dockerfile`
 - **[Docker Compose](https://docs.docker.com/compose/)** - Services from `docker-compose.yml`
 - **[GitHub Actions](https://github.com/features/actions)** - Workflows from `.github/workflows/*.yml` (via [act](https://github.com/nektos/act))
+- **[GitLab CI](https://docs.gitlab.com/ee/ci/)** - Jobs from `.gitlab-ci.yml` (via [gitlab-ci-local](https://github.com/firecow/gitlab-ci-local)) _(disabled by default — requires Docker)_
 
 ### Scripts & Other
 
