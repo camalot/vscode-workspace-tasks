@@ -56,6 +56,10 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 ## Statistics View
 
+{: .new }
+> **New in v1.7.0**
+> Task Statistics View — aggregated per-task
+
 The Statistics View provides aggregated per-task execution metrics, giving you a quick overview of how each task is performing over time.
 
 ![Task Statistics View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-statistics-webview.png)
@@ -103,6 +107,10 @@ See the [Metrics Configuration](../configuration/metrics) page for all available
 ---
 
 ## Dashboard Tab
+
+{: .new }
+> **New in v1.7.0**
+> Task Dashboard — aggregated workspace-wide view of task execution health with interactive charts.
 
 The Dashboard tab provides an at-a-glance, workspace-wide view of task execution health using interactive charts powered by [Chart.js](https://www.chartjs.org/). All charts automatically adapt to your active VS Code color theme.
 

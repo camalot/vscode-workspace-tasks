@@ -20,6 +20,11 @@ Run CircleCI jobs locally and execute workflows as sequential local pipelines di
 
 ---
 
+{: .new }
+> **New in v1.9.0**: CircleCI support.
+
+---
+
 ## Overview
 
 Workspace Tasks discovers CircleCI config files (`.circleci/config.yml` / `.circleci/config.yaml`) and builds a tree with workflows and jobs.

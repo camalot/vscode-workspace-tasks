@@ -20,6 +20,11 @@ Run GitLab CI/CD pipeline jobs locally using [gitlab-ci-local](https://github.co
 
 ---
 
+{: .new }
+> **New in v1.9.0**: GitLab CI support.
+
+---
+
 ## Overview
 
 Workspace Tasks automatically discovers `.gitlab-ci.yml` files in your workspace and uses `gitlab-ci-local --list-json` to enumerate available jobs. Each CI file appears as a collapsible parent item with its jobs listed as children.

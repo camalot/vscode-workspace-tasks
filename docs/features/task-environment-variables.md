@@ -19,7 +19,10 @@ nav_order: 11
 ---
 
 {: .new }
-v1.7.0 introduces a powerful new system for environment variables and secrets.
+> **New in v1.7.0**
+> Powerful new system for environment variables and secrets.
+
+---
 
 Attach environment variables and secrets to any task — whether it comes from a
 `.workspace-tasks.json` file, a discovered `package.json` script, a `Makefile` target, or

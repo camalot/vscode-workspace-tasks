@@ -21,6 +21,11 @@ CircleCI support uses the local `circleci` CLI to run jobs and workflow job sequ
 
 ---
 
+{: .new }
+> **New in v1.9.0**: CircleCI support.
+
+---
+
 ### workspaceTasks.applicationPath.circleci
 
 **Type:** `string`

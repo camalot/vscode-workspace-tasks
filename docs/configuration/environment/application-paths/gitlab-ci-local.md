@@ -21,6 +21,11 @@ nav_order: 5
 
 ---
 
+{: .new }
+> **New in v1.9.0**: GitLab CI support.
+
+---
+
 ### workspaceTasks.applicationPath.gitlabCiLocal
 
 **Type:** `string`
