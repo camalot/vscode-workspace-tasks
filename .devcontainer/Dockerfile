@@ -136,8 +136,9 @@ RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/bin/ \
   && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.zsh-history/ \
   && find /home/${USERNAME}/bin -maxdepth 1 -type f -exec chmod +x {} +
 
-RUN ([ ! -f /usr/bin/python ] && [ ! -l /usr/bin/python ] && [ -f /usr/bin/python3 ] && ln -s /usr/bin/python3 /usr/bin/python || true) \
-  && ([ ! -f /usr/bin/pip ] && [ ! -l /usr/bin/pip ] && [ -f /usr/bin/pip3 ] && ln -s /usr/bin/pip3 /usr/bin/pip || true)
+# if /usr/bin/python does not exist as a file or symlink, create a symlink to python3 (some tools expect `python` to exist)
+RUN if [ ! -e /usr/bin/python ]; then ln -s /usr/bin/python3 /usr/bin/python; fi \
+  && if [ ! -e /usr/bin/pip ]; then ln -s /usr/bin/pip3 /usr/bin/pip; fi
 
 USER ${USERNAME}
 
