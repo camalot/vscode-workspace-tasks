@@ -287,7 +287,7 @@ Path to the [Rake](https://ruby.github.io/rake/) Ruby build tool. On Windows, `.
 
 ---
 
-### workspaceTasks.applicationPath.task
+### workspaceTasks.applicationPath.taskfile
 
 **Type:** `string`
 **Default:** `"task"`
@@ -299,7 +299,7 @@ Path to the [Task](https://taskfile.dev/) (`go-task`) executable. On Windows, `.
 
 ```json
 {
-  "workspaceTasks.applicationPath.task": "task"
+  "workspaceTasks.applicationPath.taskfile": "task"
 }
 ```
 
@@ -307,6 +307,6 @@ Path to the [Task](https://taskfile.dev/) (`go-task`) executable. On Windows, `.
 
 ```json
 {
-  "workspaceTasks.applicationPath.task": "~/bin/task"
+  "workspaceTasks.applicationPath.taskfile": "~/bin/task"
 }
 ```

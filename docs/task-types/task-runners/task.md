@@ -167,7 +167,7 @@ VS Code settings:
 ```json
 {
   "workspaceTasks.enabledTaskTypes": {
-    "task": false
+    "taskfile": false
   }
 }
 ```
@@ -179,7 +179,7 @@ configure the executable path:
 
 ```json
 {
-  "workspaceTasks.applicationPath.task": "/usr/local/bin/task"
+  "workspaceTasks.applicationPath.taskfile": "/usr/local/bin/task"
 }
 ```
 
