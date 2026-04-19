@@ -1,0 +1,51 @@
+[
+  {
+    "name": "npm-install",
+    "description": "Install npm packages",
+    "stage": "build",
+    "when": "on_success",
+    "allow_failure": false,
+    "needs": []
+  },
+  {
+    "name": "npm-outdated",
+    "description": "Check for outdated npm packages",
+    "stage": "test",
+    "when": "on_success",
+    "allow_failure": true,
+    "needs": [{ "job": "npm-install", "artifacts": false, "optional": false }]
+  },
+  {
+    "name": "docker-compose-up",
+    "description": "Start services",
+    "stage": "deploy",
+    "when": "on_success",
+    "allow_failure": false,
+    "needs": []
+  },
+  {
+    "name": "docker-compose-down",
+    "description": "Stop services",
+    "stage": ".post",
+    "when": "manual",
+    "allow_failure": false,
+    "rules": [{ "if": "$GITLAB_CI == 'false'", "when": "manual" }],
+    "needs": []
+  },
+  {
+    "name": "always-cleanup",
+    "description": "Clean up resources regardless of pipeline status",
+    "stage": ".post",
+    "when": "always",
+    "allow_failure": true,
+    "needs": []
+  },
+  {
+    "name": "notify-failure",
+    "description": "Notify on pipeline failure",
+    "stage": ".post",
+    "when": "on_failure",
+    "allow_failure": true,
+    "needs": []
+  }
+]

@@ -228,6 +228,88 @@ Evaluation order — first matching rule wins:
 
 ---
 
+### workspaceTasks.taskfile.additionalFilePatterns
+
+**Type:** `array` of `string`
+{: .d-block }
+
+**Default:** `[]`
+{: .d-block }
+
+**Scope:** `resource`
+{: .d-block }
+
+Additional glob patterns for discovering Taskfiles with non-standard names.
+These patterns are merged with the built-in Taskfile patterns.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.taskfile.additionalFilePatterns": [
+    "**/Taskfile.ci.yml",
+    "**/backend/MyTasks.yml"
+  ]
+}
+```
+
+---
+
+### workspaceTasks.taskfile.discoverGlobalTaskfile
+
+**Type:** `boolean`
+{: .d-block }
+
+**Default:** `false`
+{: .d-block }
+
+**Scope:** `resource`
+{: .d-block }
+
+When enabled, Workspace Tasks discovers Task tasks from global Taskfiles in your
+home directory (`$HOME`) using Taskfile filename variants.
+
+Known global candidates are watched for create/change/delete events. When one of
+those files changes, Workspace Tasks refreshes and re-scans `$HOME` so global
+tasks stay current.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.taskfile.discoverGlobalTaskfile": true
+}
+```
+
+---
+
+### workspaceTasks.taskfile.showAliases
+
+**Type:** `boolean`
+{: .d-block }
+
+**Default:** `true`
+{: .d-block }
+
+**Scope:** `resource`
+{: .d-block }
+
+Controls whether Taskfile aliases are shown as child items in the task tree.
+When enabled, a Task task with one or more aliases is shown as a collapsible
+parent item and each alias appears as an individually runnable child.
+
+When disabled, aliases remain in metadata but are not shown as child items.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.taskfile.showAliases": false
+}
+```
+
+---
+
 ### workspaceTasks.shellEnabledTaskTypes
 
 **Type:** `object`
@@ -355,7 +437,7 @@ Register extra file extensions (beyond the built-in defaults) that should be tre
 
 ---
 
-## Shebang Behaviour
+## Shebang Behavior
 
 When the extension processes a shell-script file it applies two independent checks:
 

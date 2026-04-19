@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Ⓜ️ CMake
-parent: 📱 Supported Task Types
-nav_order: 8
+parent: 📦 Packages & Build Tools
+nav_order: 2
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->

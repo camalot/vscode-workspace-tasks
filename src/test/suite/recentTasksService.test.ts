@@ -160,6 +160,35 @@ suite('RecentTasksService Test Suite', () => {
         }
     });
 
+    test('addRecentTask deduplicates IDs with numeric suffixes', () => {
+        recentTasksService = RecentTasksService.getInstance();
+        recentTasksService.initialize(mockContext);
+
+        const stateManager = TaskStateManager.getInstance();
+        const originalNormalize = stateManager.normalizeTaskId;
+        (stateManager as any).normalizeTaskId = (id: string) => id;
+
+        const cacheService = TaskCacheService.getInstance();
+        const originalGetTaskById = cacheService.getTaskById;
+        (cacheService as any).getTaskById = (id: string) => {
+             const item = new TaskItem(id, vscode.TreeItemCollapsibleState.None, 'test', vscode.Uri.file('/test'));
+             item.id = id;
+             return item;
+        };
+
+        try {
+            recentTasksService.addRecentTask('taskA|1');
+            recentTasksService.addRecentTask('taskA|2');
+
+            const tasks = recentTasksService.getRecentTasks();
+            assert.strictEqual(tasks.length, 1);
+            assert.strictEqual(tasks[0].id, 'taskA');
+        } finally {
+            (stateManager as any).normalizeTaskId = originalNormalize;
+            (cacheService as any).getTaskById = originalGetTaskById;
+        }
+    });
+
     test('addRecentTask respects maxRecentTasks limit', () => {
         recentTasksService = RecentTasksService.getInstance();
         recentTasksService.initialize(mockContext);

@@ -40,7 +40,7 @@ suite('VscodeTaskProvider Test Suite', () => {
     // Ensure the provider is treated as enabled regardless of workspace settings.
     // The 'vscode' task type may be disabled in .vscode/settings.json, which would
     // cause every test that relies on getTasks/getSystemTasks to return an empty array.
-    // Individual tests that verify disabled-state behaviour override this per-test.
+    // Individual tests that verify disabled-state behavior override this per-test.
     Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
 
     originalFetchTasks = vscode.tasks.fetchTasks;

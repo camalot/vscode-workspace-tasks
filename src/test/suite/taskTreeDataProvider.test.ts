@@ -1043,7 +1043,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
     });
 
     test('dependency items update their running status when getChildren is called on a stale element', async () => {
-      // This test simulates the VS Code tree-view behaviour where it can pass an OLD
+      // This test simulates the VS Code tree-view behavior where it can pass an OLD
       // element reference to getChildren() even after a full refresh fires.  In that
       // case the dep-item objects inside the old compound-task item were built before
       // the sub-task started running and therefore carry stale (idle) state.
@@ -1063,7 +1063,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
       stubServicesForOrganize([dep1]);
       const stateManager = TaskStateManager.getInstance();
 
-      // Override getTaskId to mimic the real normalizeTaskId behaviour for this test.
+      // Override getTaskId to mimic the real normalizeTaskId behavior for this test.
       // The real implementation strips "queue:name:" and then ":dep:" prefixes so that
       // both freshly-built and stale dep-item objects can look up the canonical status key.
       (stateManager as any).getTaskId = (item: TaskItem) => {
@@ -2756,7 +2756,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
     }
 
     test('showEmptyGroup=false and no secrets: Secrets group absent (regression)', async () => {
-      // Default behaviour: secrets group hidden when storage is empty.
+      // Default behavior: secrets group hidden when storage is empty.
       stubServicesForOrganize([]);
       const localCtx = createMockContextWithSecretKeys([]);
       resetProviderSingleton();

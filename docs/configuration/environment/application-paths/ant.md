@@ -43,7 +43,7 @@ Path to the Ant executable. On Windows, `.bat` is appended automatically when th
 **Type:** `boolean`
 **Default:** `true`
 
-When `true`, ANSICON is used to provide coloured output for Ant tasks in the Windows terminal. Requires the ANSICON executable to be available — see [`workspaceTasks.applicationPath.ansicon`](../index#workspacetasksapplicationpathansicon).
+When `true`, ANSICON is used to provide colored output for Ant tasks in the Windows terminal. Requires the ANSICON executable to be available — see [`workspaceTasks.applicationPath.ansicon`](../index#workspacetasksapplicationpathansicon).
 
 **Example:**
 

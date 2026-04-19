@@ -28,15 +28,16 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     /etc/apt/keyrings/yarn*.gpg 2>/dev/null || true
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends apt-utils xauth 2>&1 \
-  && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg \
-  && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide \
-  && apt-get install -y --no-install-recommends nano vim zsh ripgrep cmake imagemagick \
+  && apt-get install -y --no-install-recommends apt-utils xauth apt-transport-https 2>&1 \
+  && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg 2>&1 \
+  && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide 2>&1 \
+  && apt-get install -y --no-install-recommends nano vim zsh ripgrep cmake imagemagick 2>&1 \
+  && apt-get install -y --no-install-recommends python3-full python3-pip python3-venv 2>&1 \
   && apt-get install -y --no-install-recommends \
     xvfb libnspr4 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
     libasound2 libpango-1.0-0 libpangocairo-1.0-0 libgtk-3-0 \
-    libgdk-pixbuf-xlib-2.0-0 libx11-6 libxss1 libxtst6 libdbus-1-3 \
+    libgdk-pixbuf-xlib-2.0-0 libx11-6 libxss1 libxtst6 libdbus-1-3 2>&1\
   && YQ_VERSION=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r ".tag_name" | sed 's/v//') \
   && curl -X GET -Ls "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/bin/yq \
   && chmod +x /usr/bin/yq \
@@ -111,7 +112,20 @@ RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsof
   && rm /tmp/packages-microsoft-prod.deb \
   && apt-get update \
   && apt-get install -y dotnet-sdk-10.0 \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/* \
   && dotnet tool install Cake.Tool --version 6.1.0
+
+
+# install task (https://taskfile.dev/), a modern alternative to Make written in Go
+# install gitlab-ci-local (https://gitlab-ci-local.dev/), a tool to run GitLab CI pipelines locally
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash - && \
+  curl -fsSL "https://gitlab-ci-local-ppa.firecow.dk/gitlab-ci-local.sources" -o "/etc/apt/sources.list.d/gitlab-ci-local.sources" \
+  && apt-get update \
+  && apt-get install -y gitlab-ci-local task \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/* \
+  && curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | bash
 
 WORKDIR /workspace
 
@@ -122,12 +136,20 @@ RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/bin/ \
   && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.zsh-history/ \
   && find /home/${USERNAME}/bin -maxdepth 1 -type f -exec chmod +x {} +
 
+# if /usr/bin/python does not exist as a file or symlink, create a symlink to python3 (some tools expect `python` to exist)
+RUN if [ ! -e /usr/bin/python ]; then ln -s /usr/bin/python3 /usr/bin/python; fi \
+  && if [ ! -e /usr/bin/pip ]; then ln -s /usr/bin/pip3 /usr/bin/pip; fi
+
 USER ${USERNAME}
 
 # install user tools
+# hadolint ignore=DL3013
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-&& ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
-&& curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin"
+  && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
+  && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin" \
+  && curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
+  && chmod +x "/home/${USERNAME}/bin/codecov" \
+  && pip install --no-cache-dir --user pipx --break-system-packages && /home/${USERNAME}/.local/bin/pipx ensurepath && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner
 
 COPY files/home/vscode/ /home/${USERNAME}/
 

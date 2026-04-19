@@ -1275,7 +1275,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         secretItem.contextValue = 'storedSecret';
         secretItem.tooltip = `SecretStorage key: ${secretKey}`;
         secretItem.parent = secretsGroup;
-        // Override the default run-task click behaviour: double-click (or single-click)
+        // Override the default run-task click behavior: double-click (or single-click)
         // should copy the key name to clipboard, not attempt to run a task.
         secretItem.command = {
           command: 'workspaceTasks.env.copySecretKey',

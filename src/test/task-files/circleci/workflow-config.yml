@@ -1,0 +1,30 @@
+version: 2.1
+
+jobs:
+  lint:
+    docker:
+      - image: cimg/node:20.11
+    steps:
+      - run: echo lint
+
+  test:
+    docker:
+      - image: cimg/node:20.11
+    steps:
+      - run: echo test
+
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run: echo deploy
+
+workflows:
+  ci:
+    jobs:
+      - lint
+      - test
+      - deploy:
+          requires:
+            - lint
+            - test

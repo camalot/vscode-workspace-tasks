@@ -29,6 +29,8 @@ export class TaskConfigService {
     eslint: 'eslint',
     'github-action': 'github-actions',
     'github-actions': 'github-actions',
+    'gitlab-ci': 'gitlab-ci',
+    circleci: 'circleci',
     go: 'go',
     gradle: 'gradle',
     grunt: 'grunt',

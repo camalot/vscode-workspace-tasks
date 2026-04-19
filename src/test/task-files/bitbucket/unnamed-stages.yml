@@ -1,0 +1,15 @@
+pipelines:
+  default:
+    - stage:
+        steps:
+          - step:
+              name: Build
+              script:
+                - npm run build
+    - stage:
+        name: Named Stage
+        steps:
+          - step:
+              name: Deploy
+              script:
+                - ./deploy.sh

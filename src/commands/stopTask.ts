@@ -4,6 +4,8 @@ import { TaskItem } from '../taskItem';
 import { TaskStateManager } from '../taskStateManager';
 import { TaskCacheService } from '../services/taskCacheService';
 import { configuration } from '../libs/configuration';
+import { CompoundTaskService } from '../services/compoundTaskService';
+import { getCircleCiWorkflowRunId } from '../libs/circleCiWorkflowRunId';
 
 interface VscodeTaskDependencyObject {
   task?: string;
@@ -113,9 +115,38 @@ export class StopTaskCommand extends BaseCommand {
   }
 
   async run(item: TaskItem): Promise<void> {
+    if (item?.id) {
+      const cached = TaskCacheService.getInstance().getTask(item.id);
+      if (cached) {
+        item = cached;
+      }
+    }
+
     const stateManager = TaskStateManager.getInstance();
     const id = stateManager.getTaskId(item);
     const execution = stateManager.getExecution(id);
+
+    if (item.taskType === 'circleci' && item.metadata?.type === 'workflow') {
+      const runIdFromMeta = typeof item.metadata?.workflowRunId === 'string' ? item.metadata.workflowRunId : undefined;
+      const workflowRunId = runIdFromMeta || getCircleCiWorkflowRunId(item);
+      if (workflowRunId) {
+        const compoundTaskService = CompoundTaskService.getInstance();
+        compoundTaskService.cancelCompoundTask(workflowRunId);
+
+        const workflowJobs = compoundTaskService.getCompoundTask(workflowRunId) ?? [];
+        for (const workflowJob of workflowJobs) {
+          const jobId = stateManager.getTaskId(workflowJob);
+          const jobExecution = stateManager.getExecution(jobId);
+          if (jobExecution) {
+            stateManager.markTerminated(jobId);
+            jobExecution.terminate();
+          }
+        }
+
+        stateManager.setStatus(id, 'idle');
+        return;
+      }
+    }
 
     if (!execution) {
       this.logger.debug(

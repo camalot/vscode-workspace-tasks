@@ -13,7 +13,7 @@ requiring `.workspace-tasks.json` input prompts for common path values.
 
 ## Background
 
-### Current arg-appending behaviour
+### Current arg-appending behavior
 
 `_buildTask` in `taskFactory.ts` follows two code paths for workspace tasks:
 
@@ -299,7 +299,7 @@ Tests import directly from `src/libs/contextTokenResolver.ts` (no private method
 
 1. `createTaskForItem` for workspace task with `${args}` in command → placeholder replaced in
    resulting `ShellExecution.commandLine`.
-2. `createTaskForItem` for workspace task without `${args}` → args appended (existing behaviour).
+2. `createTaskForItem` for workspace task without `${args}` → args appended (existing behavior).
 3. `createTaskForItem` for workspace task, args `= undefined` → command unchanged.
 
 ---

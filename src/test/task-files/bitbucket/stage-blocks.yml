@@ -1,0 +1,21 @@
+pipelines:
+  branches:
+    master:
+      - stage:
+          name: Build Stage
+          steps:
+            - step:
+                name: Compile
+                script:
+                  - npm run compile
+            - step:
+                name: Test
+                script:
+                  - npm test
+      - stage:
+          name: Deploy Stage
+          steps:
+            - step:
+                name: Deploy
+                script:
+                  - ./deploy.sh

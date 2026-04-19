@@ -365,7 +365,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
       .map((r) => r.value)
       .sort((a, b) => a.file.fsPath.localeCompare(b.file.fsPath));
 
-    for (const { file, hasShebang, isExecutable, fromCache } of resolved) {
+    for (const { file, hasShebang, interpreter, isExecutable, fromCache } of resolved) {
       if (fromCache) {
         cacheHits++;
       } else {
@@ -374,12 +374,12 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
 
       // Both conditions must hold: shebang present AND file is executable.
       // The file is run directly (e.g. `./my-script`); the kernel reads the shebang
-      // to invoke the correct interpreter, so no interpreter extraction is needed.
+      // to invoke the correct interpreter. Pass the interpreter for icon inference.
       if (!hasShebang || !isExecutable) {
         continue;
       }
 
-      items.push(this.createShellTaskItem(file, '', EXTENSIONLESS_SHELL_TYPE, true));
+      items.push(this.createShellTaskItem(file, '', EXTENSIONLESS_SHELL_TYPE, true, interpreter));
     }
 
     const elapsedMs = Date.now() - scanStart;
@@ -391,9 +391,24 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     return items;
   }
 
-  private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string, useShebang = false): TaskItem {
+  private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string, useShebang = false, shebangInterpreter = ''): TaskItem {
     const filename = path.basename(resourceUri.fsPath);
-    const iconPath = TaskIconService.getInstance().getTaskIcon(subType) || vscode.ThemeIcon.File;
+    const iconService = TaskIconService.getInstance();
+
+    let iconPath = iconService.getTaskIcon(subType);
+
+    if (!iconPath && subType === EXTENSIONLESS_SHELL_TYPE) {
+      // Priority: try to infer from shebang interpreter → shell default → task default
+      if (shebangInterpreter) {
+        iconPath = iconService.getTaskIcon(shebangInterpreter);
+      }
+      if (!iconPath) {
+        iconPath = iconService.getTaskIcon('shell');
+      }
+      if (!iconPath) {
+        iconPath = iconService.getDefaultGroupIcon();
+      }
+    }
 
     const item = new TaskItem(
       filename,
@@ -405,7 +420,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
         title: 'Open File',
         arguments: [resourceUri, 0],
       },
-      iconPath,
+      iconPath || vscode.ThemeIcon.File,
     );
 
     item.description = vscode.workspace.asRelativePath(resourceUri);

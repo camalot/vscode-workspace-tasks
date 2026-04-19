@@ -1,0 +1,18 @@
+[
+  {
+    "name": "test:unit",
+    "description": "Run unit tests",
+    "stage": "test",
+    "when": "on_success",
+    "allow_failure": false,
+    "needs": []
+  },
+  {
+    "name": "build:staging",
+    "description": "Build staging image",
+    "stage": "build",
+    "when": "on_success",
+    "allow_failure": false,
+    "needs": []
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "name": "global:build",
+      "task": "global:build",
+      "desc": "Build from global Taskfile",
+      "summary": "",
+      "aliases": []
+    },
+    {
+      "name": "global:test",
+      "task": "global:test",
+      "desc": "Test from global Taskfile",
+      "summary": "",
+      "aliases": ["gt"]
+    }
+  ],
+  "location": "/home/test/Taskfile.yml"
+}

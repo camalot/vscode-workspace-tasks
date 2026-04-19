@@ -1,0 +1,57 @@
+{
+  "tasks": [
+    {
+      "name": "build",
+      "task": "build",
+      "desc": "Build the application",
+      "summary": "Compiles the source code and generates binaries",
+      "aliases": [],
+      "up_to_date": false,
+      "location": {
+        "line": 12,
+        "column": 3,
+        "taskfile": "/workspace/Taskfile.yml"
+      }
+    },
+    {
+      "name": "test",
+      "task": "test",
+      "desc": "Run the test suite",
+      "summary": "",
+      "aliases": ["t"],
+      "up_to_date": false,
+      "location": {
+        "line": 18,
+        "column": 3,
+        "taskfile": "/workspace/Taskfile.yml"
+      }
+    },
+    {
+      "name": "lint",
+      "task": "lint",
+      "desc": "Run the linter",
+      "summary": "",
+      "aliases": [],
+      "up_to_date": false,
+      "location": {
+        "line": 24,
+        "column": 3,
+        "taskfile": "/workspace/Taskfile.yml"
+      }
+    },
+    {
+      "name": "frontend:build",
+      "task": "frontend:build",
+      "desc": "Build the frontend",
+      "summary": "Namespaced task example",
+      "aliases": [],
+      "up_to_date": false,
+      "location": {
+        "line": 5,
+        "column": 3,
+        "taskfile": "/workspace/frontend/Taskfile.yml"
+      }
+    }
+  ],
+  "location": "/workspace/Taskfile.yml"
+}

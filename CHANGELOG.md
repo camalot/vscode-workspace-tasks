@@ -1,3 +1,61 @@
+## [1.9.0] - 2026-04-19
+
+### 🚀 Features
+
+- Support for Task (go-task) #176
+
+- Gitlab-ci support #177
+
+- CircleCI local execution #179
+
+- Local bitbucket pipelines task support
+
+
+### 🐛 Bug Fixes
+
+- Toggle Compound Task (Queue) Execution Type menu item appears twice. #175
+
+- Remove sudo call in dockerfile
+
+- Resolve failing test
+
+- Fixes for circleci bugs
+
+- Resolve linter issues
+
+- Change how python3 -> python link and pip3 -> pip link is created
+
+
+### 📚 Documentation
+
+- Update documentation home with new features by @camalot
+
+- Update comparison matrix info by @camalot
+
+- Move some docs around a little.
+
+- Add glob pattern table generation
+
+- Move cake / cmkae under build tools
+
+- Updated info on new features
+
+- Tree highlighting and other docs cleanup
+
+
+### 🧪 Testing
+
+- Add tests for glob patterns
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Install codecov to container
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.8.0...v1.9.0
+
 ## [1.8.0] - 2026-04-16
 
 ### 🚀 Features

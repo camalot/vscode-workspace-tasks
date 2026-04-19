@@ -10,7 +10,7 @@ has_children: true
 # Task Execution Settings
 {: .no_toc }
 
-Settings that govern runtime task behaviour — terminal presentation, stop-on-request handling, and compound-task (queue) execution modes.
+Settings that govern runtime task behavior — terminal presentation, stop-on-request handling, and compound-task (queue) execution modes.
 
 ---
 

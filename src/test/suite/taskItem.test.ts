@@ -135,7 +135,7 @@ suite('TaskItem.updateContextValue Test Suite', () => {
     );
   });
 
-  test('compound task child with "|N" id reflects favourite state of the original', () => {
+  test('compound task child with "|N" id reflects favorite state of the original', () => {
     (TaskStateManager as any).instance = buildFakeStateManager();
     (FavoritesService as any).instance = buildFakeFavoritesService(new Set(['ws:path:compile']));
     (FilteredTaskService as any).instance = buildFakeFilteredTaskService();

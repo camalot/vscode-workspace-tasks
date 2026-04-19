@@ -19,6 +19,7 @@ Some tools have dedicated sub-pages with additional tool-specific settings:
 | --- | --- |
 | [Act](act) | Run GitHub Actions locally with `act` |
 | [Ant](ant) | Ant build tool and ANSICON settings |
+| [CircleCI CLI](circleci) | Run CircleCI jobs locally with `circleci` |
 | [CMake](cmake) | CMake build system settings |
 
 <!-- markdownlint-disable-next-line MD022 -->
@@ -35,7 +36,7 @@ Some tools have dedicated sub-pages with additional tool-specific settings:
 **Type:** `string`
 **Default:** `"ansicon.exe"`
 
-Path to the ANSICON executable used to provide coloured output for Ant tasks in the Windows terminal.
+Path to the ANSICON executable used to provide colored output for Ant tasks in the Windows terminal.
 
 **Example:**
 
@@ -281,5 +282,31 @@ Path to the [Rake](https://ruby.github.io/rake/) Ruby build tool. On Windows, `.
 ```json
 {
   "workspaceTasks.applicationPath.rake": "rake"
+}
+```
+
+---
+
+### workspaceTasks.applicationPath.taskfile
+
+**Type:** `string`
+**Default:** `"task"`
+**Scope:** `resource`
+
+Path to the [Task](https://taskfile.dev/) (`go-task`) executable. On Windows, `.exe` is appended automatically when the path ends with `task`.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.applicationPath.taskfile": "task"
+}
+```
+
+**Custom path example:**
+
+```json
+{
+  "workspaceTasks.applicationPath.taskfile": "~/bin/task"
 }
 ```

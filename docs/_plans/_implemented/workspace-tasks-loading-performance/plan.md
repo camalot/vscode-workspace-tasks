@@ -463,7 +463,7 @@ and emits a structured `[INFO]` completion line at the end, mirroring the patter
 logger.info(`[VscodeTaskProvider] getSystemTasks() completed: ${tasks.length} task(s) in ${Date.now() - start}ms`);
 ```
 
-This is a pure observability change — no functional behaviour is modified.
+This is a pure observability change — no functional behavior is modified.
 
 ### Observed outcome
 

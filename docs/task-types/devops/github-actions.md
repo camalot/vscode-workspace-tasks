@@ -1,8 +1,8 @@
 ---
 layout: default
 title: 🧑‍💻 GitHub Actions
-parent: 📱 Supported Task Types
-nav_order: 5
+parent: 🚦 DevOps & Containers
+nav_order: 1
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
@@ -26,7 +26,7 @@ Workspace Tasks automatically discovers all GitHub Actions workflow files in `.g
 
 ### Task Tree Structure
 
-``` text
+``` tree
 GitHub Actions
 └── Build & Test
     ├── Run Workflow (push)
@@ -148,7 +148,7 @@ jobs:
 
 Workspace Tasks will display:
 
-```text
+```tree
 GitHub Actions
 └── Build & Test
     ├── Run Workflow (push)

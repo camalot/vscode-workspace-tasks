@@ -44,7 +44,7 @@
     "version": "2.0.0",
     "globs": {
       "include": [
-        "**/Cargo.toml"
+        "**/[Cc]argo.toml"
       ]
     },
     "iconUri": "$(cargo)",

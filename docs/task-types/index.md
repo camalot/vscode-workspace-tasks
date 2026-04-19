@@ -43,6 +43,10 @@ Workspace Tasks automatically discovers and organizes tasks from 25+ file types 
   - `**/.vscode-test/**`
   - `**/__pycache__/**`
 
+### Discovery Patterns
+
+{% include _glob_patterns.md %}
+
 ### Performance: Task Discovery Depth
 
 Control how deep the extension searches for tasks using the `workspaceTasks.taskDiscovery.fetchDepth` setting:

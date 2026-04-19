@@ -29,6 +29,6 @@ Settings are organised into five groups:
 | --- | --- |
 | [⚙️ General](general/) | Debug logging and task execution metrics |
 | [🔍 Task Discovery](task-discovery/) | Which tasks are found, exclusion patterns, discovery depth, task-type providers, and shell-script detection |
-| [🖥️ Display & Interaction](display-interaction/) | Tree view grouping, click behaviour, action bar buttons, task icons, and recent-tasks tracking |
+| [🖥️ Display & Interaction](display-interaction/) | Tree view grouping, click behavior, action bar buttons, task icons, and recent-tasks tracking |
 | [▶️ Task Execution](task-execution/) | Terminal presentation options, graceful stop delay, and compound-task execution modes |
 | [🌐 Environment](environment/) | Executable paths for build tools and task runners, and tool-specific configuration |

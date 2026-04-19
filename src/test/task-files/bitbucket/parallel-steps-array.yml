@@ -1,0 +1,15 @@
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: Lint
+            script:
+              - npm run lint
+        - step:
+            name: Type Check
+            script:
+              - npm run typecheck
+    - step:
+        name: Build
+        script:
+          - npm run build

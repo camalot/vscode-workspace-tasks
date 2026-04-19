@@ -71,7 +71,7 @@ interpreters used when scanning shell-script tasks.
 
 > **Design note — shell settings placed here:** Shell type and path settings describe *how the
 > extension discovers and identifies* shell-script tasks. They are more naturally co-located with
-> task-type enablement than with runtime execution behaviour.
+> task-type enablement than with runtime execution behavior.
 
 ---
 
@@ -137,7 +137,7 @@ external binaries (GitHub Actions via Act, Apache Ant, CMake, and all other tool
 | `workspaceTasks.applicationPath.poe` | Path to `poe` |
 | `workspaceTasks.applicationPath.poetry` | Path to `poetry` |
 | `workspaceTasks.applicationPath.rake` | Path to `rake` |
-| `workspaceTasks.ant.ansicon.enabled` | Enable ANSICON colour output for Ant tasks |
+| `workspaceTasks.ant.ansicon.enabled` | Enable ANSICON color output for Ant tasks |
 | `workspaceTasks.act.envFile` | Path to the `.env` file for Act |
 | `workspaceTasks.act.variablesFile` | Path to the Act variables file |
 | `workspaceTasks.act.variables` | Inline variables map for Act |
@@ -805,7 +805,7 @@ Introduction: The extension invokes external executables when running tasks. Eac
 particular tool. The default is to use the tool name alone (relying on `PATH`). Override when
 an executable is in a non-standard location.
 
-Common behaviour for all application path settings:
+Common behavior for all application path settings:
 
 - `~/` is expanded to the user's home directory on all platforms.
 - On Windows, if the value matches the bare tool name (e.g. `"ant"`), the appropriate extension
@@ -858,9 +858,9 @@ Path to the Apache Ant executable. On Windows, if the value ends with `ant` (no 
 `.bat` is appended automatically. `~/` is expanded to the home directory.
 
 **`workspaceTasks.ant.ansicon.enabled`**
-When `true`, Ant task output is passed through ANSICON to decode ANSI colour escape codes in
+When `true`, Ant task output is passed through ANSICON to decode ANSI color escape codes in
 the terminal on Windows. Requires a valid ANSICON binary at `workspaceTasks.applicationPath.ansicon`.
-Has no effect on macOS/Linux where ANSI colours are natively supported.
+Has no effect on macOS/Linux where ANSI colors are natively supported.
 
 **Feature links:** None — Ant does not have a standalone feature guide.
 
@@ -975,7 +975,7 @@ default (e.g. `"Unix Makefiles"` on Linux/macOS, `"Visual Studio"` on Windows). 
 | `docs/configuration/display-interaction/grouping.md` | `groups.*` settings |
 | `docs/configuration/display-interaction/tasks.md` | task action, icon, click, status, `recentTasks.maxItems` |
 | `docs/configuration/task-execution/index.md` | Task Execution group landing page |
-| `docs/configuration/task-execution/tasks.md` | stop behaviour, `presentationOptions` |
+| `docs/configuration/task-execution/tasks.md` | stop behavior, `presentationOptions` |
 | `docs/configuration/task-execution/compound-tasks.md` | `compoundTasks.*` settings |
 | `docs/configuration/environment/index.md` | Environment group landing page |
 | `docs/configuration/environment/application-paths/index.md` | All simple `applicationPath.*` + intro |

@@ -1,0 +1,21 @@
+{
+  "tasks": [
+    {
+      "name": "build",
+      "task": "build",
+      "desc": "Build the application",
+      "summary": "",
+      "aliases": [],
+      "up_to_date": false
+    },
+    {
+      "name": "test",
+      "task": "test",
+      "desc": "",
+      "summary": "",
+      "aliases": [],
+      "up_to_date": false
+    }
+  ],
+  "location": "/workspace/Taskfile.yml"
+}

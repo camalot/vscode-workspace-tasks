@@ -1,0 +1,19 @@
+version: 2.1
+
+jobs:
+  lint:
+    docker:
+      - image: cimg/node:20.11
+    steps:
+      - run: echo lint
+
+  cleanup:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run: echo cleanup
+
+workflows:
+  ci:
+    jobs:
+      - lint

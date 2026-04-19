@@ -68,7 +68,7 @@ Add a single new boolean setting:
 ```
 
 A boolean with two states is isomorphic to an enum with two values. Option B provides identical
-behaviour with better forward-extensibility (additional modes can be added to the enum). **Option
+behavior with better forward-extensibility (additional modes can be added to the enum). **Option
 A is retained for reference only; Option B is preferred.**
 
 ---
@@ -84,7 +84,7 @@ Add an explicit `window`-scoped mode selector alongside the existing `enabledTas
   "enum": ["opt-out", "opt-in"],
   "default": "opt-out",
   "enumDescriptions": [
-    "New task types are enabled by default. Set individual types to false to hide them. (current behaviour)",
+    "New task types are enabled by default. Set individual types to false to hide them. (current behavior)",
     "New task types are disabled by default. Set individual types to true to show them."
   ]
 }
@@ -98,8 +98,8 @@ Add an explicit `window`-scoped mode selector alongside the existing `enabledTas
 | `"opt-in"` | disabled | disabled | enabled |
 
 **Pros:**
-- Semantically clear naming — "opt-in" and "opt-out" map directly to expected behaviour.
-- Default `"opt-out"` preserves all current behaviour — zero breaking changes.
+- Semantically clear naming — "opt-in" and "opt-out" map directly to expected behavior.
+- Default `"opt-out"` preserves all current behavior — zero breaking changes.
 - Trivial to implement (one condition added to `isTaskTypeEnabled`).
 - Keeps `enabledTaskTypes` as the single authoritative per-type toggle.
 - Easy to document; no new mental models beyond what already exists.
@@ -147,7 +147,7 @@ so user-visible names match what VSCode task providers report.
 2. `enabledTaskTypePatterns` non-empty AND matches internal type name → **enabled**.
 3. `enabledTaskTypePatterns` non-empty AND no match → **disabled**.
 4. `enabledTaskTypes[configKey]` boolean value.
-5. Default: **enabled** (current opt-out behaviour).
+5. Default: **enabled** (current opt-out behavior).
 
 **Example: show only npm and pnpm:**
 
@@ -256,7 +256,7 @@ existing `enabledTaskTypes` object:
 ```
 
 `"*": false` acts as a "default deny" — any task type not explicitly set to `true` is hidden.
-`"*": true` (or absent) restores current opt-out behaviour.
+`"*": true` (or absent) restores current opt-out behavior.
 
 Logic change in `isTaskTypeEnabled`:
 ```ts
@@ -322,10 +322,10 @@ trick that Option C-alone requires for basic opt-in mode.
 3. `enabledTaskTypePatterns` non-empty AND no match → **disabled**.
 4. `enabledTaskTypes[specificKey]` explicitly set to `true` or `false` → respect that value.
 5. `enabledTaskTypes["*"] === false` AND specific key absent → **disabled** (sentinel default-deny).
-6. Otherwise → **enabled** (current opt-out behaviour).
+6. Otherwise → **enabled** (current opt-out behavior).
 
 > Steps 1–3 are identical to Option C. Steps 4–6 are identical to Option E's logic. When no
-> patterns are configured, the behaviour degrades cleanly to Option E alone.
+> patterns are configured, the behavior degrades cleanly to Option E alone.
 
 **Usage examples:**
 
@@ -358,7 +358,7 @@ trick that Option C-alone requires for basic opt-in mode.
 - `micromatch` already present — no new dependency.
 - No ReDoS risk (glob-only).
 - Backwards compatible: no existing config contains `"*"` as a key; absent patterns
-  reproduce current behaviour exactly.
+  reproduce current behavior exactly.
 
 **Cons:**
 - Two distinct mechanisms within one logical feature (sentinel inside existing setting + separate
@@ -605,7 +605,7 @@ reconciled against the `enabledTaskTypes` schema keys in `package.json`.
 internal type name). `tsc` was in the schema default but was never reachable through
 `isTaskTypeEnabled()` since no provider uses the internal type name `tsc` and the existing map
 had `typescript: 'typescript'` (pointing to a key absent from the schema). Renaming the schema
-key to `typescript` resolves the drift with zero behaviour change — no user config used `tsc`
+key to `typescript` resolves the drift with zero behavior change — no user config used `tsc`
 effectively. In `taskTypeMap`, both `typescript` and `tsc` will map to the `typescript` config
 key. The `mise` type is also not in the schema — it must be added.
 
@@ -718,7 +718,7 @@ public isTaskTypeEnabled(taskType: string): boolean {
     return false;
   }
 
-  // Step 6: default → enabled (current opt-out behaviour).
+  // Step 6: default → enabled (current opt-out behavior).
   return true;
 }
 ```
@@ -790,7 +790,7 @@ Add the following after the existing `enabledTaskTypes.*` entries:
 
 ```json
 "config.workspaceTasks.enabledTaskTypes.mise": "Mise",
-"config.workspaceTasks.enabledTaskTypes.sentinel": "Default-deny sentinel. When set to false, any task type not explicitly set to true is hidden. Absent or true restores opt-out (show-by-default) behaviour.",
+"config.workspaceTasks.enabledTaskTypes.sentinel": "Default-deny sentinel. When set to false, any task type not explicitly set to true is hidden. Absent or true restores opt-out (show-by-default) behavior.",
 
 "config.workspaceTasks.enabledTaskTypePatterns": "Enabled Task Type Patterns",
 "config.workspaceTasks.enabledTaskTypePatterns.markdown": "Glob patterns matched against **internal task type names** (e.g. `dockerfile`, `justfile`) to **enable**. When non-empty, acts as a whitelist — only matching types are shown. `disabledTaskTypePatterns` takes precedence. Uses [micromatch](https://github.com/micromatch/micromatch) glob syntax. [read more](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/discovery#workspacetasksenabledtasktypepatterns)",
@@ -893,7 +893,7 @@ function stubConfig(enabledTaskTypes: Record<string, boolean>, enabledPatterns: 
 Add or update the following sections after the existing `workspaceTasks.enabledTaskTypes` section:
 
 1. **Updated `workspaceTasks.enabledTaskTypes`** — document the `"*"` sentinel key with an
-   example. Note that it is optional; absent or `true` preserves current opt-out behaviour.
+   example. Note that it is optional; absent or `true` preserves current opt-out behavior.
    Update the default table to include `mise: true`. Add a note:
    > `"*"` must be configured via `settings.json` directly — it is not surfaced as a toggle in
    > VS Code's Settings UI.
@@ -975,11 +975,11 @@ with descriptions. Cross-reference the new `enabledTaskTypePatterns` and
 - **Schema key rename `tsc` → `typescript` — no breaking change:** The schema key `tsc` is
   renamed to `typescript`. Since no provider ever called `isTaskTypeEnabled('tsc')` and the
   existing code mapped `typescript: 'typescript'` (pointing at a nonexistent schema key), no
-  user's effective behaviour changes. Both internal names `typescript` and `tsc` now map to the
+  user's effective behavior changes. Both internal names `typescript` and `tsc` now map to the
   `typescript` config key. Users who previously set `"tsc": false` had no effect; they should
   now use `"typescript": false` — note in release notes.
-- **`mise` now in schema with default `true`:** No behaviour change for existing users since the
-  fall-through already returned `true`; the explicit default just makes the behaviour visible
+- **`mise` now in schema with default `true`:** No behavior change for existing users since the
+  fall-through already returned `true`; the explicit default just makes the behavior visible
   and ensures the sentinel treats `mise` correctly.
 - **`pwsh`/`python` removed from `taskTypeMap`:** These types fall through to their own key.
   They are absent from the `enabledTaskTypes` schema and default, so without the sentinel they

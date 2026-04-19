@@ -19,7 +19,10 @@ nav_order: 9
 ---
 
 {: .new }
-Added in v1.8.0
+> **New in v1.8.0**
+> Run Guard — prevent accidental execution of sensitive tasks with confirmation dialogs and visual badges.
+
+---
 
 ## Overview
 

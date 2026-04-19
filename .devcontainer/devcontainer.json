@@ -5,8 +5,13 @@
     "context": "."
   },
   "features": {
+    // "ghcr.io/devcontainers/features/docker-in-docker:2": {
+    //   "moby": false,
+    //   "dockerDashCompose": "v2"
+    // }
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-      "moby": false
+      "moby": false,
+      "installDockerBuildx": true
     }
   },
   "customizations": {
@@ -24,6 +29,7 @@
         "streetsidesoftware.code-spell-checker",
         "jasonnutter.vscode-codeowners",
         "mikestead.dotenv",
+        "ms-vscode.powershell",
         "dotenv.dotenv-vscode",
         "darthminos.workspace-tasks",
         "DavidAnson.vscode-markdownlint",
@@ -43,13 +49,14 @@
   },
   "postCreateCommand": "chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
   "remoteUser": "vscode",
-
+  "runArgs": [
+    "--privileged"
+  ],
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
   "mounts": [
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/_ssh,type=bind,consistency=cached",
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=cached",
-    // if this doesnt exist locally, it creates it as a folder...
+    // if this doesn't exist locally, it creates it as a folder...
     // to combat this, a default is loaded into the container
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
     "source=${localWorkspaceFolder}/.devcontainer/mount,target=/home/vscode/.devcontainer,type=bind,consistency=cached",

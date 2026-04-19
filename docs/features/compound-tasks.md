@@ -88,7 +88,7 @@ You can also reference tasks by object notation:
 
 The `dependsOrder` property controls the execution mode of the dependency tasks.
 
-| Value | Behaviour |
+| Value | Behavior |
 | --- | --- |
 | `sequence` | Dependencies run one at a time, in the order they are listed. The next task starts only after the previous one completes. |
 | `parallel` | All dependencies start at the same time. |

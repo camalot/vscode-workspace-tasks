@@ -125,6 +125,7 @@ export class TaskItem extends vscode.TreeItem {
 
   public updateContextValue() {
     const filteredService = FilteredTaskService.getInstance();
+    const isCircleCiFileGroup = this.taskType === 'circleci' && this.metadata?.type === 'file';
 
     // Stored-secret items are managed separately — preserve their contextValue as-is.
     if (this.taskType === 'storedSecret') {
@@ -133,6 +134,7 @@ export class TaskItem extends vscode.TreeItem {
     }
 
     if (
+      isCircleCiFileGroup ||
       this.taskType === 'workspace' ||
       this.taskType === 'folder' ||
       this.taskType === 'type' ||
@@ -225,7 +227,7 @@ export class TaskItem extends vscode.TreeItem {
       });
 
       // Determine base context value considering filtered state
-      let baseContext = (this.taskType === 'jupyter') ? 'jupyterTask' : 'task';
+      let baseContext = (this.taskType === 'jupyter') ? 'jupyterTask' : (this.taskType === 'taskfile') ? 'taskfileTask' : 'task';
 
       // If it was already set to queuedTask (manually by TreeDataProvider), we keep it
       // Note: This check relies on contextValue being set before updateContextValue call
@@ -237,7 +239,7 @@ export class TaskItem extends vscode.TreeItem {
       } else if (this.contextValue === 'recentTask' || (this.contextValue && this.contextValue.includes('recentTask'))) {
         baseContext = isFavorite ? 'favoriteRecentTask' : 'recentTask';
       } else if (isFavorite) {
-        baseContext = 'favoriteTask';
+        baseContext = (this.taskType === 'taskfile') ? 'favoriteTaskfileTask' : 'favoriteTask';
       }
 
       // Add filtered prefix if the task is in the filtered set

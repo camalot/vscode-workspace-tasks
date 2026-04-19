@@ -23,6 +23,10 @@ import { PoeTaskProvider } from './providers/poeTaskProvider';
 import { CargoMakeTaskProvider } from './providers/cargoMakeTaskProvider';
 import { CMakeTaskProvider } from './providers/cmakeTaskProvider';
 import { CakeTaskProvider } from './providers/cakeTaskProvider';
+import { TaskfileTaskProvider } from './providers/taskfileTaskProvider';
+import { GitlabCiTaskProvider } from './providers/gitlabCiTaskProvider';
+import { CircleCiTaskProvider } from './providers/circleCiTaskProvider';
+import { BitbucketPipelinesTaskProvider } from './providers/bitbucketPipelinesTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -41,7 +45,8 @@ export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
   'maven', 'gradle', 'composer', 'shell', 'grunt', 'gulp', 'ant',
   'workspace-task', 'github-actions', 'vscode', 'makefile', 'dockerfile',
   'pipenv', 'venv', 'msbuild', 'justfile', 'cmake', 'cake',
-  'poe', 'poetry', 'cargo-make',
+  'poe', 'poetry', 'cargo-make', 'taskfile', 'gitlab-ci',
+  'circleci', 'bitbucket',
 ]);
 
 /**
@@ -1057,6 +1062,193 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         shellExec,
       );
       return { task, command: full, cwd: cakeCwd, native: false };
+    }
+    case 'taskfile': {
+      const taskfileProvider = new TaskfileTaskProvider();
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
+      const { command: taskCmd, args: taskInitialArgs, cwd: taskCwd } = taskfileProvider.getCommand(workspaceFolder?.uri);
+
+      const taskArgs = taskInitialArgs ? [...taskInitialArgs] : [];
+      const globalTaskfilePath = typeof item.metadata?.globalTaskfilePath === 'string'
+        ? item.metadata.globalTaskfilePath
+        : undefined;
+
+      if (globalTaskfilePath) {
+        taskArgs.push('--taskfile', globalTaskfilePath);
+      } else if (item.taskFileUri) {
+        taskArgs.push('--taskfile', item.taskFileUri.fsPath);
+      }
+      taskArgs.push(taskLabel);
+      if (args) {
+        taskArgs.push(...args.split(' '));
+      }
+
+      const full = `${taskCmd} ${taskArgs.join(' ')}`;
+      const taskFileCwd = item.taskFileUri ? path.dirname(item.taskFileUri.fsPath) : taskCwd;
+      const shellExec = new vscode.ShellExecution(taskCmd, taskArgs, { cwd: taskFileCwd });
+
+      const task = new vscode.Task(
+        { type: 'taskfile', task: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'taskfile',
+        shellExec,
+      );
+      return { task, command: full, cwd: taskFileCwd, native: false };
+    }
+    case 'gitlab-ci': {
+      if (!item.taskFileUri) {
+        return undefined;
+      }
+      const ciProvider = new GitlabCiTaskProvider();
+      const { command: ciCmd, args: providerArgs } = ciProvider.getCommand(item.taskFileUri);
+      const ciArgs = [...(providerArgs ?? [])];
+
+      const effectiveFileUri = item.taskFileUri;
+      ciArgs.push('--file', path.basename(effectiveFileUri.fsPath));
+
+      const ciConfig = vscode.workspace.getConfiguration('workspaceTasks');
+      const variablesFile = ciConfig.get<string>('gitlabCiLocal.variablesFile', '');
+      if (variablesFile) {
+        ciArgs.push('--variables-file', variablesFile);
+      }
+      const variables = ciConfig.get<string[]>('gitlabCiLocal.variable', []);
+      for (const v of variables) {
+        ciArgs.push('--variable', v);
+      }
+      const unsetVars = ciConfig.get<string[]>('gitlabCiLocal.unsetVariable', []);
+      for (const u of unsetVars) {
+        ciArgs.push('--unset-variable', u);
+      }
+      const remoteVars = ciConfig.get<string[]>('gitlabCiLocal.remoteVariables', []);
+      for (const r of remoteVars) {
+        ciArgs.push('--remote-variables', r);
+      }
+      const home = ciConfig.get<string>('gitlabCiLocal.home', '');
+      if (home) {
+        ciArgs.push('--home', home);
+      }
+
+      ciArgs.push(taskLabel);
+      if (args) {
+        ciArgs.push(...args.split(' '));
+      }
+
+      const ciCwd = path.dirname(effectiveFileUri.fsPath);
+      const shellExec = new vscode.ShellExecution(ciCmd, ciArgs, { cwd: ciCwd });
+      const full = `${ciCmd} ${ciArgs.join(' ')}`;
+
+      const task = new vscode.Task(
+        { type: 'gitlab-ci', job: taskLabel, path: effectiveFileUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'gitlab-ci',
+        shellExec,
+      );
+      return { task, command: full, cwd: ciCwd, native: false };
+    }
+    case 'circleci': {
+      if (item.metadata?.type && item.metadata.type !== 'job') {
+        return undefined;
+      }
+      if (!item.taskFileUri) {
+        return undefined;
+      }
+
+      const circleProvider = new CircleCiTaskProvider();
+      const { command: circleCmd, args: providerArgs } = circleProvider.getCommand(item.taskFileUri);
+      const circleArgs = [...(providerArgs ?? [])];
+
+      const circleWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+      const circleCwd = circleWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+      const configPath = circleWorkspaceFolder
+        ? path.relative(circleWorkspaceFolder.uri.fsPath, item.taskFileUri.fsPath) || path.basename(item.taskFileUri.fsPath)
+        : item.taskFileUri.fsPath;
+
+      circleArgs.push(
+        'local',
+        'execute',
+        '-c',
+        configPath,
+        taskLabel,
+      );
+
+      if (args) {
+        circleArgs.push(...args.split(' '));
+      }
+
+      const shellExec = new vscode.ShellExecution(circleCmd, circleArgs, { cwd: circleCwd });
+      const full = `${circleCmd} ${circleArgs.join(' ')}`;
+
+      const task = new vscode.Task(
+        { type: 'circleci', job: taskLabel, path: item.taskFileUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'circleci',
+        shellExec,
+      );
+      return { task, command: full, cwd: circleCwd, native: false };
+    }
+    case 'bitbucket': {
+      if (!item.taskFileUri) {
+        return undefined;
+      }
+
+      const bbProvider = new BitbucketPipelinesTaskProvider();
+      const { command: bbCmd, args: providerArgs } = bbProvider.getCommand(item.taskFileUri);
+      const bbArgs = [...(providerArgs ?? [])];
+      bbArgs.push('run');
+
+      const bbConfig = vscode.workspace.getConfiguration('workspaceTasks');
+      const envFiles = bbConfig.get<string[]>('bitbucketPipelineRunner.environmentFiles', []);
+      for (const ef of envFiles) {
+        bbArgs.push('--env-file', ef);
+      }
+
+      const meta = item.metadata;
+      if (meta?.type === 'step') {
+        if (typeof meta.stepName !== 'string' || typeof meta.pipelinePath !== 'string') {
+          return undefined;
+        }
+        bbArgs.push('--step', meta.stepName);
+        bbArgs.push(meta.pipelinePath);
+      } else if (meta?.type === 'stage') {
+        if (typeof meta.stageName !== 'string' || typeof meta.pipelinePath !== 'string') {
+          return undefined;
+        }
+        bbArgs.push('--stage', meta.stageName);
+        bbArgs.push(meta.pipelinePath);
+      } else if (meta?.type === 'pipeline') {
+        if (typeof meta.pipelinePath !== 'string') {
+          return undefined;
+        }
+        bbArgs.push(meta.pipelinePath);
+      } else {
+        return undefined;
+      }
+
+      if (args) {
+        bbArgs.push(...args.split(' '));
+      }
+
+      const bbWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+      const bbCwd = bbWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+
+      const shellExec = new vscode.ShellExecution(bbCmd, bbArgs, { cwd: bbCwd });
+      const full = `${bbCmd} ${bbArgs.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')}`;
+
+      const taskDef: { type: string; pipeline: string; stage?: string; step?: string } = {
+        type: 'bitbucket',
+        pipeline: meta.pipelinePath as string,
+      };
+      if (meta.type === 'stage') {
+        taskDef.stage = meta.stageName as string;
+      } else if (meta.type === 'step') {
+        taskDef.step = meta.stepName as string;
+      }
+
+      const bbTask = new vscode.Task(taskDef, vscode.TaskScope.Workspace, taskLabel, 'bitbucket', shellExec);
+      return { task: bbTask, command: full, cwd: bbCwd, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

@@ -1,0 +1,55 @@
+image: atlassian/default-image:4
+
+pipelines:
+  default:
+    - step:
+        name: Build
+        script:
+          - npm install
+          - npm run build
+    - step:
+        name: Test
+        script:
+          - npm test
+  branches:
+    master:
+      - stage:
+          name: Deploy Stage
+          steps:
+            - step:
+                name: Build for Production
+                script:
+                  - npm run build:prod
+            - step:
+                name: Deploy to Production
+                script:
+                  - ./scripts/deploy.sh
+    develop:
+      - step:
+          name: Deploy to Dev
+          script:
+            - ./scripts/deploy-dev.sh
+  pull-requests:
+    '**':
+      - step:
+          name: PR Validation
+          script:
+            - npm run lint
+            - npm test
+  tags:
+    'v*':
+      - step:
+          name: Release Build
+          script:
+            - npm run build:release
+  custom:
+    manual-deploy:
+      - step:
+          name: Manual Deploy
+          script:
+            - ./scripts/manual-deploy.sh
+    smoke-tests:
+      - step:
+          name: Smoke Tests
+          script:
+            - npm run test:smoke

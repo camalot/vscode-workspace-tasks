@@ -1,0 +1,6 @@
+image: atlassian/default-image:4
+
+definitions:
+  services:
+    docker:
+      memory: 2048

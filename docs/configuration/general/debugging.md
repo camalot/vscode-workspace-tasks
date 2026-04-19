@@ -24,7 +24,7 @@ nav_order: 1
 **Type:** `boolean`
 **Default:** `false`
 
-Controls whether debug logging is enabled for the extension. When enabled, the extension will output additional information to the `Workspace Tasks` output channel, which can be useful for troubleshooting issues or understanding the extension's behaviour.
+Controls whether debug logging is enabled for the extension. When enabled, the extension will output additional information to the `Workspace Tasks` output channel, which can be useful for troubleshooting issues or understanding the extension's behavior.
 
 **Example:**
 

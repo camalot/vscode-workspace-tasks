@@ -1,12 +1,12 @@
 ---
 layout: default
-title: 🍰 Cake Build
-parent: 📱 Supported Task Types
-nav_order: 9
+title: 🍰 Cake
+parent: 📦 Packages & Build Tools
+nav_order: 1
 ---
 
 <!-- markdownlint-disable-next-line MD025 MD022 -->
-# Cake Build
+# Cake
 {: .no_toc }
 
 <!-- markdownlint-disable-next-line MD022 -->

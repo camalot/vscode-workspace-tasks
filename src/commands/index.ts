@@ -41,6 +41,7 @@ import * as copySecretKey from './copySecretKeyCommand';
 import * as inspectTaskEnv from './inspectTaskEnvCommand';
 import * as addRunGuard from './addRunGuard';
 import * as removeRunGuard from './removeRunGuard';
+import * as watchTaskfile from './watchTaskfileCommand';
 
 import { LoggerService } from '../services/loggerService';
 
@@ -90,6 +91,7 @@ export function loadCommands(context: vscode.ExtensionContext) {
     inspectTaskEnv,
     addRunGuard,
     removeRunGuard,
+    watchTaskfile,
   ];
 
   for (const mod of modules) {

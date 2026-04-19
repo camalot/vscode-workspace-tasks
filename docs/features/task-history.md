@@ -56,6 +56,10 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 ## Statistics View
 
+{: .new }
+> **New in v1.7.0**
+> Task Statistics View — aggregated per-task
+
 The Statistics View provides aggregated per-task execution metrics, giving you a quick overview of how each task is performing over time.
 
 ![Task Statistics View](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-statistics-webview.png)
@@ -104,6 +108,10 @@ See the [Metrics Configuration](../configuration/metrics) page for all available
 
 ## Dashboard Tab
 
+{: .new }
+> **New in v1.7.0**
+> Task Dashboard — aggregated workspace-wide view of task execution health with interactive charts.
+
 The Dashboard tab provides an at-a-glance, workspace-wide view of task execution health using interactive charts powered by [Chart.js](https://www.chartjs.org/). All charts automatically adapt to your active VS Code color theme.
 
 ![Task Dashboard 1](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-dashboard-1.png)
@@ -119,7 +127,7 @@ The Dashboard tab provides an at-a-glance, workspace-wide view of task execution
 | **Execution Outcomes** | Doughnut | Workspace-wide split of successful, failed, and terminated executions with a centre success-rate label |
 | **Hourly Activity Pattern** | Bar | Which hour of day sees the most task executions — peak hour highlighted in orange |
 | **Top Tasks by Run Count** | Horizontal bar | Up to 15 most-executed tasks, sorted descending |
-| **Success Rate by Task** | Horizontal bar | All tasks ranked worst-to-best; bars coloured red < 50%, amber 50–79%, green ≥ 80% |
+| **Success Rate by Task** | Horizontal bar | All tasks ranked worst-to-best; bars colored red < 50%, amber 50–79%, green ≥ 80% |
 | **Duration Comparison** | Grouped bar | Min / Avg / p95 / Max durations for the top 10 tasks by execution count |
 | **Daily Activity — Last 14 Days** | Line | Execution count per calendar day for the past two weeks |
 | **Duration Trend Sparklines** | Micro line charts | Per-task duration trend over the last N runs; green = getting faster, red = getting slower |

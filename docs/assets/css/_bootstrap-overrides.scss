@@ -1,6 +1,6 @@
 // ── Bootstrap CSS variable overrides — theme-aware palette ───────────────────
 //
-// Bootstrap 5 uses CSS custom properties on :root for all colours and surfaces.
+// Bootstrap 5 uses CSS custom properties on :root for all colors and surfaces.
 // Overriding them here keeps Bootstrap components (FAB, badges, dropdowns, etc.)
 // visually aligned with whichever docs theme is currently compiled.
 //
@@ -110,7 +110,7 @@
 }
 
 :root {
-  // ── Base brand colours ─────────────────────────────────────────────────────
+  // ── Base brand colors ─────────────────────────────────────────────────────
   --bs-blue: #{$theme-bootstrap-primary};
   --bs-indigo: #{$theme-bootstrap-secondary};
   --bs-purple: #{$theme-bootstrap-info};
@@ -137,7 +137,7 @@
   --bs-gray: #{$theme-bootstrap-secondary};
   --bs-gray-dark: #{$theme-bootstrap-light};
 
-  // ── Semantic role colours ──────────────────────────────────────────────────
+  // ── Semantic role colors ──────────────────────────────────────────────────
   --bs-primary: #{$theme-bootstrap-primary};
   --bs-secondary: #{$theme-bootstrap-secondary};
   --bs-success: #{$theme-bootstrap-success};

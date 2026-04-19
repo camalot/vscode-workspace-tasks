@@ -197,7 +197,7 @@ Add tests in the existing `Secrets group` section:
 
 | Test | Description |
 |---|---|
-| `showEmptyGroup=false and no secrets: Secrets group absent` | Regression test confirming default behaviour unchanged. |
+| `showEmptyGroup=false and no secrets: Secrets group absent` | Regression test confirming default behavior unchanged. |
 | `showEmptyGroup=true and no secrets: Secrets group present with no children` | Assert root item with `taskType === 'secrets'` is included with zero children. |
 | `showEmptyGroup=true and secrets exist: Secrets group present with children` | Assert normal children are still rendered. |
 | `showEmptyGroup=true empty group: tooltip indicates no secrets stored` | Assert `tooltip` text contains the "No secrets stored" hint. |
@@ -207,7 +207,7 @@ Add tests in the existing `Secrets group` section:
 ### Phase 6 — Documentation
 
 **Files to change:**
-- `docs/configuration/environment/environment-variables.md` — Add a section for `workspaceTasks.envVars.warnIfGitTracked`, explaining the behaviour, the diagnostics that are emitted, and how to disable the check.
+- `docs/configuration/environment/environment-variables.md` — Add a section for `workspaceTasks.envVars.warnIfGitTracked`, explaining the behavior, the diagnostics that are emitted, and how to disable the check.
 - `docs/features/task-environment-variables.md` — Cross-reference the new security warning.
 - Create or update `docs/configuration/general/secrets.md` (or appropriate config doc) to document `workspaceTasks.secrets.showEmptyGroup`.
 - `README.md` — Update the environment variables section to mention the new git-tracking warning.
@@ -222,7 +222,7 @@ Before implementation, validate:
 2. **Multi-root workspaces**: The check runs per workspace folder. The same file could theoretically appear in multiple workspace folders' glob expansions. De-duplicate by absolute path before calling `isGitTracked`.
 3. **Race condition at startup**: `TaskEnvService.initialize()` is `async`. `checkConfiguredEnvFilesForGitTracking()` should be awaited so that git-tracking results are available before the first tree render where possible (or fire-and-forget with a short delay).
 4. **`clearConfigFileDiagnostics` correctness**: The diagnosticCollection API requires replacing the entire array per URI. When clearing config-file diagnostics, the method must not clear task-run diagnostics (different codes). Accumulate URIs that had config diagnostics and rebuild their arrays.
-5. **Setting `warnIfGitTracked` default `true`**: This will show warnings for users who already have git-tracked env files upon upgrade. This is the correct behaviour (safety by default), but should be called out clearly in the documentation and changelog entry.
+5. **Setting `warnIfGitTracked` default `true`**: This will show warnings for users who already have git-tracked env files upon upgrade. This is the correct behavior (safety by default), but should be called out clearly in the documentation and changelog entry.
 6. **`showEmptyGroup` treeview refresh**: Confirm the existing `onDidChangeConfiguration` listener in `TaskTreeDataProvider` (if any) already fires `_onDidChangeTreeData`. If the listener is only in `TaskEnvService`, also add/extend one in `TaskTreeDataProvider`.
 
 ---
