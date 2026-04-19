@@ -197,6 +197,20 @@ suite('Glob Pattern Constants Test Suite', () => {
       nonMatches: ['repo/.gitlab/ci.yml', 'repo/gitlab-ci.yml'],
     },
     {
+      name: 'GLOB_BITBUCKET_PIPELINES',
+      pattern: constants.GLOB_BITBUCKET_PIPELINES,
+      matches: [
+        'repo/bitbucket-pipelines.yml',
+        'subdir/bitbucket-pipelines.yml',
+        'repo/.bitbucket/bitbucket-pipelines.yml',
+      ],
+      nonMatches: [
+        'repo/bitbucket-pipelines.yaml',
+        'repo/bitbucket-pipeline.yml',
+        'repo/bitbucket-pipelines.json',
+      ],
+    },
+    {
       name: 'GLOB_JUPYTER',
       pattern: constants.GLOB_JUPYTER,
       matches: ['repo/notebook.ipynb'],

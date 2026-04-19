@@ -628,6 +628,10 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.bun%"
               },
+              "bitbucket": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.enabledTaskTypes.bitbucket%"
+              },
               "cake": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.cake%"
@@ -810,7 +814,8 @@
               "webpack": true,
               "workspace": true,
               "taskfile": true,
-              "gitlab-ci": true
+              "gitlab-ci": true,
+              "bitbucket": true
             }
           },
           "workspaceTasks.enabledTaskTypePatterns": {
@@ -1562,6 +1567,13 @@
             "markdownDescription": "%config.workspaceTasks.applicationPath.circleci.markdown%",
             "scope": "resource"
           },
+          "workspaceTasks.applicationPath.bitbucketPipelineRunner": {
+            "type": "string",
+            "default": "pipeline-runner",
+            "description": "%config.workspaceTasks.applicationPath.bitbucketPipelineRunner%",
+            "markdownDescription": "%config.workspaceTasks.applicationPath.bitbucketPipelineRunner.markdown%",
+            "scope": "resource"
+          },
           "workspaceTasks.applicationPath.ansicon": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.ansicon%",
@@ -1822,6 +1834,24 @@
             },
             "default": [],
             "markdownDescription": "%config.workspaceTasks.circleci.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.bitbucketPipelineRunner.environmentFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.bitbucketPipelineRunner.environmentFiles.markdown%",
             "scope": "resource"
           }
         }

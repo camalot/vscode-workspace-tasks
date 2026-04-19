@@ -33,14 +33,14 @@ Jobs with `when: never` are automatically filtered from the task tree — they a
 
 ### Task Tree Structure
 
-```text
+```tree
 .gitlab-ci.yml
-├── npm-install          (stage: build)
-├── npm-outdated         (stage: test)
-├── docker-compose-up    (stage: deploy)
-├── docker-compose-down  (stage: .post, manual)
-├── always-cleanup       (stage: .post, always)
-└── notify-failure       (stage: .post, on_failure)
+├── npm-install          ← (stage: build)
+├── npm-outdated         ← (stage: test)
+├── docker-compose-up    ← (stage: deploy)
+├── docker-compose-down  ← (stage: .post, manual)
+├── always-cleanup       ← (stage: .post, always)
+└── notify-failure       ← (stage: .post, on_failure)
 ```
 
 ---
@@ -87,7 +87,7 @@ Configure GitLab CI Local in your VS Code `settings.json`:
 ### Available Settings
 
 | Setting | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `workspaceTasks.applicationPath.gitlabCiLocal` | `string` | `"gitlab-ci-local"` | Path to the `gitlab-ci-local` executable |
 | `workspaceTasks.gitlabCiLocal.additionalFilePatterns` | `string[]` | `[]` | Extra glob patterns for non-standard CI file locations |
 | `workspaceTasks.gitlabCiLocal.variablesFile` | `string` | `""` | Path to a YAML variables file (`--variables-file`) |

@@ -1,0 +1,12 @@
+pipelines:
+  default:
+    - step:
+        script:
+          - echo "I have no name"
+    - step:
+        name: Named Step
+        script:
+          - echo "I have a name"
+    - step:
+        script:
+          - echo "Also unnamed"

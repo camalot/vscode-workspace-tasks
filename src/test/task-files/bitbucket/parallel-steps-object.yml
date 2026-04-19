@@ -1,0 +1,16 @@
+pipelines:
+  default:
+    - parallel:
+        steps:
+          - step:
+              name: Unit Tests
+              script:
+                - npm run test:unit
+          - step:
+              name: Integration Tests
+              script:
+                - npm run test:integration
+    - step:
+        name: Build
+        script:
+          - npm run build

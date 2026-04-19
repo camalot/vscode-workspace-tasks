@@ -1,0 +1,6 @@
+pipelines:
+  default:
+    - step:
+        name: Build
+        script:
+          - npm run build

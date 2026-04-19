@@ -1,0 +1,14 @@
+pipelines:
+  default:
+    - step:
+        name: Build
+        script:
+          - npm run build
+    - step:
+        name: Build
+        script:
+          - npm run build:secondary
+    - step:
+        name: Test
+        script:
+          - npm test

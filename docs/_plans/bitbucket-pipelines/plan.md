@@ -31,8 +31,10 @@ default
     └── Publish       ← step inside stage, runnable via --step
 ```
 
-Running a **pipeline** executes `pipeline-runner run <pipeline-path>` (e.g. `branches.master`).
-Running a **stage** executes `pipeline-runner run --stage "<Stage Name>" <pipeline-path>`.
+Running a **pipeline** executes `pipeline-runner run <pipeline-path>` (e.g. `branches.master`)
+Running a **stage** executes `pipeline-runner run --stage "<Stage Name>" <pipeline-path>`
+Running a **step** executes `pipeline-runner run --step "<Step Name>" <pipeline-path>`
+
 ---
 
 ## Self-Critique & Viability Assessment (post-review)
@@ -58,15 +60,18 @@ A sub-agent critiqued the solution. Below are all findings with resolutions.
    place it inside `.bitbucket/` to mirror a less-common project layout, but the primary glob must
    be `**/bitbucket-pipelines.yml`. The `.bitbucket/` directory is for PR templates, not the
    pipeline file. Glob updated to:
-   ```
+
+   ```yaml
    GLOB_BITBUCKET_PIPELINES: '**/bitbucket-pipelines.yml'
    ```
+
    Users can use `additionalFilePatterns` to add `.bitbucket/bitbucket-pipelines.yml` if needed.
    The sample's file location will be moved to the workspace root.
 
 2. **[Critical] `--env-file` argument order fixed**: `--env-file` is a `run` subcommand flag. The
    factory must push `'run'` first, then env-file flags, then the pipeline path. The correct order:
-   ```
+
+   ```shell
    pipeline-runner run --env-file f1 --env-file f2 [--step "X"] <pipeline-path>
    ```
 
@@ -180,7 +185,7 @@ CircleCI provider.
 Bitbucket pipeline paths follow the pattern used by `pipeline-runner run`:
 
 | Section | Example path |
-|---------|--------------|
+| --- | --- |
 | `default` | `default` |
 | `branches.master` | `branches.master` |
 | `pull-requests.*` | `pull-requests.*` |
@@ -225,6 +230,7 @@ item. Tooltip notes `[parallel]`.
 at the pipeline level; the steps inside the stage become children of that stage item.
 
 Entry type discriminated via type guards:
+
 - Has `step` key → step entry → create step `TaskItem` as child of pipeline (or stage)
 - Has `parallel` key → parallel entry (check if value is array or has `steps` key) → flatten steps under pipeline
 - Has `stage` key → stage entry → create stage `TaskItem` as child of pipeline; its steps as children of the stage
@@ -232,7 +238,7 @@ Entry type discriminated via type guards:
 
 ### Glob Pattern
 
-```
+```yaml
 GLOB_BITBUCKET_PIPELINES: '**/bitbucket-pipelines.yml'
 ```
 
@@ -244,7 +250,7 @@ project layout differs.
 ### Tree Item Construction
 
 | Level | Label | Description | Runnable? | Collapsible? |
-|-------|-------|-------------|-----------|--------------|
+| --- | --- | --- | --- | --- |
 | File | `bitbucket-pipelines.yml` | relative path of file | No | Collapsed |
 | Pipeline | `default`, `branches.master`, etc. | child count | Yes | Collapsed |
 | Stage | stage name | step count | Yes | Collapsed |
@@ -257,29 +263,34 @@ levels (file → pipeline → step) rather than four.
 ### Execution Commands
 
 **Run a full pipeline:**
-```
+
+```shell
 pipeline-runner run [--env-file <f>]... <pipeline-path>
 ```
 
 **Run a single stage within a pipeline:**
-```
+
+```shell
 pipeline-runner run [--env-file <f>]... --stage "<stage-name>" <pipeline-path>
 ```
 
 **Run a single step within a pipeline:**
-```
+
+```shell
 pipeline-runner run [--env-file <f>]... --step "<step-name>" <pipeline-path>
 ```
 
 Argument order in the factory is:
+
 1. `run` subcommand
 2. `--env-file` flags (scoped to `run` subcommand)
 3. `--stage <name>` (for stage-level runs only) **or** `--step <name>` (for step-level runs only)
 4. `<pipeline-path>`
 
-> **Important**: `pipeline-runner` manages its own execution loop internally inside Docker.
+{: .important }
+> `pipeline-runner` manages its own execution loop internally inside Docker.
 > Running a pipeline, stage, or step via this extension will **not** cause the VS Code task UI
-> to update for each sub-step as they execute. There is no compound-task behaviour — the entire
+> to update for each sub-step as they execute. There is no compound-task behavior — the entire
 > `pipeline-runner` invocation is a single VS Code task. This is documented prominently in
 > `docs/task-types/bitbucket-pipelines.md`.
 
@@ -298,7 +309,7 @@ The human-readable command string quotes arguments containing spaces
 All settings have `"scope": "resource"` where applicable.
 
 | Key | Type | Default | Description |
-|-----|------|---------|-------------|
+| --- | --- | --- | --- |
 | `workspaceTasks.applicationPath.bitbucketPipelineRunner` | `string` | `"pipeline-runner"` | Path to the `pipeline-runner` executable |
 | `workspaceTasks.bitbucketPipelineRunner.environmentFiles` | `string[]` | `[]` | List of env files to pass via `--env-file` on each execution |
 | `workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns` | `string[]` | `[]` | Additional glob patterns merged with `GLOB_BITBUCKET_PIPELINES` for file discovery |
@@ -308,7 +319,7 @@ All settings have `"scope": "resource"` where applicable.
 ## Files to Modify / Create
 
 | File | Action | Description |
-|------|--------|-------------|
+| --- | --- | --- |
 | `src/providers/bitbucketPipelinesTaskProvider.ts` | **Create** | New provider class (includes `getSystemTasks()` returning `[]`) |
 | `src/providers/index.ts` | **Modify** | Import, add to `TaskProviderConstructor` union, register |
 | `src/taskFactory.ts` | **Modify** | Add `'bitbucket'` to `KNOWN_TASK_TYPES`; add switch case |
@@ -525,6 +536,7 @@ All new files must achieve **100% code coverage**. Run `npm run vscode:test:cove
 ### Unit Tests: `src/test/suite/bitbucketPipelinesTaskProvider.test.ts`
 
 **Fixture files** (`src/test/task-files/bitbucket/`):
+
 - `full-pipelines.yml` — all section types: `default`, `branches`, `pull-requests`, `tags`, `custom`
 - `parallel-steps-array.yml` — pipeline with `parallel:` as a direct array (Form 1)
 - `parallel-steps-object.yml` — pipeline with `parallel:` as an object with `steps:` key (Form 2)
@@ -540,6 +552,7 @@ All new files must achieve **100% code coverage**. Run `npm run vscode:test:cove
 - `duplicate-step-names.yml` — two steps with the same name within one pipeline
 
 **Test cases:**
+
 - `getTasks()` returns empty when provider is disabled
 - `getTasks()` merges `additionalFilePatterns` with base glob
 - `parseConfig()` with `full-pipelines.yml` produces correct tree with all section types
@@ -568,6 +581,7 @@ All new files must achieve **100% code coverage**. Run `npm run vscode:test:cove
 ### Glob Pattern Tests: `src/test/suite/globPatterns.test.ts`
 
 Add test cases for `GLOB_BITBUCKET_PIPELINES`:
+
 - Matches `bitbucket-pipelines.yml` at workspace root
 - Matches `myapp/bitbucket-pipelines.yml` (nested project)
 - Does NOT match `bitbucket-pipelines.yaml` (wrong extension — Bitbucket only supports `.yml`)
@@ -576,6 +590,7 @@ Add test cases for `GLOB_BITBUCKET_PIPELINES`:
 ### Integration Tests: `src/test/suite/taskFactoryBitbucket.test.ts`
 
 **Test cases:**
+
 - Factory builds correct `ShellExecution` for a pipeline item (`run <path>`, no `--step` or `--stage`)
 - Factory builds correct `ShellExecution` for a stage item (`run --stage "name" <path>`)
 - Factory builds correct `ShellExecution` for a step item (`run --step "name" <path>`)
@@ -598,6 +613,7 @@ Add test cases for `GLOB_BITBUCKET_PIPELINES`:
 ### `docs/task-types/bitbucket-pipelines.md`
 
 Covers:
+
 - Overview: what Bitbucket Pipelines is; why `pipeline-runner` is used
 - Prerequisites: `pipeline-runner` install (`pipx install bitbucket-pipeline-runner`), Docker required at runtime
 - Enabling the task type in VS Code settings
@@ -616,6 +632,7 @@ Covers:
 ### `docs/configuration/environment/application-paths/bitbucket-pipeline-runner.md`
 
 Covers:
+
 - What `workspaceTasks.applicationPath.bitbucketPipelineRunner` controls
 - Default value and how to override
 - Install instructions
@@ -627,6 +644,7 @@ Covers:
 The existing `sample/sample-workspace-tasks/.bitbucket/bitbucket-pipelines.yml` demonstrates the
 alternate `.bitbucket/` directory layout. A new `sample/sample-workspace-tasks/bitbucket-pipelines.yml`
 will be added at the workspace root as the canonical example, covering:
+
 - `default` pipeline with one direct step (Build and Test)
 - `branches.master` pipeline with a named stage (`Deploy`) containing two steps (Security Scan, Deploy to Production)
 - `custom.manual-deployment` pipeline with one direct step (Custom Manual Step)
@@ -638,9 +656,9 @@ This sample exercises both direct-step and stage-containing pipelines to showcas
 ## NLS Strings Required (`package.nls.json`)
 
 | Key | Value |
-|-----|-------|
+| --- | --- |
 | `config.workspaceTasks.applicationPath.bitbucketPipelineRunner` | `Path to the pipeline-runner executable` |
-| `config.workspaceTasks.applicationPath.bitbucketPipelineRunner.markdown` | `Path to the [\`pipeline-runner\`](https://github.com/mathieu-lemay/pipeline-runner) executable used to run Bitbucket Pipelines locally.` |
+| `config.workspaceTasks.applicationPath.bitbucketPipelineRunner.markdown` | `Path to the [pipeline-runner](https://github.com/mathieu-lemay/pipeline-runner) executable used to run Bitbucket Pipelines locally.` |
 | `config.workspaceTasks.bitbucketPipelineRunner.environmentFiles` | `Bitbucket Pipeline Runner env files` |
 | `config.workspaceTasks.bitbucketPipelineRunner.environmentFiles.markdown` | `List of environment variable files passed via \`--env-file\` to \`pipeline-runner\` on each invocation. See [Bitbucket Pipelines](../task-types/bitbucket-pipelines) documentation for details.` |
 | `config.workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns` | `Additional file patterns for Bitbucket Pipelines discovery` |
@@ -650,13 +668,16 @@ This sample exercises both direct-step and stage-containing pipelines to showcas
 
 ## `package.json` Changes Summary
 
-### `enabledTaskTypes` schema — add `"bitbucket"` entry (disabled by default):
+### `enabledTaskTypes` schema — add `"bitbucket"` entry (disabled by default)
+
 ```json
 { "const": "bitbucket", "description": "Bitbucket Pipelines (pipeline-runner)" }
 ```
+
 Default value for `enabledTaskTypes` does **not** include `"bitbucket"` (opt-in required).
 
-### New configuration group entry (in `Environment` section):
+### New configuration group entry (in `Environment` section)
+
 ```json
 "workspaceTasks.applicationPath.bitbucketPipelineRunner": {
   "type": "string",

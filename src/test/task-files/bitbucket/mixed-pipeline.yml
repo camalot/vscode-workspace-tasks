@@ -1,0 +1,26 @@
+pipelines:
+  default:
+    - step:
+        name: Install
+        script:
+          - npm install
+    - parallel:
+        - step:
+            name: Lint
+            script:
+              - npm run lint
+        - step:
+            name: Test
+            script:
+              - npm test
+    - stage:
+        name: Release
+        steps:
+          - step:
+              name: Build
+              script:
+                - npm run build
+          - step:
+              name: Publish
+              script:
+                - npm publish

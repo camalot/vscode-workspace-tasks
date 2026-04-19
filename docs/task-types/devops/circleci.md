@@ -34,15 +34,15 @@ Workspace Tasks discovers CircleCI config files (`.circleci/config.yml` / `.circ
 
 ### Task Tree Structure
 
-```text
-config.yml                         (non-runnable, group)
-├── workflow: build-and-test        (runnable, sequential)
-│   ├── lint                        (runnable)
-│   └── test                        (runnable)
-└── jobs                            (non-runnable, group)
-    ├── lint                        (runnable)
-    ├── test                        (runnable)
-    └── nightly-cleanup             (runnable)
+```tree
+config.yml                          ← (non-runnable, group)
+├── workflow: build-and-test        ← (runnable, sequential)
+│   ├── lint                        ← (runnable)
+│   └── test                        ← (runnable)
+└── jobs                            ← (non-runnable, group)
+    ├── lint                        ← (runnable)
+    ├── test                        ← (runnable)
+    └── nightly-cleanup             ← (runnable)
 ```
 
 - The **config file** node is a non-runnable group — it provides open-file access only.

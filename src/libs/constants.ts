@@ -129,6 +129,9 @@ const constants: Record<string, any> = {
   // - .circleci/config.yaml
   GLOB_CIRCLECI: '**/.circleci/config.{yml,yaml}',
   // should match:
+  // - bitbucket-pipelines.yml
+  GLOB_BITBUCKET_PIPELINES: '**/bitbucket-pipelines.yml',
+  // should match:
   // - foo.ipynb
   GLOB_JUPYTER: '**/*.ipynb',
   // should match:

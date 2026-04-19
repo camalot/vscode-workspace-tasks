@@ -1,0 +1,12 @@
+pipelines:
+  branches:
+    'feature/my-feature':
+      - step:
+          name: Build Feature
+          script:
+            - npm run build
+    'release/1.0.0':
+      - step:
+          name: Release Build
+          script:
+            - npm run build:release

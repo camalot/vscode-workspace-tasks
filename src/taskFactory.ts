@@ -26,6 +26,7 @@ import { CakeTaskProvider } from './providers/cakeTaskProvider';
 import { TaskfileTaskProvider } from './providers/taskfileTaskProvider';
 import { GitlabCiTaskProvider } from './providers/gitlabCiTaskProvider';
 import { CircleCiTaskProvider } from './providers/circleCiTaskProvider';
+import { BitbucketPipelinesTaskProvider } from './providers/bitbucketPipelinesTaskProvider';
 
 export interface CreatedTask {
   task: vscode.Task;
@@ -45,7 +46,7 @@ export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
   'workspace-task', 'github-actions', 'vscode', 'makefile', 'dockerfile',
   'pipenv', 'venv', 'msbuild', 'justfile', 'cmake', 'cake',
   'poe', 'poetry', 'cargo-make', 'taskfile', 'gitlab-ci',
-  'circleci',
+  'circleci', 'bitbucket',
 ]);
 
 /**
@@ -1187,6 +1188,67 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         shellExec,
       );
       return { task, command: full, cwd: circleCwd, native: false };
+    }
+    case 'bitbucket': {
+      if (!item.taskFileUri) {
+        return undefined;
+      }
+
+      const bbProvider = new BitbucketPipelinesTaskProvider();
+      const { command: bbCmd, args: providerArgs } = bbProvider.getCommand(item.taskFileUri);
+      const bbArgs = [...(providerArgs ?? [])];
+      bbArgs.push('run');
+
+      const bbConfig = vscode.workspace.getConfiguration('workspaceTasks');
+      const envFiles = bbConfig.get<string[]>('bitbucketPipelineRunner.environmentFiles', []);
+      for (const ef of envFiles) {
+        bbArgs.push('--env-file', ef);
+      }
+
+      const meta = item.metadata;
+      if (meta?.type === 'step') {
+        if (typeof meta.stepName !== 'string' || typeof meta.pipelinePath !== 'string') {
+          return undefined;
+        }
+        bbArgs.push('--step', meta.stepName);
+        bbArgs.push(meta.pipelinePath);
+      } else if (meta?.type === 'stage') {
+        if (typeof meta.stageName !== 'string' || typeof meta.pipelinePath !== 'string') {
+          return undefined;
+        }
+        bbArgs.push('--stage', meta.stageName);
+        bbArgs.push(meta.pipelinePath);
+      } else if (meta?.type === 'pipeline') {
+        if (typeof meta.pipelinePath !== 'string') {
+          return undefined;
+        }
+        bbArgs.push(meta.pipelinePath);
+      } else {
+        return undefined;
+      }
+
+      if (args) {
+        bbArgs.push(...args.split(' '));
+      }
+
+      const bbWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+      const bbCwd = bbWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+
+      const shellExec = new vscode.ShellExecution(bbCmd, bbArgs, { cwd: bbCwd });
+      const full = `${bbCmd} ${bbArgs.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')}`;
+
+      const taskDef: { type: string; pipeline: string; stage?: string; step?: string } = {
+        type: 'bitbucket',
+        pipeline: meta.pipelinePath as string,
+      };
+      if (meta.type === 'stage') {
+        taskDef.stage = meta.stageName as string;
+      } else if (meta.type === 'step') {
+        taskDef.step = meta.stepName as string;
+      }
+
+      const bbTask = new vscode.Task(taskDef, vscode.TaskScope.Workspace, taskLabel, 'bitbucket', shellExec);
+      return { task: bbTask, command: full, cwd: bbCwd, native: false };
     }
     default: {
       // Generic: run as shell command if workspace has a declared task

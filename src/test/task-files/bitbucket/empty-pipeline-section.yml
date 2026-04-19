@@ -1,0 +1,4 @@
+pipelines:
+  default: []
+  branches:
+    master: []

@@ -44,6 +44,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
 - **[🎭 GitHub Actions Support ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/github-actions.html)** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **[⭕ CircleCI Support ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/devops/circleci.html)** - Run CircleCI jobs locally and execute workflows sequentially via the CircleCI CLI
+- **[🪣 Bitbucket Pipelines Support ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/devops/bitbucket-pipelines.html)** - Run Bitbucket Pipelines locally via `pipeline-runner`
 - **[📝 Custom Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/custom-workspace-tasks.html)** - Define reusable task templates with dynamic inputs
 - **[🔐 Environment Variable & Secrets Management ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html)** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette; git-tracked env/secret files are flagged in the Problems panel to prevent accidental credential exposure
 - **[🚫 Task Filtering ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering.html)** - Use `.tasksignore` files to exclude unwanted tasks
@@ -177,6 +178,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[GitHub Actions](https://github.com/features/actions)** - Workflows from `.github/workflows/*.yml` (via [act](https://github.com/nektos/act))
 - **[CircleCI](https://circleci.com/docs/)** - Jobs and workflows from `.circleci/config.yml` (via [CircleCI CLI](https://circleci.com/docs/guides/toolkit/local-cli/); workflows run sequentially locally)
 - **[GitLab CI](https://docs.gitlab.com/ee/ci/)** - Jobs from `.gitlab-ci.yml` (via [gitlab-ci-local](https://github.com/firecow/gitlab-ci-local)) _(disabled by default — requires Docker)_
+- **[Bitbucket Pipelines](https://support.atlassian.com/bitbucket-cloud/docs/get-started-with-bitbucket-pipelines/)** - Pipelines, stages, and steps from `bitbucket-pipelines.yml` (via [pipeline-runner](https://github.com/bitbucket-pipeline-runner/pipeline-runner)) _(disabled by default — requires Docker)_
 
 ### Scripts & Other
 

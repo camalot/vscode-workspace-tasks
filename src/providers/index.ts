@@ -27,6 +27,7 @@ import { CakeTaskProvider } from './cakeTaskProvider';
 import { TaskfileTaskProvider } from './taskfileTaskProvider';
 import { GitlabCiTaskProvider } from './gitlabCiTaskProvider';
 import { CircleCiTaskProvider } from './circleCiTaskProvider';
+import { BitbucketPipelinesTaskProvider } from './bitbucketPipelinesTaskProvider';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 import { TaskFilesService } from '../services/taskFilesService';
@@ -63,7 +64,8 @@ type TaskProviderConstructor =
   | (new () => CakeTaskProvider)
   | (new () => TaskfileTaskProvider)
   | (new () => GitlabCiTaskProvider)
-  | (new () => CircleCiTaskProvider);
+  | (new () => CircleCiTaskProvider)
+  | (new () => BitbucketPipelinesTaskProvider);
 
 export function registerTaskProviders(context: vscode.ExtensionContext) {
   const logger = LoggerService.getInstance();
@@ -99,6 +101,7 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     TaskfileTaskProvider,
     GitlabCiTaskProvider,
     CircleCiTaskProvider,
+    BitbucketPipelinesTaskProvider,
   ];
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   const filesService = TaskFilesService.getInstance();
