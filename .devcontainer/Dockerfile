@@ -112,6 +112,8 @@ RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsof
   && rm /tmp/packages-microsoft-prod.deb \
   && apt-get update \
   && apt-get install -y dotnet-sdk-10.0 \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/* \
   && dotnet tool install Cake.Tool --version 6.1.0
 
 
@@ -121,6 +123,8 @@ RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash -
   curl -fsSL "https://gitlab-ci-local-ppa.firecow.dk/gitlab-ci-local.sources" -o "/etc/apt/sources.list.d/gitlab-ci-local.sources" \
   && apt-get update \
   && apt-get install -y gitlab-ci-local task \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/* \
   && curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | bash
 
 WORKDIR /workspace
@@ -138,12 +142,13 @@ RUN ([ ! -f /usr/bin/python ] && [ ! -l /usr/bin/python ] && [ -f /usr/bin/pytho
 USER ${USERNAME}
 
 # install user tools
+# hadolint ignore=DL3013
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
   && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
   && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin" \
   && curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
   && chmod +x "/home/${USERNAME}/bin/codecov" \
-  && pip install --user pipx --break-system-packages && /home/${USERNAME}/.local/bin/pipx ensurepath && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner
+  && pip install --no-cache-dir --user pipx --break-system-packages && /home/${USERNAME}/.local/bin/pipx ensurepath && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner
 
 COPY files/home/vscode/ /home/${USERNAME}/
 

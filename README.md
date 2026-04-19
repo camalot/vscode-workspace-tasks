@@ -169,16 +169,19 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 ### DevOps & Containers
 
 <p align="left">
-  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/docker.png" width="32" alt="Docker" title="Docker"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/github-actions.png" width="32" alt="GitHub Actions" title="GitHub Actions"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/circleci.png" width="32" alt="CircleCI" title="CircleCI"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/gitlab-ci.png" width="32" alt="GitLab CI" title="GitLab CI"/>
+  <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/bitbucket.png" width="32" alt="Bitbucket Pipelines" title="Bitbucket Pipelines"/>
 </p>
 
 - **[Docker](https://www.docker.com/)** - Build tasks from `Dockerfile`
 - **[Docker Compose](https://docs.docker.com/compose/)** - Services from `docker-compose.yml`
 - **[GitHub Actions](https://github.com/features/actions)** - Workflows from `.github/workflows/*.yml` (via [act](https://github.com/nektos/act))
-- **[CircleCI](https://circleci.com/docs/)** - Jobs and workflows from `.circleci/config.yml` (via [CircleCI CLI](https://circleci.com/docs/guides/toolkit/local-cli/); workflows run sequentially locally)
-- **[GitLab CI](https://docs.gitlab.com/ee/ci/)** - Jobs from `.gitlab-ci.yml` (via [gitlab-ci-local](https://github.com/firecow/gitlab-ci-local)) _(disabled by default — requires Docker)_
-- **[Bitbucket Pipelines](https://support.atlassian.com/bitbucket-cloud/docs/get-started-with-bitbucket-pipelines/)** - Pipelines, stages, and steps from `bitbucket-pipelines.yml` (via [pipeline-runner](https://github.com/bitbucket-pipeline-runner/pipeline-runner)) _(disabled by default — requires Docker)_
+- **[CircleCI](https://circleci.com/docs/)** - Jobs and workflows from `.circleci/config.yml` (via [CircleCI CLI](https://circleci.com/docs/guides/toolkit/local-cli/); workflows run sequentially locally) - **New in v1.9.0** - Possible issues running. see [CircleCI Task Type](https://camalot.github.io/vscode-workspace-tasks/task-types/devops/circleci.html) for details
+- **[GitLab CI](https://docs.gitlab.com/ee/ci/)** - Jobs from `.gitlab-ci.yml` (via [gitlab-ci-local](https://github.com/firecow/gitlab-ci-local)) - **New in v1.9.0**
+- **[Bitbucket Pipelines](https://support.atlassian.com/bitbucket-cloud/docs/get-started-with-bitbucket-pipelines/)** - Pipelines, stages, and steps from `bitbucket-pipelines.yml` (via [pipeline-runner](https://github.com/bitbucket-pipeline-runner/pipeline-runner)) - **New in v1.9.0**
 
 ### Scripts & Other
 

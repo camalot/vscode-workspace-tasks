@@ -23,6 +23,11 @@ Run CircleCI jobs locally and execute workflows as sequential local pipelines di
 {: .new }
 > **New in v1.9.0**: CircleCI support.
 
+{: .caution }
+> Experimental: CircleCI support is in early preview. Expect some rough edges and share your feedback!
+>
+> There are some known limitations around local workflow emulation when running CircleCI jobs locally. Issues around running within devcontainers with Docker-outside-of-Docker (DooD) and Docker-in-Docker (DinD) are common but can be mitigated with the recommended DinD configuration. We are actively working on improving the experience and would love to hear about your use cases and any pain points you encounter.
+
 ---
 
 ## Overview

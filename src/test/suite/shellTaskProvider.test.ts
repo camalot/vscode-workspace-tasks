@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { ShellTaskProvider } from '../../providers/shellTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
 import { TaskItem } from '../../taskItem';
+import { TaskIconService } from '../../services/taskIconService';
 
 // Helper to build a file URI from the task-files/shell directory.
 // The compiled tests run from out/test/suite but task-files live in src/test/task-files,
@@ -1147,5 +1148,131 @@ suite('Extensionless shell script discovery', () => {
     const buf = Buffer.from('#!\n');
     const result = (provider as any).parseShebangInterpreter(buf, buf.length);
     assert.strictEqual(result, '');
+  });
+
+  // ── createShellTaskItem: icon resolution for extensionless scripts ─────────
+
+  test('extensionless with bash shebang receives shell icon (not ThemeIcon.File)', () => {
+    const provider = new ShellTaskProvider();
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    const iconService = TaskIconService.getInstance();
+    const fakeShellIcon = { light: vscode.Uri.file('/fake/light/shell.svg'), dark: vscode.Uri.file('/fake/dark/shell.svg') };
+
+    const originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
+    iconService.getTaskIcon = (type: string) => {
+      if (type === 'bash' || type === 'shell') { return fakeShellIcon; }
+      return undefined;
+    };
+
+    try {
+      const item: TaskItem = (provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true, 'bash');
+      assert.deepStrictEqual(item.iconPath, fakeShellIcon, 'bash shebang should resolve to shell icon');
+    } finally {
+      iconService.getTaskIcon = originalGetTaskIcon;
+    }
+  });
+
+  test('extensionless with python3 shebang receives python icon', () => {
+    const provider = new ShellTaskProvider();
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    const iconService = TaskIconService.getInstance();
+    const fakePythonIcon = { light: vscode.Uri.file('/fake/light/python.svg'), dark: vscode.Uri.file('/fake/dark/python.svg') };
+    const fakeShellIcon = { light: vscode.Uri.file('/fake/light/shell.svg'), dark: vscode.Uri.file('/fake/dark/shell.svg') };
+
+    const originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
+    iconService.getTaskIcon = (type: string) => {
+      if (type === 'python3' || type === 'python') { return fakePythonIcon; }
+      if (type === 'shell') { return fakeShellIcon; }
+      return undefined;
+    };
+
+    try {
+      const item: TaskItem = (provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true, 'python3');
+      assert.deepStrictEqual(item.iconPath, fakePythonIcon, 'python3 shebang should resolve to python icon');
+    } finally {
+      iconService.getTaskIcon = originalGetTaskIcon;
+    }
+  });
+
+  test('extensionless with unknown interpreter falls back to shell icon', () => {
+    const provider = new ShellTaskProvider();
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    const iconService = TaskIconService.getInstance();
+    const fakeShellIcon = { light: vscode.Uri.file('/fake/light/shell.svg'), dark: vscode.Uri.file('/fake/dark/shell.svg') };
+
+    const originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
+    iconService.getTaskIcon = (type: string) => {
+      if (type === 'shell') { return fakeShellIcon; }
+      return undefined; // unknown interpreter returns nothing
+    };
+
+    try {
+      const item: TaskItem = (provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true, 'lua');
+      assert.deepStrictEqual(item.iconPath, fakeShellIcon, 'unknown interpreter should fall back to shell icon');
+    } finally {
+      iconService.getTaskIcon = originalGetTaskIcon;
+    }
+  });
+
+  test('extensionless with no shebang interpreter falls back to shell icon', () => {
+    const provider = new ShellTaskProvider();
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    const iconService = TaskIconService.getInstance();
+    const fakeShellIcon = { light: vscode.Uri.file('/fake/light/shell.svg'), dark: vscode.Uri.file('/fake/dark/shell.svg') };
+
+    const originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
+    iconService.getTaskIcon = (type: string) => {
+      if (type === 'shell') { return fakeShellIcon; }
+      return undefined;
+    };
+
+    try {
+      const item: TaskItem = (provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true, '');
+      assert.deepStrictEqual(item.iconPath, fakeShellIcon, 'empty interpreter should fall back to shell icon');
+    } finally {
+      iconService.getTaskIcon = originalGetTaskIcon;
+    }
+  });
+
+  test('extensionless falls back to task default icon when shell icon is also unavailable', () => {
+    const provider = new ShellTaskProvider();
+    const scriptUri = vscode.Uri.file('/workspace/my-script');
+    const iconService = TaskIconService.getInstance();
+    const fakeTaskIcon = { light: vscode.Uri.file('/fake/light/task.png'), dark: vscode.Uri.file('/fake/dark/task.png') };
+
+    const originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
+    const originalGetDefaultGroupIcon = iconService.getDefaultGroupIcon.bind(iconService);
+    iconService.getTaskIcon = () => undefined;
+    iconService.getDefaultGroupIcon = () => fakeTaskIcon;
+
+    try {
+      const item: TaskItem = (provider as any).createShellTaskItem(scriptUri, '', 'extensionless', true, 'bash');
+      assert.deepStrictEqual(item.iconPath, fakeTaskIcon, 'should use task default when shell icon is unavailable');
+    } finally {
+      iconService.getTaskIcon = originalGetTaskIcon;
+      iconService.getDefaultGroupIcon = originalGetDefaultGroupIcon;
+    }
+  });
+
+  test('_processExtensionlessScripts passes shebang interpreter to createShellTaskItem', async () => {
+    mockConfig.shellEnabledTaskTypes = { ...(mockConfig.shellEnabledTaskTypes as object), extensionless: true };
+    const scriptUri = vscode.Uri.file('/workspace/my-infer-script');
+    (vscode.workspace as any).findFiles = async () => [scriptUri];
+
+    const provider = new ShellTaskProvider();
+    (provider as any).checkForShebangAndReadInterpreter = async () =>
+      ({ hasShebang: true, interpreter: 'python3', isExecutable: true, fromCache: false });
+
+    let capturedShebangInterpreter: string | undefined;
+    const original = (provider as any).createShellTaskItem.bind(provider);
+    (provider as any).createShellTaskItem = (
+      uri: vscode.Uri, interp: string, subType: string, useShebang: boolean, shebangInterpreter: string,
+    ) => {
+      capturedShebangInterpreter = shebangInterpreter;
+      return original(uri, interp, subType, useShebang, shebangInterpreter);
+    };
+
+    await (provider as any)._processExtensionlessScripts();
+    assert.strictEqual(capturedShebangInterpreter, 'python3', 'shebang interpreter must be forwarded from scan result');
   });
 });

@@ -42,7 +42,15 @@ export class TaskIconService {
       'node': 'nodejs',
       'yarn': 'npm',
       'dockerfile': 'docker',
-      'docker-compose': 'docker'
+      'docker-compose': 'docker',
+      // Shell interpreter aliases — map bare interpreter names to available icons
+      'bash': 'shell',
+      'sh': 'shell',
+      'zsh': 'shell',
+      'fish': 'shell',
+      'dash': 'shell',
+      'python3': 'python',
+      'python2': 'python',
     };
     const combinedMap = { ...genericMap, ...map };
     return combinedMap[type.toLowerCase()] || type;

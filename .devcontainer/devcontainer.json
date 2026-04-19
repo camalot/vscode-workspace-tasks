@@ -5,8 +5,13 @@
     "context": "."
   },
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "moby": false
+    // "ghcr.io/devcontainers/features/docker-in-docker:2": {
+    //   "moby": false,
+    //   "dockerDashCompose": "v2"
+    // }
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false,
+      "installDockerBuildx": true
     }
   },
   "customizations": {
@@ -44,7 +49,9 @@
   },
   "postCreateCommand": "chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
   "remoteUser": "vscode",
-
+  "runArgs": [
+    "--privileged"
+  ],
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
   "mounts": [

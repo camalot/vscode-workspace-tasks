@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -790,7 +790,7 @@
               "docker": true,
               "eslint": true,
               "github-actions": true,
-              "circleci": true,
+              "circleci": false,
               "go": true,
               "gradle": true,
               "grunt": true,
