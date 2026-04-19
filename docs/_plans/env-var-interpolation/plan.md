@@ -293,7 +293,7 @@ or the resolved value in the UI (consistent with how secrets are handled today).
 
 **File: `docs/features/task-environment-variables.md`**
 
-1. Add a "Value Interpolation" section explaining the two-pass behaviour.
+1. Add a "Value Interpolation" section explaining the two-pass behavior.
 2. Provide examples:
    - `${env.MY_ENV}` in a value
    - `${workspaceFolder}` in a value

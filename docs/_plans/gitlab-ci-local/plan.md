@@ -583,7 +583,7 @@ Add `"gitlab"`, `"gitlab-ci"`, `"gitlab-ci-local"`.
 - [ ] Merges `additionalFilePatterns` with base glob when configured — discovers extra files
 - [ ] Discovers files matching only an additional pattern (no `.gitlab-ci.yml` present)
 - [ ] Returns `[]` when both base glob and additional patterns yield no files
-- [ ] When `additionalFilePatterns` is empty, behaviour is identical to base-glob-only discovery
+- [ ] When `additionalFilePatterns` is empty, behavior is identical to base-glob-only discovery
 
 **`parseOutput()` — job parsing:**
 - [ ] Jobs with `when: on_success` → included in children

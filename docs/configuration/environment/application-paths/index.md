@@ -36,7 +36,7 @@ Some tools have dedicated sub-pages with additional tool-specific settings:
 **Type:** `string`
 **Default:** `"ansicon.exe"`
 
-Path to the ANSICON executable used to provide coloured output for Ant tasks in the Windows terminal.
+Path to the ANSICON executable used to provide colored output for Ant tasks in the Windows terminal.
 
 **Example:**
 

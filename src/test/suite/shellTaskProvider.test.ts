@@ -1042,7 +1042,7 @@ suite('Extensionless shell script discovery', () => {
     assert.strictEqual(firedCount, 1, 'Should NOT fire again when results are identical');
   });
 
-  // ── checkForShebangAndReadInterpreter: cache behaviour ────────────────────
+  // ── checkForShebangAndReadInterpreter: cache behavior ────────────────────
 
   test('checkForShebangAndReadInterpreter: cache hit returns cached values without re-reading disk', async () => {
     const provider = new ShellTaskProvider();

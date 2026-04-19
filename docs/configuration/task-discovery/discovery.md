@@ -437,7 +437,7 @@ Register extra file extensions (beyond the built-in defaults) that should be tre
 
 ---
 
-## Shebang Behaviour
+## Shebang Behavior
 
 When the extension processes a shell-script file it applies two independent checks:
 

@@ -79,7 +79,7 @@ This is a **blocking pre-condition for Phase 3**: loading placeholders are only 
 
 ### 2. Shebang cache and in-flight deduplication work correctly
 
-On the manual-refresh run, the expected cache behaviour was observed:
+On the manual-refresh run, the expected cache behavior was observed:
 
 ```
 # sh won the concurrent race and read all 12 .sh files:
@@ -169,7 +169,7 @@ There is a consistent ~4-second gap between extension activation log and the sta
 
 ### 7. Loading state event design note
 
-The implementation fires `_onDidLoadingStateChange` only on idle→loading (first provider starts) and loading→idle (last provider finishes) transitions, rather than per-provider as the plan specified. This was a necessary optimization: firing once per provider (30+ events per `refresh()` cycle) caused the extension host to become unresponsive during tests due to the cascade of `organizeTasks()` calls each event triggered. The transition-only design delivers the same observable behaviour — placeholders appear when loading starts, disappear when it ends — with two tree refreshes instead of N×2.
+The implementation fires `_onDidLoadingStateChange` only on idle→loading (first provider starts) and loading→idle (last provider finishes) transitions, rather than per-provider as the plan specified. This was a necessary optimization: firing once per provider (30+ events per `refresh()` cycle) caused the extension host to become unresponsive during tests due to the cascade of `organizeTasks()` calls each event triggered. The transition-only design delivers the same observable behavior — placeholders appear when loading starts, disappear when it ends — with two tree refreshes instead of N×2.
 
 ---
 
@@ -433,7 +433,7 @@ Added 10 tests covering loading state lifecycle:
 
 ### Step 4.3 — `src/test/suite/taskTreeDataProvider.test.ts` *(done in Phase 3)*
 
-Added 7 tests covering loading placeholder behaviour:
+Added 7 tests covering loading placeholder behavior:
 - Loading placeholder appears for in-flight provider with no tasks
 - Loading placeholder uses `loading~spin` icon
 - Loading placeholder has `contextValue === 'loadingPlaceholder'`

@@ -321,7 +321,7 @@ suite('TaskCacheService Test Suite', () => {
             return undefined;
         };
 
-        // Native npm task for root package.json: no `path` in definition (VS Code behaviour).
+        // Native npm task for root package.json: no `path` in definition (VS Code behavior).
         const rootNpmTask = createVsCodeTask('long-running', { type: 'npm', script: 'long-running' }, wsFolder);
 
         const match = service.findMatchingTask(rootNpmTask);

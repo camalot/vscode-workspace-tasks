@@ -112,7 +112,7 @@ codicon terminal icon.
 ### Fallback guarantee
 
 `resolveCustomTypeIcon` returns `undefined` when the configured value cannot be resolved.
-Callers treat `undefined` as "use default", preserving existing behaviour exactly. There is no
+Callers treat `undefined` as "use default", preserving existing behavior exactly. There is no
 error notification — only a `debug`-level log entry including the raw configured value, the type
 name, and the reason for failure.
 
@@ -355,7 +355,7 @@ full `refresh()` (cache bust) may be required — audit the `getChildren` path i
 |---|---|
 | `NpmTaskTypeItem: customIcon ThemeIcon overrides built-in icon` | Pass `TaskIconUri { ThemeIcon: new vscode.ThemeIcon('cog') }`; assert `item.iconPath` is `ThemeIcon`. |
 | `NpmTaskTypeItem: customIcon TaskIcon overrides built-in SVG` | Pass `TaskIconUri { TaskIcon: { light: uri, dark: uri } }`; assert `item.iconPath` matches. |
-| `NpmTaskTypeItem: customIcon undefined: falls back to built-in` | Pass `undefined`; assert existing icon behaviour unchanged. |
+| `NpmTaskTypeItem: customIcon undefined: falls back to built-in` | Pass `undefined`; assert existing icon behavior unchanged. |
 | `TaskTypeFactory.create: calls resolveCustomTypeIcon and passes result` | Stub `resolveCustomTypeIcon` to return a ThemeIcon; assert the returned item's iconPath matches. |
 | `GenericTaskTypeItem: customIcon takes precedence over iconUri string` | Provide both `customIcon` (ThemeIcon) and `iconUri` (path); assert ThemeIcon wins. |
 

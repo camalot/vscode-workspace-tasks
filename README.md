@@ -233,7 +233,7 @@ All settings are grouped into five categories. See the [full configuration refer
 | --- | --- |
 | [⚙️ General ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/general/) | Debug logging and task execution metrics |
 | [🔍 Task Discovery ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-discovery/) | Exclusion patterns, discovery depth, enabled task types, and shell-script detection |
-| [🖥️ Display & Interaction ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/) | Tree view grouping, click behaviour, action bar, icons, and recent-tasks |
+| [🖥️ Display & Interaction ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/display-interaction/) | Tree view grouping, click behavior, action bar, icons, and recent-tasks |
 | [▶️ Task Execution ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/) | Terminal presentation, graceful stop delay, and compound-task execution modes |
 | [🌐 Environment ↗](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/) | Executable paths for build tools and tool-specific settings |
 

@@ -92,7 +92,7 @@ suite('Ant Provider Test Suite', function () {
     ]);
   });
 
-  suite('platform/configuration dependent behaviour', () => {
+  suite('platform/configuration dependent behavior', () => {
     let originalGet: typeof configuration.get;
 
     setup(() => {

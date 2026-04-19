@@ -60,7 +60,7 @@ check `entry.aliases?.length` before calling `new TaskItem(...)` and pass
 
 The setting `workspaceTasks.taskfile.showAliases` follows the same namespace pattern as the planned
 `workspaceTasks.taskfile.discoverGlobalTaskfiles` setting (see `plan-global-taskfiles.md`). This keeps
-all Task-specific behavioural settings under the `workspaceTasks.taskfile.*` namespace rather than
+all Task-specific behavioral settings under the `workspaceTasks.taskfile.*` namespace rather than
 mixing them into `applicationPath.*`.
 
 ---
@@ -278,7 +278,7 @@ build:
 
 ## Open Questions / Future Work
 
-- **Alias items in favorites/recents:** Should alias children be excluded from favourites? Could
+- **Alias items in favorites/recents:** Should alias children be excluded from favorites? Could
   be gated by `metadata.isAlias` if user feedback indicates confusion.
 - **Alias tooltip localization:** The "Alias for: X" tooltip is currently hardcoded English.
   Should use NLS if the extension adds full localization support.
