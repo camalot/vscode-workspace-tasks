@@ -5,14 +5,14 @@
     "context": "."
   },
   "features": {
-    // "ghcr.io/devcontainers/features/docker-in-docker:2": {
-    //   "moby": false,
-    //   "dockerDashCompose": "v2"
-    // }
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "moby": false,
-      "installDockerBuildx": true
+      "dockerDashCompose": "v2"
     }
+    // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+    //   "moby": false,
+    //   "installDockerBuildx": true
+    // }
   },
   "customizations": {
     "vscode": {

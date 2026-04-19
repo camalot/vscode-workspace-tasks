@@ -66,6 +66,9 @@ body:
         - Just
         - Docker/Docker Compose
         - GitHub Actions
+        - CircleCI
+        - Bitbucket Pipelines
+        - GitLabCI
         - Shell Scripts
         - Visual Studio Code Tasks
         - Workspace Tasks (.workspace-tasks.json)
