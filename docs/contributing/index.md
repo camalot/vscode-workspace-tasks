@@ -54,36 +54,36 @@ Contributions are welcome! If you'd like to improve Workspace Tasks, here's how 
 
 {: .tree}
 
-``` text
-docs/                  Documentation (this site)
-├── _includes/         Reusable markdown snippets
-├── _plugins/          Jekyll plugins for custom functionality
-├── _sass/             Stylesheets for custom styling
-├── configuration/     Configuration settings documentation
-├── contributing/      Contributing guidelines
-├── features/          Feature documentation
-├── getting-started/   Getting started guides
-├── performance/       Performance optimization guides
-├── task-types/        Task types documentation
-└── troubleshooting/   Troubleshooting guides
+``` tree
+docs/                  ← Documentation (this site)
+├── _includes/         ← Reusable markdown snippets
+├── _plugins/          ← Jekyll plugins for custom functionality
+├── _sass/             ← Stylesheets for custom styling
+├── configuration/     ← Configuration settings documentation
+├── contributing/      ← Contributing guidelines
+├── features/          ← Feature documentation
+├── getting-started/   ← Getting started guides
+├── performance/       ← Performance optimization guides
+├── task-types/        ← Task types documentation
+└── troubleshooting/   ← Troubleshooting guides
 
-src/                   TypeScript source code
-├── commands/          Command implementations
-├── common/            Shared base classes
-├── libs/              Utility libraries
-├── providers/         Task providers for each task type
-├── services/          Shared services (caching, configuration, etc.)
-└── test/              Test files
+src/                   ← TypeScript source code
+├── commands/          ← Command implementations
+├── common/            ← Shared base classes
+├── libs/              ← Utility libraries
+├── providers/         ← Task providers for each task type
+├── services/          ← Shared services (caching, configuration, etc.)
+└── test/              ← Test files
 
-res/                   Resources
-├── assets/images/     Screenshots and UI images
-├── icons/             Task type icons (light & dark)
-├── schemas/           JSON schemas
-├── syntaxes/          Language grammars
-└── webviews/          HTML webviews
+res/                   ← Resources
+├── assets/images/     ← Screenshots and UI images
+├── icons/             ← Task type icons (light & dark)
+├── schemas/           ← JSON schemas
+├── syntaxes/          ← Language grammars
+└── webviews/          ← HTML webviews
 
-docs/                  Documentation (this site)
-sample/                Sample workspace for testing
+docs/                  ← Documentation (this site)
+sample/                ← Sample workspace for testing
 ```
 
 ---

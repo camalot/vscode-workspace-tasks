@@ -107,11 +107,11 @@ Run all tasks in sequence by clicking the run button on the compound task — Wo
 
 When a VSCode task that uses `dependsOn` is added to a compound task, the tree displays its dependency tasks as expandable sub-items:
 
-```text
+```tree
 My Compound Task:
   ▼ Full Build  (vscode)           ← VSCode compound task with dependsOn
-      ├─ Compile TypeScript         ← dependency task
-      └─ Copy Assets                ← dependency task
+      ├─ Compile TypeScript        ← dependency task
+      └─ Copy Assets               ← dependency task
   ▶ Run Tests   (npm)
   ▶ Deploy      (shell)
 ```

@@ -34,7 +34,7 @@ precedence order so global defaults are always overridden by the most specific v
 ## Two-Path Philosophy
 
 | Path | Best for | How configured |
-|------|----------|----------------|
+| --- | --- | --- |
 | **Inline** (`.workspace-tasks.json`) | Tasks you own and version alongside your project | `env`, `envFiles`, `secretFiles`, `secrets` fields in the config file |
 | **Settings rules** (`workspaceTasks.envVars.taskEnv`) | Discovered tasks you don't control — npm scripts, Makefile targets, Gradle tasks | `workspaceTasks.envVars.taskEnv` array in `settings.json` |
 
@@ -45,7 +45,7 @@ precedence order so global defaults are always overridden by the most specific v
 Three storage tiers offer increasing security for sensitive values:
 
 | Tier | Convention | Triggers secret warning? | Best for |
-|------|-----------|--------------------------|----------|
+| --- | --- | --- | --- |
 | `.env` files | `.env`, `.env.local`, `.env.dev` | Yes, for keys matching `secretPatterns` | Non-sensitive config and public defaults |
 | `.secret` files | `.secrets`, `.env.secret` | **Never** | Sensitive values you want out of `.env` files |
 | VS Code `SecretStorage` | `context.secrets` API (per-machine, encrypted) | **Never** | Credentials — tokens, passwords, API keys |
@@ -60,7 +60,7 @@ keys that have accidentally been placed in a plain `.env` file.
 Later layers override earlier layers for duplicate keys.
 
 | Layer | Source | Scope |
-|------:|--------|-------|
+| ---: | --- | --- |
 | 1 | `workspaceTasks.envVars.env` (global `settings.json`) | All tasks |
 | 2 | `workspaceTasks.envVars.envFiles` | All tasks |
 | 3 | `workspaceTasks.envVars.secretFiles` | All tasks |
@@ -244,7 +244,7 @@ This is advisory only — the task still runs. To eliminate the warning, move th
 ## Git-Tracked File Warnings
 
 {: .new }
-Added in v1.7.1
+> **New in v1.8.0**
 
 In addition to the per-key secret-pattern warning, the extension proactively checks whether any
 files listed in `workspaceTasks.envVars.envFiles` or `workspaceTasks.envVars.secretFiles` are
@@ -377,7 +377,7 @@ All secrets stored by Workspace Tasks are visible in a dedicated **Secrets** gro
 of the task tree. The group only appears when at least one secret exists.
 
 | Element | Icon | Description |
-|---------|------|-------------|
+| --- | --- | --- |
 | **Secrets** group | `$(key)` | Container for all stored secret keys |
 | Secret item | `$(lock)` | Displays the key name only (never the value) |
 
@@ -388,7 +388,7 @@ of the task tree. The group only appears when at least one secret exists.
 The action bar on each secret item provides three one-click operations:
 
 | Icon | Action | Description |
-|------|--------|-------------|
+| --- | --- | --- |
 | `$(copy)` | **Copy Secret Key** | Copies the key name to the clipboard |
 | `$(edit)` | **Update Secret** | Prompts for a new value and replaces the existing one |
 | `$(trash)` | **Delete Secret** | Prompts for confirmation, then removes the secret |
@@ -403,7 +403,7 @@ The same three actions are available in the right-click context menu on any secr
 All secret operations are also available without using the tree view:
 
 | Command | Description |
-|---------|-------------|
+| --- | --- |
 | **Workspace Tasks: Add New Secret** | Prompts for a key name and value, stores in SecretStorage |
 | **Workspace Tasks: Delete Secret** | Shows a QuickPick of keys — choose one and confirm |
 | **Workspace Tasks: Update Secret** | Shows a QuickPick of keys — choose one and enter a new value |

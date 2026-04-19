@@ -29,14 +29,15 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends apt-utils xauth apt-transport-https 2>&1 \
-  && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg \
-  && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide \
-  && apt-get install -y --no-install-recommends nano vim zsh ripgrep cmake imagemagick \
+  && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg 2>&1 \
+  && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide 2>&1 \
+  && apt-get install -y --no-install-recommends nano vim zsh ripgrep cmake imagemagick 2>&1 \
+  && apt-get install -y --no-install-recommends python3-full python3-pip python3-venv 2>&1 \
   && apt-get install -y --no-install-recommends \
     xvfb libnspr4 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
     libasound2 libpango-1.0-0 libpangocairo-1.0-0 libgtk-3-0 \
-    libgdk-pixbuf-xlib-2.0-0 libx11-6 libxss1 libxtst6 libdbus-1-3 \
+    libgdk-pixbuf-xlib-2.0-0 libx11-6 libxss1 libxtst6 libdbus-1-3 2>&1\
   && YQ_VERSION=$(curl -s "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r ".tag_name" | sed 's/v//') \
   && curl -X GET -Ls "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/bin/yq \
   && chmod +x /usr/bin/yq \
@@ -131,16 +132,18 @@ RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/bin/ \
   && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.zsh-history/ \
   && find /home/${USERNAME}/bin -maxdepth 1 -type f -exec chmod +x {} +
 
+RUN ([ ! -f /usr/bin/python ] && [ ! -l /usr/bin/python ] && [ -f /usr/bin/python3 ] && ln -s /usr/bin/python3 /usr/bin/python || true) \
+  && ([ ! -f /usr/bin/pip ] && [ ! -l /usr/bin/pip ] && [ -f /usr/bin/pip3 ] && ln -s /usr/bin/pip3 /usr/bin/pip || true)
+
 USER ${USERNAME}
 
 # install user tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-&& ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
-&& curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin"
-
-# install codecov uploader
-RUN curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
-  && chmod +x "/home/${USERNAME}/bin/codecov"
+  && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
+  && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin" \
+  && curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
+  && chmod +x "/home/${USERNAME}/bin/codecov" \
+  && pip install --user pipx --break-system-packages && /home/${USERNAME}/.local/bin/pipx ensurepath && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner
 
 COPY files/home/vscode/ /home/${USERNAME}/
 

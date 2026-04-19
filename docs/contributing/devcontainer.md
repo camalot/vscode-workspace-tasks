@@ -212,12 +212,12 @@ The Zsh configuration uses [Antigen](https://github.com/zsh-users/antigen) to ma
 
 ## File Structure
 
-```text
+```tree
 .devcontainer/
-├── devcontainer.json       Container configuration
-├── Dockerfile              Image definition
-├── install-tools.sh        Post-create tool installer
-├── mount/                  Bind-mounted to ~/. devcontainer inside container
+├── devcontainer.json       ← Container configuration
+├── Dockerfile              ← Image definition
+├── install-tools.sh        ← Post-create tool installer
+├── mount/                  ← Bind-mounted to ~/. devcontainer inside container
 └── files/
     └── home/
         └── vscode/
