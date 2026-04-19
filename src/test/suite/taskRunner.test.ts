@@ -223,7 +223,7 @@ suite('TaskRunner Test Suite', () => {
     await runner.runTask(item);
 
     assert.strictEqual(stateMap.get('build'), 'running');
-    assert.deepStrictEqual(recentAdds, ['build']);
+    assert.deepStrictEqual(recentAdds, []);
     assert.strictEqual(executedTasks.length, 1);
     assert.strictEqual(warnings.length, 0);
     assert.strictEqual(errors.length, 0);

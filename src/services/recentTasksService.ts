@@ -15,6 +15,11 @@ export class RecentTasksService {
   private readonly STORAGE_KEY = 'workspaceTasks.recentTasks';
   private maxRecentTasks: number = 20;
 
+  private canonicalizeTaskId(taskId: string): string {
+    const normalized = TaskStateManager.getInstance().normalizeTaskId(taskId);
+    return normalized.replace(/\|\d+$/, '');
+  }
+
   private constructor() {}
 
   public static getInstance(): RecentTasksService {
@@ -33,7 +38,7 @@ export class RecentTasksService {
     const stateManager = TaskStateManager.getInstance();
     const migratedRecentTasks = savedRecentTasks.map(entry => ({
       ...entry,
-      taskId: stateManager.normalizeTaskId(entry.taskId)
+      taskId: this.canonicalizeTaskId(entry.taskId),
     }));
 
     // If any IDs were migrated (format changed), save the migrated data back
@@ -97,7 +102,7 @@ export class RecentTasksService {
 
     let canonicalId = item.id;
     // Normalize the ID to handle old format and prefixes
-    canonicalId = TaskStateManager.getInstance().normalizeTaskId(canonicalId);
+    canonicalId = this.canonicalizeTaskId(canonicalId);
 
     this.recentTasks = this.recentTasks.filter((t) => t.taskId !== canonicalId);
     this.save();
@@ -105,7 +110,7 @@ export class RecentTasksService {
 
   public addRecentTask(taskId: string) {
     // Normalize the task ID to ensure consistency with stored format
-    const normalizedId = TaskStateManager.getInstance().normalizeTaskId(taskId);
+    const normalizedId = this.canonicalizeTaskId(taskId);
 
     // Remove existing entry for this task if present
     this.recentTasks = this.recentTasks.filter((t) => t.taskId !== normalizedId);

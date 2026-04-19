@@ -37,22 +37,6 @@ Path to the CircleCI CLI executable.
 
 ---
 
-### workspaceTasks.circleci.configProcessing
-
-**Type:** `"auto" | "always" | "never"`
-**Default:** `"auto"`
-**Scope:** `resource`
-
-Controls config preprocessing behavior before local execution.
-
-```jsonc
-{
-  "workspaceTasks.circleci.configProcessing": "auto"
-}
-```
-
----
-
 ### workspaceTasks.circleci.additionalFilePatterns
 
 **Type:** `string[]`

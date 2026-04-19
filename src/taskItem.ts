@@ -125,6 +125,7 @@ export class TaskItem extends vscode.TreeItem {
 
   public updateContextValue() {
     const filteredService = FilteredTaskService.getInstance();
+    const isCircleCiFileGroup = this.taskType === 'circleci' && this.metadata?.type === 'file';
 
     // Stored-secret items are managed separately — preserve their contextValue as-is.
     if (this.taskType === 'storedSecret') {
@@ -133,6 +134,7 @@ export class TaskItem extends vscode.TreeItem {
     }
 
     if (
+      isCircleCiFileGroup ||
       this.taskType === 'workspace' ||
       this.taskType === 'folder' ||
       this.taskType === 'type' ||

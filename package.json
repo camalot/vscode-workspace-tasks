@@ -1823,17 +1823,6 @@
             "default": [],
             "markdownDescription": "%config.workspaceTasks.circleci.additionalFilePatterns.markdown%",
             "scope": "resource"
-          },
-          "workspaceTasks.circleci.configProcessing": {
-            "type": "string",
-            "enum": [
-              "auto",
-              "always",
-              "never"
-            ],
-            "default": "auto",
-            "markdownDescription": "%config.workspaceTasks.circleci.configProcessing.markdown%",
-            "scope": "resource"
           }
         }
       }

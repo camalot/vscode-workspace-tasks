@@ -62,11 +62,8 @@ If `circleci` is not in your system path, configure `workspaceTasks.applicationP
 Jobs are executed with the CircleCI local CLI:
 
 ```bash
-circleci local execute --temp-dir <workspace>/.circleci/.workspace-tasks-temp -c .circleci/config.yml <job-name>
+circleci local execute -c .circleci/config.yml <job-name>
 ```
-
-Workspace Tasks always passes `--temp-dir` to avoid `/tmp` [mount issues](https://github.com/CircleCI-Public/circleci-cli/issues/716) seen with some Docker runtimes (for example Lima/Colima/Rancher Desktop).
-The temp directory is created under the task workspace so Docker can mount it consistently in remote/dev-container setups.
 
 ### Running a Workflow
 
@@ -93,7 +90,6 @@ CircleCI CLI does not natively run workflows locally. Workspace Tasks emulates t
     "circleci": true
   },
   "workspaceTasks.applicationPath.circleci": "circleci",
-  "workspaceTasks.circleci.configProcessing": "auto",
   "workspaceTasks.circleci.additionalFilePatterns": []
 }
 ```
@@ -101,7 +97,6 @@ CircleCI CLI does not natively run workflows locally. Workspace Tasks emulates t
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `workspaceTasks.applicationPath.circleci` | `string` | `"circleci"` | Path to the CircleCI CLI executable |
-| `workspaceTasks.circleci.configProcessing` | `"auto" \| "always" \| "never"` | `"auto"` | Pre-processing strategy before local execution |
 | `workspaceTasks.circleci.additionalFilePatterns` | `string[]` | `[]` | Extra globs merged with built-in `.circleci/config` discovery patterns |
 
 ---
@@ -116,3 +111,14 @@ CircleCI CLI does not natively run workflows locally. Workspace Tasks emulates t
   - Run the same command manually in a terminal to validate local CLI setup.
 - **Workflow stops early**
   - A prior job failed or the workflow was manually stopped.
+- **`read /tmp/local_build_config.yml: is a directory` or similar mount errors**
+  - This is commonly a **Docker-outside-of-Docker (DooD)** problem in dev containers. When the CircleCI CLI instructs Docker to mount temp files, the host daemon looks for those paths on the host filesystem, not inside the dev container. If the file does not exist there, Docker can create a directory instead, causing the mount to fail.
+  - **Recommended fix:** Switch your dev container to **Docker-in-Docker (DinD)**. DinD runs a nested Docker daemon inside the container, so CLI and daemon share the same filesystem.
+    ```jsonc
+    // devcontainer.json
+    "features": {
+      "ghcr.io/devcontainers/features/docker-in-docker:2": { "moby": false }
+    }
+    ```
+    Remove any manual `/var/run/docker.sock` bind mount — it is not needed with DinD.
+  - **Alternative workaround:** Keep DooD, but use a host/container mount with an identical absolute path that both sides can resolve for any temp file bind mounts.

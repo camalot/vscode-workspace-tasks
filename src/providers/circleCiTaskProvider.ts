@@ -93,11 +93,12 @@ export class CircleCiTaskProvider extends BaseTaskProvider implements TaskProvid
     const fileItem = new TaskItem(
       path.basename(fileUri.fsPath),
       vscode.TreeItemCollapsibleState.Collapsed,
-      'circleci', // this needs to be circleci to show correct icon
+      'circleci',
       fileUri,
       undefined,
       iconPath,
     );
+    fileItem.iconPath = iconPath;
     fileItem.description = vscode.workspace.asRelativePath(fileUri);
     fileItem.taskFileUri = fileUri;
     fileItem.metadata = { type: 'file' };
@@ -163,6 +164,7 @@ export class CircleCiTaskProvider extends BaseTaskProvider implements TaskProvid
         iconPath,
       );
       jobsGroup.taskFileUri = fileUri;
+      jobsGroup.iconPath = iconPath;
       jobsGroup.children = allJobs.map((jobName) =>
         this.createJobTaskItem(jobName, fileUri, lines, iconPath),
       );

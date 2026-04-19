@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { TaskEnvService } from './services/taskEnvService';
@@ -48,23 +47,6 @@ export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
   'poe', 'poetry', 'cargo-make', 'taskfile', 'gitlab-ci',
   'circleci',
 ]);
-
-function ensureCircleCiTmpDir(baseDir: string): string {
-  const dir = path.join(baseDir, '.circleci', '.workspace-tasks-temp');
-  fs.mkdirSync(dir, { recursive: true });
-
-  const localBuildConfigPath = path.join(dir, 'local_build_config.yml');
-  try {
-    const stat = fs.statSync(localBuildConfigPath);
-    if (stat.isDirectory()) {
-      fs.rmSync(localBuildConfigPath, { recursive: true, force: true });
-    }
-  } catch {
-    // Ignore ENOENT and other transient fs errors; CircleCI will recreate as needed.
-  }
-
-  return dir;
-}
 
 /**
  * Builds the raw task without env injection. Used internally by `createTaskForItem`.
@@ -1176,17 +1158,8 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       const { command: circleCmd, args: providerArgs } = circleProvider.getCommand(item.taskFileUri);
       const circleArgs = [...(providerArgs ?? [])];
 
-      const circleConfig = vscode.workspace.getConfiguration('workspaceTasks');
-      const processing = circleConfig.get<'auto' | 'always' | 'never'>('circleci.configProcessing', 'auto');
-
-      // For now, local execution is always through `circleci local execute`.
-      // `configProcessing` is reserved for a future enhancement where
-      // config processing can be piped to a generated file before execution.
-      void processing;
-
       const circleWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
       const circleCwd = circleWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
-      const circleTempDir = ensureCircleCiTmpDir(circleCwd);
       const configPath = circleWorkspaceFolder
         ? path.relative(circleWorkspaceFolder.uri.fsPath, item.taskFileUri.fsPath) || path.basename(item.taskFileUri.fsPath)
         : item.taskFileUri.fsPath;
@@ -1194,8 +1167,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       circleArgs.push(
         'local',
         'execute',
-        '--temp-dir',
-        circleTempDir,
         '-c',
         configPath,
         taskLabel,

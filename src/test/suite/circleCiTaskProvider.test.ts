@@ -59,6 +59,7 @@ suite('CircleCiTaskProvider Test Suite', () => {
     assert.strictEqual(root!.taskType, 'circleci');
     assert.strictEqual(root!.metadata?.type, 'file');
     assert.strictEqual(root!.onRunActionCommand, undefined);
+    assert.strictEqual(root!.iconPath, fakeIcon);
 
     const workflow = root!.children.find((c) => c.metadata?.type === 'workflow');
     assert.ok(workflow, 'Expected a workflow node');
@@ -77,6 +78,7 @@ suite('CircleCiTaskProvider Test Suite', () => {
     assert.ok(root, 'Expected root item');
     const jobsGroup = root!.children.find((c) => c.label === 'jobs');
     assert.ok(jobsGroup, 'Expected jobs group');
+    assert.strictEqual(jobsGroup!.iconPath, fakeIcon);
 
     const labels = jobsGroup!.children.map((c) => c.label);
     assert.strictEqual(labels.length, 2);

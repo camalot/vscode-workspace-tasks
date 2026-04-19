@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TaskItem } from '../../taskItem';
@@ -81,7 +80,7 @@ suite('Task Factory CircleCI Test Suite', () => {
     assert.ok(argIdx > jobIdx, `Extra args should appear after job name. Command: ${cmd}`);
   });
 
-  test('adds --temp-dir for circleci local execution', async () => {
+  test('does not append --temp-dir for circleci local execution', async () => {
     const configPath = path.join('/tmp', '.circleci', 'config.yml');
     const uri = vscode.Uri.file(configPath);
 
@@ -93,33 +92,10 @@ suite('Task Factory CircleCI Test Suite', () => {
 
     assert.ok(created, 'Expected task to be created');
     const cmd = created!.command ?? '';
-    const expectedTempDir = path.join('/tmp', '.circleci', '.workspace-tasks-temp');
-
-    assert.ok(cmd.includes('--temp-dir'), `Expected --temp-dir in command. Command: ${cmd}`);
-    assert.ok(cmd.includes(expectedTempDir), `Expected temp dir path in command. Command: ${cmd}`);
-    assert.ok(fs.existsSync(expectedTempDir), `Expected temp dir to exist: ${expectedTempDir}`);
+    assert.ok(!cmd.includes('--temp-dir'), `Did not expect --temp-dir in command. Command: ${cmd}`);
 
     assert.ok(created!.task.execution instanceof vscode.ShellExecution);
     const exec = created!.task.execution as vscode.ShellExecution;
     assert.strictEqual(exec.options?.env?.TMPDIR, undefined, 'TMPDIR should not be set by the CircleCI task builder');
-  });
-
-  test('removes stale local_build_config.yml directory before run', async () => {
-    const configPath = path.join('/tmp', '.circleci', 'config.yml');
-    const tempDir = path.join('/tmp', '.circleci', '.workspace-tasks-temp');
-    const stalePath = path.join(tempDir, 'local_build_config.yml');
-
-    fs.mkdirSync(stalePath, { recursive: true });
-    assert.ok(fs.existsSync(stalePath), 'Expected stale local_build_config.yml directory to exist before task creation');
-
-    const uri = vscode.Uri.file(configPath);
-    const item = new TaskItem('lint', vscode.TreeItemCollapsibleState.None, 'circleci', uri);
-    item.taskFileUri = uri;
-    item.metadata = { type: 'job', jobName: 'lint' };
-
-    const created = await createTaskForItem(item);
-    assert.ok(created, 'Expected task to be created');
-
-    assert.ok(!fs.existsSync(stalePath), 'Expected stale local_build_config.yml directory to be removed');
   });
 });
