@@ -12,6 +12,7 @@ codecov.*
 super-linter-output/
 .secrets
 .secrets/
+Taskfile.yml
 
 *.log
 

@@ -128,7 +128,7 @@
     "@typescript-eslint/parser": "^8.58.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.7.1",
+    "@vscode/vsce": "^3.9.1",
     "chart.js": "^4.5.1",
     "codecov": "^3.8.3",
     "eslint": "^10.0",
