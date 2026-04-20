@@ -265,6 +265,13 @@
   "config.workspaceTasks.metrics.retentionDays.description": "Number of days to retain task metrics. Set to 0 for no limit.",
   "config.workspaceTasks.metrics.retentionDays.markdown": "Task metrics for tasks that have not run within this many days will be pruned when the extension starts. Set to `0` (the default) to keep metrics indefinitely. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/metrics.html#workspacetasksmetricsretentiondays)",
 
+  "config.workspaceTasks.history.maxPersistedRecords": "Max Persisted History Records",
+  "config.workspaceTasks.history.maxPersistedRecords.description": "Maximum number of task execution records to persist per workspace. Oldest records are pruned when the cap is exceeded.",
+  "config.workspaceTasks.history.maxPersistedRecords.markdown": "Controls how many task execution records are kept in VS Code's workspace state (fast read cache). Oldest records by start time are dropped when the cap is exceeded. The NDJSON archive file (`.vscode/task-history.ndjson`) is subject only to `retentionDays`. Must be between 10 and 2000. [Read More](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html#persistence)",
+  "config.workspaceTasks.history.retentionDays": "History Retention Days",
+  "config.workspaceTasks.history.retentionDays.description": "Number of days to retain persisted task history. Set to 0 for no limit.",
+  "config.workspaceTasks.history.retentionDays.markdown": "Task history records older than this many days are pruned from both the workspace state cache and the NDJSON archive when the extension starts. Set to `0` (the default) to keep history indefinitely. [Read More](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html#persistence)",
+
   "config.workspaceTasks.compoundTasks.defaultExecutionType": "Default Compound Task Execution Type",
   "config.workspaceTasks.compoundTasks.defaultExecutionType.markdown": "Specify the default execution type for compound tasks (previously called 'Queues'). Options are 'sequential' or 'parallel'. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/compound-tasks.html#workspacetaskscompoundtasksdefaultexecutiontype)",
 

@@ -168,3 +168,48 @@ The Dashboard requires at least one completed task execution before any charts a
 - [Compound Tasks (Queues)](task-queues) — Run sequences of tasks
 - [Configuration](../configuration) — Full settings reference
 - [Metrics Configuration](../configuration/metrics) — Configure metrics scope, sample size, and retention
+
+---
+
+## Persistence
+
+{: .new }
+> **New in v1.9.0**
+> Task History is now persisted across VS Code restarts.
+
+Task History now survives VS Code restarts. Every time a task reaches a terminal state (Success,
+Failed, or Terminated), the execution record is saved to two storage locations:
+
+- **`.vscode/task-history.ndjson`** — A newline-delimited JSON (NDJSON) file in the first workspace
+  folder. This is the authoritative archive of all recorded executions and is readable by external
+  tooling.
+- **VS Code `workspaceState`** — A fast in-memory cache of the most recent records, used to
+  populate the History tab without any file I/O on every open.
+
+On extension activation, the NDJSON file is loaded and the History tab is populated immediately
+with all previously recorded executions. If the NDJSON file is absent, the workspace state cache
+is used as a fallback.
+
+### Configuration
+
+Two settings control persistence behavior:
+
+| Setting | Default | Description |
+| ------- | ------- | ----------- |
+| `workspaceTasks.history.maxPersistedRecords` | `200` | Maximum number of records stored in the workspace state cache (range 10–2000). The NDJSON archive is not subject to this cap. |
+| `workspaceTasks.history.retentionDays` | `0` (unlimited) | Records older than this many days are pruned from both stores on activation. Set to `0` to keep history indefinitely. |
+
+### Recommended `.gitignore` entry
+
+The NDJSON file contains local execution history and should not be committed to source control.
+Add the following line to your `.gitignore`:
+
+```
+.vscode/task-history.ndjson
+```
+
+### Multi-root workspaces
+
+In multi-root workspaces, all records are stored in a single shared NDJSON file under the **first**
+workspace folder (`.vscode/task-history.ndjson`). Each record carries a `scope` field that
+identifies which workspace folder it belongs to, so the data remains correct across all folders.

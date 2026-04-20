@@ -187,19 +187,22 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
   // parseConfig — file item
   // ──────────────────────────────────────────────────────────────
 
-  test('parseConfig returns file item with correct label', () => {
+  test('parseConfig returns file item with correct label (single-root uses file basename)', () => {
+    // setup() installs a single workspace folder, so the label should be the file name.
     const fileUri = makeFileUri(tempDir);
     const text = fs.readFileSync(path.join(FIXTURE_DIR, 'simple-default.yml'), 'utf8');
     const result = provider.parseConfig(fileUri, text);
     assert.ok(result);
-    // Label should be the workspace folder name (or directory basename as fallback)
-    const expectedLabel = path.basename(tempDir);
-    assert.strictEqual(result!.label, expectedLabel);
+    assert.strictEqual(result!.label, 'bitbucket-pipelines.yml');
   });
 
-  test('parseConfig uses workspace folder name when available', () => {
+  test('parseConfig uses workspace folder name in multi-root workspace', () => {
     const fakeRoot = path.join(os.tmpdir(), '.tmp-ws-root-bitbucket');
+    const fakeRoot2 = path.join(os.tmpdir(), '.tmp-ws-root-bitbucket2');
     const fileUri = vscode.Uri.file(path.join(fakeRoot, 'bitbucket-pipelines.yml'));
+
+    // Simulate a multi-root workspace (two folders).
+    setWorkspaceFolders([fakeRoot, fakeRoot2]);
 
     const savedGetWorkspaceFolder = vscode.workspace.getWorkspaceFolder;
     (vscode.workspace as any).getWorkspaceFolder = (_uri: vscode.Uri) => ({
@@ -213,6 +216,30 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
       const result = provider.parseConfig(fileUri, text);
       assert.ok(result);
       assert.strictEqual(result!.label, 'my-project');
+    } finally {
+      (vscode.workspace as any).getWorkspaceFolder = savedGetWorkspaceFolder;
+    }
+  });
+
+  test('parseConfig uses file basename in single-root workspace even when workspace folder is found', () => {
+    const fakeRoot = path.join(os.tmpdir(), '.tmp-ws-root-bitbucket');
+    const fileUri = vscode.Uri.file(path.join(fakeRoot, 'bitbucket-pipelines.yml'));
+
+    // Explicitly single-root.
+    setWorkspaceFolders([fakeRoot]);
+
+    const savedGetWorkspaceFolder = vscode.workspace.getWorkspaceFolder;
+    (vscode.workspace as any).getWorkspaceFolder = (_uri: vscode.Uri) => ({
+      uri: vscode.Uri.file(fakeRoot),
+      name: 'my-project',
+      index: 0,
+    });
+
+    try {
+      const text = fs.readFileSync(path.join(FIXTURE_DIR, 'simple-default.yml'), 'utf8');
+      const result = provider.parseConfig(fileUri, text);
+      assert.ok(result);
+      assert.strictEqual(result!.label, 'bitbucket-pipelines.yml');
     } finally {
       (vscode.workspace as any).getWorkspaceFolder = savedGetWorkspaceFolder;
     }

@@ -8,6 +8,8 @@ import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableResult, ExecutableService } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
+import { ExtensionConfigurationService } from '../services/extensionConfigurationService';
+import { group } from 'console';
 
 /** A single Bitbucket Pipelines step definition. */
 interface BitbucketStep {
@@ -129,11 +131,18 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     const svc = iconService ?? TaskIconService.getInstance();
     const iconPath = svc.getTaskIcon('bitbucket', fileUri);
 
-    // Use the workspace folder name as the label (pipeline-runner always runs from the
-    // workspace root, so there is at most one bitbucket-pipelines.yml per workspace folder).
-    // This makes it clear which workspace the item belongs to in multi-root workspaces.
+    const configService = ExtensionConfigurationService.getInstance();
+
+    // Use the workspace folder name as the label only in multi-root workspace, where it
+    // disambiguates which folder the file belongs to. if grouping is enabled, and useParentFolder is true, use the parent folder name; Otherwise, in a single-root workspace the folder
+    // name adds an unnecessary extra grouping level, so fall back to the file's basename.
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
-    const fileLabel = workspaceFolder?.name ?? path.basename(path.dirname(fileUri.fsPath));
+    const isMultiRoot = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
+    const groupEnabled = configService.get('groups.enabled', false);
+    const useParentFolder = configService.get('groups.useParentFolder', false) && groupEnabled;
+    const fileLabel = isMultiRoot || useParentFolder
+      ? (workspaceFolder?.name ?? path.basename(path.dirname(fileUri.fsPath)))
+      : path.basename(fileUri.fsPath);
 
     const fileItem = new TaskItem(
       fileLabel,

@@ -589,6 +589,23 @@
             "minimum": 0,
             "description": "%config.workspaceTasks.metrics.retentionDays.description%",
             "markdownDescription": "%config.workspaceTasks.metrics.retentionDays.markdown%"
+          },
+          "workspaceTasks.history.maxPersistedRecords": {
+            "title": "%config.workspaceTasks.history.maxPersistedRecords%",
+            "type": "integer",
+            "default": 200,
+            "minimum": 10,
+            "maximum": 2000,
+            "description": "%config.workspaceTasks.history.maxPersistedRecords.description%",
+            "markdownDescription": "%config.workspaceTasks.history.maxPersistedRecords.markdown%"
+          },
+          "workspaceTasks.history.retentionDays": {
+            "title": "%config.workspaceTasks.history.retentionDays%",
+            "type": "integer",
+            "default": 0,
+            "minimum": 0,
+            "description": "%config.workspaceTasks.history.retentionDays.description%",
+            "markdownDescription": "%config.workspaceTasks.history.retentionDays.markdown%"
           }
         }
       },

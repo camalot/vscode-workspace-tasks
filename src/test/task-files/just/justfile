@@ -1,0 +1,33 @@
+build:
+    cargo build
+
+test:
+    cargo test
+# Sample Justfile for testing VSCode task runner
+# Run commands with: just <recipe-name>
+
+# Default recipe
+default:
+    @echo "Hello from Just!"
+
+# Simple hello recipe
+hello:
+    @echo "Hello from Just!"
+    @echo "Current directory: {{justfile_directory()}}"
+
+# Long running recipe
+long-running:
+    @echo "Starting long running Just task..."
+    @for i in {1..10}; do echo "Progress: $i/10"; sleep 1; done
+    @echo "Long running task completed!"
+
+# Failing recipe
+failing-task:
+    @echo "This Just task will fail..."
+    @echo "Simulating an error condition"
+    @exit 1
+
+# Clean recipe
+clean:
+    @echo "Cleaning with Just..."
+    @echo "Clean complete!"

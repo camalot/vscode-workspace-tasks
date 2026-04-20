@@ -940,6 +940,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       const { command: justCommand, args: justInitialArgs, cwd: justCwd } = justProvider.getCommand(resourceUri);
 
       const justArgs = justInitialArgs ? [...justInitialArgs] : [];
+      justArgs.push('--justfile', resourceUri.fsPath);
       justArgs.push(taskLabel);
       if (args) {
         justArgs.push(...args.split(' '));
