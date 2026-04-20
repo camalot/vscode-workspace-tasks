@@ -82,10 +82,21 @@ suite('Glob Pattern Constants Test Suite', () => {
       matches: [
         'repo/mise.toml',
         'repo/mise.local.toml',
+        'repo/.mise.toml',
+        'repo/mise/config.toml',
+        'repo/.mise/config.toml',
+        'repo/.config/mise.toml',
+        'repo/.config/mise/config.toml',
+        'repo/.config/mise/conf.d/dev.toml',
+      ],
+      nonMatches: [
+        'repo/mise.json',
+        'repo/misefile.toml',
+        'repo/mise.toml.backup',
         'repo/mise.dist.toml',
         'repo/mise.dist.local.toml',
+        'repo/.config/mise/conf.d/dev.yaml',
       ],
-      nonMatches: ['repo/mise.json', 'repo/misefile.toml', 'repo/mise.toml.backup'],
     },
     {
       name: 'GLOB_MSBUILD',

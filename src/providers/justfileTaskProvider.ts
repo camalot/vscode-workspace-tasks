@@ -143,6 +143,11 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
 
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[JustfileTaskProvider] Skipping CLI invocation: workspace is not trusted.');
+      return [];
+    }
+
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();

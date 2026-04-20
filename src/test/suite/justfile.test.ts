@@ -116,6 +116,23 @@ suite('JustfileTaskProvider Test Suite', () => {
     assert.deepStrictEqual(tasks, []);
   });
 
+  test('getTasks returns empty and skips CLI when workspace is not trusted', async () => {
+    const provider = new JustfileTaskProvider();
+    let cliCalled = false;
+    (provider as any).execFileAsync = async () => {
+      cliCalled = true;
+      return { stdout: '', stderr: '' };
+    };
+    Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+    try {
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+      assert.strictEqual(cliCalled, false, 'CLI must not be invoked for untrusted workspace');
+    } finally {
+      Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+    }
+  });
+
   test('getTasks returns empty when no files found', async () => {
     const provider = new JustfileTaskProvider();
     (provider as any).execFileAsync = async () => { throw new Error('just not found'); };

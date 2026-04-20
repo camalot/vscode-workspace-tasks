@@ -47,9 +47,13 @@ const constants: Record<string, any> = {
   // should match:
   // - mise.toml
   // - mise.local.toml
-  // - mise.dist.toml
-  // - mise.dist.local.toml
-  GLOB_MISE: '**/mise{.*,.*.local,}.toml',
+  // - .mise.toml
+  // - mise/config.toml
+  // - .mise/config.toml
+  // - .config/mise.toml
+  // - .config/mise/config.toml
+  // - .config/mise/conf.d/dev.toml
+  GLOB_MISE: '**/{mise.toml,mise.local.toml,.mise.toml,mise/config.toml,.mise/config.toml,.config/mise.toml,.config/mise/config.toml,.config/mise/conf.d/*.toml}',
   // should match:
   // - foo.csproj
   // - foo.vbproj

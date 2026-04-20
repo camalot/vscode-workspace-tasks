@@ -24,6 +24,11 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
       return [];
     }
 
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[RakeTaskProvider] Skipping CLI invocation: workspace is not trusted.');
+      return [];
+    }
+
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const files = await filesService.findFiles([constants.GLOB_RAKE]);

@@ -92,6 +92,25 @@ suite('GitlabCiTaskProvider Test Suite', () => {
     assert.deepStrictEqual(tasks, []);
   });
 
+  test('getTasks returns empty array and skips CLI when workspace is not trusted', async () => {
+    Object.defineProperty(provider, 'enabled', { value: true, configurable: true });
+    const filesService = TaskFilesService.getInstance();
+    filesService.findFiles = async () => [makeFileUri(tempDir)];
+    let cliCalled = false;
+    (provider as any).getCommand = () => {
+      cliCalled = true;
+      return { command: 'gitlab-ci-local', args: [] };
+    };
+    Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+    try {
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+      assert.strictEqual(cliCalled, false, 'CLI must not be invoked for untrusted workspace');
+    } finally {
+      Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+    }
+  });
+
   // ──────────────────────────────────────────────────────────────
   // parseOutput — invalid JSON
   // ──────────────────────────────────────────────────────────────

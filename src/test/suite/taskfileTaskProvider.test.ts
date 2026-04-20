@@ -91,6 +91,22 @@ suite('TaskfileTaskProvider Test Suite', () => {
       (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
     });
 
+    test('returns empty and skips CLI when workspace is not trusted', async () => {
+      let cliCalled = false;
+      (provider as any).getCommand = () => {
+        cliCalled = true;
+        return { command: 'task', args: [] };
+      };
+      Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+      try {
+        const tasks = await provider.getSystemTasks();
+        assert.deepStrictEqual(tasks, []);
+        assert.strictEqual(cliCalled, false, 'CLI must not be invoked for untrusted workspace');
+      } finally {
+        Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+      }
+    });
+
     test('returns empty when discoverGlobalTaskfile is false', async () => {
       const tasks = await provider.getSystemTasks();
       assert.deepStrictEqual(tasks, []);
@@ -269,6 +285,24 @@ suite('TaskfileTaskProvider Test Suite', () => {
     Object.defineProperty(provider, 'enabled', { get: () => false, configurable: true });
     const tasks = await provider.getTasks();
     assert.deepStrictEqual(tasks, []);
+  });
+
+  test('getTasks returns empty and skips CLI when workspace is not trusted', async () => {
+    const filesService = TaskFilesService.getInstance();
+    filesService.findFiles = async () => [vscode.Uri.file('/workspace/Taskfile.yml')];
+    let cliCalled = false;
+    (provider as any).getCommand = () => {
+      cliCalled = true;
+      return { command: 'task', args: [] };
+    };
+    Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+    try {
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+      assert.strictEqual(cliCalled, false, 'CLI must not be invoked for untrusted workspace');
+    } finally {
+      Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+    }
   });
 
   test('getTasks returns empty when no files found', async () => {

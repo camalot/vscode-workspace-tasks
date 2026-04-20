@@ -115,6 +115,24 @@ suite('Rake Provider Test Suite', () => {
     assert.deepStrictEqual(tasks, []);
   });
 
+  test('getTasks returns empty array and skips CLI when workspace is not trusted', async () => {
+    const filesService = TaskFilesService.getInstance();
+    filesService.findFiles = async () => [vscode.Uri.file('/workspace/Rakefile')];
+    let cliCalled = false;
+    (provider as any).getCommand = () => {
+      cliCalled = true;
+      return { command: 'rake', args: [] };
+    };
+    Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+    try {
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+      assert.strictEqual(cliCalled, false, 'CLI must not be invoked for untrusted workspace');
+    } finally {
+      Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+    }
+  });
+
   test('getTasks returns empty array when no rake files are found', async () => {
     const tasks = await provider.getTasks();
     assert.deepStrictEqual(tasks, []);

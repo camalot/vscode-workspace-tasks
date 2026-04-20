@@ -81,6 +81,11 @@ export class TaskCacheService {
       return;
     }
 
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[TaskCacheService] Skipping task discovery: workspace is not trusted.');
+      return;
+    }
+
     const wasIdle = this.loadingProviders.size === 0;
     this.loadingProviders.add(type);
     // Only fire when transitioning from idle → loading (first provider starts)
@@ -218,6 +223,14 @@ export class TaskCacheService {
   }
 
   public async refresh(): Promise<TaskItem[]> {
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[TaskCacheService] Skipping task discovery: workspace is not trusted.');
+      this.providerTasks.clear();
+      this.rebuildCache();
+      this._onDidUpdate.fire();
+      return [];
+    }
+
     this.providerTasks.clear();
     this.rebuildCache();
     this._onDidUpdate.fire();

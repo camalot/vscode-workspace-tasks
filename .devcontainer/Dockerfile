@@ -53,8 +53,7 @@ RUN curl -fsSL "https://deb.nodesource.com/setup_25.x" | bash - \
   && apt-get install -y nodejs \
   && apt-get remove -y yarn \
   && node -v \
-  && npm install -g npm@11.11.1 \
-  && npm install -g pnpm yarn \
+  && npm install -g npm pnpm yarn \
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
   && export NVM_DIR="/home/${USERNAME}/.nvm" \
   && for i in 1 2 3 4 5; do \
@@ -72,7 +71,7 @@ RUN mkdir -p -m 755 /etc/apt/keyrings \
   && mkdir -p -m 755 /etc/apt/sources.list.d \
   && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
   && apt-get update \
-  && apt-get install -y gh \
+  && apt-get install -y --no-install-recommends gh \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
 
@@ -95,16 +94,17 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PowerShell
-RUN PWSH_TAG=$(curl -s "https://api.github.com/repos/PowerShell/PowerShell/releases/latest" | jq -r ".tag_name") && \
-  PWSH_VERSION=${PWSH_TAG#v} && \
-  curl -fsSL "https://github.com/PowerShell/PowerShell/releases/download/${PWSH_TAG}/powershell-${PWSH_VERSION}-linux-x64.tar.gz" -o /tmp/powershell.tar.gz && \
-  mkdir -p /opt/microsoft/powershell/7 && \
-  tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 && \
-  chmod +x /opt/microsoft/powershell/7/pwsh && \
-  ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh && \
-  ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/powershell && \
-  rm /tmp/powershell.tar.gz && \
-  curl -fsSL https://gh.io/copilot-install | bash
+RUN PWSH_TAG=$(curl -s "https://api.github.com/repos/PowerShell/PowerShell/releases/latest" | jq -r ".tag_name") \
+  && PWSH_VERSION=${PWSH_TAG#v} \
+  && curl -fsSL "https://github.com/PowerShell/PowerShell/releases/download/${PWSH_TAG}/powershell-${PWSH_VERSION}-linux-x64.tar.gz" -o /tmp/powershell.tar.gz \
+  && mkdir -p /opt/microsoft/powershell/7 \
+  && tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 \
+  && chmod +x /opt/microsoft/powershell/7/pwsh \
+  && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh \
+  && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/powershell \
+  && rm /tmp/powershell.tar.gz \
+  && curl -fsSL https://gh.io/copilot-install | bash \
+  && curl -fsSL https://mise.run | MISE_INSTALL_PATH=/usr/local/bin/mise sh
 
 # Install dotnet - used for supporting Cake build scripts
 RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -o /tmp/packages-microsoft-prod.deb \

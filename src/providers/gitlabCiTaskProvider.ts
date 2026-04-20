@@ -45,6 +45,12 @@ export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvid
     if (!this.enabled) {
       return [];
     }
+
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[GitlabCiTaskProvider] Skipping CLI invocation: workspace is not trusted.');
+      return [];
+    }
+
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const extraPatterns = config.get<string[]>('gitlabCiLocal.additionalFilePatterns', []);
     const globs = [constants.GLOB_GITLAB_CI, ...extraPatterns];

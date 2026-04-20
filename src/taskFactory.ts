@@ -273,7 +273,13 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       // mise run <taskLabel> [args]
       const miseProvider = new MiseTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: miseCmd, args: miseInitialArgs, cwd: miseCwd } = miseProvider.getCommand(workspaceFolder?.uri);
+      const { command: miseCmd, args: miseInitialArgs, cwd: miseDefaultCwd } = miseProvider.getCommand(workspaceFolder?.uri);
+
+      // Run from the config_root of the discovered file so mise can resolve its
+      // config.  Falls back to the workspace-level cwd when no file is known.
+      const miseCwd = item.taskFileUri
+        ? MiseTaskProvider.getConfigRoot(item.taskFileUri)
+        : miseDefaultCwd;
 
       const miseArgs = miseInitialArgs ? [...miseInitialArgs] : [];
       miseArgs.push('run', taskLabel);

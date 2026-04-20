@@ -101,6 +101,11 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
 
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[TaskfileTaskProvider] Skipping CLI invocation: workspace is not trusted.');
+      return [];
+    }
+
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const customPatterns = config.get<string[]>('taskfile.additionalFilePatterns', []);
     const patterns = [constants.GLOB_TASKFILE, ...customPatterns];
@@ -233,6 +238,11 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
   public async getSystemTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       this.disposeGlobalTaskfileWatchers();
+      return [];
+    }
+
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[TaskfileTaskProvider] Skipping CLI invocation: workspace is not trusted.');
       return [];
     }
 
