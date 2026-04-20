@@ -1,18 +1,48 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import { promisify } from 'util';
+import { execFile } from 'child_process';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import * as path from 'path';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
-import { ExecutableService } from '../services/executableService';
+import { ExecutableService, ExecutableResult } from '../services/executableService';
+
+interface JustRecipeAttribute {
+  name: string;
+  value?: string;
+}
+
+interface JustRecipe {
+  name: string;
+  doc: string | null;
+  parameters: unknown[];
+  private: boolean;
+  quiet: boolean;
+  body: string[][];
+  dependencies: unknown[];
+  attributes: JustRecipeAttribute[];
+  shebang: boolean;
+  priors: number;
+}
+
+interface JustfileJsonOutput {
+  first: string;
+  recipes: Record<string, JustRecipe>;
+  settings: Record<string, unknown>;
+  variables: Record<string, unknown>;
+}
 
 export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvider {
+  /** Overrideable in tests to avoid spawning a real process. */
+  protected execFileAsync = promisify(execFile);
+
   constructor() {
     super('justfile', constants.GLOB_JUST);
   }
 
-  public getCommand(resourceUri?: vscode.Uri) {
+  public getCommand(resourceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
     return execService.getCommand(
       {
@@ -26,89 +56,165 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
       resourceUri,
     );
   }
+
+  private async getJustJsonOutput(
+    justfilePath: string,
+    justCmd: ExecutableResult,
+  ): Promise<JustfileJsonOutput | null> {
+    try {
+      const { stdout, stderr } = await this.execFileAsync(
+        justCmd.command,
+        [...justCmd.args, '--justfile', justfilePath, '--dump', '--dump-format', 'json'],
+        {
+          cwd: path.dirname(justfilePath),
+          timeout: 10000,
+        },
+      );
+      if (stderr) {
+        this.logger.debug(`[JustfileTaskProvider] just --dump stderr: ${stderr}`);
+      }
+      const parsed = JSON.parse(stdout);
+      if (!parsed || typeof parsed.recipes !== 'object' || parsed.recipes === null) {
+        this.logger.warn(
+          `[JustfileTaskProvider] just --dump returned unexpected JSON shape for ${justfilePath}`,
+        );
+        return null;
+      }
+      return parsed as JustfileJsonOutput;
+    } catch (err) {
+      this.logger.warn(
+        `[JustfileTaskProvider] Could not run just --dump for ${justfilePath}. ` +
+        'Tasks from this justfile will not be shown. Ensure just is installed and ' +
+        'applicationPath.just is configured correctly if needed.',
+        err,
+      );
+      return null;
+    }
+  }
+
+  private findRecipeLineNumber(lines: string[], recipeName: string): number {
+    const escaped = recipeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`^@?${escaped}(?:\\s|:|$)`);
+    for (let i = 0; i < lines.length; i++) {
+      if (pattern.test(lines[i])) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
+  private getRecipeGroup(recipe: JustRecipe): string | null {
+    const groupAttr = recipe.attributes.find(
+      (attr) => attr.name === 'group' && typeof attr.value === 'string',
+    );
+    return groupAttr?.value ?? null;
+  }
+
+  private createRecipeTaskItem(
+    recipe: JustRecipe,
+    file: vscode.Uri,
+    iconPath: unknown,
+    line: number,
+  ): TaskItem {
+    const item = new TaskItem(
+      recipe.name,
+      vscode.TreeItemCollapsibleState.None,
+      this.type,
+      file,
+      undefined,
+      iconPath as string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
+    );
+    item.taskFileUri = file;
+    item.description = vscode.workspace.asRelativePath(file);
+    item.startLine = line;
+    if (recipe.doc) {
+      item.tooltip = recipe.doc;
+    }
+    item.onOpenActionCommand = {
+      command: 'workspaceTasks.openFileAtLine',
+      title: 'Open File',
+      arguments: [file, line],
+    };
+    return item;
+  }
+
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       return [];
     }
+
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
-
-    // Find files using the utility
-    // Glob patterns for justfiles
+    const groupsEnabled = vscode.workspace.getConfiguration('workspaceTasks').get<boolean>(
+      'groups.justfile.enabled',
+      false,
+    );
     const files = await filesService.findFiles([constants.GLOB_JUST]);
 
     for (const file of files) {
       try {
         const document = await vscode.workspace.openTextDocument(file);
         const content = document.getText();
-        const fallback: vscode.Uri = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'justfile'));
-        const iconPath = iconService.getTaskIcon(this.type, fallback);
         const lines = content.split('\n');
+        const fallback = vscode.Uri.file(path.join(path.dirname(file.fsPath || ''), 'justfile'));
+        const iconPath = iconService.getTaskIcon(this.type, fallback);
 
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line || line.startsWith('#')) {
-            continue;
-          } // Skip empty and comments
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(file);
+        if (!workspaceFolder) {
+          continue;
+        }
+        const justCmd = this.getCommand(workspaceFolder.uri);
 
-          // Regex for recipe:
-          // Start of line (ignoring whitespace handled by trim, but recipe usually starts at col 0)
-          // Optional @
-          // Name
-          // Optional params
-          // :
-          // Allow for attributes [attr] before (handled by not matching?)
-          // Attributes are usually on previous lines or same line? Grammar says attributes* then @? NAME
-          // Attributes are [ ... ] eol. So they are on previous lines.
+        const jsonOutput = await this.getJustJsonOutput(file.fsPath, justCmd);
+        if (!jsonOutput) {
+          // Error already logged inside getJustJsonOutput; skip this file.
+          continue;
+        }
 
-          // Simple regex: look for name followed by :
-          // But exclude assignments :=
+        const recipes = Object.values(jsonOutput.recipes);
 
-          // NAME = [a-zA-Z_][a-zA-Z0-9_-]*
+        if (groupsEnabled) {
+          const groupItems = new Map<string, TaskItem>();
 
-          const match = line.match(/^@?([a-zA-Z_][a-zA-Z0-9_-]*)\s*.*:/);
+          for (const recipe of recipes) {
+            const groupName = this.getRecipeGroup(recipe);
+            const line = this.findRecipeLineNumber(lines, recipe.name);
+            const item = this.createRecipeTaskItem(recipe, file, iconPath, line);
 
-          if (match) {
-            // Check it is not an assignment or alias
-            if (line.includes(':=')) {
-              continue;
+            if (groupName) {
+              if (!groupItems.has(groupName)) {
+                const groupItem = new TaskItem(
+                  groupName,
+                  vscode.TreeItemCollapsibleState.Collapsed,
+                  'justfile',
+                  file,
+                  undefined,
+                  iconPath as string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
+                );
+                groupItem.metadata = { type: 'group', groupName };
+                groupItem.children = [];
+                groupItems.set(groupName, groupItem);
+              }
+              const groupItem = groupItems.get(groupName)!;
+              item.parent = groupItem;
+              groupItem.children!.push(item);
+            } else {
+              tasks.push(item);
             }
+          }
 
-            const target = match[1];
-            // Ignore reserved words if any match the regex?
-            if (
-              target === 'mod' ||
-              target === 'import' ||
-              target === 'export' ||
-              target === 'alias' ||
-              target === 'set'
-            ) {
-              continue;
-            }
-
-            const item = new TaskItem(
-              target,
-              vscode.TreeItemCollapsibleState.None,
-              this.type,
-              file,
-              undefined,
-              iconPath,
-            );
-            item.taskFileUri = file;
-            item.description = vscode.workspace.asRelativePath(file);
-            item.startLine = i;
-
-            item.onOpenActionCommand = {
-              command: 'workspaceTasks.openFileAtLine',
-              title: 'Open File',
-              arguments: [file, i],
-            };
-            tasks.push(item);
+          for (const groupItem of groupItems.values()) {
+            tasks.push(groupItem);
+          }
+        } else {
+          for (const recipe of recipes) {
+            const line = this.findRecipeLineNumber(lines, recipe.name);
+            tasks.push(this.createRecipeTaskItem(recipe, file, iconPath, line));
           }
         }
       } catch (e) {
-        this.logger.error(`[JustfileTaskProvider] Error parsing Justfile: ${file.fsPath}`, e);
+        this.logger.error(`[JustfileTaskProvider] Error processing justfile: ${file.fsPath}`, e);
       }
     }
     return tasks;

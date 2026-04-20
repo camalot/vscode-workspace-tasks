@@ -4,23 +4,66 @@ import { JustfileTaskProvider } from '../../providers/justfileTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
 import constants from '../../libs/constants';
 
+// Minimal shape used by the mock helper — only fields the provider reads.
+interface MockRecipe {
+  name: string;
+  doc?: string | null;
+  attributes?: Array<{ name: string; value?: string }>;
+}
+
+function makeRecipe(r: MockRecipe): object {
+  return {
+    name: r.name,
+    doc: r.doc ?? null,
+    parameters: [],
+    private: false,
+    quiet: false,
+    body: [],
+    dependencies: [],
+    attributes: r.attributes ?? [],
+    shebang: false,
+    priors: 0,
+  };
+}
+
+function mockJustDump(provider: JustfileTaskProvider, recipes: MockRecipe[]): void {
+  const recipesMap: Record<string, object> = {};
+  for (const r of recipes) {
+    recipesMap[r.name] = makeRecipe(r);
+  }
+  const output = {
+    first: recipes[0]?.name ?? '',
+    recipes: recipesMap,
+    settings: {},
+    variables: {},
+  };
+  (provider as any).execFileAsync = async () => ({ stdout: JSON.stringify(output), stderr: '' });
+}
+
 suite('JustfileTaskProvider Test Suite', () => {
   let originalFindFiles: any;
   let originalOpenTextDocument: any;
   let originalAsRelativePath: any;
   let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+  let originalGetWorkspaceFolder: typeof vscode.workspace.getWorkspaceFolder;
 
   setup(() => {
     const filesService = TaskFilesService.getInstance();
     originalFindFiles = filesService.findFiles.bind(filesService);
     originalOpenTextDocument = vscode.workspace.openTextDocument;
     originalAsRelativePath = vscode.workspace.asRelativePath;
+    originalGetWorkspaceFolder = vscode.workspace.getWorkspaceFolder;
 
     filesService.findFiles = async () => [];
     (vscode.workspace as any).asRelativePath = (uri: vscode.Uri | string) => {
       if (typeof uri === 'string') { return uri; }
       return uri.fsPath;
     };
+    (vscode.workspace as any).getWorkspaceFolder = (_uri: vscode.Uri) => ({
+      uri: vscode.Uri.file('/test'),
+      name: 'test',
+      index: 0,
+    });
 
     // Mock getConfiguration to prevent .vscode/settings.json overrides from disabling task types
     originalGetConfiguration = vscode.workspace.getConfiguration;
@@ -37,8 +80,11 @@ suite('JustfileTaskProvider Test Suite', () => {
     filesService.findFiles = originalFindFiles;
     (vscode.workspace as any).openTextDocument = originalOpenTextDocument;
     (vscode.workspace as any).asRelativePath = originalAsRelativePath;
+    (vscode.workspace as any).getWorkspaceFolder = originalGetWorkspaceFolder;
     (vscode.workspace as any).getConfiguration = originalGetConfiguration;
   });
+
+  // ── Basic provider properties ──────────────────────────────────────────────
 
   test('uses correct type', () => {
     const provider = new JustfileTaskProvider();
@@ -72,204 +118,479 @@ suite('JustfileTaskProvider Test Suite', () => {
 
   test('getTasks returns empty when no files found', async () => {
     const provider = new JustfileTaskProvider();
+    (provider as any).execFileAsync = async () => { throw new Error('just not found'); };
     const tasks = await provider.getTasks();
     assert.deepStrictEqual(tasks, []);
   });
 
-  suite('parses justfile recipes', () => {
+  // ── JSON path: primary task discovery ─────────────────────────────────────
+
+  suite('uses just --dump when available', () => {
+    let fileUri: vscode.Uri;
+
     setup(() => {
+      fileUri = vscode.Uri.file('/test/justfile');
       const filesService = TaskFilesService.getInstance();
-      const fileUri = vscode.Uri.file('/test/justfile');
       filesService.findFiles = async () => [fileUri];
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => 'build:\n    cargo build\ntest:\n    cargo test\n',
+      });
     });
 
-    test('parses simple recipe', async () => {
-      const content = `build:\n    cargo build\n\ntest:\n    cargo test\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
+    test('parses recipes from JSON output', async () => {
       const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'build' }, { name: 'test' }]);
       const tasks = await provider.getTasks();
-
       const names = tasks.map(t => t.label);
       assert.ok(names.includes('build'), 'Should include "build"');
       assert.ok(names.includes('test'), 'Should include "test"');
     });
 
-    test('parses recipe with parameters', async () => {
-      const content = `deploy env='production':\n    echo deploying to {{env}}\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
+    test('populates tooltip from doc comment', async () => {
       const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'build', doc: 'Build the project' }]);
       const tasks = await provider.getTasks();
-
-      const names = tasks.map(t => t.label);
-      assert.ok(names.includes('deploy'), 'Should include "deploy"');
-    });
-
-    test('parses recipe with @ prefix', async () => {
-      const content = `@quiet-task:\n    echo quiet\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
-      const provider = new JustfileTaskProvider();
-      const tasks = await provider.getTasks();
-
-      const names = tasks.map(t => t.label);
-      assert.ok(names.includes('quiet-task'), 'Should include "quiet-task"');
-    });
-
-    test('ignores comment lines', async () => {
-      const content = `# This is a comment\nbuild:\n    cargo build\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
-      const provider = new JustfileTaskProvider();
-      const tasks = await provider.getTasks();
-
       assert.strictEqual(tasks.length, 1);
-      assert.strictEqual(tasks[0].label, 'build');
+      assert.strictEqual(tasks[0].tooltip, 'Build the project');
     });
 
-    test('ignores empty lines', async () => {
-      const content = `\n\nbuild:\n    cargo build\n\n\ntest:\n    cargo test\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
+    test('does not set tooltip when doc is null', async () => {
       const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'build', doc: null }]);
       const tasks = await provider.getTasks();
-
-      assert.strictEqual(tasks.length, 2);
-    });
-
-    test('ignores assignment lines with :=', async () => {
-      const content = `version := "1.0.0"\nbuild:\n    echo {{version}}\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
-      const provider = new JustfileTaskProvider();
-      const tasks = await provider.getTasks();
-
-      const names = tasks.map(t => t.label);
-      assert.ok(!names.includes('version'), 'Should not include variable assignment');
-      assert.ok(names.includes('build'), 'Should include "build"');
-    });
-
-    test('ignores reserved keywords: set', async () => {
-      const content = `set shell := ["bash", "-c"]\nbuild:\n    cargo build\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
-      const provider = new JustfileTaskProvider();
-      const tasks = await provider.getTasks();
-
-      const names = tasks.map(t => t.label);
-      assert.ok(!names.includes('set'), 'Should not include "set" keyword');
-      assert.ok(names.includes('build'), 'Should include "build"');
-    });
-
-    test('ignores reserved keywords: alias', async () => {
-      const content = `alias b := build\nbuild:\n    cargo build\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
-      const provider = new JustfileTaskProvider();
-      const tasks = await provider.getTasks();
-
-      const names = tasks.map(t => t.label);
-      assert.ok(!names.includes('alias'), 'Should not include "alias" keyword');
-      assert.ok(names.includes('build'), 'Should include "build"');
-    });
-
-    test('ignores reserved keywords: mod, import, export', async () => {
-      const content = `mod submodule\nimport 'helpers.just'\nexport PATH\nbuild:\n    cargo build\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
-      const provider = new JustfileTaskProvider();
-      const tasks = await provider.getTasks();
-
-      const names = tasks.map(t => t.label);
-      assert.ok(!names.includes('mod'), 'Should not include "mod"');
-      assert.ok(!names.includes('import'), 'Should not include "import"');
-      assert.ok(!names.includes('export'), 'Should not include "export"');
-      assert.ok(names.includes('build'), 'Should include "build"');
-    });
-
-    test('sets startLine correctly', async () => {
-      const content = `# comment\nbuild:\n    cargo build\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
-      const provider = new JustfileTaskProvider();
-      const tasks = await provider.getTasks();
-
       assert.strictEqual(tasks.length, 1);
-      assert.strictEqual(tasks[0].startLine, 1);
+      // Default tooltip set by TaskItem constructor differs from recipe doc
+      assert.notStrictEqual(tasks[0].tooltip, null);
     });
 
-    test('handles error when parsing file', async () => {
+    test('does not include variables — only recipes keys are used', async () => {
+      const provider = new JustfileTaskProvider();
+      // JSON output with extra top-level keys that are NOT recipes
+      (provider as any).execFileAsync = async () => ({
+        stdout: JSON.stringify({
+          first: 'build',
+          recipes: { build: makeRecipe({ name: 'build' }) },
+          settings: {},
+          variables: { version: '1.0.0' },
+        }),
+        stderr: '',
+      });
+      const tasks = await provider.getTasks();
+      const names = tasks.map(t => t.label);
+      assert.ok(names.includes('build'));
+      assert.ok(!names.includes('version'));
+    });
+
+    test('returns no tasks when just --dump fails', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => { throw new Error('command not found: just'); };
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+    });
+
+    test('returns no tasks when JSON is malformed', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => ({ stdout: 'not valid json{{', stderr: '' });
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+    });
+
+    test('returns no tasks when JSON shape is invalid (missing recipes key)', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => ({
+        stdout: JSON.stringify({ first: 'build', settings: {}, variables: {} }),
+        stderr: '',
+      });
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+    });
+
+    test('returns no tasks when recipes is null', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => ({
+        stdout: JSON.stringify({ first: 'build', recipes: null, settings: {}, variables: {} }),
+        stderr: '',
+      });
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+    });
+
+    test('skips file when workspace folder is not found', async () => {
+      (vscode.workspace as any).getWorkspaceFolder = () => undefined;
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'build' }]);
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+    });
+
+    test('handles error when opening file', async () => {
       (vscode.workspace as any).openTextDocument = async () => {
         throw new Error('File not found');
       };
-
       const provider = new JustfileTaskProvider();
-      // Should not throw, just return empty
       const tasks = await provider.getTasks();
       assert.deepStrictEqual(tasks, []);
     });
 
     test('sets onOpenActionCommand on task items', async () => {
-      const content = `build:\n    cargo build\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
       const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'build' }]);
       const tasks = await provider.getTasks();
-
       assert.strictEqual(tasks.length, 1);
       assert.ok(tasks[0].onOpenActionCommand, 'Should have onOpenActionCommand');
       assert.strictEqual(tasks[0].onOpenActionCommand!.command, 'workspaceTasks.openFileAtLine');
     });
 
-    test('parses recipe with hyphens and underscores in name', async () => {
-      const content = `my-task:\n    echo hello\nmy_task_two:\n    echo world\n`;
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
-
+    test('resolves startLine from file content', async () => {
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => '# comment\nbuild:\n    cargo build\n',
+      });
       const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'build' }]);
       const tasks = await provider.getTasks();
-
-      const names = tasks.map(t => t.label);
-      assert.ok(names.includes('my-task'), 'Should include "my-task"');
-      assert.ok(names.includes('my_task_two'), 'Should include "my_task_two"');
+      assert.strictEqual(tasks.length, 1);
+      assert.strictEqual(tasks[0].startLine, 1);
     });
 
-    test('parses multiple recipes from a complex justfile', async () => {
-      const content = [
-        '# Project justfile',
-        '',
-        'set shell := ["bash", "-c"]',
-        '',
-        'version := "1.0.0"',
-        '',
-        'build: test',
-        '    cargo build --release',
-        '',
-        'test:',
-        '    cargo test',
-        '',
-        'clean:',
-        '    rm -rf target/',
-        '',
-        '@quiet:',
-        '    echo quiet mode',
-        '',
-        'alias b := build',
-      ].join('\n');
+    test('returns 0 for startLine when recipe line not found', async () => {
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => '# no recipes here\n',
+      });
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'build' }]);
+      const tasks = await provider.getTasks();
+      assert.strictEqual(tasks.length, 1);
+      assert.strictEqual(tasks[0].startLine, 0);
+    });
 
-      (vscode.workspace as any).openTextDocument = async () => ({ getText: () => content });
+    test('handles recipes with @ prefix in file', async () => {
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => '@quiet-task:\n    echo quiet\n',
+      });
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [{ name: 'quiet-task' }]);
+      const tasks = await provider.getTasks();
+      assert.strictEqual(tasks.length, 1);
+      assert.strictEqual(tasks[0].startLine, 0);
+    });
+
+    test('handles empty recipes object', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => ({
+        stdout: JSON.stringify({ first: '', recipes: {}, settings: {}, variables: {} }),
+        stderr: '',
+      });
+      const tasks = await provider.getTasks();
+      assert.deepStrictEqual(tasks, []);
+    });
+  });
+
+  // ── Groups support ─────────────────────────────────────────────────────────
+
+  suite('justfile recipe groups', () => {
+    let fileUri: vscode.Uri;
+
+    setup(() => {
+      fileUri = vscode.Uri.file('/test/justfile');
+      const filesService = TaskFilesService.getInstance();
+      filesService.findFiles = async () => [fileUri];
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => 'build:\n    cargo build\ntest:\n    cargo test\n',
+      });
+    });
+
+    test('groups disabled: all recipes returned flat (even those with group attr)', async () => {
+      // Default getConfiguration mock returns default value (false) for groups.justfile.enabled
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [
+        { name: 'build', attributes: [{ name: 'group', value: 'Build' }] },
+        { name: 'test', attributes: [{ name: 'group', value: 'Test' }] },
+      ]);
+      const tasks = await provider.getTasks();
+      const names = tasks.map(t => t.label);
+      assert.ok(names.includes('build'));
+      assert.ok(names.includes('test'));
+      // No group items — all flat
+      assert.strictEqual(tasks.length, 2);
+    });
+
+    test('groups enabled: grouped recipes placed under group items', async () => {
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'groups.justfile.enabled') { return true as unknown as T; }
+              return def as T;
+            },
+          };
+        }
+        return originalGetConfiguration(section);
+      };
 
       const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [
+        { name: 'build', attributes: [{ name: 'group', value: 'Build' }] },
+        { name: 'test', attributes: [{ name: 'group', value: 'Test' }] },
+      ]);
       const tasks = await provider.getTasks();
 
-      const names = tasks.map(t => t.label);
-      assert.ok(names.includes('build'), 'Should include "build"');
-      assert.ok(names.includes('test'), 'Should include "test"');
-      assert.ok(names.includes('clean'), 'Should include "clean"');
-      assert.ok(names.includes('quiet'), 'Should include "quiet"');
-      assert.ok(!names.includes('version'), 'Should not include variable');
-      assert.ok(!names.includes('set'), 'Should not include "set"');
-      assert.ok(!names.includes('alias'), 'Should not include "alias"');
+      // Should have two group items (no ungrouped recipes)
+      assert.strictEqual(tasks.length, 2);
+      const buildGroup = tasks.find(t => t.label === 'Build');
+      const testGroup = tasks.find(t => t.label === 'Test');
+      assert.ok(buildGroup, 'Should have Build group');
+      assert.ok(testGroup, 'Should have Test group');
+      assert.strictEqual(buildGroup!.children!.length, 1);
+      assert.strictEqual(buildGroup!.children![0].label, 'build');
+      assert.strictEqual(testGroup!.children!.length, 1);
+      assert.strictEqual(testGroup!.children![0].label, 'test');
+    });
+
+    test('groups enabled: ungrouped recipes coexist with group items', async () => {
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'groups.justfile.enabled') { return true as unknown as T; }
+              return def as T;
+            },
+          };
+        }
+        return originalGetConfiguration(section);
+      };
+
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [
+        { name: 'build', attributes: [{ name: 'group', value: 'Build' }] },
+        { name: 'ungrouped' }, // no group attribute
+      ]);
+      const tasks = await provider.getTasks();
+
+      // ungrouped recipe at top level + one Build group
+      assert.strictEqual(tasks.length, 2);
+      const ungrouped = tasks.find(t => t.label === 'ungrouped');
+      const buildGroup = tasks.find(t => t.label === 'Build');
+      assert.ok(ungrouped, 'Should have ungrouped task');
+      assert.ok(buildGroup, 'Should have Build group');
+    });
+
+    test('groups enabled: group item has no runnable command', async () => {
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'groups.justfile.enabled') { return true as unknown as T; }
+              return def as T;
+            },
+          };
+        }
+        return originalGetConfiguration(section);
+      };
+
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [
+        { name: 'build', attributes: [{ name: 'group', value: 'Build' }] },
+      ]);
+      const tasks = await provider.getTasks();
+      const buildGroup = tasks.find(t => t.label === 'Build');
+      assert.ok(buildGroup, 'Build group should exist');
+      assert.ok(!buildGroup!.onRunActionCommand, 'Group should have no run command');
+    });
+
+    test('groups enabled: group item metadata is set correctly', async () => {
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'groups.justfile.enabled') { return true as unknown as T; }
+              return def as T;
+            },
+          };
+        }
+        return originalGetConfiguration(section);
+      };
+
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [
+        { name: 'build', attributes: [{ name: 'group', value: 'Build' }] },
+      ]);
+      const tasks = await provider.getTasks();
+      const buildGroup = tasks.find(t => t.label === 'Build');
+      assert.ok(buildGroup, 'Build group should exist');
+      assert.deepStrictEqual(buildGroup!.metadata, { type: 'group', groupName: 'Build' });
+    });
+
+    test('groups enabled: multiple recipes in the same group', async () => {
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'groups.justfile.enabled') { return true as unknown as T; }
+              return def as T;
+            },
+          };
+        }
+        return originalGetConfiguration(section);
+      };
+
+      const provider = new JustfileTaskProvider();
+      mockJustDump(provider, [
+        { name: 'build', attributes: [{ name: 'group', value: 'CI' }] },
+        { name: 'test', attributes: [{ name: 'group', value: 'CI' }] },
+        { name: 'lint', attributes: [{ name: 'group', value: 'CI' }] },
+      ]);
+      const tasks = await provider.getTasks();
+      assert.strictEqual(tasks.length, 1);
+      const ciGroup = tasks[0];
+      assert.strictEqual(ciGroup.label, 'CI');
+      assert.strictEqual(ciGroup.children!.length, 3);
+    });
+  });
+
+  // ── Helper method unit tests ───────────────────────────────────────────────
+
+  suite('findRecipeLineNumber', () => {
+    test('returns correct line index for a recipe', () => {
+      const provider = new JustfileTaskProvider();
+      const lines = ['# comment', 'build:', '    cargo build'];
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), 1);
+    });
+
+    test('returns 0 when recipe not found', () => {
+      const provider = new JustfileTaskProvider();
+      const lines = ['# comment', 'test:', '    cargo test'];
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), 0);
+    });
+
+    test('matches recipe with @ prefix', () => {
+      const provider = new JustfileTaskProvider();
+      const lines = ['@quiet-task:', '    echo quiet'];
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'quiet-task'), 0);
+    });
+
+    test('does not match body lines with same word', () => {
+      const provider = new JustfileTaskProvider();
+      // The body line starts with indentation, so it won't match ^@?build
+      const lines = ['build:', '    build stuff'];
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), 0);
+    });
+
+    test('handles recipe name with regex metacharacters', () => {
+      const provider = new JustfileTaskProvider();
+      // Recipe name containing a dot (shouldn't be valid just names but defensive)
+      const lines = ['my.task:', '    echo ok'];
+      // Since dot is escaped, it matches literally
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'my.task'), 0);
+    });
+  });
+
+  suite('getRecipeGroup', () => {
+    test('returns null for empty attributes', () => {
+      const provider = new JustfileTaskProvider();
+      const recipe = makeRecipe({ name: 'build' });
+      assert.strictEqual((provider as any).getRecipeGroup(recipe), null);
+    });
+
+    test('returns group name from group attribute', () => {
+      const provider = new JustfileTaskProvider();
+      const recipe = makeRecipe({
+        name: 'build',
+        attributes: [{ name: 'group', value: 'Build' }],
+      });
+      assert.strictEqual((provider as any).getRecipeGroup(recipe), 'Build');
+    });
+
+    test('returns null when attribute name is not group', () => {
+      const provider = new JustfileTaskProvider();
+      const recipe = makeRecipe({
+        name: 'build',
+        attributes: [{ name: 'private' }],
+      });
+      assert.strictEqual((provider as any).getRecipeGroup(recipe), null);
+    });
+
+    test('returns null when group attribute has no value', () => {
+      const provider = new JustfileTaskProvider();
+      const recipe = makeRecipe({
+        name: 'build',
+        attributes: [{ name: 'group' }], // value is undefined
+      });
+      assert.strictEqual((provider as any).getRecipeGroup(recipe), null);
+    });
+
+    test('ignores non-group attributes and returns group value', () => {
+      const provider = new JustfileTaskProvider();
+      const recipe = makeRecipe({
+        name: 'build',
+        attributes: [
+          { name: 'private' },
+          { name: 'group', value: 'MyGroup' },
+        ],
+      });
+      assert.strictEqual((provider as any).getRecipeGroup(recipe), 'MyGroup');
+    });
+  });
+
+  suite('getJustJsonOutput', () => {
+    test('returns null and logs when execFile throws', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => { throw new Error('not found'); };
+      const justCmd = { command: 'just', args: [], cwd: '/test' };
+      const result = await (provider as any).getJustJsonOutput('/test/justfile', justCmd);
+      assert.strictEqual(result, null);
+    });
+
+    test('returns null when JSON is unparseable', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => ({ stdout: '{{bad json', stderr: '' });
+      const justCmd = { command: 'just', args: [], cwd: '/test' };
+      const result = await (provider as any).getJustJsonOutput('/test/justfile', justCmd);
+      assert.strictEqual(result, null);
+    });
+
+    test('returns null when recipes key is missing', async () => {
+      const provider = new JustfileTaskProvider();
+      (provider as any).execFileAsync = async () => ({
+        stdout: JSON.stringify({ first: 'build', settings: {}, variables: {} }),
+        stderr: '',
+      });
+      const justCmd = { command: 'just', args: [], cwd: '/test' };
+      const result = await (provider as any).getJustJsonOutput('/test/justfile', justCmd);
+      assert.strictEqual(result, null);
+    });
+
+    test('returns parsed output on success', async () => {
+      const provider = new JustfileTaskProvider();
+      const output = {
+        first: 'build',
+        recipes: { build: makeRecipe({ name: 'build' }) },
+        settings: {},
+        variables: {},
+      };
+      (provider as any).execFileAsync = async () => ({
+        stdout: JSON.stringify(output),
+        stderr: '',
+      });
+      const justCmd = { command: 'just', args: [], cwd: '/test' };
+      const result = await (provider as any).getJustJsonOutput('/test/justfile', justCmd);
+      assert.ok(result !== null);
+      assert.ok('build' in result.recipes);
+    });
+
+    test('passes args from justCmd to execFileAsync', async () => {
+      const provider = new JustfileTaskProvider();
+      let capturedArgs: string[] = [];
+      const output = { first: '', recipes: {}, settings: {}, variables: {} };
+      (provider as any).execFileAsync = async (_cmd: string, args: string[]) => {
+        capturedArgs = args;
+        return { stdout: JSON.stringify(output), stderr: '' };
+      };
+      const justCmd = { command: 'just', args: ['--extra-arg'], cwd: '/test' };
+      await (provider as any).getJustJsonOutput('/test/justfile', justCmd);
+      assert.ok(capturedArgs.includes('--extra-arg'));
+      assert.ok(capturedArgs.includes('--dump'));
+      assert.ok(capturedArgs.includes('--dump-format'));
+      assert.ok(capturedArgs.includes('json'));
     });
   });
 });

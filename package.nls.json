@@ -235,6 +235,10 @@
   "config.workspaceTasks.groups.recentTasks.enabled": "Group Recent Tasks",
   "config.workspaceTasks.groups.recentTasks.enabled.markdown": "When enabled, recent tasks will be grouped based on the specified separator and other grouping rules. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-grouping.html#workspacetasksgroupsrecenttasksenabled)",
 
+  "config.workspaceTasks.groups.justfile.enabled": "Enable justfile recipe groups",
+  "config.workspaceTasks.groups.justfile.enabled.description": "When enabled, justfile recipes decorated with [group('name')] are shown as collapsible group nodes in the task tree.",
+  "config.workspaceTasks.groups.justfile.enabled.markdown": "When enabled, justfile recipes decorated with `[group('name')]` are shown as collapsible group nodes in the task tree. Requires just ≥ 1.13.0. Defaults to `false`.",
+
   "config.workspaceTasks.groups.compoundTasks.enabled": "Group Compound Tasks (previously called 'Queues')",
   "config.workspaceTasks.groups.compoundTasks.enabled.markdown": "When enabled, compound tasks (previously called 'Queues') will be grouped together in the task view. Otherwise, each compound task will be shown at the root level of the task view. [Read More](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html#vscode-compound-tasks-in-the-compound-tasks-group)",
 

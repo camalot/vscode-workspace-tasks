@@ -127,6 +127,7 @@ export class TaskItem extends vscode.TreeItem {
     const filteredService = FilteredTaskService.getInstance();
     const isCircleCiFileGroup = this.taskType === 'circleci' && this.metadata?.type === 'file';
     const isBitbucketFileGroup = this.taskType === 'bitbucket' && this.metadata?.type === 'file';
+    const isJustfileGroup = this.taskType === 'justfile' && this.metadata?.type === 'group';
 
     // Stored-secret items are managed separately — preserve their contextValue as-is.
     if (this.taskType === 'storedSecret') {
@@ -137,6 +138,7 @@ export class TaskItem extends vscode.TreeItem {
     if (
       isCircleCiFileGroup ||
       isBitbucketFileGroup ||
+      isJustfileGroup ||
       this.taskType === 'workspace' ||
       this.taskType === 'folder' ||
       this.taskType === 'type' ||
@@ -195,6 +197,8 @@ export class TaskItem extends vscode.TreeItem {
       if (isFiltered) {
         // Add filtered prefix to group context value
         this.contextValue = 'filtered' + this.taskType.charAt(0).toUpperCase() + this.taskType.slice(1);
+      } else if (isJustfileGroup) {
+        this.contextValue = 'justfileGroup';
       } else if (this.taskType === 'compoundTask') {
         // Compound task groups can be favorited; reflect that in the context value
         const isFav = FavoritesService.getInstance().isFavorite(this);
