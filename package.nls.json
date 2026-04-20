@@ -342,7 +342,6 @@
 
   "config.workspaceTasks.circleci.additionalFilePatterns.markdown": "Additional glob patterns for discovering CircleCI config files beyond the built-in `**/.circleci/config.{yml,yaml}` pattern. There are limitations, and possible issues when running locally. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/devops/circleci.html)",
 
-  "config.workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns.markdown": "Additional glob patterns for discovering Bitbucket Pipelines config files beyond the built-in `**/bitbucket-pipelines.yml` pattern.",
   "config.workspaceTasks.bitbucketPipelineRunner.environmentFiles.markdown": "List of env-file paths passed to `pipeline-runner` via `--env-file`. Each file is passed as a separate `--env-file` argument.",
 
   "config.workspaceTasks.taskfile.showAliases": "Show Task aliases as child tree items under their primary task.",

@@ -200,6 +200,7 @@ suite('Glob Pattern Constants Test Suite', () => {
       name: 'GLOB_BITBUCKET_PIPELINES',
       pattern: constants.GLOB_BITBUCKET_PIPELINES,
       matches: [
+        'bitbucket-pipelines.yml',
         'repo/bitbucket-pipelines.yml',
         'subdir/bitbucket-pipelines.yml',
         'repo/.bitbucket/bitbucket-pipelines.yml',

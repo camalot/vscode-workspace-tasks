@@ -50,6 +50,22 @@ export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Injects runtime args into a command.
+ * If ${args} exists, all occurrences are replaced; otherwise args are appended.
+ */
+export function injectArgs(command: string, args?: string): string {
+  if (!args) {
+    return command;
+  }
+
+  if (command.includes('${args}')) {
+    return command.replaceAll('${args}', () => args);
+  }
+
+  return `${command} ${args}`;
+}
+
+/**
  * Builds the raw task without env injection. Used internally by `createTaskForItem`.
  */
 async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
@@ -85,7 +101,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       resourceUri,
     );
     if (declared) {
-      const fullCommand = args ? `${declared} ${args}` : declared;
+      const fullCommand = injectArgs(declared, args);
       const task = new vscode.Task(
         { type: 'workspace-task', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
@@ -555,7 +571,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       const configType = item.taskSource || 'shell';
       const declared = await WorkspaceTasksService.getInstance().resolveTaskCommand(taskLabel, configType, resourceUri);
       if (declared) {
-        const fullCommand = args ? `${declared} ${args}` : declared;
+        const fullCommand = injectArgs(declared, args);
         const task = new vscode.Task(
           { type: 'workspace-task', task: taskLabel, path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,

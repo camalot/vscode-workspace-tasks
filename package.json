@@ -1836,15 +1836,6 @@
             "markdownDescription": "%config.workspaceTasks.circleci.additionalFilePatterns.markdown%",
             "scope": "resource"
           },
-          "workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "markdownDescription": "%config.workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns.markdown%",
-            "scope": "resource"
-          },
           "workspaceTasks.bitbucketPipelineRunner.environmentFiles": {
             "type": "array",
             "items": {

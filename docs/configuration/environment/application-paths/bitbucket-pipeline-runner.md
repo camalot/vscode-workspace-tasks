@@ -41,24 +41,6 @@ pipx install bitbucket-pipeline-runner
 
 ---
 
-### workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns
-
-**Type:** `string[]`
-**Default:** `[]`
-**Scope:** `resource`
-
-Additional discovery patterns merged with the built-in `**/bitbucket-pipelines.yml` glob.
-
-```jsonc
-{
-  "workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns": [
-    "**/my-custom-pipelines.yml"
-  ]
-}
-```
-
----
-
 ### workspaceTasks.bitbucketPipelineRunner.environmentFiles
 
 **Type:** `string[]`

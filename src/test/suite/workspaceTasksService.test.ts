@@ -426,6 +426,62 @@ suite('WorkspaceTasksService Test Suite', () => {
         assert.strictEqual(cmd, 'run script.py');
     });
 
+    test('resolveTaskCommand resolves context tokens before {{ .FileName }} templates', async () => {
+        const langId = 'testLang';
+        (service as any).config = {
+            [langId]: {
+                tasks: [{ "label": "tCtx", "command": "echo ${workspaceFolder} {{ .FileName }}", "type": "workspace" }],
+                inputs: []
+            }
+        };
+        (service as any).configLoaded = true;
+
+        const uri = vscode.Uri.file('/root/project/src/script.py');
+        vscode.workspace.getWorkspaceFolder = (_u: vscode.Uri) => ({ uri: vscode.Uri.file('/root/project'), name: 'project', index: 0 });
+
+        const cmd = await service.resolveTaskCommand('tCtx', langId, uri);
+        assert.strictEqual(cmd, 'echo /root/project script.py');
+    });
+
+    test('resolveTaskCommand resolves ${env.VAR} from process.env', async () => {
+        const langId = 'testLang';
+        (service as any).config = {
+            [langId]: {
+                tasks: [{ "label": "tEnv", "command": "echo ${env.WTS_TEST_VAR}", "type": "workspace" }],
+                inputs: []
+            }
+        };
+        (service as any).configLoaded = true;
+
+        const original = process.env.WTS_TEST_VAR;
+        process.env.WTS_TEST_VAR = 'env-value';
+
+        try {
+            const cmd = await service.resolveTaskCommand('tEnv', langId, vscode.Uri.file('/root/project/file.txt'));
+            assert.strictEqual(cmd, 'echo env-value');
+        } finally {
+            if (original === undefined) {
+                delete process.env.WTS_TEST_VAR;
+            } else {
+                process.env.WTS_TEST_VAR = original;
+            }
+        }
+    });
+
+    test('resolveTaskCommand preserves unknown ${...} token', async () => {
+        const langId = 'testLang';
+        (service as any).config = {
+            [langId]: {
+                tasks: [{ "label": "tUnknownToken", "command": "echo ${HOME}", "type": "workspace" }],
+                inputs: []
+            }
+        };
+        (service as any).configLoaded = true;
+
+        const cmd = await service.resolveTaskCommand('tUnknownToken', langId, vscode.Uri.file('/root/project/file.txt'));
+        assert.strictEqual(cmd, 'echo ${HOME}');
+    });
+
     test('resolveTaskCommand prompts for input (promptString)', async () => {
         const langId = 'testLang';
         (service as any).config = {

@@ -74,11 +74,16 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
       return [];
     }
 
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    const extraPatterns = config.get<string[]>('bitbucketPipelineRunner.additionalFilePatterns', []);
-    const globs = [constants.GLOB_BITBUCKET_PIPELINES, ...extraPatterns];
+    const allFiles = await TaskFilesService.getInstance().findFiles([constants.GLOB_BITBUCKET_PIPELINES]);
 
-    const files = await TaskFilesService.getInstance().findFiles(globs);
+    // pipeline-runner has no flag to specify the config file path — it always
+    // reads bitbucket-pipelines.yml from the current working directory (workspace
+    // root).  Only process files that live directly at a workspace folder root.
+    const workspaceRoots = new Set(
+      (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath),
+    );
+    const files = allFiles.filter((f) => workspaceRoots.has(path.dirname(f.fsPath)));
+
     const tasks: TaskItem[] = [];
 
     for (const file of files) {
@@ -124,8 +129,14 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     const svc = iconService ?? TaskIconService.getInstance();
     const iconPath = svc.getTaskIcon('bitbucket', fileUri);
 
+    // Use the workspace folder name as the label (pipeline-runner always runs from the
+    // workspace root, so there is at most one bitbucket-pipelines.yml per workspace folder).
+    // This makes it clear which workspace the item belongs to in multi-root workspaces.
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
+    const fileLabel = workspaceFolder?.name ?? path.basename(path.dirname(fileUri.fsPath));
+
     const fileItem = new TaskItem(
-      path.basename(fileUri.fsPath),
+      fileLabel,
       vscode.TreeItemCollapsibleState.Collapsed,
       'bitbucket',
       fileUri,

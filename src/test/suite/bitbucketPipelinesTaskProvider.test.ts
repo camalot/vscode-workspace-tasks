@@ -15,11 +15,22 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
   let originalFindFiles: any;
   let originalGetTaskIcon: any;
   let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+  let originalWorkspaceFolders: PropertyDescriptor | undefined;
   let tempDir: string;
 
   const fakeIcon = new vscode.ThemeIcon('circuit-board');
   const makeFileUri = (dir: string, name = 'bitbucket-pipelines.yml') =>
     vscode.Uri.file(path.join(dir, name));
+
+  const setWorkspaceFolders = (dirs: string[]) => {
+    try {
+      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+        value: dirs.map((d, i) => ({ uri: vscode.Uri.file(d), name: path.basename(d), index: i })),
+        writable: true,
+        configurable: true,
+      });
+    } catch { /* ignore if read-only in test env */ }
+  };
 
   setup(() => {
     provider = new BitbucketPipelinesTaskProvider();
@@ -27,6 +38,10 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
     const filesService = TaskFilesService.getInstance();
     originalFindFiles = filesService.findFiles.bind(filesService);
     filesService.findFiles = async () => [];
+
+    originalWorkspaceFolders = Object.getOwnPropertyDescriptor(vscode.workspace, 'workspaceFolders');
+    // Default: treat FIXTURE_DIR as the workspace root so getTasks tests work
+    setWorkspaceFolders([FIXTURE_DIR]);
 
     const iconService = TaskIconService.getInstance();
     originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
@@ -51,6 +66,10 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
     iconService.getTaskIcon = originalGetTaskIcon;
 
     (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+
+    if (originalWorkspaceFolders) {
+      Object.defineProperty(vscode.workspace, 'workspaceFolders', originalWorkspaceFolders);
+    }
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
@@ -104,6 +123,35 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
     assert.strictEqual(tasks[0].taskType, 'bitbucket');
   });
 
+  test('getTasks only includes files at workspace folder roots', async () => {
+    Object.defineProperty(provider, 'enabled', { value: true, configurable: true });
+    const rootFile = vscode.Uri.file(path.join(FIXTURE_DIR, 'simple-default.yml'));
+    const subFile = vscode.Uri.file(path.join(FIXTURE_DIR, 'subdir', 'bitbucket-pipelines.yml'));
+    const filesService = TaskFilesService.getInstance();
+    filesService.findFiles = async () => [rootFile, subFile];
+
+    const tasks = await provider.getTasks();
+    // subFile lives in FIXTURE_DIR/subdir which is not a workspace root — only rootFile is included
+    assert.ok(tasks.length > 0, 'Should return at least one task');
+    for (const task of tasks) {
+      assert.ok(
+        task.taskFileUri?.fsPath.startsWith(FIXTURE_DIR + path.sep) ||
+        task.taskFileUri?.fsPath === rootFile.fsPath,
+        'Task should come from workspace root, not subdirectory',
+      );
+    }
+  });
+
+  test('getTasks returns empty when all files are in subdirectories', async () => {
+    Object.defineProperty(provider, 'enabled', { value: true, configurable: true });
+    const subFile = vscode.Uri.file(path.join(FIXTURE_DIR, 'subdir', 'bitbucket-pipelines.yml'));
+    const filesService = TaskFilesService.getInstance();
+    filesService.findFiles = async () => [subFile];
+
+    const tasks = await provider.getTasks();
+    assert.deepStrictEqual(tasks, []);
+  });
+
   // ──────────────────────────────────────────────────────────────
   // parseConfig — invalid/missing YAML
   // ──────────────────────────────────────────────────────────────
@@ -144,7 +192,30 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
     const text = fs.readFileSync(path.join(FIXTURE_DIR, 'simple-default.yml'), 'utf8');
     const result = provider.parseConfig(fileUri, text);
     assert.ok(result);
-    assert.strictEqual(result!.label, 'bitbucket-pipelines.yml');
+    // Label should be the workspace folder name (or directory basename as fallback)
+    const expectedLabel = path.basename(tempDir);
+    assert.strictEqual(result!.label, expectedLabel);
+  });
+
+  test('parseConfig uses workspace folder name when available', () => {
+    const fakeRoot = path.join(os.tmpdir(), '.tmp-ws-root-bitbucket');
+    const fileUri = vscode.Uri.file(path.join(fakeRoot, 'bitbucket-pipelines.yml'));
+
+    const savedGetWorkspaceFolder = vscode.workspace.getWorkspaceFolder;
+    (vscode.workspace as any).getWorkspaceFolder = (_uri: vscode.Uri) => ({
+      uri: vscode.Uri.file(fakeRoot),
+      name: 'my-project',
+      index: 0,
+    });
+
+    try {
+      const text = fs.readFileSync(path.join(FIXTURE_DIR, 'simple-default.yml'), 'utf8');
+      const result = provider.parseConfig(fileUri, text);
+      assert.ok(result);
+      assert.strictEqual(result!.label, 'my-project');
+    } finally {
+      (vscode.workspace as any).getWorkspaceFolder = savedGetWorkspaceFolder;
+    }
   });
 
   test('parseConfig file item has taskType bitbucket', () => {

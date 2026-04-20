@@ -130,6 +130,8 @@ const constants: Record<string, any> = {
   GLOB_CIRCLECI: '**/.circleci/config.{yml,yaml}',
   // should match:
   // - bitbucket-pipelines.yml
+  // NOTE: pipeline-runner always runs from the workspace root, so the provider
+  // further filters discovered files to those living at a workspace folder root.
   GLOB_BITBUCKET_PIPELINES: '**/bitbucket-pipelines.yml',
   // should match:
   // - foo.ipynb

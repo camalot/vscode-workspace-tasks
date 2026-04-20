@@ -204,6 +204,8 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
     - Real-time cell execution status via the Jupyter Extension UI
 - **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json` and the user-level `tasks.json` (`%APPDATA%\Code\User\tasks.json` on Windows, `~/.config/Code/User/tasks.json` on Linux, `~/Library/Application Support/Code/User/tasks.json` on macOS)
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
+  - Supports positional run-time args via `${args}` in `command`
+  - Supports command context tokens like `${workspaceFolder}`, `${file}`, and `${env.VAR}`
 
 > The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#requirements) for details.
 

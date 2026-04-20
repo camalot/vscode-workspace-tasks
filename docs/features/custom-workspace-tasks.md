@@ -78,6 +78,25 @@ Tasks can be associated with file patterns and accept user inputs:
 }
 ```
 
+## Command Context Tokens
+
+The `command` field for workspace tasks supports context token substitution at execution time.
+
+| Token | Value |
+| --- | --- |
+| `${args}` | Args typed in **Run with Args**. If omitted from `command`, args are appended to the end. |
+| `${workspaceFolder}` | Absolute path of the workspace folder that contains the task source file. |
+| `${workspaceFolderBasename}` | Base name of `${workspaceFolder}`. |
+| `${file}` | Absolute path of the active editor file (empty string if no active editor). |
+| `${fileBasename}` | Active file name with extension. |
+| `${fileDirname}` | Directory of the active file. |
+| `${fileExtname}` | Active file extension (including the dot). |
+| `${fileBasenameNoExtension}` | Active file name without extension. |
+| `${pathSeparator}` | OS path separator (`/` or `\\`). |
+| `${env.VAR}` | `process.env.VAR` value at execution time (empty string if missing). |
+
+Unknown `${...}` tokens are preserved unchanged so shell-style patterns such as `${HOME}` continue to work.
+
 ## Custom Icons (`iconUri`)
 
 Each task type group can display a custom icon in the tree view via the optional `iconUri` field. It accepts three forms:
@@ -262,7 +281,7 @@ To store a secret: open the Command Palette → **Workspace Tasks: Add New Secre
 - **tasks** - Array of task definitions
   - **label** - Display name
   - **type** - The type of task. Examples include `"workspace"`, `"shell"`, `"process"`, etc.
-  - **command** - Shell command (use `{{ .InputId }}` for variables)
+  - **command** - Shell command (supports `{{ .InputId }}` and context tokens: `${args}`, `${workspaceFolder}`, `${workspaceFolderBasename}`, `${file}`, `${fileBasename}`, `${fileDirname}`, `${fileExtname}`, `${fileBasenameNoExtension}`, `${pathSeparator}`, `${env.VAR}`)
   - **group** - Task group (`"build"`, `"test"`, etc.)
   - **env** - Per-task inline environment variable overrides
   - **envFiles** - Per-task `.env` file references (`string | string[] | { include, exclude }`)

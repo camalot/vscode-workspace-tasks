@@ -53,10 +53,31 @@ To pass additional arguments to a task at runtime:
 
    **Right-click** the task and select **Run Task with Args**
 
-3. An input box appears — type the arguments you want to append to the task command
+3. An input box appears — type the arguments you want to pass to the task command
 4. Press **Enter** to run (or **Escape** to cancel)
 
-The arguments are appended to the task command when it executes. Pressing Escape without entering anything cancels the operation.
+For most tasks, arguments are appended to the command when it executes. For custom workspace-task
+commands that include `${args}`, the typed value is injected at that exact position (and for every
+`${args}` occurrence).
+
+Example:
+
+```json
+{
+   "label": "Run Container",
+   "type": "workspace",
+   "command": "docker run ${args} ghcr.io/example/app:latest"
+}
+```
+
+If you run with args `--rm -it`, the executed command becomes:
+
+```sh
+docker run --rm -it ghcr.io/example/app:latest
+```
+
+If `${args}` is not present, the value is appended to the end (backward-compatible behavior).
+Pressing Escape without entering anything cancels the operation.
 
 {: .note }
 The `workspaceTasks.task.doubleClickAction` or `workspaceTasks.task.singleClickAction` settings can be set to `runWithArgs` to make clicking a task always prompt for arguments.
