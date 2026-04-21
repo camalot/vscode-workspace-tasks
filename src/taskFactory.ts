@@ -66,6 +66,53 @@ export function injectArgs(command: string, args?: string): string {
 }
 
 /**
+ * Collects `workflow_dispatch` input values from the user via `showInputBox` prompts.
+ * Handles both the legacy `string[]` format and the current `Record<string, WorkflowInput>` format.
+ * Returns an array of `--input key=value` argument pairs ready to be spread into the act args.
+ */
+async function _collectWorkflowDispatchInputs(inputs: string[] | Record<string, any>): Promise<string[]> {
+  const collected: string[] = [];
+  if (Array.isArray(inputs)) {
+    for (const input of inputs) {
+      const val = await vscode.window.showInputBox({
+        prompt: `Enter input for '${input}'`,
+        placeHolder: 'Value',
+        ignoreFocusOut: true,
+      });
+      if (val) {
+        collected.push('--input', `${input}=${val}`);
+      }
+    }
+  } else {
+    for (const [key, details] of Object.entries(inputs)) {
+      const desc = (details as any).description || `Enter value for ${key}`;
+      const defaultVal = (details as any).default !== undefined ? String((details as any).default) : '';
+      const required = (details as any).required || false;
+      // type: string, boolean, choice, environment, ...
+      // For now treat all as string input
+
+      const val = await vscode.window.showInputBox({
+        prompt: desc,
+        placeHolder: `${key} (${(details as any).type || 'string'})`,
+        value: defaultVal,
+        ignoreFocusOut: true,
+        validateInput: (text) => {
+          if (required && !text) {
+            return 'This input is required';
+          }
+          return null;
+        },
+      });
+
+      if (val) {
+        collected.push('--input', `${key}=${val}`);
+      }
+    }
+  }
+  return collected;
+}
+
+/**
  * Builds the raw task without env injection. Used internally by `createTaskForItem`.
  */
 async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
@@ -119,7 +166,9 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     case 'npm': {
       const npmProvider = new NpmTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: npmCmd, args: npmInitialArgs, cwd: npmCwd } = npmProvider.getCommand(workspaceFolder?.uri);
+      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
+      // so that tasks in sub-packages run from their own directory.
+      const { command: npmCmd, args: npmInitialArgs } = npmProvider.getCommand(workspaceFolder?.uri);
 
       const npmArgs = npmInitialArgs ? [...npmInitialArgs] : [];
       const normalizedLabel = (taskLabel || '').trim().toLowerCase();
@@ -168,7 +217,9 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     case 'yarn': {
       const yarnProvider = new YarnTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: yarnCmd, args: yarnInitialArgs, cwd: yarnCwd } = yarnProvider.getCommand(workspaceFolder?.uri);
+      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
+      // so that tasks in sub-packages run from their own directory.
+      const { command: yarnCmd, args: yarnInitialArgs } = yarnProvider.getCommand(workspaceFolder?.uri);
 
       const yarnArgs = yarnInitialArgs ? [...yarnInitialArgs] : [];
       yarnArgs.push('run', `${taskLabel}`);
@@ -191,7 +242,9 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     case 'bun': {
       const bunProvider = new BunTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: bunCmd, args: bunInitialArgs, cwd: bunCwd } = bunProvider.getCommand(workspaceFolder?.uri);
+      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
+      // so that tasks in sub-packages run from their own directory.
+      const { command: bunCmd, args: bunInitialArgs } = bunProvider.getCommand(workspaceFolder?.uri);
       const bunArgs = bunInitialArgs ? [...bunInitialArgs] : [];
       bunArgs.push('run', `${taskLabel}`);
       if (args) {
@@ -213,7 +266,9 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     case 'pnpm': {
       const pnpmProvider = new PnpmTaskProvider();
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: pnpmCmd, args: pnpmInitialArgs, cwd: pnpmCwd } = pnpmProvider.getCommand(workspaceFolder?.uri);
+      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
+      // so that tasks in sub-packages run from their own directory.
+      const { command: pnpmCmd, args: pnpmInitialArgs } = pnpmProvider.getCommand(workspaceFolder?.uri);
 
       const pnpmArgs = pnpmInitialArgs ? [...pnpmInitialArgs] : [];
       pnpmArgs.push('run', `${taskLabel}`);
@@ -394,7 +449,11 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       return { task, command: full, cwd: composerCwd, native: false };
     }
     case 'shell': {
-      if (!resourceUri) {
+      // item.taskFileUri is the actual script file URI. item.resourceUri is always a
+      // synthetic workspace-tasks:// URI set by updateContextValue(), so it cannot be
+      // used as a guard. When no real file is associated, return undefined instead of
+      // falling through with the workspace root as a script path.
+      if (!item.taskFileUri) {
         return undefined;
       }
       const interpreter = item.metadata?.interpreter || '';
@@ -613,45 +672,8 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       // this should be the first argument.
       if (meta?.type === 'workflow') {
         if (meta.event === 'workflow_dispatch' && meta.inputs) {
-          const inputsObj = meta.inputs as Record<string, any>;
           // Handle both old string[] interface (fallback) and new Record interface
-          if (Array.isArray(inputsObj)) {
-            for (const input of inputsObj) {
-              const val = await vscode.window.showInputBox({
-                prompt: `Enter input for '${input}'`,
-                placeHolder: 'Value',
-                ignoreFocusOut: true,
-              });
-              if (val) {
-                actArgs.push('--input', `${input}=${val}`);
-              }
-            }
-          } else {
-            for (const [key, details] of Object.entries(inputsObj)) {
-              const desc = details.description || `Enter value for ${key}`;
-              const defaultVal = details.default !== undefined ? String(details.default) : '';
-              const required = details.required || false;
-              // type: string, boolean, choice, environment, ...
-              // For now treat all as string input
-
-              const val = await vscode.window.showInputBox({
-                prompt: desc,
-                placeHolder: `${key} (${details.type || 'string'})`,
-                value: defaultVal,
-                ignoreFocusOut: true,
-                validateInput: (text) => {
-                  if (required && !text) {
-                    return 'This input is required';
-                  }
-                  return null;
-                },
-              });
-
-              if (val) {
-                actArgs.push('--input', `${key}=${val}`);
-              }
-            }
-          }
+          actArgs.push(...await _collectWorkflowDispatchInputs(meta.inputs as string[] | Record<string, any>));
           actArgs.push('workflow_dispatch');
         } else {
           actArgs.push(meta.event || 'push');
@@ -711,42 +733,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
 
         // If selected event is workflow_dispatch, handle inputs
         if (useEvent === 'workflow_dispatch' && meta?.inputs) {
-          const inputsObj = meta.inputs as Record<string, any>;
-          if (Array.isArray(inputsObj)) {
-            for (const input of inputsObj) {
-              const val = await vscode.window.showInputBox({
-                prompt: `Enter input for '${input}'`,
-                placeHolder: 'Value',
-                ignoreFocusOut: true,
-              });
-              if (val) {
-                actArgs.push('--input', `${input}=${val}`);
-              }
-            }
-          } else {
-            for (const [key, details] of Object.entries(inputsObj)) {
-              const desc = details.description || `Enter value for ${key}`;
-              const defaultVal = details.default !== undefined ? String(details.default) : '';
-              const required = details.required || false;
-
-              const val = await vscode.window.showInputBox({
-                prompt: desc,
-                placeHolder: `${key} (${details.type || 'string'})`,
-                value: defaultVal,
-                ignoreFocusOut: true,
-                validateInput: (text) => {
-                  if (required && !text) {
-                    return 'This input is required';
-                  }
-                  return null;
-                },
-              });
-
-              if (val) {
-                actArgs.push('--input', `${key}=${val}`);
-              }
-            }
-          }
+          actArgs.push(...await _collectWorkflowDispatchInputs(meta.inputs as string[] | Record<string, any>));
         }
 
         actArgs.push(useEvent);
@@ -882,12 +869,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         return undefined;
       }
       let scriptPath = taskUri.fsPath;
-      if (
-        scriptPath.endsWith('.py') &&
-        (scriptPath.toLowerCase().includes('activate') || scriptPath.toLowerCase().includes('deactivate'))
-      ) {
-        scriptPath = scriptPath.substring(0, scriptPath.length - 3);
-      }
 
       let shellExec: vscode.ShellExecution;
       let commandString: string;
@@ -916,7 +897,11 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       return { task, command: commandString, cwd, native: false };
     }
     case 'msbuild': {
-      if (!resourceUri) {
+      // item.taskFileUri is the actual project file URI. item.resourceUri is always a
+      // synthetic workspace-tasks:// URI set by updateContextValue(), so it cannot be
+      // used as a guard. When no real project file is associated, return undefined
+      // instead of falling through with an invalid MSBuild invocation.
+      if (!item.taskFileUri) {
         return undefined;
       }
       const msbuildProvider = new MsBuildTaskProvider();
