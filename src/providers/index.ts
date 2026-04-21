@@ -4,7 +4,6 @@ import { ComposerTaskProvider } from './composerTaskProvider';
 import { DenoTaskProvider } from './denoTaskProvider';
 import { ShellTaskProvider } from './shellTaskProvider';
 import { VscodeTaskProvider } from './vscodeTaskProvider';
-import { VenvTaskProvider } from './venvTaskProvider';
 import { MiseTaskProvider } from './miseTaskProvider';
 import { MakefileTaskProvider } from './makefileTaskProvider';
 import { CargoMakeTaskProvider } from './cargoMakeTaskProvider';
@@ -43,7 +42,6 @@ type TaskProviderConstructor =
   | (new () => DenoTaskProvider)
   | (new () => ShellTaskProvider)
   | (new () => VscodeTaskProvider)
-  | (new () => VenvTaskProvider)
   | (new () => MakefileTaskProvider)
   | (new () => CargoMakeTaskProvider)
   | (new () => MiseTaskProvider)
@@ -78,7 +76,6 @@ function getProviderConstructors(): TaskProviderConstructor[] {
     DenoTaskProvider,
     ShellTaskProvider,
     VscodeTaskProvider,
-    VenvTaskProvider,
     MakefileTaskProvider,
     CargoMakeTaskProvider,
     MiseTaskProvider,

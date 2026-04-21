@@ -13,7 +13,7 @@ import { JupyterTerm } from './providers/jupyterTaskProvider';
 // Re-exported for backward compatibility — CreatedTask is defined in taskCreationUtils.
 export type { CreatedTask } from './libs/taskCreationUtils';
 
-const SPECIAL_CASE_TASK_TYPES = ['shell', 'jupyter', 'vscode', 'venv', 'dockerfile'] as const;
+const SPECIAL_CASE_TASK_TYPES = ['shell', 'jupyter', 'vscode', 'dockerfile'] as const;
 
 /**
  * The complete set of task types supported by createTaskForItem.
@@ -224,39 +224,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         return { task, command: fullCommand, cwd, native: false };
       }
       return undefined;
-    }
-    case 'venv': {
-      const taskUri = item.taskFileUri || item.resourceUri;
-      if (!taskUri) {
-        return undefined;
-      }
-      let scriptPath = taskUri.fsPath;
-
-      let shellExec: vscode.ShellExecution;
-      let commandString: string;
-
-      if (process.platform === 'win32' && scriptPath.toLowerCase().endsWith('.ps1')) {
-        // Use array form to properly handle paths with spaces
-        const shellArgs = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath];
-        if (args) {
-          shellArgs.push(...args.split(' '));
-        }
-        shellExec = new vscode.ShellExecution('powershell', shellArgs, { cwd });
-        commandString = `powershell ${shellArgs.join(' ')}`;
-      } else {
-        // For non-PowerShell scripts, keep the quoted string approach
-        commandString = `"${scriptPath}" ${args || ''}`.trim();
-        shellExec = new vscode.ShellExecution(commandString, { cwd });
-      }
-
-      const task = new vscode.Task(
-        { type: 'venv', task: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'venv',
-        shellExec,
-      );
-      return { task, command: commandString, cwd, native: false };
     }
     default: {
       return undefined;

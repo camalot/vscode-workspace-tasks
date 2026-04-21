@@ -59,7 +59,6 @@ nav_order: 2
   "ruby": true,
   "shell": true,
   "typescript": true,
-  "venv": true,
   "vscode": true,
   "webpack": true,
   "workspace": true,
@@ -101,7 +100,6 @@ Select which task-type providers are active. Disabling a provider prevents the e
 - **ruby** - Ruby (Gemfile / Rake tasks; see note below)
 - **shell** - Shell scripts
 - **typescript** - TypeScript Compiler
-- **venv** - Virtual Environment
 - **vscode** - Visual Studio Code tasks
 - **webpack** - Webpack
 - **workspace** - Custom Workspace Tasks

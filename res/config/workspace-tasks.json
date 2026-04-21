@@ -763,31 +763,6 @@
       }
     ]
   },
-  "venv": {
-    "version": "2.0.0",
-    "globs": {
-      "include": [
-        "**/.venv/pyvenv.cfg"
-      ]
-    },
-    "iconUri": "$(python)",
-    "tasks": [
-      {
-        "label": "venv:create",
-        "type": "shell",
-        "command": "echo \"python -m venv .venv ${workspaceFolder}\"",
-        "group": "venv",
-        "hide": false,
-        "presentation": {
-          "echo": false,
-          "focus": false,
-          "panel": "new",
-          "reveal": "always",
-          "clear": false
-        }
-      }
-    ]
-  },
   "eslint": {
     "version": "2.0.0",
     "globs": {

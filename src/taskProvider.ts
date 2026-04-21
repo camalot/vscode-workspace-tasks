@@ -39,7 +39,7 @@ export abstract class BaseTaskProvider implements TaskProvider {
    * Creates a runnable vscode.Task for the given TaskItem.
    *
    * Provider-based task types override this method. Special-case types (shell,
-   * jupyter, vscode, venv, dockerfile) are handled by private helpers in
+   * jupyter, vscode, dockerfile) are handled by private helpers in
    * taskFactory.ts and do NOT override this method.
    *
    * Implementations must follow the Provider Contract documented in

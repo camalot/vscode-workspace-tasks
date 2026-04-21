@@ -177,17 +177,6 @@ const constants: Record<string, any> = {
   // - .workspace-tasks.dev.json
   GLOB_WORKSPACE: '**/.workspace-tasks.{json,*.json}',
   // should match:
-  // - .venv/Scripts/activate.bat
-  // - .venv/Scripts/activate.fish
-  // - .venv/Scripts/Activate.ps1
-  // - .venv/Scripts/deactivate.bat
-  // - .venv/Scripts/deactivate.fish
-  // - .venv/Scripts/Deactivate.ps1
-  // - .venv/Scripts/activate
-  // - .venv/Scripts/deactivate
-  GLOB_VENV: '**/.venv/Scripts/{[Dd]eactivate,[Aa]ctivate}{.bat,.fish,.ps1,}',
-  // GLOB_VENV: '**/.venv/Scripts/{activate.bat,activate.fish,Activate.ps1,deactivate.bat}',
-  // should match:
   // - CMakeLists.txt
   GLOB_CMAKE: '**/CMakeLists.txt',
   // should match:

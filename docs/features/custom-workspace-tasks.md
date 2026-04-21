@@ -107,7 +107,7 @@ References a light/dark SVG pair shipped with the extension under `res/icons/lig
 
 ```json
 {
-  "venv": {
+  "my-tool": {
     "version": "2.0.0",
     "iconUri": "$(python)",
     "tasks": [...]

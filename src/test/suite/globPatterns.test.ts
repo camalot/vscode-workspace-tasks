@@ -289,21 +289,6 @@ suite('Glob Pattern Constants Test Suite', () => {
       nonMatches: ['repo/workspace-tasks.json', 'repo/.workspace-task.json'],
     },
     {
-      name: 'GLOB_VENV',
-      pattern: constants.GLOB_VENV,
-      matches: [
-        'repo/.venv/Scripts/activate.bat',
-        'repo/.venv/Scripts/activate.fish',
-        'repo/.venv/Scripts/Activate.ps1',
-        'repo/.venv/Scripts/deactivate.bat',
-        'repo/.venv/Scripts/deactivate.fish',
-        'repo/.venv/Scripts/Deactivate.ps1',
-        'repo/.venv/Scripts/activate',
-        'repo/.venv/Scripts/deactivate',
-      ],
-      nonMatches: ['repo/.venv/bin/activate', 'repo/.venv/Scripts/python.exe', 'repo/.venv/scripts/activate.bat'],
-    },
-    {
       name: 'GLOB_CMAKE',
       pattern: constants.GLOB_CMAKE,
       matches: ['repo/CMakeLists.txt'],
