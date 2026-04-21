@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskFilesService } from '../../services/taskFilesService';
+import { TaskCacheService } from '../../services/taskCacheService';
 
 suite('TaskFilesService Test Suite', () => {
     let service: TaskFilesService;
@@ -10,8 +11,10 @@ suite('TaskFilesService Test Suite', () => {
     let testFolder: vscode.Uri;
     let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
     let originalOnDidChangeConfiguration: typeof vscode.workspace.onDidChangeConfiguration;
+    let originalOnDidSaveTextDocument: typeof vscode.workspace.onDidSaveTextDocument;
     let mockConfigValues: Record<string, unknown>;
     let capturedConfigChangeHandlers: Array<(e: vscode.ConfigurationChangeEvent) => void | Promise<void>>;
+    let capturedDidSaveHandlers: Array<(d: vscode.TextDocument) => void>;
 
     // Synchronously fire a fake configuration-change event to all captured handlers.
     // Returns a promise that resolves once every async handler finishes.
@@ -27,6 +30,7 @@ suite('TaskFilesService Test Suite', () => {
         service = TaskFilesService.getInstance();
         mockConfigValues = {};
         capturedConfigChangeHandlers = [];
+        capturedDidSaveHandlers = [];
 
         // Install mocks BEFORE service.initialize() so the service registers with the mock handler
         originalGetConfiguration = vscode.workspace.getConfiguration;
@@ -50,6 +54,17 @@ suite('TaskFilesService Test Suite', () => {
             return { dispose: () => {
                 const idx = capturedConfigChangeHandlers.indexOf(listener);
                 if (idx !== -1) { capturedConfigChangeHandlers.splice(idx, 1); }
+            } };
+        };
+
+        originalOnDidSaveTextDocument = vscode.workspace.onDidSaveTextDocument;
+        (vscode.workspace as any).onDidSaveTextDocument = (listener: (d: vscode.TextDocument) => void) => {
+            capturedDidSaveHandlers.push(listener);
+            return { dispose: () => {
+                const idx = capturedDidSaveHandlers.indexOf(listener);
+                if (idx !== -1) {
+                    capturedDidSaveHandlers.splice(idx, 1);
+                }
             } };
         };
 
@@ -83,6 +98,7 @@ suite('TaskFilesService Test Suite', () => {
         // Restore mocked APIs; no real config was written so no cleanup needed
         (vscode.workspace as any).getConfiguration = originalGetConfiguration;
         (vscode.workspace as any).onDidChangeConfiguration = originalOnDidChangeConfiguration;
+        (vscode.workspace as any).onDidSaveTextDocument = originalOnDidSaveTextDocument;
 
         disposables.forEach(d => d.dispose());
     });
@@ -99,6 +115,36 @@ suite('TaskFilesService Test Suite', () => {
         await vscode.workspace.fs.writeFile(uri, Buffer.from(content));
         return uri;
     }
+
+    async function fireDidSave(uri: vscode.Uri): Promise<void> {
+        const fakeDocument = { uri } as vscode.TextDocument;
+        for (const handler of capturedDidSaveHandlers) {
+            handler(fakeDocument);
+        }
+        await Promise.resolve();
+    }
+
+    test('refreshes only taskfile provider when Taskfile is saved', async () => {
+        const cache = TaskCacheService.getInstance();
+        const originalRefreshProvider = cache.refreshProvider.bind(cache);
+        const refreshedTypes: string[] = [];
+        cache.refreshProvider = async (type: string) => {
+            refreshedTypes.push(type);
+        };
+
+        try {
+            const taskfileUri = await createFile('Taskfile.yml', 'version: "3"\ntasks:\n  build:\n    cmds:\n      - echo build\n');
+            const nonTaskfileUri = await createFile('package.json', '{"scripts":{"build":"echo build"}}');
+
+            await fireDidSave(nonTaskfileUri);
+            assert.strictEqual(refreshedTypes.length, 0, 'non-Taskfile save should not refresh taskfile provider');
+
+            await fireDidSave(taskfileUri);
+            assert.deepStrictEqual(refreshedTypes, ['taskfile']);
+        } finally {
+            cache.refreshProvider = originalRefreshProvider;
+        }
+    });
 
     test('shouldIgnore - Ignores default patterns (node_modules)', async () => {
         const fileUri = await createFile('node_modules/package.json');

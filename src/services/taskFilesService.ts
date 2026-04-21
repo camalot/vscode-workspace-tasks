@@ -3,6 +3,7 @@ import * as path from 'path';
 // @ts-ignore
 import ignore from 'ignore';
 import micromatch from 'micromatch';
+import constants from '../libs/constants';
 import { LoggerService } from './loggerService';
 import { TaskCacheService } from './taskCacheService';
 
@@ -583,6 +584,14 @@ export class TaskFilesService {
           this.invalidateCache();
         }
       }),
+      vscode.workspace.onDidSaveTextDocument((document) => {
+        if (!this.isTaskfileUri(document.uri)) {
+          return;
+        }
+        TaskCacheService.getInstance().refreshProvider('taskfile').catch((e) => {
+          this.logger.error('[TaskFilesService] Failed to refresh taskfile provider after Taskfile save', e);
+        });
+      }),
     );
 
     this.invalidateCache();
@@ -636,6 +645,14 @@ export class TaskFilesService {
       const normalized = uri.fsPath.replace(/\\/g, '/');
       return micromatch.isMatch(normalized, patterns, { dot: true });
     });
+  }
+
+  private isTaskfileUri(uri: vscode.Uri): boolean {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const additionalPatterns = config.get<string[]>('taskfile.additionalFilePatterns', []);
+    const patterns = [constants.GLOB_TASKFILE, ...additionalPatterns];
+    const normalized = uri.fsPath.replace(/\\/g, '/');
+    return micromatch.isMatch(normalized, patterns, { dot: true });
   }
 
   public shouldIgnore(uri: vscode.Uri): boolean {
