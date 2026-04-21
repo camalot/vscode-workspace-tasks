@@ -3,8 +3,34 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskItem } from '../../taskItem';
 import { createTaskForItem } from '../../taskFactory';
+import { TaskProviderRegistry } from '../../taskProviderRegistry';
+import { YarnTaskProvider } from '../../providers/npmTaskProvider';
 
 suite('Task Factory Yarn Test Suite', () => {
+  let originalIsTrusted: boolean;
+  let registrySnapshot: Map<string, any>;
+
+  setup(() => {
+    originalIsTrusted = (vscode.workspace as any).isTrusted;
+    Object.defineProperty(vscode.workspace, 'isTrusted', {
+      get: () => true,
+      configurable: true,
+    });
+
+    const registry = TaskProviderRegistry.getInstance();
+    registrySnapshot = registry.snapshot();
+    registry.register('yarn', new YarnTaskProvider());
+  });
+
+  teardown(() => {
+    Object.defineProperty(vscode.workspace, 'isTrusted', {
+      get: () => originalIsTrusted,
+      configurable: true,
+    });
+
+    TaskProviderRegistry.getInstance().restore(registrySnapshot);
+  });
+
   test('uses package.json directory as cwd, not workspace root', async function () {
     const rootPath =
       vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0

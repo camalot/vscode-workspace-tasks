@@ -7,6 +7,7 @@ import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -103,5 +104,25 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
     }
     // Could add more checks like modelVersion etc.
     return true;
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: mvnCmd, args: mvnInitialArgs, cwd: mvnCwd } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+
+    const mvnArgs = mvnInitialArgs ? [...mvnInitialArgs] : [];
+    mvnArgs.push(taskLabel, ...splitArgs(args));
+
+    const full = `${mvnCmd} ${mvnArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(mvnCmd, mvnArgs, { cwd: mvnCwd });
+    const task = new vscode.Task(
+      { type: 'maven', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'maven',
+      shellExec,
+    );
+    return { task, command: full, cwd: mvnCwd, native: false };
   }
 }

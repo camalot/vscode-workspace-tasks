@@ -6,21 +6,12 @@ import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
 import { AntTaskProvider } from './providers/antTaskProvider';
 import { MsBuildTaskProvider } from './providers/msbuildTaskProvider';
-import { ComposerTaskProvider } from './providers/composerTaskProvider';
-import { GradleTaskProvider } from './providers/gradleTaskProvider';
 import { GruntTaskProvider } from './providers/gruntTaskProvider';
 import { GulpTaskProvider } from './providers/gulpTaskProvider';
 import { JustfileTaskProvider } from './providers/justfileTaskProvider';
-import { BunTaskProvider, NpmTaskProvider, PnpmTaskProvider, YarnTaskProvider } from './providers/npmTaskProvider';
-import { PipenvTaskProvider } from './providers/pipenvTaskProvider';
+import { NpmTaskProvider } from './providers/npmTaskProvider';
 import { MakefileTaskProvider } from './providers/makefileTaskProvider';
 import { GithubActionsTaskProvider } from './providers/githubActionsTaskProvider';
-import { MiseTaskProvider } from './providers/miseTaskProvider';
-import { MavenTaskProvider } from './providers/mavenTaskProvider';
-import { DenoTaskProvider } from './providers/denoTaskProvider';
-import { PoetryTaskProvider } from './providers/poetryTaskProvider';
-import { PoeTaskProvider } from './providers/poeTaskProvider';
-import { CargoMakeTaskProvider } from './providers/cargoMakeTaskProvider';
 import { CMakeTaskProvider } from './providers/cmakeTaskProvider';
 import { CakeTaskProvider } from './providers/cakeTaskProvider';
 import { TaskfileTaskProvider } from './providers/taskfileTaskProvider';
@@ -190,146 +181,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     case 'npm': {
       return new NpmTaskProvider().createTask(item, args);
     }
-    case 'yarn': {
-      const yarnProvider = new YarnTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
-      // so that tasks in sub-packages run from their own directory.
-      const { command: yarnCmd, args: yarnInitialArgs } = yarnProvider.getCommand(workspaceFolder?.uri);
-
-      const yarnArgs = yarnInitialArgs ? [...yarnInitialArgs] : [];
-      yarnArgs.push('run', `${taskLabel}`);
-      if (args) {
-        yarnArgs.push(...args.split(' '));
-      }
-
-      const full = `${yarnCmd} ${yarnArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd });
-
-      const task = new vscode.Task(
-        { type: 'yarn', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'yarn',
-        shellExec,
-      );
-      return { task, command: full, cwd, native: false };
-    }
-    case 'bun': {
-      const bunProvider = new BunTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
-      // so that tasks in sub-packages run from their own directory.
-      const { command: bunCmd, args: bunInitialArgs } = bunProvider.getCommand(workspaceFolder?.uri);
-      const bunArgs = bunInitialArgs ? [...bunInitialArgs] : [];
-      bunArgs.push('run', `${taskLabel}`);
-      if (args) {
-        bunArgs.push(...args.split(' '));
-      }
-
-      const full = `${bunCmd} ${bunArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(bunCmd, bunArgs, { cwd });
-
-      const task = new vscode.Task(
-        { type: 'bun', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'bun',
-        shellExec,
-      );
-      return { task, command: full, cwd, native: false };
-    }
-    case 'pnpm': {
-      const pnpmProvider = new PnpmTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
-      // so that tasks in sub-packages run from their own directory.
-      const { command: pnpmCmd, args: pnpmInitialArgs } = pnpmProvider.getCommand(workspaceFolder?.uri);
-
-      const pnpmArgs = pnpmInitialArgs ? [...pnpmInitialArgs] : [];
-      pnpmArgs.push('run', `${taskLabel}`);
-      if (args) {
-        pnpmArgs.push(...args.split(' '));
-      }
-
-      const full = `${pnpmCmd} ${pnpmArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd });
-
-      const task = new vscode.Task(
-        { type: 'pnpm', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'pnpm',
-        shellExec,
-      );
-      return { task, command: full, cwd, native: false };
-    }
-    case 'deno': {
-      // deno task <taskLabel> [args]
-      const denoProvider = new DenoTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: denoCmd, args: denoInitialArgs, cwd: denoCwd } = denoProvider.getCommand(workspaceFolder?.uri);
-
-      const denoArgs = denoInitialArgs ? [...denoInitialArgs] : [];
-
-      denoArgs.push('task');
-      if (args) {
-        denoArgs.push(...args.split(' '));
-      }
-
-      // Add --config argument to specify the config file (deno.json(c) or package.json)
-      if (item.taskFileUri) {
-        denoArgs.push('--config', item.taskFileUri.fsPath);
-      }
-
-      denoArgs.push(taskLabel);
-
-      const full = `${denoCmd} ${denoArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(denoCmd, denoArgs, { cwd: denoCwd });
-
-      const task = new vscode.Task(
-        {
-          type: 'deno',
-          script: taskLabel,
-          path: resourceUri.fsPath,
-        },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'deno',
-        shellExec,
-      );
-      return { task, command: full, cwd: denoCwd, native: false };
-    }
-    case 'mise': {
-      // mise run <taskLabel> [args]
-      const miseProvider = new MiseTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: miseCmd, args: miseInitialArgs, cwd: miseDefaultCwd } = miseProvider.getCommand(workspaceFolder?.uri);
-
-      // Run from the config_root of the discovered file so mise can resolve its
-      // config.  Falls back to the workspace-level cwd when no file is known.
-      const miseCwd = item.taskFileUri
-        ? MiseTaskProvider.getConfigRoot(item.taskFileUri)
-        : miseDefaultCwd;
-
-      const miseArgs = miseInitialArgs ? [...miseInitialArgs] : [];
-      miseArgs.push('run', taskLabel);
-      if (args) {
-        miseArgs.push(...args.split(' '));
-      }
-
-      const full = `${miseCmd} ${miseArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(miseCmd, miseArgs, { cwd: miseCwd });
-
-      const task = new vscode.Task(
-        { type: 'mise', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'mise',
-        shellExec,
-      );
-      return { task, command: full, cwd: miseCwd, native: false };
-    }
     case 'jupyter': {
       // Use CustomExecution to run Jupyter cell via Visual Studio Code command
       const task = new vscode.Task(
@@ -342,87 +193,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         }),
       );
       return { task, command: 'jupyter.runcell', cwd: path.dirname(resourceUri.fsPath), native: false };
-    }
-    case 'maven': {
-      // mvn <goal> [args]
-      const mavenProvider = new MavenTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: mvnCmd, args: mvnInitialArgs, cwd: mvnCwd } = mavenProvider.getCommand(workspaceFolder?.uri);
-
-      const mvnArgs = mvnInitialArgs ? [...mvnInitialArgs] : [];
-      mvnArgs.push(taskLabel);
-      if (args) {
-        mvnArgs.push(...args.split(' '));
-      }
-
-      const full = `${mvnCmd} ${mvnArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(mvnCmd, mvnArgs, { cwd: mvnCwd });
-
-      const task = new vscode.Task(
-        { type: 'maven', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'maven',
-        shellExec,
-      );
-      return { task, command: full, cwd: mvnCwd, native: false };
-    }
-    case 'gradle': {
-      // gradle [task] [args]
-      const gradleProvider = new GradleTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const {
-        command: gradleCmd,
-        args: gradleInitialArgs,
-        cwd: gradleCwd,
-      } = gradleProvider.getCommand(workspaceFolder?.uri);
-
-      const gradleArgs = gradleInitialArgs ? [...gradleInitialArgs] : [];
-      gradleArgs.push(taskLabel);
-      if (args) {
-        gradleArgs.push(...args.split(' '));
-      }
-
-      const full = `${gradleCmd} ${gradleArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd: gradleCwd });
-
-      const task = new vscode.Task(
-        { type: 'gradle', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'gradle',
-        shellExec,
-      );
-      return { task, command: full, cwd: gradleCwd, native: false };
-    }
-    case 'composer': {
-      // composer run-script [script] [args]
-      const composerProvider = new ComposerTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const {
-        command: composerCmd,
-        args: composerInitialArgs,
-        cwd: composerCwd,
-      } = composerProvider.getCommand(workspaceFolder?.uri);
-
-      const composerArgs = composerInitialArgs ? [...composerInitialArgs] : [];
-      composerArgs.push('run-script', taskLabel);
-      if (args) {
-        composerArgs.push('--');
-        composerArgs.push(...args.split(' '));
-      }
-
-      const full = `${composerCmd} ${composerArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(composerCmd, composerArgs, { cwd: composerCwd });
-
-      const task = new vscode.Task(
-        { type: 'composer', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'composer',
-        shellExec,
-      );
-      return { task, command: full, cwd: composerCwd, native: false };
     }
     case 'shell': {
       // item.taskFileUri is the actual script file URI. item.resourceUri is always a
@@ -812,33 +582,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       }
       return undefined;
     }
-    case 'pipenv': {
-      const pipenvProvider = new PipenvTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const {
-        command: pipenvCmd,
-        args: pipenvInitialArgs,
-        cwd: pipenvCwd,
-      } = pipenvProvider.getCommand(workspaceFolder?.uri);
-
-      const pipenvArgs = pipenvInitialArgs ? [...pipenvInitialArgs] : [];
-      pipenvArgs.push('run', taskLabel);
-      if (args) {
-        pipenvArgs.push(...args.split(' '));
-      }
-
-      const full = `${pipenvCmd} ${pipenvArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(pipenvCmd, pipenvArgs, { cwd: pipenvCwd });
-
-      const task = new vscode.Task(
-        { type: 'pipenv', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'pipenv',
-        shellExec,
-      );
-      return { task, command: full, cwd: pipenvCwd, native: false };
-    }
     case 'venv': {
       const taskUri = item.taskFileUri || item.resourceUri;
       if (!taskUri) {
@@ -923,77 +666,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         new vscode.ShellExecution(justCommand, justArgs, { cwd: justCwd }),
       );
       return { task, command: fullCmd, cwd: justCwd, native: false };
-    }
-    case "poe": {
-      const poeProvider = new PoeTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: poeCmd, args: poeInitialArgs, cwd: poeCwd } = poeProvider.getCommand(workspaceFolder?.uri);
-
-      const poeArgs = poeInitialArgs ? [...poeInitialArgs] : [];
-      poeArgs.push(taskLabel);
-      if (args) {
-        poeArgs.push(...args.split(' '));
-      }
-
-      const full = `${poeCmd} ${poeArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(poeCmd, poeArgs, { cwd: poeCwd });
-
-      const task = new vscode.Task(
-        { type: 'poe', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'poe',
-        shellExec,
-      );
-      return { task, command: full, cwd: poeCwd, native: false };
-    }
-    case "poetry": {
-      const poetryProvider = new PoetryTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const { command: poetryCmd, args: poetryInitialArgs, cwd: poetryCwd } = poetryProvider.getCommand(workspaceFolder?.uri);
-
-      const poetryArgs = poetryInitialArgs ? [...poetryInitialArgs] : [];
-      poetryArgs.push('run', taskLabel);
-      if (args) {
-        poetryArgs.push(...args.split(' '));
-      }
-
-      const full = `${poetryCmd} ${poetryArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(poetryCmd, poetryArgs, { cwd: poetryCwd });
-
-      const task = new vscode.Task(
-        { type: 'poetry', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'poetry',
-        shellExec,
-      );
-      return { task, command: full, cwd: poetryCwd, native: false };
-    }
-    case "cargo-make": {
-      const cargoMakeProvider = new CargoMakeTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      const relativeResourceUri = vscode.workspace.asRelativePath(resourceUri, false);
-      const { command: cargoMakeCmd, args: cargoMakeInitialArgs, cwd: cargoMakeCwd } = cargoMakeProvider.getCommand(workspaceFolder?.uri);
-
-      const cargoMakeArgs = cargoMakeInitialArgs ? [...cargoMakeInitialArgs] : [];
-      cargoMakeArgs.push('--makefile', relativeResourceUri);
-      cargoMakeArgs.push(taskLabel);
-      if (args) {
-        cargoMakeArgs.push(...args.split(' '));
-      }
-
-      const full = `${cargoMakeCmd} ${cargoMakeArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(cargoMakeCmd, cargoMakeArgs, { cwd: cargoMakeCwd });
-
-      const task = new vscode.Task(
-        { type: 'cargo-make', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'cargo-make',
-        shellExec,
-      );
-      return { task, command: full, cwd: cargoMakeCwd, native: false };
     }
     case 'cmake': {
       const cmakeProvider = new CMakeTaskProvider();

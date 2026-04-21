@@ -4,6 +4,7 @@ import constants from '../libs/constants';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class MiseTaskProvider extends TomlTaskProvider {
   constructor() {
@@ -84,5 +85,28 @@ export class MiseTaskProvider extends TomlTaskProvider {
 
     // mise.toml, .mise.toml, mise.local.toml, mise.*.toml, mise.*.local.toml, etc.
     return fileDir;
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: miseCmd, args: miseInitialArgs, cwd: miseDefaultCwd } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+
+    const miseCwd = item.taskFileUri
+      ? MiseTaskProvider.getConfigRoot(item.taskFileUri)
+      : miseDefaultCwd;
+    const miseArgs = miseInitialArgs ? [...miseInitialArgs] : [];
+    miseArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${miseCmd} ${miseArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(miseCmd, miseArgs, { cwd: miseCwd });
+    const task = new vscode.Task(
+      { type: 'mise', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'mise',
+      shellExec,
+    );
+    return { task, command: full, cwd: miseCwd, native: false };
   }
 }

@@ -219,6 +219,26 @@ export class PnpmTaskProvider extends PackageYamlTaskProvider {
       workspaceUri,
     );
   }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: pnpmCmd, args: pnpmInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+    const pnpmArgs = pnpmInitialArgs ? [...pnpmInitialArgs] : [];
+    pnpmArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${pnpmCmd} ${pnpmArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'pnpm', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'pnpm',
+      shellExec,
+    );
+
+    return { task, command: full, cwd, native: false };
+  }
 }
 
 export class YarnTaskProvider extends PackageJsonTaskProvider {
@@ -244,6 +264,26 @@ export class YarnTaskProvider extends PackageJsonTaskProvider {
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: yarnCmd, args: yarnInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+    const yarnArgs = yarnInitialArgs ? [...yarnInitialArgs] : [];
+    yarnArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${yarnCmd} ${yarnArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'yarn', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'yarn',
+      shellExec,
+    );
+
+    return { task, command: full, cwd, native: false };
   }
 }
 
@@ -385,5 +425,25 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
     }
 
     return tasks;
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: bunCmd, args: bunInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+    const bunArgs = bunInitialArgs ? [...bunInitialArgs] : [];
+    bunArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${bunCmd} ${bunArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(bunCmd, bunArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'bun', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'bun',
+      shellExec,
+    );
+
+    return { task, command: full, cwd, native: false };
   }
 }
