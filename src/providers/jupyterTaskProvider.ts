@@ -21,6 +21,64 @@ interface JupyterNotebook {
   nbformat_minor: number;
 }
 
+export class JupyterTerm implements vscode.Pseudoterminal {
+  private writeEmitter = new vscode.EventEmitter<string>();
+  onDidWrite: vscode.Event<string> = this.writeEmitter.event;
+  private closeEmitter = new vscode.EventEmitter<number>();
+  onDidClose: vscode.Event<number> = this.closeEmitter.event;
+
+  constructor(
+    private resourceUri: vscode.Uri,
+    private cellIndex: number | undefined,
+    private label: string,
+  ) {}
+
+  open(): void {
+    this.doRun();
+  }
+
+  close(): void {}
+
+  private async doRun(): Promise<void> {
+    this.writeEmitter.fire(`Executing Jupyter Cell in ${this.label}...\r\n`);
+
+    try {
+      if (this.cellIndex !== undefined && this.cellIndex >= 0) {
+        const doc = await vscode.workspace.openNotebookDocument(this.resourceUri);
+        await vscode.window.showNotebookDocument(doc);
+
+        if (this.cellIndex < doc.cellCount) {
+          try {
+            const execution = vscode.commands.executeCommand('notebook.cell.execute', {
+              ranges: [{ start: this.cellIndex, end: this.cellIndex + 1 }],
+              document: doc.uri,
+            });
+            await execution;
+            this.writeEmitter.fire(`\r\nCell sent to execution.\r\n`);
+          } catch (e) {
+            this.writeEmitter.fire(`Error executing cell: ${e}\r\n`);
+            this.closeEmitter.fire(1);
+            return;
+          }
+        } else {
+          this.writeEmitter.fire(`Cell index ${this.cellIndex} out of bounds.\r\n`);
+          this.closeEmitter.fire(1);
+          return;
+        }
+      } else {
+        this.writeEmitter.fire(`No cell index provided. Cannot execute.\r\n`);
+        this.closeEmitter.fire(1);
+        return;
+      }
+
+      this.closeEmitter.fire(0);
+    } catch (e) {
+      this.writeEmitter.fire(`Error: ${e}\r\n`);
+      this.closeEmitter.fire(1);
+    }
+  }
+}
+
 export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
     super('jupyter', constants.GLOB_JUPYTER);

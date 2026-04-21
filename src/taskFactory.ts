@@ -4,28 +4,32 @@ import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
-import { NpmTaskProvider } from './providers/npmTaskProvider';
 import { resolveTaskContext, CreatedTask } from './libs/taskCreationUtils';
 import { TaskProviderRegistry } from './taskProviderRegistry';
 import { LoggerService } from './services/loggerService';
 import { ensureTaskProviderRegistryPopulated } from './providers';
+import { JupyterTerm } from './providers/jupyterTaskProvider';
 
 // Re-exported for backward compatibility — CreatedTask is defined in taskCreationUtils.
 export type { CreatedTask } from './libs/taskCreationUtils';
 
+const SPECIAL_CASE_TASK_TYPES = ['shell', 'jupyter', 'vscode', 'venv', 'dockerfile'] as const;
+
 /**
- * The complete set of task types with a case-handler in createTaskForItem.
- * Any item whose taskType is NOT in this set (and has no taskSource or native task) will
- * return undefined from createTaskForItem and cannot be run.
+ * The complete set of task types supported by createTaskForItem.
+ * Any item whose taskType is NOT in this set (and has no taskSource or native task)
+ * will return undefined from createTaskForItem and cannot be run.
  */
-export const KNOWN_TASK_TYPES: ReadonlySet<string> = new Set([
-  'npm', 'yarn', 'bun', 'pnpm', 'deno', 'mise', 'jupyter',
-  'maven', 'gradle', 'composer', 'shell', 'grunt', 'gulp', 'ant',
-  'workspace-task', 'github-actions', 'vscode', 'makefile', 'dockerfile',
-  'pipenv', 'venv', 'msbuild', 'justfile', 'cmake', 'cake',
-  'poe', 'poetry', 'cargo-make', 'taskfile', 'gitlab-ci',
-  'circleci', 'bitbucket',
-]);
+function buildKnownTaskTypes(): ReadonlySet<string> {
+  ensureTaskProviderRegistryPopulated();
+  const knownTypes = new Set(TaskProviderRegistry.getInstance().getKnownTypes());
+  for (const taskType of SPECIAL_CASE_TASK_TYPES) {
+    knownTypes.add(taskType);
+  }
+  return knownTypes;
+}
+
+export const KNOWN_TASK_TYPES: ReadonlySet<string> = buildKnownTaskTypes();
 
 /**
  * Injects runtime args into a command.
@@ -58,17 +62,8 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     return { task: item.task, native: true };
   }
 
-  const effectiveResourceUri = item.taskFileUri;
-  const cwd = effectiveResourceUri
-    ? path.dirname(effectiveResourceUri.fsPath)
-    : vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : process.cwd();
-  const fallbackWorkspaceUri =
-    vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
-      ? vscode.workspace.workspaceFolders[0].uri
-      : vscode.Uri.file(cwd);
-  const resourceUri = effectiveResourceUri ?? fallbackWorkspaceUri;
+  const context = resolveTaskContext(item);
+  const { effectiveResourceUri, cwd, resourceUri } = context;
   const taskLabel = item.originalLabel || item.label;
 
   // Prefer workspace-declared task when available
@@ -113,16 +108,8 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     }
   }
 
-  // Track 2: legacy switch — handles providers not yet migrated to createTask(),
-  // plus special-case types (shell, jupyter, vscode, venv, dockerfile) that will
-  // remain here as private helpers after the full refactor is complete.
-  // npm is handled by NpmTaskProvider.createTask() via Track 1 when the registry is
-  // populated (normal runtime). This case is a fallback for test environments where
-  // the extension may not have fully activated before the factory is called.
+  // Track 2: special-case helper logic that does not map to provider getCommand/createTask.
   switch (item.taskType) {
-    case 'npm': {
-      return new NpmTaskProvider().createTask(item, args);
-    }
     case 'jupyter': {
       // Use CustomExecution to run Jupyter cell via Visual Studio Code command
       const task = new vscode.Task(
@@ -186,23 +173,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         shellExec,
       );
       return { task, command: commandString, cwd, native: false };
-    }
-    case 'workspace-task': {
-      // This case occurs when a workspace task exists without file association
-      const configType = item.taskSource || 'shell';
-      const declared = await WorkspaceTasksService.getInstance().resolveTaskCommand(taskLabel, configType, resourceUri);
-      if (declared) {
-        const fullCommand = injectArgs(declared, args);
-        const task = new vscode.Task(
-          { type: 'workspace-task', task: taskLabel, path: resourceUri.fsPath },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'workspace-task',
-          new vscode.ShellExecution(fullCommand, { cwd }),
-        );
-        return { task, command: fullCommand, cwd, native: false };
-      }
-      return undefined;
     }
     case 'vscode': {
       // Use existing Visual Studio Code task defined in .vscode/tasks.json
@@ -289,7 +259,6 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       return { task, command: commandString, cwd, native: false };
     }
     default: {
-      // Generic: run as shell command if workspace has a declared task
       return undefined;
     }
   }
@@ -330,78 +299,4 @@ export async function createTaskForItem(item: TaskItem, args?: string): Promise<
   }
 
   return result;
-}
-
-class JupyterTerm implements vscode.Pseudoterminal {
-  private writeEmitter = new vscode.EventEmitter<string>();
-  onDidWrite: vscode.Event<string> = this.writeEmitter.event;
-  private closeEmitter = new vscode.EventEmitter<number>();
-  onDidClose: vscode.Event<number> = this.closeEmitter.event;
-
-  constructor(
-    private resourceUri: vscode.Uri,
-    private cellIndex: number | undefined,
-    private label: string,
-  ) {}
-
-  /*initialDimensions: vscode.TerminalDimensions | undefined*/
-  open(): void {
-    this.doRun();
-  }
-
-  close(): void {}
-
-  private async doRun(): Promise<void> {
-    this.writeEmitter.fire(`Executing Jupyter Cell in ${this.label}...\r\n`);
-
-    try {
-      // If we have a cell index, we try to run that specific cell
-      if (this.cellIndex !== undefined && this.cellIndex >= 0) {
-        // 1. Ensure document is open
-        const doc = await vscode.workspace.openNotebookDocument(this.resourceUri);
-        await vscode.window.showNotebookDocument(doc);
-
-        // 2. Find the cell
-        if (this.cellIndex < doc.cellCount) {
-          //const cell = doc.cellAt(this.cellIndex);
-
-          // 3. Execute
-          // Using generic notebook command as jupyter.runcell behavior on ipynb is ambiguous
-          // However, user requested jupyter.runcell.
-          // If that command takes a range, we can try passing the cell range.
-
-          // Try standard notebook execution first which is robust
-          try {
-            // This is the Visual Studio Code API way
-            const execution = vscode.commands.executeCommand('notebook.cell.execute', {
-              ranges: [{ start: this.cellIndex, end: this.cellIndex + 1 }],
-              document: doc.uri,
-            });
-            await execution;
-            this.writeEmitter.fire(`\r\nCell sent to execution.\r\n`);
-          } catch (e) {
-            // Fallback to user requested command if standard fails, or if they meant the older way?
-            // jupyter.runcell(file, startLine, startChar, endLine, endChar)
-            // converting cell range to what? 0,0,0,0?
-            this.writeEmitter.fire(`Error executing cell: ${e}\r\n`);
-            this.closeEmitter.fire(1);
-            return;
-          }
-        } else {
-          this.writeEmitter.fire(`Cell index ${this.cellIndex} out of bounds.\r\n`);
-          this.closeEmitter.fire(1);
-          return;
-        }
-      } else {
-        this.writeEmitter.fire(`No cell index provided. Cannot execute.\r\n`);
-        this.closeEmitter.fire(1);
-        return;
-      }
-
-      this.closeEmitter.fire(0);
-    } catch (e) {
-      this.writeEmitter.fire(`Error: ${e}\r\n`);
-      this.closeEmitter.fire(1);
-    }
-  }
 }
