@@ -7,6 +7,7 @@ import { TaskItem } from '../taskItem';
 import { TaskIconService } from '../services/taskIconService';
 import { TaskStateManager } from '../taskStateManager';
 import { TaskFilesService } from '../services/taskFilesService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class NpmTaskProvider extends PackageJsonTaskProvider {
   private readonly iconService = TaskIconService.getInstance();
@@ -145,6 +146,52 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
       },
       workspaceUri,
     );
+  }
+
+  /**
+   * Creates a runnable vscode.Task for an npm script TaskItem.
+   * Uses the `cwd` derived from the package.json location (via resolveTaskContext)
+   * rather than the workspace root returned by getCommand(), so that scripts in
+   * sub-packages run from their own directory.
+   */
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: npmCmd, args: npmInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const npmArgs = npmInitialArgs ? [...npmInitialArgs] : [];
+    const taskLabel = item.originalLabel || item.label;
+    const normalizedLabel = (taskLabel || '').trim().toLowerCase();
+    const extraArgs = splitArgs(args);
+
+    // Special-case common install labels to map to `npm install` instead of `npm run <label>`
+    if (
+      normalizedLabel === 'install dependencies' ||
+      normalizedLabel === 'install' ||
+      normalizedLabel === 'install dependencies (npm install)'
+    ) {
+      npmArgs.push('install', ...extraArgs);
+      const full = `${npmCmd} ${npmArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
+      const task = new vscode.Task(
+        { type: 'npm', script: 'install', path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'npm',
+        shellExec,
+      );
+      return { task, command: full, cwd, native: false };
+    }
+
+    npmArgs.push('run', taskLabel, ...extraArgs);
+    const full = `${npmCmd} ${npmArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'npm', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'npm',
+      shellExec,
+    );
+    return { task, command: full, cwd, native: false };
   }
 }
 

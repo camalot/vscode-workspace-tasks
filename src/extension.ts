@@ -21,7 +21,7 @@ import { TaskMetricsService } from './services/taskMetricsService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { loadCommands } from './commands/index';
 import { findTerminalForTask } from './commands/stopTask';
-import { registerTaskProviders } from './providers/index';
+import { registerAllProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
@@ -174,7 +174,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Register Providers
-  registerTaskProviders(context);
+  registerAllProviders(context);
   // Initial refresh
   taskTreeDataProvider.refresh();
 

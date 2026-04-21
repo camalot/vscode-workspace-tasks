@@ -27,13 +27,12 @@ import { TaskfileTaskProvider } from './providers/taskfileTaskProvider';
 import { GitlabCiTaskProvider } from './providers/gitlabCiTaskProvider';
 import { CircleCiTaskProvider } from './providers/circleCiTaskProvider';
 import { BitbucketPipelinesTaskProvider } from './providers/bitbucketPipelinesTaskProvider';
+import { resolveTaskContext, CreatedTask } from './libs/taskCreationUtils';
+import { TaskProviderRegistry } from './taskProviderRegistry';
+import { LoggerService } from './services/loggerService';
 
-export interface CreatedTask {
-  task: vscode.Task;
-  command?: string; // the resolved shell command string (if any)
-  cwd?: string;
-  native: boolean;
-}
+// Re-exported for backward compatibility — CreatedTask is defined in taskCreationUtils.
+export type { CreatedTask } from './libs/taskCreationUtils';
 
 /**
  * The complete set of task types with a case-handler in createTaskForItem.
@@ -127,7 +126,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     return { task: item.task, native: true };
   }
 
-  const effectiveResourceUri = item.taskFileUri || item.resourceUri;
+  const effectiveResourceUri = item.taskFileUri;
   const cwd = effectiveResourceUri
     ? path.dirname(effectiveResourceUri.fsPath)
     : vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
@@ -161,58 +160,35 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
     }
   }
 
-  // Fallbacks by task type
+  // Track 1: registry-based providers.
+  // If the provider has implemented createTask() and it returns a non-undefined result,
+  // use that. If it returns undefined (either the base-class default for not-yet-migrated
+  // providers, or a legitimate "cannot build" signal), fall through to Track 2.
+  const registry = TaskProviderRegistry.getInstance();
+  const registryProvider = registry.get(item.taskType);
+  if (registryProvider) {
+    try {
+      const registryResult = await registryProvider.createTask(item, args);
+      if (registryResult !== undefined) {
+        return registryResult;
+      }
+    } catch (err) {
+      LoggerService.getInstance().error(
+        `[taskFactory] provider.createTask failed for '${item.taskType}': ${err}`,
+      );
+      return undefined;
+    }
+  }
+
+  // Track 2: legacy switch — handles providers not yet migrated to createTask(),
+  // plus special-case types (shell, jupyter, vscode, venv, dockerfile) that will
+  // remain here as private helpers after the full refactor is complete.
+  // npm is handled by NpmTaskProvider.createTask() via Track 1 when the registry is
+  // populated (normal runtime). This case is a fallback for test environments where
+  // the extension may not have fully activated before the factory is called.
   switch (item.taskType) {
     case 'npm': {
-      const npmProvider = new NpmTaskProvider();
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(resourceUri);
-      // Use `cwd` (dirname of package.json) not the workspace root returned by getCommand(),
-      // so that tasks in sub-packages run from their own directory.
-      const { command: npmCmd, args: npmInitialArgs } = npmProvider.getCommand(workspaceFolder?.uri);
-
-      const npmArgs = npmInitialArgs ? [...npmInitialArgs] : [];
-      const normalizedLabel = (taskLabel || '').trim().toLowerCase();
-
-      // Special-case common labels to map to install instead of "npm run <label>"
-      if (
-        normalizedLabel === 'install dependencies' ||
-        normalizedLabel === 'install' ||
-        normalizedLabel === 'install dependencies (npm install)'
-      ) {
-        npmArgs.push('install');
-        if (args) {
-          npmArgs.push(...args.split(' '));
-        }
-
-        const full = `${npmCmd} ${npmArgs.join(' ')}`;
-        const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
-
-        const task = new vscode.Task(
-          { type: 'npm', script: 'install', path: resourceUri.fsPath },
-          vscode.TaskScope.Workspace,
-          taskLabel,
-          'npm',
-          shellExec,
-        );
-        return { task, command: full, cwd, native: false };
-      }
-
-      npmArgs.push('run', `${taskLabel}`);
-      if (args) {
-        npmArgs.push(...args.split(' '));
-      }
-
-      const full = `${npmCmd} ${npmArgs.join(' ')}`;
-      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
-
-      const task = new vscode.Task(
-        { type: 'npm', script: taskLabel, path: resourceUri.fsPath },
-        vscode.TaskScope.Workspace,
-        taskLabel,
-        'npm',
-        shellExec,
-      );
-      return { task, command: full, cwd, native: false };
+      return new NpmTaskProvider().createTask(item, args);
     }
     case 'yarn': {
       const yarnProvider = new YarnTaskProvider();
@@ -453,7 +429,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       // synthetic workspace-tasks:// URI set by updateContextValue(), so it cannot be
       // used as a guard. When no real file is associated, return undefined instead of
       // falling through with the workspace root as a script path.
-      if (!item.taskFileUri) {
+      if (!effectiveResourceUri) {
         return undefined;
       }
       const interpreter = item.metadata?.interpreter || '';
@@ -901,7 +877,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       // synthetic workspace-tasks:// URI set by updateContextValue(), so it cannot be
       // used as a guard. When no real project file is associated, return undefined
       // instead of falling through with an invalid MSBuild invocation.
-      if (!item.taskFileUri) {
+      if (!effectiveResourceUri) {
         return undefined;
       }
       const msbuildProvider = new MsBuildTaskProvider();

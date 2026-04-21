@@ -1,0 +1,239 @@
+import * as assert from 'assert';
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { resolveTaskContext, splitArgs, buildShellTask, TaskContext } from '../../libs/taskCreationUtils';
+import { TaskItem } from '../../taskItem';
+
+suite('taskCreationUtils', () => {
+  // ── resolveTaskContext ─────────────────────────────────────────────────────
+
+  suite('resolveTaskContext()', () => {
+    test('effectiveResourceUri is taskFileUri when set', () => {
+      const fileUri = vscode.Uri.file('/workspace/package.json');
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', fileUri);
+      item.taskFileUri = fileUri;
+
+      const ctx = resolveTaskContext(item);
+      assert.strictEqual(ctx.effectiveResourceUri, fileUri);
+    });
+
+    test('effectiveResourceUri is undefined when taskFileUri is not set', () => {
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', undefined);
+      // taskFileUri is intentionally not set
+
+      const ctx = resolveTaskContext(item);
+      assert.strictEqual(ctx.effectiveResourceUri, undefined);
+    });
+
+    test('cwd is dirname of taskFileUri when set', () => {
+      const fileUri = vscode.Uri.file('/workspace/packages/core/package.json');
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', fileUri);
+      item.taskFileUri = fileUri;
+
+      const ctx = resolveTaskContext(item);
+      assert.strictEqual(ctx.cwd, path.dirname(fileUri.fsPath));
+    });
+
+    test('cwd falls back to first workspace folder when taskFileUri is not set', () => {
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', undefined);
+
+      const ctx = resolveTaskContext(item);
+      // In the test VS Code instance there is at least one workspace folder
+      const expectedCwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd();
+      assert.strictEqual(ctx.cwd, expectedCwd);
+    });
+
+    test('resourceUri is taskFileUri when set (a real file:// URI)', () => {
+      const fileUri = vscode.Uri.file('/workspace/package.json');
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', fileUri);
+      item.taskFileUri = fileUri;
+
+      const ctx = resolveTaskContext(item);
+      assert.strictEqual(ctx.resourceUri.scheme, 'file');
+      assert.strictEqual(ctx.resourceUri.fsPath, fileUri.fsPath);
+    });
+
+    test('resourceUri is workspace root (file://) when taskFileUri is not set', () => {
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', undefined);
+
+      const ctx = resolveTaskContext(item);
+      assert.strictEqual(ctx.resourceUri.scheme, 'file', 'resourceUri must always be a file:// URI');
+    });
+
+    test('workspaceFolder is resolved from taskFileUri when available', () => {
+      const root = vscode.workspace.workspaceFolders?.[0]?.uri;
+      if (!root) {
+        return; // skip when no workspace folders
+      }
+      const fileUri = vscode.Uri.joinPath(root, 'package.json');
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', fileUri);
+      item.taskFileUri = fileUri;
+
+      const ctx = resolveTaskContext(item);
+      // The test workspace is the workspace folder containing the file
+      assert.ok(ctx.workspaceFolder, 'workspaceFolder should be resolved');
+      assert.strictEqual(
+        ctx.workspaceFolder?.uri.toString(),
+        root.toString(),
+      );
+    });
+
+    test('item.resourceUri (synthetic workspace-tasks:// URI) does NOT affect effectiveResourceUri', () => {
+      // item.resourceUri is always a synthetic workspace-tasks:// URI set by updateContextValue().
+      // It must not be used as the effectiveResourceUri.
+      const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', undefined);
+      // item.resourceUri is now a workspace-tasks:// URI (set by constructor/updateContextValue)
+      assert.strictEqual(item.resourceUri?.scheme, 'workspace-tasks');
+
+      const ctx = resolveTaskContext(item);
+      // effectiveResourceUri must still be undefined, not the synthetic URI
+      assert.strictEqual(ctx.effectiveResourceUri, undefined);
+    });
+  });
+
+  // ── splitArgs ──────────────────────────────────────────────────────────────
+
+  suite('splitArgs()', () => {
+    test('returns empty array for undefined', () => {
+      assert.deepStrictEqual(splitArgs(undefined), []);
+    });
+
+    test('returns empty array for empty string', () => {
+      assert.deepStrictEqual(splitArgs(''), []);
+    });
+
+    test('returns empty array for whitespace-only string', () => {
+      assert.deepStrictEqual(splitArgs('   '), []);
+    });
+
+    test('splits simple space-separated tokens', () => {
+      assert.deepStrictEqual(splitArgs('--flag value'), ['--flag', 'value']);
+    });
+
+    test('handles multiple spaces between tokens', () => {
+      assert.deepStrictEqual(splitArgs('a  b'), ['a', 'b']);
+    });
+
+    test('preserves single-quoted tokens with spaces as one element', () => {
+      assert.deepStrictEqual(splitArgs("--name 'John Doe'"), ['--name', 'John Doe']);
+    });
+
+    test('preserves double-quoted tokens with spaces as one element', () => {
+      assert.deepStrictEqual(splitArgs('--name "John Doe"'), ['--name', 'John Doe']);
+    });
+
+    test('handles mixed quoted and unquoted tokens', () => {
+      assert.deepStrictEqual(
+        splitArgs('--env production --name "My App"'),
+        ['--env', 'production', '--name', 'My App'],
+      );
+    });
+
+    test('handles --key="value with spaces" style', () => {
+      assert.deepStrictEqual(splitArgs('--key="spaced value"'), ['--key=spaced value']);
+    });
+
+    test('handles single token without spaces', () => {
+      assert.deepStrictEqual(splitArgs('--verbose'), ['--verbose']);
+    });
+
+    test('does not include quotes in resulting tokens', () => {
+      const result = splitArgs("'hello world'");
+      assert.deepStrictEqual(result, ['hello world']);
+    });
+  });
+
+  // ── buildShellTask ─────────────────────────────────────────────────────────
+
+  suite('buildShellTask()', () => {
+    function makeUri(p: string): vscode.Uri {
+      return vscode.Uri.file(p);
+    }
+
+    test('builds a CreatedTask with correct command, args, and cwd', () => {
+      const resourceUri = makeUri('/workspace/package.json');
+      const result = buildShellTask({
+        type: 'npm',
+        label: 'build',
+        command: 'npm',
+        args: ['run', 'build'],
+        cwd: '/workspace',
+        resourceUri,
+      });
+
+      assert.ok(result.task, 'Task should be created');
+      assert.strictEqual(result.native, false);
+      assert.strictEqual(result.cwd, '/workspace');
+      assert.strictEqual(result.command, 'npm run build');
+
+      const exec = result.task.execution as vscode.ShellExecution;
+      assert.ok(exec, 'ShellExecution should be set');
+      assert.strictEqual(exec.command, 'npm');
+      assert.deepStrictEqual(exec.args, ['run', 'build']);
+      assert.strictEqual(exec.options?.cwd, '/workspace');
+    });
+
+    test('uses default task definition (type, script, path)', () => {
+      const resourceUri = makeUri('/workspace/package.json');
+      const result = buildShellTask({
+        type: 'npm',
+        label: 'test',
+        command: 'npm',
+        args: ['run', 'test'],
+        cwd: '/workspace',
+        resourceUri,
+      });
+
+      const def = result.task.definition;
+      assert.strictEqual(def.type, 'npm');
+      assert.strictEqual((def as any).script, 'test');
+      assert.strictEqual((def as any).path, resourceUri.fsPath);
+    });
+
+    test('accepts definitionOverride to replace default definition', () => {
+      const resourceUri = makeUri('/workspace/project.csproj');
+      const customDef = { type: 'msbuild', target: 'Build', path: resourceUri.fsPath };
+      const result = buildShellTask({
+        type: 'msbuild',
+        label: 'Build',
+        command: 'msbuild',
+        args: ['project.csproj', '-t:Build'],
+        cwd: '/workspace',
+        resourceUri,
+        definitionOverride: customDef,
+      });
+
+      assert.strictEqual(result.task.definition.type, 'msbuild');
+      assert.strictEqual((result.task.definition as any).target, 'Build');
+    });
+
+    test('command string is just the command when args is empty', () => {
+      const resourceUri = makeUri('/workspace/Makefile');
+      const result = buildShellTask({
+        type: 'make',
+        label: 'all',
+        command: 'make',
+        args: [],
+        cwd: '/workspace',
+        resourceUri,
+      });
+
+      assert.strictEqual(result.command, 'make');
+    });
+
+    test('task label and source are set correctly', () => {
+      const resourceUri = makeUri('/workspace/package.json');
+      const result = buildShellTask({
+        type: 'npm',
+        label: 'deploy',
+        command: 'npm',
+        args: ['run', 'deploy'],
+        cwd: '/workspace',
+        resourceUri,
+      });
+
+      assert.strictEqual(result.task.name, 'deploy');
+      assert.strictEqual(result.task.source, 'npm');
+    });
+  });
+});
