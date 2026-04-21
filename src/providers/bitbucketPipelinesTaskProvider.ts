@@ -9,7 +9,7 @@ import { TaskIconService } from '../services/taskIconService';
 import { ExecutableResult, ExecutableService } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
 import { ExtensionConfigurationService } from '../services/extensionConfigurationService';
-import { group } from 'console';
+import { CreatedTask, splitArgs } from '../libs/taskCreationUtils';
 
 /** A single Bitbucket Pipelines step definition. */
 interface BitbucketStep {
@@ -200,6 +200,63 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
 
   public async getSystemTasks(): Promise<TaskItem[]> {
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    if (!item.taskFileUri) {
+      return undefined;
+    }
+
+    const taskLabel = item.originalLabel || item.label;
+    const { command: bbCmd, args: providerArgs } = this.getCommand(item.taskFileUri);
+    const bbArgs = [...(providerArgs ?? [])];
+    bbArgs.push('run');
+
+    const bbConfig = vscode.workspace.getConfiguration('workspaceTasks');
+    const envFiles = bbConfig.get<string[]>('bitbucketPipelineRunner.environmentFiles', []);
+    for (const ef of envFiles) {
+      bbArgs.push('--env-file', ef);
+    }
+
+    const meta = item.metadata;
+    if (meta?.type === 'step') {
+      if (typeof meta.stepName !== 'string' || typeof meta.pipelinePath !== 'string') {
+        return undefined;
+      }
+      bbArgs.push('--step', meta.stepName, meta.pipelinePath);
+    } else if (meta?.type === 'stage') {
+      if (typeof meta.stageName !== 'string' || typeof meta.pipelinePath !== 'string') {
+        return undefined;
+      }
+      bbArgs.push('--stage', meta.stageName, meta.pipelinePath);
+    } else if (meta?.type === 'pipeline') {
+      if (typeof meta.pipelinePath !== 'string') {
+        return undefined;
+      }
+      bbArgs.push(meta.pipelinePath);
+    } else {
+      return undefined;
+    }
+
+    bbArgs.push(...splitArgs(args));
+
+    const bbWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+    const bbCwd = bbWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+    const shellExec = new vscode.ShellExecution(bbCmd, bbArgs, { cwd: bbCwd });
+    const full = `${bbCmd} ${bbArgs.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')}`;
+
+    const taskDef: { type: string; pipeline: string; stage?: string; step?: string } = {
+      type: 'bitbucket',
+      pipeline: meta.pipelinePath as string,
+    };
+    if (meta.type === 'stage') {
+      taskDef.stage = meta.stageName as string;
+    } else if (meta.type === 'step') {
+      taskDef.step = meta.stepName as string;
+    }
+
+    const bbTask = new vscode.Task(taskDef, vscode.TaskScope.Workspace, taskLabel, 'bitbucket', shellExec);
+    return { task: bbTask, command: full, cwd: bbCwd, native: false };
   }
 
   // ── private helpers ─────────────────────────────────────────────

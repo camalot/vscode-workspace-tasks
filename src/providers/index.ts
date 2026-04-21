@@ -68,9 +68,8 @@ type TaskProviderConstructor =
   | (new () => CircleCiTaskProvider)
   | (new () => BitbucketPipelinesTaskProvider);
 
-export function registerAllProviders(context: vscode.ExtensionContext) {
-  const logger = LoggerService.getInstance();
-  const providers: TaskProviderConstructor[] = [
+function getProviderConstructors(): TaskProviderConstructor[] {
+  return [
     BunTaskProvider,
     NpmTaskProvider,
     PnpmTaskProvider,
@@ -104,6 +103,28 @@ export function registerAllProviders(context: vscode.ExtensionContext) {
     CircleCiTaskProvider,
     BitbucketPipelinesTaskProvider,
   ];
+}
+
+export function ensureTaskProviderRegistryPopulated() {
+  const logger = LoggerService.getInstance();
+  const registry = TaskProviderRegistry.getInstance();
+  if (registry.getKnownTypes().size > 0) {
+    return;
+  }
+
+  for (const ProviderClass of getProviderConstructors()) {
+    try {
+      const instance = new ProviderClass();
+      registry.register(instance.type, instance);
+    } catch (err) {
+      logger.error(`[Providers] Failed to register provider in registry ${ProviderClass.name}:`, err);
+    }
+  }
+}
+
+export function registerAllProviders(context: vscode.ExtensionContext) {
+  const logger = LoggerService.getInstance();
+  const providers = getProviderConstructors();
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   const filesService = TaskFilesService.getInstance();
   for (const ProviderClass of providers) {

@@ -9,6 +9,7 @@ import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
+import { CreatedTask, splitArgs } from '../libs/taskCreationUtils';
 
 const execFileAsync = promisify(execFile);
 
@@ -170,5 +171,53 @@ export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvid
 
   public async getSystemTasks(): Promise<TaskItem[]> {
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    if (!item.taskFileUri) {
+      return undefined;
+    }
+
+    const taskLabel = item.originalLabel || item.label;
+    const { command: ciCmd, args: providerArgs } = this.getCommand(item.taskFileUri);
+    const ciArgs = [...(providerArgs ?? [])];
+    const effectiveFileUri = item.taskFileUri;
+    ciArgs.push('--file', path.basename(effectiveFileUri.fsPath));
+
+    const ciConfig = vscode.workspace.getConfiguration('workspaceTasks');
+    const variablesFile = ciConfig.get<string>('gitlabCiLocal.variablesFile', '');
+    if (variablesFile) {
+      ciArgs.push('--variables-file', variablesFile);
+    }
+    const variables = ciConfig.get<string[]>('gitlabCiLocal.variable', []);
+    for (const v of variables) {
+      ciArgs.push('--variable', v);
+    }
+    const unsetVars = ciConfig.get<string[]>('gitlabCiLocal.unsetVariable', []);
+    for (const u of unsetVars) {
+      ciArgs.push('--unset-variable', u);
+    }
+    const remoteVars = ciConfig.get<string[]>('gitlabCiLocal.remoteVariables', []);
+    for (const r of remoteVars) {
+      ciArgs.push('--remote-variables', r);
+    }
+    const home = ciConfig.get<string>('gitlabCiLocal.home', '');
+    if (home) {
+      ciArgs.push('--home', home);
+    }
+
+    ciArgs.push(taskLabel, ...splitArgs(args));
+
+    const ciCwd = path.dirname(effectiveFileUri.fsPath);
+    const shellExec = new vscode.ShellExecution(ciCmd, ciArgs, { cwd: ciCwd });
+    const full = `${ciCmd} ${ciArgs.join(' ')}`;
+    const task = new vscode.Task(
+      { type: 'gitlab-ci', job: taskLabel, path: effectiveFileUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'gitlab-ci',
+      shellExec,
+    );
+    return { task, command: full, cwd: ciCwd, native: false };
   }
 }

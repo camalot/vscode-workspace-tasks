@@ -12,6 +12,7 @@ import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
 import { TaskCacheService } from '../services/taskCacheService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 const execFileAsync = promisify(execFile);
 
@@ -287,5 +288,37 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       );
       return [];
     }
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    const { command: taskCmd, args: taskInitialArgs, cwd: taskCwd } = this.getCommand(workspaceFolder?.uri);
+
+    const taskArgs = taskInitialArgs ? [...taskInitialArgs] : [];
+    const globalTaskfilePath = typeof item.metadata?.globalTaskfilePath === 'string'
+      ? item.metadata.globalTaskfilePath
+      : undefined;
+
+    if (globalTaskfilePath) {
+      taskArgs.push('--taskfile', globalTaskfilePath);
+    } else if (item.taskFileUri) {
+      taskArgs.push('--taskfile', item.taskFileUri.fsPath);
+    }
+
+    taskArgs.push(taskLabel, ...splitArgs(args));
+
+    const full = `${taskCmd} ${taskArgs.join(' ')}`;
+    const taskFileCwd = item.taskFileUri ? path.dirname(item.taskFileUri.fsPath) : taskCwd;
+    const shellExec = new vscode.ShellExecution(taskCmd, taskArgs, { cwd: taskFileCwd });
+
+    const task = new vscode.Task(
+      { type: 'taskfile', task: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'taskfile',
+      shellExec,
+    );
+    return { task, command: full, cwd: taskFileCwd, native: false };
   }
 }

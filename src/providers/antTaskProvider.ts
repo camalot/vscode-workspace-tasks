@@ -8,6 +8,7 @@ import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -191,5 +192,54 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
       },
       workspaceUri,
     );
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    const useAnsicon = this.shouldUseAnsicon();
+    const workspaceUri = workspaceFolder?.uri;
+
+    const { command: antCommand, args: antInitialArgs, cwd: antCwd } = this.getCommand(workspaceUri);
+
+    let command: string;
+    let commandArgs: string[];
+
+    if (useAnsicon) {
+      command = this.getAnsicon(workspaceUri).command;
+      commandArgs = [antCommand];
+      if (antInitialArgs) {
+        commandArgs.push(...antInitialArgs);
+      }
+      commandArgs = commandArgs.concat(this.getCommandArgs(taskLabel, true, item.taskFileUri?.fsPath));
+    } else {
+      command = antCommand;
+      commandArgs = antInitialArgs ? [...antInitialArgs] : [];
+      commandArgs.push(...this.getCommandArgs(taskLabel, false, item.taskFileUri?.fsPath));
+    }
+
+    commandArgs.push(...splitArgs(args));
+
+    if (useAnsicon) {
+      const ansiconArgs = commandArgs.map((arg) => `"${arg}"`).join(' ');
+      const fullCommand = `"${command}" ${ansiconArgs}`;
+      const task = new vscode.Task(
+        { type: 'ant', target: taskLabel, path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'ant',
+        new vscode.ShellExecution(fullCommand, { cwd: antCwd }),
+      );
+      return { task, command: fullCommand, cwd: antCwd, native: false };
+    }
+
+    const task = new vscode.Task(
+      { type: 'ant', target: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'ant',
+      new vscode.ShellExecution(command, commandArgs, { cwd: antCwd }),
+    );
+    return { task, command: `${command} ${commandArgs.join(' ')}`, cwd: antCwd, native: false };
   }
 }

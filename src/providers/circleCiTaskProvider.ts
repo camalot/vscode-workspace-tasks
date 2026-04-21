@@ -8,6 +8,7 @@ import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableResult, ExecutableService } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
+import { CreatedTask, splitArgs } from '../libs/taskCreationUtils';
 
 interface CircleCiConfig {
   jobs?: Record<string, any>;
@@ -256,5 +257,37 @@ export class CircleCiTaskProvider extends BaseTaskProvider implements TaskProvid
 
   public async getSystemTasks(): Promise<TaskItem[]> {
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    if (item.metadata?.type && item.metadata.type !== 'job') {
+      return undefined;
+    }
+    if (!item.taskFileUri) {
+      return undefined;
+    }
+
+    const taskLabel = item.originalLabel || item.label;
+    const { command: circleCmd, args: providerArgs } = this.getCommand(item.taskFileUri);
+    const circleArgs = [...(providerArgs ?? [])];
+
+    const circleWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+    const circleCwd = circleWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+    const configPath = circleWorkspaceFolder
+      ? path.relative(circleWorkspaceFolder.uri.fsPath, item.taskFileUri.fsPath) || path.basename(item.taskFileUri.fsPath)
+      : item.taskFileUri.fsPath;
+
+    circleArgs.push('local', 'execute', '-c', configPath, taskLabel, ...splitArgs(args));
+
+    const shellExec = new vscode.ShellExecution(circleCmd, circleArgs, { cwd: circleCwd });
+    const full = `${circleCmd} ${circleArgs.join(' ')}`;
+    const task = new vscode.Task(
+      { type: 'circleci', job: taskLabel, path: item.taskFileUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'circleci',
+      shellExec,
+    );
+    return { task, command: full, cwd: circleCwd, native: false };
   }
 }

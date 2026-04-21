@@ -8,6 +8,7 @@ import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 interface JustRecipeAttribute {
   name: string;
@@ -230,5 +231,24 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    const { command: justCommand, args: justInitialArgs, cwd: justCwd } = this.getCommand(resourceUri);
+
+    const justArgs = justInitialArgs ? [...justInitialArgs] : [];
+    justArgs.push('--justfile', resourceUri.fsPath, taskLabel, ...splitArgs(args));
+
+    const fullCmd = `${justCommand} ${justArgs.join(' ')}`.trim();
+    const task = new vscode.Task(
+      { type: 'justfile', task: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'just',
+      new vscode.ShellExecution(justCommand, justArgs, { cwd: justCwd }),
+    );
+    return { task, command: fullCmd, cwd: justCwd, native: false };
   }
 }

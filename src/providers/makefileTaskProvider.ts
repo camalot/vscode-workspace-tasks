@@ -5,6 +5,8 @@ import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
 import { TaskFilesService } from '../services/taskFilesService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import * as path from 'path';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -84,5 +86,26 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    const makeFileCwd = path.dirname(resourceUri.fsPath);
+    const { command: makeCmd, args: makeInitialArgs } = this.getCommand(workspaceFolder?.uri);
+
+    const makeArgs = makeInitialArgs ? [...makeInitialArgs] : [];
+    makeArgs.push(taskLabel, ...splitArgs(args));
+
+    const full = `${makeCmd} ${makeArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(makeCmd, makeArgs, { cwd: makeFileCwd });
+    const task = new vscode.Task(
+      { type: 'process', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'makefile',
+      shellExec,
+    );
+    return { task, command: full, cwd: makeFileCwd, native: false };
   }
 }
