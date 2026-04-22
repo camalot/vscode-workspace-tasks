@@ -89,7 +89,7 @@
     "compile:webpack": "webpack",
     "bundle-chartjs": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\"",
     "compile:prod": "npm run check:types && npm run lint && npm run compile",
-    "compile:tests": "rm -rf out && tsc -p . --outDir out",
+    "compile:tests": "./scripts/clean-path.js out && tsc -p . --outDir out",
     "docs:build": "~/bin/build-docs --build",
     "docs:serve": "~/bin/build-docs --serve",
     "docs:serve:watch": "~/bin/build-docs --serve",
