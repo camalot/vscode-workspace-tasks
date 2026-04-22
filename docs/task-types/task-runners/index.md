@@ -35,7 +35,7 @@ has_children: true
 | **[Gulp](https://gulpjs.com/)** | `**/gulpfile.{js,mjs}` | Exported tasks |
 | **[Grunt](https://gruntjs.com/)** | `**/Gruntfile.js` | Registered tasks |
 | **[Cargo](https://doc.rust-lang.org/cargo/)** | `**/Cargo.toml` | Rust build tasks |
-| **[cargo-make](https://sagiegurari.github.io/cargo-make/)** | `**/{Makefile.toml,*.toml}` | Rust task runner (requires Cargo) |
+| **[cargo-make](https://sagiegurari.github.io/cargo-make/)** | `**/[Mm]akefile.toml` | Rust task runner (requires Cargo) |
 | **[Just](https://github.com/casey/just)** | `**/{justfile,.justfile,*.just}` | Command recipes |
 | **[Make](https://www.gnu.org/software/make/)** | `**/Makefile` | Build targets |
 | **[mise](https://mise.jdx.dev/)** | `**/mise.toml`, `**/mise.*.toml`, `**/mise.*.local.toml` | TOML tasks and file tasks |

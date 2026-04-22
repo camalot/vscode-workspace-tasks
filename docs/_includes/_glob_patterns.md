@@ -7,7 +7,7 @@
 | <code>GLOB_EXTENSIONLESS_EXCLUDE</code> | <code>**/node_modules/**,**/.git/**,**/.venv/**,**/dist/**,**/out/**,**/build/**,**/coverage/**,**/.vscode/**,**/.vscode-test/**,**/vendor/bundle/**</code> |  |
 | <code>GLOB_SHELL_EXCLUDE</code> | <code>**/.venv/**</code> |  |
 | <code>GLOB_ANT</code> | <code>**/*.xml</code> | <code>build.xml</code> |
-| <code>GLOB_CARGO_MAKE</code> | <code>**/{[Mm]ake[Ff]ile.toml,*.toml}</code> | <code>Makefile.toml</code><br><code>makefile.toml</code><br><code>MakeFile.toml</code><br><code>Makefile.local.toml</code> |
+| <code>GLOB_CARGO_MAKE</code> | <code>**/[Mm]akefile.toml</code> | <code>Makefile.toml</code><br><code>makefile.toml</code> |
 | <code>GLOB_DENO</code> | <code>**/deno.{json,jsonc}</code> | <code>deno.json</code><br><code>deno.jsonc</code> |
 | <code>GLOB_JUST</code> | <code>{**/[Jj]ust[Ff]ile,**/.[Jj]ust[Ff]ile,**/*.just}</code> | <code>justfile</code><br><code>Justfile</code><br><code>justFile</code><br><code>.justfile</code><br><code>.Justfile</code><br><code>.justFile</code><br><code>foo.just</code> |
 | <code>GLOB_MAVEN</code> | <code>**/pom.xml</code> | <code>pom.xml</code> |
