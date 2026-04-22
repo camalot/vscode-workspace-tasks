@@ -29,6 +29,9 @@
 
 - Update glob for cargo-make
 
+- Add shebang to node script
+
+- fix: add shebang to node script
 
 ### 🚜 Refactor
 
