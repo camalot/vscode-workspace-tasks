@@ -124,9 +124,16 @@ export function registerAllProviders(context: vscode.ExtensionContext) {
   const providers = getProviderConstructors();
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   const filesService = TaskFilesService.getInstance();
+
+  // Build one instance per provider class and reuse it for both the tree/files
+  // service registration and the TaskProviderRegistry, so discovery and task
+  // creation always share the same object (caches, event emitters, config, etc.).
+  const instances: InstanceType<TaskProviderConstructor>[] = [];
+
   for (const ProviderClass of providers) {
     try {
       const providerInstance = new ProviderClass();
+      instances.push(providerInstance);
       filesService.registerPatterns(providerInstance.getFilePatterns());
       // Assuming there's a global taskTreeDataProvider instance
       if (taskTreeDataProvider) {
@@ -150,19 +157,18 @@ export function registerAllProviders(context: vscode.ExtensionContext) {
     }
   }
 
-  // Populate TaskProviderRegistry with the same provider instances.
+  // Populate TaskProviderRegistry with the already-created instances.
   // The factory uses the registry for two-track dispatch (Track 1).
   // During the refactor migration, providers whose createTask() is not yet
   // implemented return undefined from the base-class default, causing the factory
   // to fall through to the legacy switch (Track 2).
   const registry = TaskProviderRegistry.getInstance();
   registry.clear();
-  for (const ProviderClass of providers) {
+  for (const instance of instances) {
     try {
-      const instance = new ProviderClass();
       registry.register(instance.type, instance);
     } catch (err) {
-      logger.error(`[Providers] Failed to register provider in registry ${ProviderClass.name}:`, err);
+      logger.error(`[Providers] Failed to register provider in registry ${instance.type}:`, err);
     }
   }
 }
