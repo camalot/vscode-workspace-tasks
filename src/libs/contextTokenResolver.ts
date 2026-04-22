@@ -41,12 +41,19 @@ export function resolveContextTokens(value: string, ctx: ContextTokenResolutionC
     '${pathSeparator}': path.sep,
   };
 
-  let resolved = value;
+  // Resolve ${env.*} FIRST so that generic token values (which may contain '}')
+  // cannot corrupt env var names or leave stray '}' characters in the output.
+  // The trailing \}? consumes any extra closing brace left when a nested pattern
+  // like ${env.${workspaceFolder}} is encountered: [^}]+ matches the inner token
+  // up to its own '}', \} consumes that '}', and \}? consumes the outer '}' that
+  // would otherwise be left as a stray character.
+  let resolved = value.replace(/\$\{env\.([^}]+)\}\}?/g, (_match, envName: string) => {
+    return ctx.processEnv[envName] ?? '';
+  });
+
   for (const [token, replacement] of Object.entries(replacements)) {
     resolved = resolved.replaceAll(token, () => replacement);
   }
 
-  return resolved.replace(/\$\{env\.([^}]+)\}/g, (_match, envName: string) => {
-    return ctx.processEnv[envName] ?? '';
-  });
+  return resolved;
 }

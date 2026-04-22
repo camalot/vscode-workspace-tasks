@@ -103,7 +103,24 @@ suite('contextTokenResolver Test Suite', () => {
       processEnv: {},
     });
 
+    // The env regex is resolved first. [^}]+ matches '${workspaceFolder' (the inner
+    // token up to its own '}'), \} consumes that '}', and \}? consumes the outer '}',
+    // so the entire nested pattern is removed without leaving a stray '}'.
     assert.strictEqual(result, 'echo ');
+  });
+
+  test('resolveContextTokens no stray } when token value contains }', () => {
+    // workspaceFolderBasename value contains '}' — with generic-first ordering this
+    // would produce 'echo po}' (env regex stops at first '}'). With env-first the
+    // env token is resolved before the value is substituted, so no stray '}' escapes.
+    const result = resolveContextTokens('echo ${env.MY_VAR} and ${workspaceFolderBasename}', {
+      workspaceFolder: '/repo',
+      workspaceFolderBasename: 're}po',
+      activeFile: '',
+      processEnv: { MY_VAR: 'hello' },
+    });
+
+    assert.strictEqual(result, 'echo hello and re}po');
   });
 
   test('resolveContextTokens preserves unknown ${...} token and shell $VAR syntax', () => {
