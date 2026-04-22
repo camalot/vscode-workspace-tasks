@@ -22,8 +22,8 @@ const targetPath = process.argv[process.argv.length - 1] || 'out';
 // ./scripts/clean-path.js out
 
 if (!fs.existsSync(targetPath)) {
-    console.error(`Path "${targetPath}" does not exist.`);
-    process.exit(1);
+    console.error(`Path "${targetPath}" does not exist. Skipping clean.`);
+    process.exit(0);
 }
 
 if (!allowedPaths.includes(targetPath)) {
