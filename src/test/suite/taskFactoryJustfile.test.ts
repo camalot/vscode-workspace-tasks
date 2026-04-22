@@ -17,6 +17,7 @@ suite('TaskFactory Justfile Tests', () => {
     assert.ok(created?.command?.includes('--justfile'), 'Command should include --justfile argument');
     assert.ok(created?.command?.includes(filePath), 'Command should include the full path to the justfile');
     assert.ok(created?.command?.includes('build'), 'Command should include the task name');
+    assert.strictEqual(created?.cwd, path.dirname(filePath), 'cwd should be the justfile directory');
 
     const task = created?.task;
     assert.ok(task, 'Task should be returned');
@@ -34,5 +35,12 @@ suite('TaskFactory Justfile Tests', () => {
     assert.ok(created?.command?.includes(filePath), 'Command should include the full path to the justfile');
     assert.ok(created?.command?.includes('test'), 'Command should include the task name');
     assert.ok(created?.command?.includes('--dry-run'), 'Command should include extra args');
+  });
+
+  test('createTaskForItem returns undefined when justfile task has no taskFileUri', async () => {
+    const item = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'justfile', undefined);
+
+    const created = await createTaskForItem(item);
+    assert.strictEqual(created, undefined);
   });
 });
