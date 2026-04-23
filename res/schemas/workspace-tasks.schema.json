@@ -115,7 +115,10 @@
                 "minLength": 1,
                 "description": "This is the task type. (e.g. npm, shell, grunt, etc.)"
               },
-              "command": { "type": "string" },
+              "command": {
+                "type": "string",
+                "description": "Shell command to run. Supports {{ .InputId }} input templates and context tokens for workspace tasks: ${args}, ${workspaceFolder}, ${workspaceFolderBasename}, ${file}, ${fileBasename}, ${fileDirname}, ${fileExtname}, ${fileBasenameNoExtension}, ${pathSeparator}, and ${env.VAR}."
+              },
               "args": { "type": "array", "items": { "type": "string" } },
               "options": {
                 "type": "object",

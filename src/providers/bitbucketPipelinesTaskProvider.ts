@@ -8,6 +8,8 @@ import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableResult, ExecutableService } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
+import { ExtensionConfigurationService } from '../services/extensionConfigurationService';
+import { CreatedTask, splitArgs } from '../libs/taskCreationUtils';
 
 /** A single Bitbucket Pipelines step definition. */
 interface BitbucketStep {
@@ -74,11 +76,16 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
       return [];
     }
 
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    const extraPatterns = config.get<string[]>('bitbucketPipelineRunner.additionalFilePatterns', []);
-    const globs = [constants.GLOB_BITBUCKET_PIPELINES, ...extraPatterns];
+    const allFiles = await TaskFilesService.getInstance().findFiles([constants.GLOB_BITBUCKET_PIPELINES]);
 
-    const files = await TaskFilesService.getInstance().findFiles(globs);
+    // pipeline-runner has no flag to specify the config file path — it always
+    // reads bitbucket-pipelines.yml from the current working directory (workspace
+    // root).  Only process files that live directly at a workspace folder root.
+    const workspaceRoots = new Set(
+      (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath),
+    );
+    const files = allFiles.filter((f) => workspaceRoots.has(path.dirname(f.fsPath)));
+
     const tasks: TaskItem[] = [];
 
     for (const file of files) {
@@ -124,8 +131,21 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     const svc = iconService ?? TaskIconService.getInstance();
     const iconPath = svc.getTaskIcon('bitbucket', fileUri);
 
+    const configService = ExtensionConfigurationService.getInstance();
+
+    // Use the workspace folder name as the label only in multi-root workspace, where it
+    // disambiguates which folder the file belongs to. if grouping is enabled, and useParentFolder is true, use the parent folder name; Otherwise, in a single-root workspace the folder
+    // name adds an unnecessary extra grouping level, so fall back to the file's basename.
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
+    const isMultiRoot = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
+    const groupEnabled = configService.get('groups.enabled', false);
+    const useParentFolder = configService.get('groups.useParentFolder', false) && groupEnabled;
+    const fileLabel = isMultiRoot || useParentFolder
+      ? (workspaceFolder?.name ?? path.basename(path.dirname(fileUri.fsPath)))
+      : path.basename(fileUri.fsPath);
+
     const fileItem = new TaskItem(
-      path.basename(fileUri.fsPath),
+      fileLabel,
       vscode.TreeItemCollapsibleState.Collapsed,
       'bitbucket',
       fileUri,
@@ -180,6 +200,63 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
 
   public async getSystemTasks(): Promise<TaskItem[]> {
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    if (!item.taskFileUri) {
+      return undefined;
+    }
+
+    const taskLabel = item.originalLabel || item.label;
+    const { command: bbCmd, args: providerArgs } = this.getCommand(item.taskFileUri);
+    const bbArgs = [...(providerArgs ?? [])];
+    bbArgs.push('run');
+
+    const bbConfig = vscode.workspace.getConfiguration('workspaceTasks');
+    const envFiles = bbConfig.get<string[]>('bitbucketPipelineRunner.environmentFiles', []);
+    for (const ef of envFiles) {
+      bbArgs.push('--env-file', ef);
+    }
+
+    const meta = item.metadata;
+    if (meta?.type === 'step') {
+      if (typeof meta.stepName !== 'string' || typeof meta.pipelinePath !== 'string') {
+        return undefined;
+      }
+      bbArgs.push('--step', meta.stepName, meta.pipelinePath);
+    } else if (meta?.type === 'stage') {
+      if (typeof meta.stageName !== 'string' || typeof meta.pipelinePath !== 'string') {
+        return undefined;
+      }
+      bbArgs.push('--stage', meta.stageName, meta.pipelinePath);
+    } else if (meta?.type === 'pipeline') {
+      if (typeof meta.pipelinePath !== 'string') {
+        return undefined;
+      }
+      bbArgs.push(meta.pipelinePath);
+    } else {
+      return undefined;
+    }
+
+    bbArgs.push(...splitArgs(args));
+
+    const bbWorkspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+    const bbCwd = bbWorkspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+    const shellExec = new vscode.ShellExecution(bbCmd, bbArgs, { cwd: bbCwd });
+    const full = `${bbCmd} ${bbArgs.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')}`;
+
+    const taskDef: { type: string; pipeline: string; stage?: string; step?: string } = {
+      type: 'bitbucket',
+      pipeline: meta.pipelinePath as string,
+    };
+    if (meta.type === 'stage') {
+      taskDef.stage = meta.stageName as string;
+    } else if (meta.type === 'step') {
+      taskDef.step = meta.stepName as string;
+    }
+
+    const bbTask = new vscode.Task(taskDef, vscode.TaskScope.Workspace, taskLabel, 'bitbucket', shellExec);
+    return { task: bbTask, command: full, cwd: bbCwd, native: false };
   }
 
   // ── private helpers ─────────────────────────────────────────────

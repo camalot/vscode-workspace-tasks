@@ -45,10 +45,8 @@ suite('Glob Pattern Constants Test Suite', () => {
       matches: [
         'repo/Makefile.toml',
         'repo/makefile.toml',
-        'repo/MakeFile.toml',
-        'repo/Makefile.local.toml',
       ],
-      nonMatches: ['repo/README.md', 'repo/Makefile', 'repo/file.toml.md'],
+      nonMatches: ['repo/README.md', 'repo/Makefile', 'repo/file.toml.md', 'repo/MakeFile.toml', 'repo/Makefile.local.toml', 'repo/Cargo.toml', 'repo/custom.toml'],
     },
     {
       name: 'GLOB_DENO',
@@ -82,10 +80,21 @@ suite('Glob Pattern Constants Test Suite', () => {
       matches: [
         'repo/mise.toml',
         'repo/mise.local.toml',
+        'repo/.mise.toml',
+        'repo/mise/config.toml',
+        'repo/.mise/config.toml',
+        'repo/.config/mise.toml',
+        'repo/.config/mise/config.toml',
+        'repo/.config/mise/conf.d/dev.toml',
+      ],
+      nonMatches: [
+        'repo/mise.json',
+        'repo/misefile.toml',
+        'repo/mise.toml.backup',
         'repo/mise.dist.toml',
         'repo/mise.dist.local.toml',
+        'repo/.config/mise/conf.d/dev.yaml',
       ],
-      nonMatches: ['repo/mise.json', 'repo/misefile.toml', 'repo/mise.toml.backup'],
     },
     {
       name: 'GLOB_MSBUILD',
@@ -200,6 +209,7 @@ suite('Glob Pattern Constants Test Suite', () => {
       name: 'GLOB_BITBUCKET_PIPELINES',
       pattern: constants.GLOB_BITBUCKET_PIPELINES,
       matches: [
+        'bitbucket-pipelines.yml',
         'repo/bitbucket-pipelines.yml',
         'subdir/bitbucket-pipelines.yml',
         'repo/.bitbucket/bitbucket-pipelines.yml',
@@ -275,21 +285,6 @@ suite('Glob Pattern Constants Test Suite', () => {
       pattern: constants.GLOB_WORKSPACE,
       matches: ['repo/.workspace-tasks.json', 'repo/.workspace-tasks.dev.json'],
       nonMatches: ['repo/workspace-tasks.json', 'repo/.workspace-task.json'],
-    },
-    {
-      name: 'GLOB_VENV',
-      pattern: constants.GLOB_VENV,
-      matches: [
-        'repo/.venv/Scripts/activate.bat',
-        'repo/.venv/Scripts/activate.fish',
-        'repo/.venv/Scripts/Activate.ps1',
-        'repo/.venv/Scripts/deactivate.bat',
-        'repo/.venv/Scripts/deactivate.fish',
-        'repo/.venv/Scripts/Deactivate.ps1',
-        'repo/.venv/Scripts/activate',
-        'repo/.venv/Scripts/deactivate',
-      ],
-      nonMatches: ['repo/.venv/bin/activate', 'repo/.venv/Scripts/python.exe', 'repo/.venv/scripts/activate.bat'],
     },
     {
       name: 'GLOB_CMAKE',

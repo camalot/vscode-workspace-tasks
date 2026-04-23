@@ -5,6 +5,8 @@ import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import * as path from 'path';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -87,5 +89,34 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    const { command: gruntCmd, args: gruntInitialArgs, cwd: gruntCwd } = this.getCommand(workspaceFolder?.uri);
+
+    const gruntArgs: string[] = gruntInitialArgs ? [...gruntInitialArgs] : [];
+    if (taskLabel && taskLabel.length > 0) {
+      gruntArgs.push(taskLabel);
+    }
+
+    const dir = path.dirname(resourceUri.fsPath);
+    const rel = path.relative(gruntCwd, dir);
+    const fileName = path.basename(resourceUri.fsPath).toLowerCase();
+    if ((rel.length > 0 && rel !== '.') || fileName !== 'gruntfile.js') {
+      gruntArgs.push('--gruntfile', resourceUri.fsPath);
+    }
+
+    gruntArgs.push(...splitArgs(args));
+
+    const task = new vscode.Task(
+      { type: 'grunt', target: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'grunt',
+      new vscode.ShellExecution(gruntCmd, gruntArgs, { cwd: gruntCwd }),
+    );
+    return { task, command: `${gruntCmd} ${gruntArgs.join(' ')}`.trim(), cwd: gruntCwd, native: false };
   }
 }

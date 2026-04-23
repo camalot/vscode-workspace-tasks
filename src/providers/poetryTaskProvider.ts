@@ -6,6 +6,7 @@ import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { parse } from 'smol-toml';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class PoetryTaskProvider extends TomlTaskProvider {
   constructor() {
@@ -136,5 +137,25 @@ export class PoetryTaskProvider extends TomlTaskProvider {
       },
       workspaceUri,
     );
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: poetryCmd, args: poetryInitialArgs, cwd: poetryCwd } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+
+    const poetryArgs = poetryInitialArgs ? [...poetryInitialArgs] : [];
+    poetryArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${poetryCmd} ${poetryArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(poetryCmd, poetryArgs, { cwd: poetryCwd });
+    const task = new vscode.Task(
+      { type: 'poetry', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'poetry',
+      shellExec,
+    );
+    return { task, command: full, cwd: poetryCwd, native: false };
   }
 }

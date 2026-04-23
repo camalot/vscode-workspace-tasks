@@ -14,13 +14,14 @@ import { FilteredTaskService } from './services/filteredTaskService';
 import { FilteredTaskDecorationProvider } from './filteredTaskDecorationProvider';
 import { TaskRunGuardService } from './services/taskRunGuardService';
 import { TaskRunGuardDecorationProvider } from './services/taskRunGuardDecorationProvider';
+import { TaskHistoryService } from './services/taskHistoryService';
 import { TaskHistoryTreeDataProvider } from './taskHistoryTreeDataProvider';
 import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
 import { TaskMetricsService } from './services/taskMetricsService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { loadCommands } from './commands/index';
 import { findTerminalForTask } from './commands/stopTask';
-import { registerTaskProviders } from './providers/index';
+import { registerAllProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
@@ -31,6 +32,9 @@ export async function activate(context: vscode.ExtensionContext) {
   logger.debug('Workspace Tasks extension activating...');
   ExtensionConfigurationService.getInstance().initialize(context);
   TaskStateManager.getInstance().initialize(context);
+
+  // Initialize TaskHistoryService (loads persisted history) before creating tree provider
+  await TaskHistoryService.getInstance().initialize(context);
 
   const taskHistoryTreeDataProvider = new TaskHistoryTreeDataProvider(context);
   const historyTreeView = vscode.window.createTreeView('workspaceTasksHistoryView', {
@@ -170,7 +174,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Register Providers
-  registerTaskProviders(context);
+  registerAllProviders(context);
   // Initial refresh
   taskTreeDataProvider.refresh();
 
@@ -332,4 +336,6 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 }
 
-export function deactivate() {}
+export function deactivate(): Promise<void> {
+  return TaskHistoryService.getInstance().flush();
+}

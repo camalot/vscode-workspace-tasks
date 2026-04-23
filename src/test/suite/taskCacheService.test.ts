@@ -719,4 +719,67 @@ suite('TaskCacheService Test Suite', () => {
         });
     });
 
+    // ── Workspace trust ───────────────────────────────────────────────────────
+
+    suite('workspace trust', () => {
+        let originalIsTrusted: PropertyDescriptor | undefined;
+
+        setup(() => {
+            originalIsTrusted = Object.getOwnPropertyDescriptor(vscode.workspace, 'isTrusted');
+        });
+
+        teardown(() => {
+            if (originalIsTrusted) {
+                Object.defineProperty(vscode.workspace, 'isTrusted', originalIsTrusted);
+            } else {
+                // Restore by deleting the override so the prototype value is used again
+                delete (vscode.workspace as any).isTrusted;
+            }
+        });
+
+        test('refresh() returns empty array and skips all providers when workspace is not trusted', async () => {
+            mockTasks.push(createTaskItem('T1', 'mockType'));
+            let providerCalled = false;
+            mockProvider.getTasks = async () => {
+                providerCalled = true;
+                return mockTasks;
+            };
+
+            Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+
+            const tasks = await service.refresh();
+
+            assert.deepStrictEqual(tasks, [], 'refresh() should return [] for untrusted workspace');
+            assert.strictEqual(providerCalled, false, 'Provider getTasks() must not be called for untrusted workspace');
+            assert.strictEqual(service.getAllTasks().length, 0);
+        });
+
+        test('refreshProvider() is a no-op when workspace is not trusted', async () => {
+            mockTasks.push(createTaskItem('T1', 'mockType'));
+            let providerCalled = false;
+            mockProvider.getTasks = async () => {
+                providerCalled = true;
+                return mockTasks;
+            };
+
+            Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+
+            await service.refreshProvider('mockType');
+
+            assert.strictEqual(providerCalled, false, 'Provider getTasks() must not be called for untrusted workspace');
+            assert.strictEqual(service.getAllTasks().length, 0);
+        });
+
+        test('refresh() discovers tasks normally when workspace is trusted', async () => {
+            mockTasks.push(createTaskItem('T1', 'mockType'));
+
+            Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+
+            const tasks = await service.refresh();
+
+            assert.strictEqual(tasks.length, 1);
+            assert.strictEqual(tasks[0].label, 'T1');
+        });
+    });
+
 });

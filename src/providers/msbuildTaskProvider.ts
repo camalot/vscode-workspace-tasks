@@ -6,6 +6,7 @@ import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
 import { TaskFilesService } from '../services/taskFilesService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -147,5 +148,28 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
     args.push(`-t:${targetName}`);
 
     return args;
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { effectiveResourceUri, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    if (!effectiveResourceUri) {
+      return undefined;
+    }
+
+    const taskLabel = item.originalLabel || item.label;
+    const workspaceUri = workspaceFolder?.uri;
+    const { command: msbuildCmd, args: msbuildInitialArgs, cwd: msbuildCwd } = this.getCommand(workspaceUri);
+    const commandArgs = msbuildInitialArgs ? [...msbuildInitialArgs] : [];
+    commandArgs.push(...this.getCommandArgs(taskLabel, resourceUri.fsPath));
+    commandArgs.push(...splitArgs(args));
+
+    const task = new vscode.Task(
+      { type: 'msbuild', target: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'msbuild',
+      new vscode.ShellExecution(msbuildCmd, commandArgs, { cwd: msbuildCwd }),
+    );
+    return { task, command: `${msbuildCmd} ${commandArgs.join(' ')}`, cwd: msbuildCwd, native: false };
   }
 }

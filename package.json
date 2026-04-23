@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -51,7 +51,6 @@
     "vscode",
     "yarn",
     "pnpm",
-    "venv",
     "docker",
     "github actions",
     "ant",
@@ -90,7 +89,7 @@
     "compile:webpack": "webpack",
     "bundle-chartjs": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\"",
     "compile:prod": "npm run check:types && npm run lint && npm run compile",
-    "compile:tests": "tsc -p . --outDir out",
+    "compile:tests": "node ./scripts/clean-path.js out && tsc -p . --outDir out",
     "docs:build": "~/bin/build-docs --build",
     "docs:serve": "~/bin/build-docs --serve",
     "docs:serve:watch": "~/bin/build-docs --serve",
@@ -147,7 +146,7 @@
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "fast-xml-parser": "5.5.12",
+    "fast-xml-parser": "^5.6.0",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
     "smol-toml": "^1.6.1",
@@ -589,6 +588,23 @@
             "minimum": 0,
             "description": "%config.workspaceTasks.metrics.retentionDays.description%",
             "markdownDescription": "%config.workspaceTasks.metrics.retentionDays.markdown%"
+          },
+          "workspaceTasks.history.maxPersistedRecords": {
+            "title": "%config.workspaceTasks.history.maxPersistedRecords%",
+            "type": "integer",
+            "default": 200,
+            "minimum": 10,
+            "maximum": 2000,
+            "description": "%config.workspaceTasks.history.maxPersistedRecords.description%",
+            "markdownDescription": "%config.workspaceTasks.history.maxPersistedRecords.markdown%"
+          },
+          "workspaceTasks.history.retentionDays": {
+            "title": "%config.workspaceTasks.history.retentionDays%",
+            "type": "integer",
+            "default": 0,
+            "minimum": 0,
+            "description": "%config.workspaceTasks.history.retentionDays.description%",
+            "markdownDescription": "%config.workspaceTasks.history.retentionDays.markdown%"
           }
         }
       },
@@ -756,10 +772,6 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.typescript%"
               },
-              "venv": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.enabledTaskTypes.venv%"
-              },
               "vscode": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.enabledTaskTypes.vscode%"
@@ -809,7 +821,6 @@
               "yarn": false,
               "mise": true,
               "pnpm": false,
-              "venv": true,
               "vscode": true,
               "webpack": true,
               "workspace": true,
@@ -1042,6 +1053,13 @@
             "default": false,
             "description": "%config.workspaceTasks.groups.recentTasks.enabled%",
             "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%"
+          },
+          "workspaceTasks.groups.justfile.enabled": {
+            "title": "%config.workspaceTasks.groups.justfile.enabled%",
+            "type": "boolean",
+            "default": false,
+            "description": "%config.workspaceTasks.groups.justfile.enabled.description%",
+            "markdownDescription": "%config.workspaceTasks.groups.justfile.enabled.markdown%"
           },
           "workspaceTasks.secrets.showEmptyGroup": {
             "type": "boolean",
@@ -1834,15 +1852,6 @@
             },
             "default": [],
             "markdownDescription": "%config.workspaceTasks.circleci.additionalFilePatterns.markdown%",
-            "scope": "resource"
-          },
-          "workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "markdownDescription": "%config.workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns.markdown%",
             "scope": "resource"
           },
           "workspaceTasks.bitbucketPipelineRunner.environmentFiles": {

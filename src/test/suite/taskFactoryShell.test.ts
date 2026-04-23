@@ -130,4 +130,19 @@ suite('TaskFactory Shell Tests', () => {
     assert.ok(created, 'Should create a task');
     assert.strictEqual(created.task.source, 'shell', 'Task source should be "shell"');
   });
+
+  // ── Guard: no file URI ────────────────────────────────────────────────────
+
+  test('returns undefined when neither taskFileUri nor resourceUri is set', async () => {
+    // When no file URI is available, the factory must not fall through using the
+    // workspace-root fallback URI as a script path (that would cause a runtime error
+    // of the form "bash: /path/to/workspace: is a directory").
+    const item = new TaskItem('ghost-task', vscode.TreeItemCollapsibleState.None, 'shell', undefined);
+    // Leave both taskFileUri and resourceUri unset
+    item.metadata = { interpreter: 'bash', subType: 'bash', useShebang: false };
+
+    const created = await createTaskForItem(item);
+
+    assert.strictEqual(created, undefined, 'Should return undefined when no file URI is set');
+  });
 });

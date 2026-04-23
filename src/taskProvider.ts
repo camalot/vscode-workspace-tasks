@@ -3,6 +3,7 @@ import { TaskItem } from './taskItem';
 import { TaskConfigService } from './services/taskConfigService';
 import { TaskStateManager } from './taskStateManager';
 import { LoggerService } from './services/loggerService';
+import { CreatedTask } from './libs/taskCreationUtils';
 
 export interface TaskProvider {
   getTasks(): Promise<TaskItem[]>;
@@ -33,4 +34,21 @@ export abstract class BaseTaskProvider implements TaskProvider {
   abstract getTasks(): Promise<TaskItem[]>;
 
   abstract getSystemTasks(): Promise<TaskItem[]>;
+
+  /**
+   * Creates a runnable vscode.Task for the given TaskItem.
+   *
+   * Provider-based task types override this method. Special-case types (shell,
+   * jupyter, vscode, dockerfile) are handled by private helpers in
+   * taskFactory.ts and do NOT override this method.
+   *
+   * Implementations must follow the Provider Contract documented in
+   * docs/_plans/task-factory-refactor/plan.md.
+   *
+   * @returns A CreatedTask on success, or undefined when the task cannot be built
+   *          (e.g. missing required file URI, untrusted workspace). Never throws.
+   */
+  createTask(_item: TaskItem, _args?: string): Promise<CreatedTask | undefined> {
+    return Promise.resolve(undefined);
+  }
 }

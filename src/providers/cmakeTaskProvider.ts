@@ -6,6 +6,8 @@ import { TaskIconService } from '../services/taskIconService';
 import { TaskFilesService } from '../services/taskFilesService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { configuration } from '../libs/configuration';
+import * as path from 'path';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 /**
  * Provides tasks discovered from CMakeLists.txt files.
@@ -140,5 +142,30 @@ export class CMakeTaskProvider extends BaseTaskProvider implements TaskProvider 
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    const { command: cmakeCmd, args: cmakeInitialArgs } = this.getCommand(workspaceFolder?.uri);
+
+    const sourceDir = path.dirname(resourceUri.fsPath);
+    const buildDir = this.getBuildDirectory();
+    const buildPath = path.isAbsolute(buildDir) ? buildDir : path.join(sourceDir, buildDir);
+    const buildType = this.getBuildType();
+
+    const cmakeArgs = cmakeInitialArgs ? [...cmakeInitialArgs] : [];
+    cmakeArgs.push('--build', buildPath, '--target', taskLabel, '--config', buildType, ...splitArgs(args));
+
+    const full = `${cmakeCmd} ${cmakeArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(cmakeCmd, cmakeArgs, { cwd: sourceDir });
+    const task = new vscode.Task(
+      { type: 'cmake', target: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'cmake',
+      shellExec,
+    );
+    return { task, command: full, cwd: sourceDir, native: false };
   }
 }

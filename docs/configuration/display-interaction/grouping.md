@@ -112,6 +112,65 @@ When enabled, a **Compound Tasks** group is shown at the top of the task tree, l
 
 ---
 
+### workspaceTasks.groups.justfile.enabled
+
+**Type:** `boolean`
+**Default:** `false`
+
+When enabled, justfile recipes that carry a `[group('name')]` attribute are shown as
+collapsible group nodes in the task tree rather than as a flat list. Recipes without
+a group attribute are always shown at the top level, regardless of this setting.
+
+{: .note }
+> `[group()]` attribute support was added in just 1.13.0 (August 2023). On older versions
+> of `just`, the `attributes` array is empty and all recipes are shown ungrouped, which
+> is the correct and safe behaviour for those versions.
+
+Group nodes are non-runnable — they have no action-bar buttons and cannot be executed
+directly. They use the justfile icon and start collapsed.
+
+**Example justfile:**
+
+```just
+[group('Build')]
+build:
+    cargo build --release
+
+[group('Build')]
+clean:
+    rm -rf target/
+
+[group('Test')]
+test:
+    cargo test
+
+# No group — appears at the top level
+fmt:
+    cargo fmt
+```
+
+With `workspaceTasks.groups.justfile.enabled: true`, the tree shows:
+
+```tree
+justfile
+├── fmt                  ← ungrouped, shown at top level
+├── Build                ← collapsible group node
+│   ├── build
+│   └── clean
+└── Test                 ← collapsible group node
+    └── test
+```
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.groups.justfile.enabled": true
+}
+```
+
+---
+
 ### workspaceTasks.groups.expanded
 
 **Type:** `object`
@@ -120,7 +179,7 @@ When enabled, a **Compound Tasks** group is shown at the top of the task tree, l
 Controls which special group headers are **expanded** by default when the task tree loads. Each property corresponds to one of the pinned groups at the top of the tree. Set a key to `false` to start that group collapsed.
 
 | Property | Type | Default | Description |
-|----------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `favorites` | `boolean` | `true` | Whether the **Favorites** group starts expanded |
 | `compoundTask` | `boolean` | `true` | Whether the **Compound Tasks** group starts expanded |
 | `recent` | `boolean` | `true` | Whether the **Recent Tasks** group starts expanded |
@@ -146,3 +205,4 @@ Controls which special group headers are **expanded** by default when the task t
 
 - [Recent Tasks](../../features/recents)
 - [Task Filtering](../../features/task-filtering)
+- [Just — Recipe Groups](../../task-types/task-runners/just#recipe-groups)

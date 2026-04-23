@@ -5,6 +5,7 @@ import { TaskFilesService } from './taskFilesService';
 import { TaskCacheService } from './taskCacheService';
 import { parseJsonWithComments } from '../libs/jsonUtils';
 import { LoggerService } from './loggerService';
+import { buildContextFromVscode, resolveContextTokens } from '../libs/contextTokenResolver';
 
 /**
  * Flexible file reference type for envFiles / secretFiles.
@@ -169,7 +170,7 @@ export class WorkspaceTasksService {
     filesService.registerPatterns(uniqueGlobs);
     // Mark the cache stale so the next findFiles() call rebuilds it including the new patterns.
     // Using markCacheStale() (not invalidateCache()) avoids triggering a premature tree refresh
-    // during extension startup before providers and the tree view are initialised.
+    // during extension startup before providers and the tree view are initialized.
     filesService.markCacheStale();
     this.logger.debug(`[WorkspaceTasksService] Registered ${uniqueGlobs.length} dynamic glob pattern(s) with TaskFilesService.`);
 
@@ -273,6 +274,9 @@ export class WorkspaceTasksService {
     }
 
     let command = task.command;
+
+    // Resolve VS Code-style context tokens for workspace-sourced task commands.
+    command = resolveContextTokens(command, buildContextFromVscode(resourceUri));
 
     // 1. Replace Predefined Variables
     // {{ .FileName }}

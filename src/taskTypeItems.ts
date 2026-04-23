@@ -115,33 +115,6 @@ export class JustfileTaskTypeItem extends TaskTypeGroupItem {
   }
 }
 
-export class VenvTaskTypeItem extends TaskTypeGroupItem {
-  constructor(
-    iconUri?: string | { dark: string; light: string },
-    collapsibleState?: vscode.TreeItemCollapsibleState,
-  ) {
-    super('venv', vscode.Uri.file('/venv.py'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
-    const iconService = TaskIconService.getInstance();
-    const resolved = iconService.resolveWorkspaceTaskTypeIcon(this.label, iconUri);
-    if (resolved?.TaskIcon) {
-      this.iconPath = resolved.TaskIcon;
-      if (resolved.DisplayUri) {
-        this.iconDisplayUri = resolved.DisplayUri;
-        this.updateContextValue();
-      }
-    } else if (resolved?.DisplayUri) {
-      this.iconDisplayUri = resolved.DisplayUri;
-      this.iconPath = vscode.ThemeIcon.File;
-      this.updateContextValue();
-    } else {
-      const defaultIcon = iconService.getDefaultGroupIcon();
-      if (defaultIcon) {
-        this.iconPath = defaultIcon;
-      }
-    }
-  }
-}
-
 export class MiseTaskTypeItem extends TaskTypeGroupItem {
   constructor(collapsibleState?: vscode.TreeItemCollapsibleState) {
     super('mise', vscode.Uri.file('/mise.toml'), collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
@@ -322,8 +295,6 @@ export class TaskTypeFactory {
         return new DockerComposeTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'justfile':
         return new JustfileTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
-      case 'venv':
-        return new VenvTaskTypeItem(iconUri, collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'ant':
         return new AntTaskTypeItem(collapsibleState ?? vscode.TreeItemCollapsibleState.Collapsed);
       case 'grunt':

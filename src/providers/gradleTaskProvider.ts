@@ -8,6 +8,7 @@ import constants from '../libs/constants';
 import { configuration } from '../libs/configuration';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -110,5 +111,25 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
     }
 
     return result;
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: gradleCmd, args: gradleInitialArgs, cwd: gradleCwd } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+
+    const gradleArgs = gradleInitialArgs ? [...gradleInitialArgs] : [];
+    gradleArgs.push(taskLabel, ...splitArgs(args));
+
+    const full = `${gradleCmd} ${gradleArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(gradleCmd, gradleArgs, { cwd: gradleCwd });
+    const task = new vscode.Task(
+      { type: 'gradle', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'gradle',
+      shellExec,
+    );
+    return { task, command: full, cwd: gradleCwd, native: false };
   }
 }

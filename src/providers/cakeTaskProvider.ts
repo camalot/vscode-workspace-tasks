@@ -4,6 +4,7 @@ import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 /**
  * Provides tasks discovered from Cake build script files (`*.cake`).
@@ -102,5 +103,25 @@ export class CakeTaskProvider extends BaseTaskProvider implements TaskProvider {
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    const { command: cakeCmd, args: cakeInitialArgs, cwd: cakeCwd } = this.getCommand(workspaceFolder?.uri);
+
+    const cakeArgs = cakeInitialArgs ? [...cakeInitialArgs] : [];
+    cakeArgs.push(resourceUri.fsPath, `--target=${taskLabel}`, ...splitArgs(args));
+
+    const full = `${cakeCmd} ${cakeArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(cakeCmd, cakeArgs, { cwd: cakeCwd });
+    const task = new vscode.Task(
+      { type: 'cake', target: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'cake',
+      shellExec,
+    );
+    return { task, command: full, cwd: cakeCwd, native: false };
   }
 }

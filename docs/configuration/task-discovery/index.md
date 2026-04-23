@@ -23,7 +23,7 @@ Each task type watches specific file patterns:
 | npm/yarn/pnpm | `**/package.json` | Reads `scripts` section |
 | Ant | `**/*.xml` | Parses build file targets |
 | cake | `**/*.cake` | Cake build targets from `Task("...")` declarations |
-| cargo-make | `**/{Makefile.toml,*.toml}` | Rust task runner from TOML files (requires Cargo) |
+| cargo-make | `**/[Mm]akefile.toml` | Rust task runner from TOML files (requires Cargo) |
 | Composer | `**/composer.json` | PHP dependency scripts |
 | Gradle | `**/*.gradle` | Java/Android build tasks |
 | Grunt | `**/Gruntfile.js` | Registered tasks |

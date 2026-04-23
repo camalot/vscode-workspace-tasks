@@ -13,7 +13,6 @@ export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<Hist
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
     this.service = TaskHistoryService.getInstance();
-    this.service.initialize(context);
 
     // Load persisted view mode (default to 'table')
     this.viewMode = context.globalState.get<'tree' | 'table'>(TaskHistoryTreeDataProvider.VIEW_MODE_KEY, 'table');
@@ -29,8 +28,8 @@ export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<Hist
     this._onDidChangeTreeData.fire();
   }
 
-  public clear() {
-    this.service.clear();
+  public async clear(): Promise<void> {
+    await this.service.clear();
     this.refresh();
   }
 

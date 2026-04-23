@@ -54,6 +54,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 - **[🛡️ Run Guard ↗](https://camalot.github.io/vscode-workspace-tasks/features/run-guard.html)** - Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern
 - **[🕜 Estimated Task Duration ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-duration-estimates.html)** - View estimated duration for tasks based on historical execution data
+- **🔒 Workspace Trust** - Respects [VS Code Workspace Trust](https://code.visualstudio.com/docs/editor/workspace-trust): no tasks are discovered or displayed in untrusted workspaces
 
 ## 📥 Installation
 
@@ -162,7 +163,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[cargo-make](https://sagiegurari.github.io/cargo-make/)** - Rust task runner from `Makefile.toml` or `*.toml` files (requires [Cargo](https://doc.rust-lang.org/cargo/))
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
-- **[mise](https://mise.jdx.dev/)** - Tasks from `mise.toml` or `mise-tasks/` directory
+- **[mise](https://mise.jdx.dev/)** - Tasks from active mise TOML config files (for example `mise.toml`, `.mise.toml`, and `.config/mise/config.toml`)
 - **[Task (go-task)](https://taskfile.dev/)** - Tasks from `Taskfile.yml` (CLI-based discovery)
 - **[Cake Build](https://cakebuild.net/)** - Tasks from `*.cake` scripts via `Task("...")`
 
@@ -193,7 +194,6 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 </p>
 
 - **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`; extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
-- **Python Virtual Environments** - Activation scripts in `.venv/Scripts/`
 - **[Jupyter Notebook](https://jupyter.org/)** - Execute notebook cells from `*.ipynb` files
   - **Requirements:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
   - **Setup:** Configure a Jupyter Server through the Jupyter extension
@@ -204,6 +204,8 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
     - Real-time cell execution status via the Jupyter Extension UI
 - **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json` and the user-level `tasks.json` (`%APPDATA%\Code\User\tasks.json` on Windows, `~/.config/Code/User/tasks.json` on Linux, `~/Library/Application Support/Code/User/tasks.json` on macOS)
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
+  - Supports positional run-time args via `${args}` in `command`
+  - Supports command context tokens like `${workspaceFolder}`, `${file}`, and `${env.VAR}`
 
 > The extension discovers tasks regardless of whether tools are installed. Execution requires the respective tool to be available in your PATH. See [Requirements](#requirements) for details.
 

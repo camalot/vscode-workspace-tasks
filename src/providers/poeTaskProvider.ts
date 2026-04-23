@@ -6,6 +6,7 @@ import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { parse } from 'smol-toml';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class PoeTaskProvider extends TomlTaskProvider {
   constructor() {
@@ -185,5 +186,25 @@ export class PoeTaskProvider extends TomlTaskProvider {
       },
       workspaceUri,
     );
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: poeCmd, args: poeInitialArgs, cwd: poeCwd } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+
+    const poeArgs = poeInitialArgs ? [...poeInitialArgs] : [];
+    poeArgs.push(taskLabel, ...splitArgs(args));
+
+    const full = `${poeCmd} ${poeArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(poeCmd, poeArgs, { cwd: poeCwd });
+    const task = new vscode.Task(
+      { type: 'poe', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'poe',
+      shellExec,
+    );
+    return { task, command: full, cwd: poeCwd, native: false };
   }
 }

@@ -60,7 +60,7 @@ sample-workspace-tasks/
 ├── maven/                  # Maven build tasks
 ├── nodejs/                 # Node.js package tasks
 ├── powershell/             # PowerShell scripts
-├── python/                 # Python (poetry, pipenv, venv)
+├── python/                 # Python (poetry, pipenv)
 ├── ruby/                   # Ruby / Rake tasks
 ├── shell/                  # Shell scripts (bash, sh, zsh, python, batch)
 ├── .devcontainer/          # Dev container setup scripts

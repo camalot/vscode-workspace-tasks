@@ -4,7 +4,6 @@ import { ComposerTaskProvider } from './composerTaskProvider';
 import { DenoTaskProvider } from './denoTaskProvider';
 import { ShellTaskProvider } from './shellTaskProvider';
 import { VscodeTaskProvider } from './vscodeTaskProvider';
-import { VenvTaskProvider } from './venvTaskProvider';
 import { MiseTaskProvider } from './miseTaskProvider';
 import { MakefileTaskProvider } from './makefileTaskProvider';
 import { CargoMakeTaskProvider } from './cargoMakeTaskProvider';
@@ -28,6 +27,7 @@ import { TaskfileTaskProvider } from './taskfileTaskProvider';
 import { GitlabCiTaskProvider } from './gitlabCiTaskProvider';
 import { CircleCiTaskProvider } from './circleCiTaskProvider';
 import { BitbucketPipelinesTaskProvider } from './bitbucketPipelinesTaskProvider';
+import { TaskProviderRegistry } from '../taskProviderRegistry';
 import { TaskTreeDataProvider } from '../taskTreeDataProvider';
 import { LoggerService } from '../services/loggerService';
 import { TaskFilesService } from '../services/taskFilesService';
@@ -42,7 +42,6 @@ type TaskProviderConstructor =
   | (new () => DenoTaskProvider)
   | (new () => ShellTaskProvider)
   | (new () => VscodeTaskProvider)
-  | (new () => VenvTaskProvider)
   | (new () => MakefileTaskProvider)
   | (new () => CargoMakeTaskProvider)
   | (new () => MiseTaskProvider)
@@ -67,9 +66,8 @@ type TaskProviderConstructor =
   | (new () => CircleCiTaskProvider)
   | (new () => BitbucketPipelinesTaskProvider);
 
-export function registerTaskProviders(context: vscode.ExtensionContext) {
-  const logger = LoggerService.getInstance();
-  const providers: TaskProviderConstructor[] = [
+function getProviderConstructors(): TaskProviderConstructor[] {
+  return [
     BunTaskProvider,
     NpmTaskProvider,
     PnpmTaskProvider,
@@ -78,7 +76,6 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     DenoTaskProvider,
     ShellTaskProvider,
     VscodeTaskProvider,
-    VenvTaskProvider,
     MakefileTaskProvider,
     CargoMakeTaskProvider,
     MiseTaskProvider,
@@ -103,11 +100,40 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
     CircleCiTaskProvider,
     BitbucketPipelinesTaskProvider,
   ];
+}
+
+export function ensureTaskProviderRegistryPopulated() {
+  const logger = LoggerService.getInstance();
+  const registry = TaskProviderRegistry.getInstance();
+  if (registry.getKnownTypes().size > 0) {
+    return;
+  }
+
+  for (const ProviderClass of getProviderConstructors()) {
+    try {
+      const instance = new ProviderClass();
+      registry.register(instance.type, instance);
+    } catch (err) {
+      logger.error(`[Providers] Failed to register provider in registry ${ProviderClass.name}:`, err);
+    }
+  }
+}
+
+export function registerAllProviders(context: vscode.ExtensionContext) {
+  const logger = LoggerService.getInstance();
+  const providers = getProviderConstructors();
   const taskTreeDataProvider = TaskTreeDataProvider.getInstance(context);
   const filesService = TaskFilesService.getInstance();
+
+  // Build one instance per provider class and reuse it for both the tree/files
+  // service registration and the TaskProviderRegistry, so discovery and task
+  // creation always share the same object (caches, event emitters, config, etc.).
+  const instances: InstanceType<TaskProviderConstructor>[] = [];
+
   for (const ProviderClass of providers) {
     try {
       const providerInstance = new ProviderClass();
+      instances.push(providerInstance);
       filesService.registerPatterns(providerInstance.getFilePatterns());
       // Assuming there's a global taskTreeDataProvider instance
       if (taskTreeDataProvider) {
@@ -128,6 +154,21 @@ export function registerTaskProviders(context: vscode.ExtensionContext) {
       }
     } catch (err) {
       logger.error(`[Providers] Failed to register task provider ${ProviderClass.name}:`, err);
+    }
+  }
+
+  // Populate TaskProviderRegistry with the already-created instances.
+  // The factory uses the registry for two-track dispatch (Track 1).
+  // During the refactor migration, providers whose createTask() is not yet
+  // implemented return undefined from the base-class default, causing the factory
+  // to fall through to the legacy switch (Track 2).
+  const registry = TaskProviderRegistry.getInstance();
+  registry.clear();
+  for (const instance of instances) {
+    try {
+      registry.register(instance.type, instance);
+    } catch (err) {
+      logger.error(`[Providers] Failed to register provider in registry ${instance.type}:`, err);
     }
   }
 }

@@ -128,4 +128,17 @@ See the [Configuration Reference](../Configuration#application-path-settings) fo
 
 - [Getting Started](getting-started) — Installation and initial setup
 - [Configuration](../configuration) — All settings including application paths
+
+---
+
+## Workspace Trust
+
+Workspace Tasks respects [VS Code's Workspace Trust](https://code.visualstudio.com/docs/editor/workspace-trust) model.
+
+**No tasks are discovered or displayed when a workspace is not trusted.** This applies to all task types and all providers — neither file parsing nor CLI invocations will occur in an untrusted workspace.
+
+To enable task discovery, trust the workspace via the status bar trust indicator or the **Workspaces: Manage Workspace Trust** command.
+
+See [Troubleshooting: Workspace Trust](../troubleshooting/workspace-trust) for details.
+
 - [Supported Task Types](../task-types) — All supported build tools and frameworks

@@ -1,3 +1,54 @@
+## [1.10.0] - 2026-04-22
+
+### 🚀 Features
+
+- Enhance justfile provider. #186
+
+- Enhance mise to use cli task discovery
+
+
+### 🐛 Bug Fixes
+
+- Bitbucket-pipelines.yml item shows action bar items #184
+
+- Bitbucket-pipelines.yml item shows action bar items #184
+
+- Just parsing tasks incorrectly #185
+
+- Restrict all task discovery if workspace is untrusted
+
+- Ensure taskfile updates if Taskfile.yml is changed
+
+- Yarn/bun/pnpm task execution ignores cwd resolved by ExecutableService #191
+
+- Venv task provider strips .py extension from Python scripts whose name contains activate or deactivate #190
+
+- Shell task falls through to workspace root path when no file URI is set #189
+
+- GitHub Actions workflow_dispatch input collection logic is duplicated — fixes in one branch do not propagate #188
+
+- Update glob for cargo-make
+
+- Add shebang to node script
+
+- fix: add shebang to node script
+
+### 🚜 Refactor
+
+- Refactor taskFactory — Provider-Owned Task Creation
+
+- Phase 1: Simple Provider Migration taskFactory complete
+
+- Phase 2: Complex Provider Migration
+
+- Phase 3: Cleanup
+
+- Venv scripts support removed as they did not actually function correctly
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.9.0...v1.10.0
+
 ## [1.9.0] - 2026-04-19
 
 ### 🚀 Features

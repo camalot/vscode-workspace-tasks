@@ -7,6 +7,7 @@ import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 interface WorkflowInput {
   description?: string;
@@ -70,6 +71,139 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
       return [];
     }
     return [];
+  }
+
+  private async collectWorkflowDispatchInputs(inputs: string[] | Record<string, any>): Promise<string[]> {
+    const collected: string[] = [];
+    if (Array.isArray(inputs)) {
+      for (const input of inputs) {
+        const val = await vscode.window.showInputBox({
+          prompt: `Enter input for '${input}'`,
+          placeHolder: 'Value',
+          ignoreFocusOut: true,
+        });
+        if (val) {
+          collected.push('--input', `${input}=${val}`);
+        }
+      }
+      return collected;
+    }
+
+    for (const [key, details] of Object.entries(inputs)) {
+      const desc = (details as any).description || `Enter value for ${key}`;
+      const defaultVal = (details as any).default !== undefined ? String((details as any).default) : '';
+      const required = (details as any).required || false;
+
+      const val = await vscode.window.showInputBox({
+        prompt: desc,
+        placeHolder: `${key} (${(details as any).type || 'string'})`,
+        value: defaultVal,
+        ignoreFocusOut: true,
+        validateInput: (text) => {
+          if (required && !text) {
+            return 'This input is required';
+          }
+          return null;
+        },
+      });
+
+      if (val) {
+        collected.push('--input', `${key}=${val}`);
+      }
+    }
+    return collected;
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+    let { command: actPath, args: actInitialArgs, cwd: actCwd } = this.getCommand(workspaceFolder?.uri);
+
+    const githubDirMatch = resourceUri.fsPath.match(/[\\/]\.github[\\/]/);
+    if (githubDirMatch) {
+      const projectRoot = resourceUri.fsPath.substring(0, githubDirMatch.index);
+      if (projectRoot) {
+        actCwd = projectRoot;
+      }
+    }
+
+    const meta = item.metadata;
+    const actArgs: string[] = actInitialArgs ? [...actInitialArgs] : [];
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+
+    if (meta?.type === 'workflow') {
+      if (meta.event === 'workflow_dispatch' && meta.inputs) {
+        actArgs.push(...await this.collectWorkflowDispatchInputs(meta.inputs as string[] | Record<string, any>));
+        actArgs.push('workflow_dispatch');
+      } else {
+        actArgs.push(meta.event || 'push');
+      }
+
+      const envFile = config.get<string>('act.envFile');
+      if (envFile) {
+        actArgs.push('--env-file', envFile);
+      }
+
+      const varsFile = config.get<string>('act.variablesFile');
+      if (varsFile) {
+        actArgs.push('--var-file', varsFile);
+      }
+
+      const secretsFile = config.get<string>('act.secretsFile');
+      if (secretsFile) {
+        actArgs.push('--secret-file', secretsFile);
+      }
+
+      const vars = config.get<Record<string, string>>('act.variables');
+      if (vars) {
+        for (const [key, value] of Object.entries(vars)) {
+          actArgs.push('--var', `${key}=${value}`);
+        }
+      }
+
+      const relPath = path.relative(actCwd, resourceUri.fsPath);
+      actArgs.push('-W', relPath);
+    } else if (meta?.type === 'job') {
+      actArgs.push('-j', meta.jobId);
+      const relPath = path.relative(actCwd, resourceUri.fsPath);
+      actArgs.push('-W', relPath);
+    } else {
+      let useEvent = 'push';
+      if (meta?.type === 'file' && meta?.events) {
+        const events = meta.events as string[];
+        if (events.length > 0) {
+          const selected = await vscode.window.showQuickPick(events, {
+            placeHolder: 'Select event to trigger',
+          });
+          if (selected) {
+            useEvent = selected;
+          } else {
+            return undefined;
+          }
+        }
+      }
+
+      if (useEvent === 'workflow_dispatch' && meta?.inputs) {
+        actArgs.push(...await this.collectWorkflowDispatchInputs(meta.inputs as string[] | Record<string, any>));
+      }
+
+      actArgs.push(useEvent);
+      const relPath = path.relative(actCwd, resourceUri.fsPath);
+      actArgs.push('-W', relPath);
+    }
+
+    actArgs.push(...splitArgs(args));
+
+    const task = new vscode.Task(
+      { type: 'github-actions', task: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'github-actions',
+      new vscode.ShellExecution(actPath, actArgs, { cwd: actCwd }),
+    );
+    const safeCmd = /\s/.test(actPath) ? `"${actPath}"` : actPath;
+    const full = `${safeCmd} ${actArgs.map((a) => (/\s/.test(a) ? `"${a}"` : a)).join(' ')}`;
+    return { task, command: full, cwd: actCwd, native: false };
   }
 
   private parseWorkflowFile(uri: vscode.Uri, text: string): TaskItem | undefined {

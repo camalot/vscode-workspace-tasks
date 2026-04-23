@@ -7,6 +7,7 @@ import { TaskItem } from '../taskItem';
 import { TaskIconService } from '../services/taskIconService';
 import { TaskStateManager } from '../taskStateManager';
 import { TaskFilesService } from '../services/taskFilesService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class NpmTaskProvider extends PackageJsonTaskProvider {
   private readonly iconService = TaskIconService.getInstance();
@@ -146,6 +147,52 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
       workspaceUri,
     );
   }
+
+  /**
+   * Creates a runnable vscode.Task for an npm script TaskItem.
+   * Uses the `cwd` derived from the package.json location (via resolveTaskContext)
+   * rather than the workspace root returned by getCommand(), so that scripts in
+   * sub-packages run from their own directory.
+   */
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: npmCmd, args: npmInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const npmArgs = npmInitialArgs ? [...npmInitialArgs] : [];
+    const taskLabel = item.originalLabel || item.label;
+    const normalizedLabel = (taskLabel || '').trim().toLowerCase();
+    const extraArgs = splitArgs(args);
+
+    // Special-case common install labels to map to `npm install` instead of `npm run <label>`
+    if (
+      normalizedLabel === 'install dependencies' ||
+      normalizedLabel === 'install' ||
+      normalizedLabel === 'install dependencies (npm install)'
+    ) {
+      npmArgs.push('install', ...extraArgs);
+      const full = `${npmCmd} ${npmArgs.join(' ')}`;
+      const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
+      const task = new vscode.Task(
+        { type: 'npm', script: 'install', path: resourceUri.fsPath },
+        vscode.TaskScope.Workspace,
+        taskLabel,
+        'npm',
+        shellExec,
+      );
+      return { task, command: full, cwd, native: false };
+    }
+
+    npmArgs.push('run', taskLabel, ...extraArgs);
+    const full = `${npmCmd} ${npmArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(npmCmd, npmArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'npm', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'npm',
+      shellExec,
+    );
+    return { task, command: full, cwd, native: false };
+  }
 }
 
 export class PnpmTaskProvider extends PackageYamlTaskProvider {
@@ -172,6 +219,26 @@ export class PnpmTaskProvider extends PackageYamlTaskProvider {
       workspaceUri,
     );
   }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: pnpmCmd, args: pnpmInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+    const pnpmArgs = pnpmInitialArgs ? [...pnpmInitialArgs] : [];
+    pnpmArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${pnpmCmd} ${pnpmArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(pnpmCmd, pnpmArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'pnpm', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'pnpm',
+      shellExec,
+    );
+
+    return { task, command: full, cwd, native: false };
+  }
 }
 
 export class YarnTaskProvider extends PackageJsonTaskProvider {
@@ -197,6 +264,26 @@ export class YarnTaskProvider extends PackageJsonTaskProvider {
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: yarnCmd, args: yarnInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+    const yarnArgs = yarnInitialArgs ? [...yarnInitialArgs] : [];
+    yarnArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${yarnCmd} ${yarnArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(yarnCmd, yarnArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'yarn', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'yarn',
+      shellExec,
+    );
+
+    return { task, command: full, cwd, native: false };
   }
 }
 
@@ -338,5 +425,25 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
     }
 
     return tasks;
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: bunCmd, args: bunInitialArgs } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+    const bunArgs = bunInitialArgs ? [...bunInitialArgs] : [];
+    bunArgs.push('run', taskLabel, ...splitArgs(args));
+
+    const full = `${bunCmd} ${bunArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(bunCmd, bunArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'bun', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'bun',
+      shellExec,
+    );
+
+    return { task, command: full, cwd, native: false };
   }
 }

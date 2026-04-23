@@ -51,7 +51,6 @@ export class TaskConfigService {
     shell: 'shell',
     tsc: 'typescript',        // alias: internal 'tsc' → config key 'typescript'
     typescript: 'typescript',
-    venv: 'venv',
     vscode: 'vscode',
     webpack: 'webpack',
     workspace: 'workspace',

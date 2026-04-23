@@ -15,3 +15,4 @@ Guides for diagnosing and resolving issues with Workspace Tasks.
 | Topic | Description |
 | --- | --- |
 | [Purge Invalid Compound Task Storage](purge-invalid-compound-tasks) | Remove ghost or unrunnable compound tasks and items left behind in storage |
+| [Workspace Trust](workspace-trust) | Tasks are not loading because the workspace is untrusted |

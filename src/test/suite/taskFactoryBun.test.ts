@@ -3,8 +3,34 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { TaskItem } from '../../taskItem';
 import { createTaskForItem } from '../../taskFactory';
+import { TaskProviderRegistry } from '../../taskProviderRegistry';
+import { BunTaskProvider } from '../../providers/npmTaskProvider';
 
 suite('Task Factory Bun Test Suite', () => {
+  let originalIsTrusted: boolean;
+  let registrySnapshot: Map<string, any>;
+
+  setup(() => {
+    originalIsTrusted = (vscode.workspace as any).isTrusted;
+    Object.defineProperty(vscode.workspace, 'isTrusted', {
+      get: () => true,
+      configurable: true,
+    });
+
+    const registry = TaskProviderRegistry.getInstance();
+    registrySnapshot = registry.snapshot();
+    registry.register('bun', new BunTaskProvider());
+  });
+
+  teardown(() => {
+    Object.defineProperty(vscode.workspace, 'isTrusted', {
+      get: () => originalIsTrusted,
+      configurable: true,
+    });
+
+    TaskProviderRegistry.getInstance().restore(registrySnapshot);
+  });
+
   test('Uses correct CWD for Bun tasks in subdirectory', async function () {
     // Need a valid URI that looks like it is in a workspace
     const rootPath =

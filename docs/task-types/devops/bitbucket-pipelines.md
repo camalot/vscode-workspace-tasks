@@ -32,6 +32,9 @@ Workspace Tasks discovers `bitbucket-pipelines.yml` files and builds a 4-level t
 - **Named steps** run via `pipeline-runner run --step "<step-name>" <pipeline-path>`.
 - **Unnamed steps and stages** are shown in the tree but are non-runnable.
 
+{: .note }
+> Bitbucket Pipelines only support a single `bitbucket-pipelines.yml` file at the workspace root. Bitbucket's own [documentation states](https://support.atlassian.com/bitbucket-cloud/docs/get-started-with-bitbucket-pipelines/): "A pipeline is defined using a YAML file called bitbucket-pipelines.yml, which is located at the root of your repository." Therefore, Workspace Tasks only looks for `bitbucket-pipelines.yml` at the workspace root and does not support additional glob patterns for discovery.
+
 ### Task Tree Structure
 
 ```tree
@@ -123,7 +126,6 @@ pipeline-runner run --env-file .env --env-file .env.local default
 | --- | --- | --- |
 | `workspaceTasks.applicationPath.bitbucketPipelineRunner` | `pipeline-runner` | Path to the `pipeline-runner` executable |
 | `workspaceTasks.bitbucketPipelineRunner.environmentFiles` | `[]` | Env files passed via `--env-file` |
-| `workspaceTasks.bitbucketPipelineRunner.additionalFilePatterns` | `[]` | Extra glob patterns for pipeline file discovery |
 | `workspaceTasks.enabledTaskTypes.bitbucket` | `false` | Enable/disable Bitbucket Pipelines task type |
 
 ---
@@ -139,7 +141,6 @@ Workspace Tasks discovers all standard Bitbucket Pipelines sections:
 | `pull-requests` | `pull-requests.**` |
 | `tags` | `tags.v*` |
 | `custom` | `custom.manual-deploy` |
-
 
 ## Sample `bitbucket-pipelines.yml`
 

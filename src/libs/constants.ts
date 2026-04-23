@@ -25,9 +25,7 @@ const constants: Record<string, any> = {
   // should match:
   // - Makefile.toml
   // - makefile.toml
-  // - MakeFile.toml
-  // - Makefile.local.toml
-  GLOB_CARGO_MAKE: '**/{[Mm]ake[Ff]ile.toml,*.toml}',
+  GLOB_CARGO_MAKE: '**/[Mm]akefile.toml',
   // should match:
   // - deno.json
   // - deno.jsonc
@@ -47,9 +45,13 @@ const constants: Record<string, any> = {
   // should match:
   // - mise.toml
   // - mise.local.toml
-  // - mise.dist.toml
-  // - mise.dist.local.toml
-  GLOB_MISE: '**/mise{.*,.*.local,}.toml',
+  // - .mise.toml
+  // - mise/config.toml
+  // - .mise/config.toml
+  // - .config/mise.toml
+  // - .config/mise/config.toml
+  // - .config/mise/conf.d/dev.toml
+  GLOB_MISE: '**/{mise.toml,mise.local.toml,.mise.toml,mise/config.toml,.mise/config.toml,.config/mise.toml,.config/mise/config.toml,.config/mise/conf.d/*.toml}',
   // should match:
   // - foo.csproj
   // - foo.vbproj
@@ -130,6 +132,8 @@ const constants: Record<string, any> = {
   GLOB_CIRCLECI: '**/.circleci/config.{yml,yaml}',
   // should match:
   // - bitbucket-pipelines.yml
+  // NOTE: pipeline-runner always runs from the workspace root, so the provider
+  // further filters discovered files to those living at a workspace folder root.
   GLOB_BITBUCKET_PIPELINES: '**/bitbucket-pipelines.yml',
   // should match:
   // - foo.ipynb
@@ -170,17 +174,6 @@ const constants: Record<string, any> = {
   // - .workspace-tasks.json
   // - .workspace-tasks.dev.json
   GLOB_WORKSPACE: '**/.workspace-tasks.{json,*.json}',
-  // should match:
-  // - .venv/Scripts/activate.bat
-  // - .venv/Scripts/activate.fish
-  // - .venv/Scripts/Activate.ps1
-  // - .venv/Scripts/deactivate.bat
-  // - .venv/Scripts/deactivate.fish
-  // - .venv/Scripts/Deactivate.ps1
-  // - .venv/Scripts/activate
-  // - .venv/Scripts/deactivate
-  GLOB_VENV: '**/.venv/Scripts/{[Dd]eactivate,[Aa]ctivate}{.bat,.fish,.ps1,}',
-  // GLOB_VENV: '**/.venv/Scripts/{activate.bat,activate.fish,Activate.ps1,deactivate.bat}',
   // should match:
   // - CMakeLists.txt
   GLOB_CMAKE: '**/CMakeLists.txt',

@@ -5,6 +5,7 @@ import { TaskItem } from '../taskItem';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { BaseTaskProvider } from '../taskProvider';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class DenoTaskProvider extends BaseTaskProvider {
   constructor() {
@@ -103,5 +104,30 @@ export class DenoTaskProvider extends BaseTaskProvider {
       },
       workspaceUri,
     );
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const { command: denoCmd, args: denoInitialArgs, cwd: denoCwd } = this.getCommand(workspaceFolder?.uri);
+    const taskLabel = item.originalLabel || item.label;
+
+    const denoArgs = denoInitialArgs ? [...denoInitialArgs] : [];
+    denoArgs.push('task');
+    denoArgs.push(...splitArgs(args));
+    if (item.taskFileUri) {
+      denoArgs.push('--config', item.taskFileUri.fsPath);
+    }
+    denoArgs.push(taskLabel);
+
+    const full = `${denoCmd} ${denoArgs.join(' ')}`;
+    const shellExec = new vscode.ShellExecution(denoCmd, denoArgs, { cwd: denoCwd });
+    const task = new vscode.Task(
+      { type: 'deno', script: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'deno',
+      shellExec,
+    );
+    return { task, command: full, cwd: denoCwd, native: false };
   }
 }

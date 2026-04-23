@@ -6,6 +6,7 @@ import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
+import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
@@ -186,5 +187,38 @@ export class GulpTaskProvider extends BaseTaskProvider implements TaskProvider {
       return [];
     }
     return [];
+  }
+
+  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    const { cwd, resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const taskLabel = item.originalLabel || item.label;
+
+    const gulpCmd = 'npx';
+    let gulpArgs: string[] = ['gulp'];
+
+    const defaultWorkspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const { cwd: gulpProviderCwd } = this.getCommand(workspaceFolder?.uri);
+    const gulpCwd = gulpProviderCwd || defaultWorkspaceRoot || cwd;
+
+    if (path.dirname(resourceUri.fsPath) !== gulpCwd) {
+      gulpArgs = ['gulp', '--gulpfile', resourceUri.fsPath];
+      if (taskLabel && taskLabel.length > 0) {
+        gulpArgs.push(taskLabel);
+      }
+    } else if (taskLabel && taskLabel.length > 0) {
+      gulpArgs.push(taskLabel);
+    }
+
+    gulpArgs.push(...splitArgs(args));
+
+    const task = new vscode.Task(
+      { type: 'gulp', target: taskLabel, path: resourceUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'gulp',
+      new vscode.ShellExecution(gulpCmd, gulpArgs, { cwd: gulpCwd }),
+    );
+
+    return { task, command: `${gulpCmd} ${gulpArgs.join(' ')}`.trim(), cwd: gulpCwd, native: false };
   }
 }
