@@ -47,6 +47,42 @@ export function injectArgs(command: string, args?: string): string {
   return `${command} ${args}`;
 }
 
+export function createJupyterPseudoterminal(
+  resourceUri: vscode.Uri,
+  cellIndex: number | undefined,
+  taskLabel: string,
+): vscode.Pseudoterminal {
+  return new JupyterTerm(resourceUri, cellIndex, taskLabel);
+}
+
+export function createJupyterExecutionCallback(
+  resourceUri: vscode.Uri,
+  cellIndex: number | undefined,
+  taskLabel: string,
+): () => Promise<vscode.Pseudoterminal> {
+  return async (): Promise<vscode.Pseudoterminal> => createJupyterPseudoterminal(resourceUri, cellIndex, taskLabel);
+}
+
+export function isMatchingVscodeTask(
+  task: vscode.Task,
+  taskLabel: string,
+  targetWorkspaceFolder?: vscode.WorkspaceFolder,
+): boolean {
+  // Accept both workspace tasks and user-level tasks (source === 'User')
+  const nameMatch = task.name === taskLabel && (task.source === 'Workspace' || task.source === 'User');
+  if (!nameMatch) {
+    return false;
+  }
+
+  // If we know the target workspace folder, ensure the task belongs to it
+  if (targetWorkspaceFolder && typeof task.scope === 'object' && 'uri' in task.scope) {
+    return task.scope.uri.toString() === targetWorkspaceFolder.uri.toString();
+  }
+
+  // If we don't know the folder, or the task has global/workspace scope, accept it as fallback
+  return true;
+}
+
 /**
  * Builds the raw task without env injection. Used internally by `createTaskForItem`.
  */
@@ -117,9 +153,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         vscode.TaskScope.Workspace,
         taskLabel,
         'jupyter',
-        new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
-          return new JupyterTerm(resourceUri, item.metadata?.cellIndex, taskLabel);
-        }),
+        new vscode.CustomExecution(createJupyterExecutionCallback(resourceUri, item.metadata?.cellIndex, taskLabel)),
       );
       return { task, command: 'jupyter.runcell', cwd: path.dirname(resourceUri.fsPath), native: false };
     }
@@ -182,21 +216,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         ? vscode.workspace.getWorkspaceFolder(taskUri)
         : undefined;
 
-      const found = tasks.find((t) => {
-        // Accept both workspace tasks and user-level tasks (source === 'User')
-        const nameMatch = t.name === taskLabel && (t.source === 'Workspace' || t.source === 'User');
-        if (!nameMatch) {
-          return false;
-        }
-
-        // If we know the target workspace folder, ensure the task belongs to it
-        if (targetWorkspaceFolder && typeof t.scope === 'object' && 'uri' in t.scope) {
-          return t.scope.uri.toString() === targetWorkspaceFolder.uri.toString();
-        }
-
-        // If we don't know the folder, or the task has global/workspace scope, accepts it as fallback
-        return true;
-      });
+      const found = tasks.find((t) => isMatchingVscodeTask(t, taskLabel, targetWorkspaceFolder));
 
       if (found) {
         return { task: found, cwd: undefined, native: true };

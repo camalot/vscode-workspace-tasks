@@ -151,42 +151,45 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
     notebookItem.metadata = { type: 'notebook' };
 
     if (notebook.cells && Array.isArray(notebook.cells)) {
-      notebook.cells.forEach((cell, index) => {
-        if (cell.cell_type === 'code') {
-          const sourceLines = Array.isArray(cell.source)
-            ? cell.source
-            : typeof cell.source === 'string'
-              ? [cell.source]
-              : [];
+      for (let index = 0; index < notebook.cells.length; index++) {
+        const cell = notebook.cells[index];
 
-          const sourceText = sourceLines.join('').trim();
-          // Even empty cells are cells. But maybe skip empty ones?
-          const label = `Cell ${index + 1}`;
-
-          const item = new TaskItem(
-            label,
-            vscode.TreeItemCollapsibleState.None,
-            this.type,
-            uri,
-            {
-              command: 'vscode.open',
-              title: 'Open Notebook',
-              arguments: [uri],
-            },
-            new vscode.ThemeIcon('code'),
-          );
-          item.id = `${this.type}:${uri.toString()}:${index}`;
-
-          item.parent = notebookItem;
-          item.metadata = {
-            type: 'cell',
-            cellIndex: index,
-            source: sourceText,
-          };
-
-          notebookItem.children.push(item);
+        if (cell.cell_type !== 'code') {
+          continue;
         }
-      });
+
+        const sourceLines = Array.isArray(cell.source)
+          ? cell.source
+          : typeof cell.source === 'string'
+            ? [cell.source]
+            : [];
+
+        const sourceText = sourceLines.join('').trim();
+        const label = `Cell ${index + 1}`;
+
+        const item = new TaskItem(
+          label,
+          vscode.TreeItemCollapsibleState.None,
+          this.type,
+          uri,
+          {
+            command: 'vscode.open',
+            title: 'Open Notebook',
+            arguments: [uri],
+          },
+          new vscode.ThemeIcon('code'),
+        );
+        item.id = `${this.type}:${uri.toString()}:${index}`;
+
+        item.parent = notebookItem;
+        item.metadata = {
+          type: 'cell',
+          cellIndex: index,
+          source: sourceText,
+        };
+
+        notebookItem.children.push(item);
+      }
     }
 
     return notebookItem;
