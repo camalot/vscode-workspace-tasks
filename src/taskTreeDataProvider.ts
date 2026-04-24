@@ -1259,7 +1259,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       );
       secretsGroup.id = secretsGroupId;
       secretsGroup.iconPath = new vscode.ThemeIcon('key');
-      secretsGroup.contextValue = 'secrets';
+      secretsGroup.contextValue = 'wtSecrets';
       secretsGroup.tooltip = secretKeys.length > 0
         ? 'Secrets stored in VS Code SecretStorage'
         : 'No secrets stored. Use "Workspace Tasks: Store Secret" to add one.';

@@ -2211,12 +2211,12 @@
         },
         {
           "command": "workspaceTasks.env.storeSecret",
-          "when": "viewItem == secrets",
+          "when": "viewItem == wtSecrets",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.env.storeSecret",
-          "when": "viewItem == secrets",
+          "when": "viewItem == wtSecrets",
           "group": "1_secrets@1"
         },
         {
