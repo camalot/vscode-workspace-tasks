@@ -21,6 +21,7 @@ import { TaskMetricsService } from './services/taskMetricsService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { loadCommands } from './commands/index';
 import { findTerminalForTask } from './commands/stopTask';
+import { registerLmTools } from './tools/index';
 import { registerAllProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 import { TaskEnvService } from './services/taskEnvService';
@@ -216,6 +217,13 @@ export async function activate(context: vscode.ExtensionContext) {
     loadCommands(context);
   } catch (err) {
     logger.error('Command loading error:', err);
+  }
+
+  // Register language model tools
+  try {
+    registerLmTools(context);
+  } catch (err) {
+    logger.error('LM tools registration error:', err);
   }
 
   // Monitor state changes to cancel pending resets if task restarts

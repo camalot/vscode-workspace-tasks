@@ -27,6 +27,7 @@ Workspace Tasks provides a rich set of features to help you discover, organize, 
 | [Environment Variables & Secrets](task-environment-variables) | Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys from the tree view |
 | [Task Duration Estimates](task-duration-estimates) | See estimated run time while a task executes, in the hover tooltip before launch, and as a Typical Duration row in the Statistics tab |
 | [Run Guard](run-guard) | Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern |
+| [Language Model Tools](lm-tool) | Use `#wTasks` and `#runWTask` in GitHub Copilot chat to discover and run tasks without leaving the chat interface |
 
 ---
 

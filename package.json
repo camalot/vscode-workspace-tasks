@@ -2260,6 +2260,58 @@
           "group": "9_guard@1"
         }
       ]
-    }
+    },
+    "languageModelTools": [
+      {
+        "name": "workspaceTasks_getTasks",
+        "displayName": "Get Workspace Tasks",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "wTasks",
+        "icon": "$(list-flat)",
+        "userDescription": "Lists all tasks available in the current workspace.",
+        "modelDescription": "Returns a JSON array of all runnable tasks in the workspace (id, label, type, source file, workspace folder). Use when the user asks which tasks are available or wants to find a task by name. Apply 'query' to filter by label substring and 'taskType' to filter by type. When 'isLoading' is true, re-invoke after a delay. When 'truncated' is true, apply filters. Results sorted by type then label. You can infer the task type from the source file (e.g. 'package.json' = npm/yarn/pnpm script, 'Makefile' = make, 'Taskfile.yml' = Taskfile, etc.) but it's not guaranteed. Always prefer stable 'id' for lookups instead of 'label' + 'type' since labels can change and may not be unique. If the name the user provides doesn't match exactly, use this tool to find the task ID first, then use the ID to run the task with workspaceTasks_runTask. If multiple tasks match the filters and the user is trying to run a task, return the candidates so the user can pick. Note: 'taskType' is only used for filtering and disambiguation and is not returned by workspaceTasks_runTask when running a task by ID.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Case-insensitive label substring filter."
+            },
+            "taskType": {
+              "type": "string",
+              "description": "Task type filter (e.g. 'npm', 'shell')."
+            }
+          },
+          "additionalProperties": {}
+        }
+      },
+      {
+        "name": "workspaceTasks_runTask",
+        "displayName": "Run Workspace Task",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "runWTask",
+        "icon": "$(run)",
+        "userDescription": "Runs a task from the workspace. Use #wTasks first to discover available task IDs.",
+        "modelDescription": "Executes a workspace task by its stable ID (preferred) or by label + optional taskType. Provide 'id' from workspaceTasks_getTasks for precise lookup. If only 'label' is given and multiple tasks match, the tool returns candidates. The task runs asynchronously; the tool returns immediately after starting the task. Always use workspaceTasks_getTasks first to get the task ID. Note: 'taskType' is only used to disambiguate label matches and is ignored when 'id' is provided.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Stable task ID from workspaceTasks_getTasks. Preferred."
+            },
+            "label": {
+              "type": "string",
+              "description": "Task label. May match multiple tasks."
+            },
+            "taskType": {
+              "type": "string",
+              "description": "Task type to narrow label matches."
+            }
+          },
+          "additionalProperties": {}
+        }
+      }
+    ]
   }
 }

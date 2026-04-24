@@ -204,7 +204,10 @@
     "eslint": false,
     "webpack": false,
     "typescript": false,
-    "vscode": false
+    "vscode": false,
+    "bitbucket": false,
+    "gitlab-ci": false
   },
-  "workspaceTasks.groups.recentTasks.enabled": false
+  "workspaceTasks.groups.recentTasks.enabled": false,
+  "workspaceTasks.secrets.showEmptyGroup": true
 }

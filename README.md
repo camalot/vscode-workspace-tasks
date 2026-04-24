@@ -54,6 +54,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 - **[🛡️ Run Guard ↗](https://camalot.github.io/vscode-workspace-tasks/features/run-guard.html)** - Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern
 - **[🕜 Estimated Task Duration ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-duration-estimates.html)** - View estimated duration for tasks based on historical execution data
+- **[🤖 Language Model Tools ↗](https://camalot.github.io/vscode-workspace-tasks/features/lm-tool.html)** - Use `#wTasks` and `#runWTask` in GitHub Copilot chat to discover and run tasks without leaving the chat interface
 - **🔒 Workspace Trust** - Respects [VS Code Workspace Trust](https://code.visualstudio.com/docs/editor/workspace-trust): no tasks are discovered or displayed in untrusted workspaces
 
 ## 📥 Installation
