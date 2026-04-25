@@ -19,6 +19,7 @@ Workspace Tasks provides a rich set of features to help you discover, organize, 
 | Feature | Description |
 | --- | --- |
 | [Running Tasks](running-tasks) | Run tasks, pass arguments, stop execution, and navigate to source files |
+| [Editor Title Bar Buttons](editor-title-run-buttons) | Run shell scripts and GitHub Actions workflows directly from the editor title bar |
 | [Favorites & Recent Tasks](favorites) | Pin frequently used tasks and track recently run tasks |
 | [Compound Tasks (Queues)](task-queues) | Create and run sequences of tasks in order |
 | [VSCode Compound Tasks](compound-tasks) | Wire multiple tasks together with `dependsOn` for sequential or parallel execution |

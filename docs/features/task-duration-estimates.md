@@ -20,7 +20,7 @@ nav_order: 12
 ---
 
 {: .new }
-Added in v1.8.0
+**v1.8.0** introduces Task Duration Estimates, surfacing expected task run times based on historical execution data. This feature provides real-time ETAs for running tasks, pre-run estimates in hover tooltips, and a new Typical Duration metric in the Statistics tab.
 
 ## Overview
 
@@ -68,7 +68,7 @@ Hovering over an idle task that has at least 3 completed runs shows a tooltip wi
 
 ### Tooltip format
 
-```
+```text
 Estimated duration: ~45s (based on 12 runs, variability: Low)
 ```
 

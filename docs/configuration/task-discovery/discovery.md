@@ -21,11 +21,10 @@ nav_order: 2
 
 ### workspaceTasks.enabledTaskTypes
 
-**Type:** `object`
-{: .d-block }
-
-**Default:**
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | See below |
 
 ```json
 {
@@ -133,16 +132,13 @@ Select which task-type providers are active. Disabling a provider prevents the e
 ### workspaceTasks.enabledTaskTypePatterns
 
 {: .new }
-v1.7.0: Glob pattern controls for task type visibility.
+> **v1.7.0** Glob pattern controls for task type visibility.
 
-**Type:** `array` of `string`
-{: .d-block }
-
-**Default:** `[]`
-{: .d-block }
-
-**Scope:** `window`
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `window` |
 
 Glob patterns matched against **task type config keys** (the same names used in `enabledTaskTypes`) to **enable**. When the array is non-empty it acts as a **whitelist** — only task types whose config key matches at least one pattern are shown. All non-matching types are hidden regardless of their `enabledTaskTypes` boolean.
 
@@ -180,16 +176,13 @@ Glob patterns matched against **task type config keys** (the same names used in 
 ### workspaceTasks.disabledTaskTypePatterns
 
 {: .new }
-v1.7.0: Glob pattern controls for task type visibility.
+> **v1.7.0** Glob pattern controls for task type visibility.
 
-**Type:** `array` of `string`
-{: .d-block }
-
-**Default:** `[]`
-{: .d-block }
-
-**Scope:** `window`
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `window` |
 
 Glob patterns matched against **task type config keys** (the same names used in `enabledTaskTypes`) to **disable**. Only evaluated when `enabledTaskTypePatterns` is empty. Matching types are hidden regardless of their `enabledTaskTypes` boolean value.
 
@@ -228,14 +221,11 @@ Evaluation order — first matching rule wins:
 
 ### workspaceTasks.taskfile.additionalFilePatterns
 
-**Type:** `array` of `string`
-{: .d-block }
-
-**Default:** `[]`
-{: .d-block }
-
-**Scope:** `resource`
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Additional glob patterns for discovering Taskfiles with non-standard names.
 These patterns are merged with the built-in Taskfile patterns.
@@ -255,14 +245,11 @@ These patterns are merged with the built-in Taskfile patterns.
 
 ### workspaceTasks.taskfile.discoverGlobalTaskfile
 
-**Type:** `boolean`
-{: .d-block }
-
-**Default:** `false`
-{: .d-block }
-
-**Scope:** `resource`
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
+| **Scope:** | `resource` |
 
 When enabled, Workspace Tasks discovers Task tasks from global Taskfiles in your
 home directory (`$HOME`) using Taskfile filename variants.
@@ -283,14 +270,11 @@ tasks stay current.
 
 ### workspaceTasks.taskfile.showAliases
 
-**Type:** `boolean`
-{: .d-block }
-
-**Default:** `true`
-{: .d-block }
-
-**Scope:** `resource`
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
+| **Scope:** | `resource` |
 
 Controls whether Taskfile aliases are shown as child items in the task tree.
 When enabled, a Task task with one or more aliases is shown as a collapsible
@@ -310,11 +294,11 @@ When disabled, aliases remain in metadata but are not shown as child items.
 
 ### workspaceTasks.shellEnabledTaskTypes
 
-**Type:** `object`
-{: .d-block }
-
-**Default:**
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | See below |
+| **Scope:** | `resource` |
 
 ```json
 {
@@ -333,7 +317,7 @@ When disabled, aliases remain in metadata but are not shown as child items.
 }
 ```
 
-Enable or disable individual shell-script sub-types. This allows fine-grained control over which script file types are recognised as tasks when `workspaceTasks.enabledTaskTypes.shell` is `true`.
+Enable or disable individual shell-script sub-types. This allows fine-grained control over which script file types are recognized as tasks when `workspaceTasks.enabledTaskTypes.shell` is `true`.
 
 #### Supported Shell Types
 
@@ -371,11 +355,11 @@ Enable or disable individual shell-script sub-types. This allows fine-grained co
 
 ### workspaceTasks.shellPaths
 
-**Type:** `object`
-{: .d-block }
-
-**Default:**
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | See below |
+| **Scope:** | `resource` |
 
 ```json
 {
@@ -412,11 +396,11 @@ Specify custom interpreter paths for shell script types. Each key is a shell typ
 
 ### workspaceTasks.shellAdditionalExtensions
 
-**Type:** `object`
-{: .d-block }
-
-**Default:** `{}`
-{: .d-block }
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | `{}` |
+| **Scope:** | `resource` |
 
 Register extra file extensions (beyond the built-in defaults) that should be treated as shell tasks. The key is a file extension **without** the leading dot and the value is the path to the interpreter to use for that extension.
 
@@ -486,7 +470,7 @@ Extensionless tasks are run **directly** — the extension does not extract the 
 
 When enabled, extensionless discovery runs as a **background scan** that is independent of the main shell-type discovery. The treeview populates first with typed-extension scripts (`.sh`, `.py`, etc.) and then refreshes a second time when the extensionless scan completes. The shebang cache is shared with typed-extension scripts so repeated refreshes are fast. Results from the previous scan are returned synchronously on subsequent `getTasks()` calls.
 
-To minimise I/O, the following directories are excluded from the scan before any file reads:
+To minimize I/O, the following directories are excluded from the scan before any file reads:
 
 `node_modules`, `.git`, `.venv`, `dist`, `out`, `build`, `coverage`, `.vscode`, `.vscode-test`
 

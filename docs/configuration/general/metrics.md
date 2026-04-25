@@ -20,13 +20,16 @@ nav_order: 2
 ---
 
 {: .new }
-v1.7: Task execution metrics collection and configuration options.
+> **v1.7** Task execution metrics collection and configuration options.
 
 ### workspaceTasks.metrics.scope
 
-**Type:** `string`
-**Default:** `"workspace"`
-**Options:** `"workspace"`, `"global"`, `"both"`, `"disabled"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"workspace"` |
+| **Options:** | `"workspace"`, `"global"`, `"both"`, `"disabled"` |
+| **Scope:** | `application` |
 
 Controls where task execution metrics are stored.
 
@@ -45,10 +48,13 @@ Controls where task execution metrics are stored.
 
 ### workspaceTasks.metrics.maxDurationSamples
 
-**Type:** `number`
-**Default:** `100`
-**Minimum:** `10`
-**Maximum:** `1000`
+| | |
+| --- | --- |
+| **Type:** | `number` |
+| **Default:** | `100` |
+| **Minimum:** | `10` |
+| **Maximum:** | `1000` |
+| **Scope:** | `application` |
 
 The maximum number of duration samples to store per task. Once this limit is reached, the oldest samples are removed as new ones are added. Higher values give more accurate long-term statistics at the cost of slightly more storage.
 
@@ -62,9 +68,12 @@ The maximum number of duration samples to store per task. Once this limit is rea
 
 ### workspaceTasks.metrics.retentionDays
 
-**Type:** `number`
-**Default:** `0`
-**Minimum:** `0`
+| | |
+| --- | --- |
+| **Type:** | `number` |
+| **Default:** | `0` |
+| **Minimum:** | `0` |
+| **Scope:** | `application` |
 
 The number of days to retain task execution metrics. Set to `0` to retain metrics indefinitely. When set to a positive value, metrics older than the specified number of days are automatically removed.
 

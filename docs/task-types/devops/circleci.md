@@ -21,7 +21,7 @@ Run CircleCI jobs locally and execute workflows as sequential local pipelines di
 ---
 
 {: .new }
-> **New in v1.9.0**: CircleCI support.
+> **v1.9.0**: CircleCI support.
 
 {: .caution }
 > Experimental: CircleCI support is in early preview. Expect some rough edges and share your feedback!
@@ -124,11 +124,13 @@ CircleCI CLI does not natively run workflows locally. Workspace Tasks emulates t
 - **`read /tmp/local_build_config.yml: is a directory` or similar mount errors**
   - This is commonly a **Docker-outside-of-Docker (DooD)** problem in dev containers. When the CircleCI CLI instructs Docker to mount temp files, the host daemon looks for those paths on the host filesystem, not inside the dev container. If the file does not exist there, Docker can create a directory instead, causing the mount to fail.
   - **Recommended fix:** Switch your dev container to **Docker-in-Docker (DinD)**. DinD runs a nested Docker daemon inside the container, so CLI and daemon share the same filesystem.
+
     ```jsonc
     // devcontainer.json
     "features": {
       "ghcr.io/devcontainers/features/docker-in-docker:2": { "moby": false }
     }
     ```
+
     Remove any manual `/var/run/docker.sock` bind mount — it is not needed with DinD.
   - **Alternative workaround:** Keep DooD, but use a host/container mount with an identical absolute path that both sides can resolve for any temp file bind mounts.

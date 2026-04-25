@@ -46,7 +46,7 @@ The **Run Compound Task** command palette entry uses the workspace-filtered list
 
 If the extension's debug logging is enabled (`workspaceTasks.debug: true`), skipped items are reported to the **Workspace Tasks** output channel with a message such as:
 
-```
+```log
 [WARN] [TaskRunner] Skipping unrunnable item 'Queue' in compound task 'My Pipeline': taskType='queue'.
 ```
 

@@ -31,7 +31,7 @@ On warm reloads, the combination of these improvements with the `TaskFilesServic
 See the [Performance overview](index.md) for the full dataset description. Shell-specific highlights:
 
 | Shell Type | Extensions | Files Found | Tasks Loaded |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | bash | `.sh`, `.bash` | 12 | 12 |
 | sh | `.sh` | 12 | 0 (shared with bash) |
 | zsh | `.zsh` | 2 | 2 |
@@ -52,7 +52,7 @@ The `sh` type scans the same 12 `.sh` files as `bash` but resolves 0 tasks — a
 
 Before any optimizations, a cold load measured **~15,483 ms** in total.
 
-```
+```text
 [ShellTaskProvider] bash:   12 task(s) from 12 file(s) in 15050ms
 [ShellTaskProvider] zsh:     2 task(s) from  2 file(s) in 14529ms
 [ShellTaskProvider] pwsh:    6 task(s) from  6 file(s) in 14810ms
@@ -67,7 +67,7 @@ The key observation: every shell type completes in ~14,500–15,300 ms. Since al
 ### Baseline Root Causes
 
 | Root Cause | Impact |
-|---|---|
+| --- | --- |
 | All 10 shell types dispatched 10 separate `workspace.findFiles()` calls | Each scan takes ~14–15 s on cold FS |
 | Shebang reads were sequential via `workspace.openTextDocument()` | Each file opened one at a time |
 | No shebang cache | `bash` and `sh` both read all 12 `.sh` files independently |
@@ -131,7 +131,7 @@ From `results-phase2.log` (warm session after Phase 2):
 
 From `results-phase3.log` (cold load after Phase 3):
 
-```
+```text
 [ShellTaskProvider] bash:   12 task(s) from 12 file(s) in 14961ms (12 shebang reads, 0 cache hits)
 [ShellTaskProvider] sh:      0 task(s) from 12 file(s) in 15232ms (0 shebang reads, 12 cache hits)
 [ShellTaskProvider] Completed — 27 total shell task(s) loaded in 15419ms
@@ -150,13 +150,13 @@ Fix 7 registers individual shell extension patterns (`**/*.sh`, `**/*.py`, etc.)
 **Warm reload comparison:**
 
 | Condition | ShellTaskProvider Time |
-|---|---|
+| --- | --- |
 | Cold load (FS not cached) | ~15,000–15,400 ms |
 | Warm (TaskFilesService cache hit) | <10 ms |
 
 From `results-fix6-7.log` (after Fix 7, warm session):
 
-```
+```text
 [ShellTaskProvider] Finished shell type: fish    — 0 file(s) resolved in 686ms
 [ShellTaskProvider] Finished shell type: perl    — 0 file(s) resolved in 687ms
 [ShellTaskProvider] Finished shell type: ruby    — 0 file(s) resolved in 687ms
@@ -170,11 +170,12 @@ All types complete within milliseconds of the 636 ms `TaskFilesService` cache-bu
 ## Results Summary
 
 | Phase | Change | Cold Time | Key Benefit |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Baseline | — | 15,483 ms | — |
 | Phase 1 | Parallelize shebang checks | ~15,400 ms | Shebang reads concurrent within/across types |
 | Phase 2 | mtime shebang cache, cross-type sharing | ~15,270 ms | `sh` type gets full cache hit after `bash` |
 | Phase 3 | Race fix, loading state, progress | ~15,419 ms | Correct first-launch; user sees progress |
 | **+ Fix 7** | Register patterns with TaskFilesService | **<10 ms (warm)** | **All warm reloads served from cache** |
 
+{: .note }
 > The cold load time (~15 s) is dominated by the `workspace.findFiles()` filesystem scan, which is determined by VS Code's file watcher and cannot be optimized in extension code. All meaningful wall-clock improvements come from eliminating redundant work on warm subsequent reloads.

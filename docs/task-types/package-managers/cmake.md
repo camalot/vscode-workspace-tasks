@@ -59,11 +59,11 @@ folder-level overrides (`"scope": "resource"`).
 
 ### `workspaceTasks.applicationPath.cmake`
 
-| Property | Value |
+| | |
 | --- | --- |
-| Type | `string` |
-| Default | `cmake` |
-| Scope | resource |
+| **Type** | `string` |
+| **Default** | `cmake` |
+| **Scope** | `resource` |
 
 Path to the `cmake` executable. Accepts `~/` expansion and, on Windows,
 automatically appends `.exe` when the path ends with `cmake`.
@@ -78,11 +78,11 @@ automatically appends `.exe` when the path ends with `cmake`.
 
 ### `workspaceTasks.cmake.buildDirectory`
 
-| Property | Value |
+| | |
 | --- | --- |
-| Type | `string` |
-| Default | `build` |
-| Scope | resource |
+| **Type** | `string` |
+| **Default** | `build` |
+| **Scope** | `resource` |
 
 Path to the CMake binary (build) directory. Relative paths are resolved against
 the directory that contains the `CMakeLists.txt` file. Absolute paths are used
@@ -98,12 +98,12 @@ as-is.
 
 ### `workspaceTasks.cmake.buildType`
 
-| Property | Value |
+| | |
 | --- | --- |
-| Type | `string` (enum) |
-| Default | `Debug` |
-| Scope | resource |
-| Options | `Debug`, `Release`, `RelWithDebInfo`, `MinSizeRel` |
+| **Type** | `string` (enum) |
+| **Default** | `Debug` |
+| **Options** | `Debug`, `Release`, `RelWithDebInfo`, `MinSizeRel` |
+| **Scope** | `resource` |
 
 Build configuration to use. This value is passed as `-DCMAKE_BUILD_TYPE` during
 the configure step and as `--config` during multi-configuration builds.
@@ -117,7 +117,7 @@ the configure step and as `--config` during multi-configuration builds.
 | Value | Description |
 | --- | --- |
 | `Debug` | No optimization, full debug information |
-| `Release` | Full optimisation, no debug information |
+| `Release` | Full optimization, no debug information |
 | `RelWithDebInfo` | Optimized with debug information |
 | `MinSizeRel` | Optimized for minimum binary size |
 
@@ -125,11 +125,11 @@ the configure step and as `--config` during multi-configuration builds.
 
 ### `workspaceTasks.cmake.generator`
 
-| Property | Value |
+| | |
 | --- | --- |
-| Type | `string` |
-| Default | `""` (platform default) |
-| Scope | resource |
+| **Type** | `string` |
+| **Default** | `""` (platform default) |
+| **Scope** | `resource` |
 
 CMake generator to use when configuring the project. Leave empty to use the
 platform default. Common values:

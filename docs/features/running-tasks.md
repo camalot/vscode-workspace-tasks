@@ -40,6 +40,10 @@ Right-click any task and select **Run Task** from the context menu.
 
 Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Workspace Tasks: Run Task**.
 
+### Editor Title Bar
+
+When a **shell script** or **GitHub Actions workflow** file is open in the editor, **Run** (`▶`) and **Run with Arguments** (`▷`) buttons appear in the editor title bar. See [Editor Title Bar Buttons](editor-title-run-buttons) for details.
+
 ---
 
 ## Running a Task with Arguments

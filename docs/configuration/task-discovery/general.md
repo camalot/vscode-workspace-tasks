@@ -21,8 +21,11 @@ nav_order: 1
 
 ### workspaceTasks.exclude
 
-**Type:** `array`
-**Default:** `[]`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Glob patterns for files and directories to exclude from task discovery. Any file matching one of these patterns is ignored by all task providers. This is useful for excluding large or generated directories that do not contain tasks.
 
@@ -42,8 +45,11 @@ Glob patterns for files and directories to exclude from task discovery. Any file
 
 ### workspaceTasks.taskDiscovery.fetchDepth
 
-**Type:** `number | null`
-**Default:** `null`
+| | |
+| --- | --- |
+| **Type:** | `number \| null` |
+| **Default:** | `null` |
+| **Scope:** | `resource` |
 
 Controls how deep (in folder levels) the extension will search for tasks below the workspace root. A value of `null` (the default) means the search is unbounded — the extension scans all subdirectories recursively. A positive integer limits the search to that many levels deep, which can significantly improve performance in large monorepos or complex folder hierarchies.
 

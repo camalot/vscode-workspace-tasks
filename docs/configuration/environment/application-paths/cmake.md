@@ -21,8 +21,11 @@ nav_order: 3
 
 ### workspaceTasks.applicationPath.cmake
 
-**Type:** `string`
-**Default:** `"cmake"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"cmake"` |
+| **Scope:** | `resource` |
 
 Path to the CMake executable. On Windows, `.exe` is appended automatically when the path ends with `cmake`.
 
@@ -38,8 +41,11 @@ Path to the CMake executable. On Windows, `.exe` is appended automatically when 
 
 ### workspaceTasks.cmake.buildDirectory
 
-**Type:** `string`
-**Default:** `"build"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"build"` |
+| **Scope:** | `resource` |
 
 The directory (relative to the workspace root) where CMake build output is placed. This is the directory passed to the `-B` flag when configuring a project, and is where the generated build files will be written.
 
@@ -55,16 +61,21 @@ The directory (relative to the workspace root) where CMake build output is place
 
 ### workspaceTasks.cmake.buildType
 
-**Type:** `string`
-**Default:** `"Debug"`
-**Options:** `"Debug"`, `"Release"`, `"RelWithDebInfo"`, `"MinSizeRel"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"Debug"` |
+| **Options:** | `"Debug"`, `"Release"`, `"RelWithDebInfo"`, `"MinSizeRel"` |
+| **Scope:** | `resource` |
 
 The default CMake build type. This value is passed as `-DCMAKE_BUILD_TYPE` during configuration.
 
-- **Debug** - Debug information included, no optimisation
-- **Release** - Fully optimised, no debug information
-- **RelWithDebInfo** - Optimised with debug information
-- **MinSizeRel** - Optimised for minimum binary size
+| | |
+| --- | --- |
+| **Debug** | Debug information included, no optimization |
+| **Release** | Fully optimized, no debug information |
+| **RelWithDebInfo** | Optimized with debug information |
+| **MinSizeRel** | Optimized for minimum binary size |
 
 **Example:**
 
@@ -78,8 +89,11 @@ The default CMake build type. This value is passed as `-DCMAKE_BUILD_TYPE` durin
 
 ### workspaceTasks.cmake.generator
 
-**Type:** `string`
-**Default:** `""`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `""` |
+| **Scope:** | `resource` |
 
 The CMake generator to use (e.g. `"Ninja"`, `"Unix Makefiles"`, `"Visual Studio 17 2022"`). Leave empty to use CMake's default generator for the current platform.
 

@@ -59,9 +59,11 @@ As you run tasks, they are tracked in a dedicated **Recent Tasks** section at th
 
 #### workspaceTasks.recentTasks.maxItems
 
-**Type:** `number`
-**Default:** `20`
-**Minimum:** `0`
+| | |
+| --- | --- |
+| **Type:** | `number` |
+| **Default:** | `20` |
+| **Minimum:** | `0` |
 
 The maximum number of task items to track in the Recent Tasks group. Once the limit is reached, the oldest tasks are dropped from the list. Set to `0` to disable Recent Tasks entirely.
 
@@ -75,8 +77,10 @@ The maximum number of task items to track in the Recent Tasks group. Once the li
 
 #### workspaceTasks.groups.recentTasks.enabled
 
-**Type:** `boolean`
-**Default:** `false`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
 
 When enabled, recent tasks will be grouped by task type in the same way as the main task tree.
 

@@ -140,8 +140,11 @@ If the graceful stop is already in progress and you click **Stop** a second time
 
 ### `workspaceTasks.task.stopCompoundDependencies`
 
-**Type:** `boolean`
-**Default:** `true`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
+| **Scope:** | `resource` |
 
 When enabled, stopping a compound task also stops all currently running `dependsOn` child tasks. See [Task Display Configuration](../configuration/task-display#workspacetaskstaskstopcompounddependencies) for full details.
 

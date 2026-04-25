@@ -21,7 +21,7 @@ Run GitLab CI/CD pipeline jobs locally using [gitlab-ci-local](https://github.co
 ---
 
 {: .new }
-> **New in v1.9.0**: GitLab CI support.
+> **v1.9.0**: GitLab CI support.
 
 ---
 

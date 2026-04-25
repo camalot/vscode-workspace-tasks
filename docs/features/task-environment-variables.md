@@ -19,7 +19,7 @@ nav_order: 11
 ---
 
 {: .new }
-> **New in v1.7.0**
+> **v1.7.0**
 > Powerful new system for environment variables and secrets.
 
 ---
@@ -244,7 +244,7 @@ This is advisory only — the task still runs. To eliminate the warning, move th
 ## Git-Tracked File Warnings
 
 {: .new }
-> **New in v1.8.0**
+> **v1.8.0**
 
 In addition to the per-key secret-pattern warning, the extension proactively checks whether any
 files listed in `workspaceTasks.envVars.envFiles` or `workspaceTasks.envVars.secretFiles` are

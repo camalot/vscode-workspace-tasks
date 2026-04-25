@@ -28,8 +28,10 @@ For a full guide to storing, updating, and referencing secrets in tasks see
 
 ### workspaceTasks.secrets.showEmptyGroup
 
-**Type:** `boolean`
-**Default:** `false`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
 
 By default the **Secrets** root item is hidden from the treeview when no secrets are stored in VS
 Code `SecretStorage`. Set this to `true` to always show the group, even when it is empty.

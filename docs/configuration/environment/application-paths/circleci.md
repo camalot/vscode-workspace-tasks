@@ -28,9 +28,11 @@ CircleCI support uses the local `circleci` CLI to run jobs and workflow job sequ
 
 ### workspaceTasks.applicationPath.circleci
 
-**Type:** `string`
-**Default:** `"circleci"`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"circleci"` |
+| **Scope:** | `resource` |
 
 Path to the CircleCI CLI executable.
 
@@ -44,9 +46,11 @@ Path to the CircleCI CLI executable.
 
 ### workspaceTasks.circleci.additionalFilePatterns
 
-**Type:** `string[]`
-**Default:** `[]`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Additional discovery patterns merged with the built-in CircleCI config file glob.
 

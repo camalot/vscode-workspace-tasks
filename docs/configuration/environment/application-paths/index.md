@@ -33,8 +33,11 @@ Some tools have dedicated sub-pages with additional tool-specific settings:
 
 ### workspaceTasks.applicationPath.ansicon
 
-**Type:** `string`
-**Default:** `"ansicon.exe"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"ansicon.exe"` |
+| **Scope:** | `resource` |
 
 Path to the ANSICON executable used to provide colored output for Ant tasks in the Windows terminal.
 
@@ -52,8 +55,11 @@ Path to the ANSICON executable used to provide colored output for Ant tasks in t
 
 ### workspaceTasks.applicationPath.cargo
 
-**Type:** `string`
-**Default:** `"cargo"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"cargo"` |
+| **Scope:** | `resource` |
 
 Path to the [Cargo](https://doc.rust-lang.org/cargo/) executable (Rust package manager and build tool). On Windows, `.exe` is appended automatically when the path ends with `cargo`.
 
@@ -69,8 +75,11 @@ Path to the [Cargo](https://doc.rust-lang.org/cargo/) executable (Rust package m
 
 ### workspaceTasks.applicationPath.cargo-make
 
-**Type:** `string`
-**Default:** `"cargo-make"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"cargo-make"` |
+| **Scope:** | `resource` |
 
 Path to the [cargo-make](https://github.com/sagiegurari/cargo-make) task runner. On Windows, `.exe` is appended automatically when the path ends with `cargo-make`.
 
@@ -86,8 +95,11 @@ Path to the [cargo-make](https://github.com/sagiegurari/cargo-make) task runner.
 
 ### workspaceTasks.applicationPath.composer
 
-**Type:** `string`
-**Default:** `"composer"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"composer"` |
+| **Scope:** | `resource` |
 
 Path to the [Composer](https://getcomposer.org/) PHP package manager executable. On Windows, `.bat` is appended automatically when the path ends with `composer`.
 
@@ -105,8 +117,11 @@ Path to the [Composer](https://getcomposer.org/) PHP package manager executable.
 
 ### workspaceTasks.applicationPath.deno
 
-**Type:** `string`
-**Default:** `"~/.deno/bin/deno"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"~/.deno/bin/deno"` |
+| **Scope:** | `resource` |
 
 Path to the [Deno](https://deno.land/) runtime executable. On Windows, `.exe` is appended automatically when the path ends with `deno`.
 
@@ -124,8 +139,11 @@ Path to the [Deno](https://deno.land/) runtime executable. On Windows, `.exe` is
 
 ### workspaceTasks.applicationPath.gradle
 
-**Type:** `string`
-**Default:** `"gradlew"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"gradlew"` |
+| **Scope:** | `resource` |
 
 Path to the [Gradle](https://gradle.org/) wrapper or executable. On Windows, `.bat` is appended automatically when the path ends with `gradle`.
 
@@ -143,8 +161,11 @@ Path to the [Gradle](https://gradle.org/) wrapper or executable. On Windows, `.b
 
 ### workspaceTasks.applicationPath.just
 
-**Type:** `string`
-**Default:** `"just"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"just"` |
+| **Scope:** | `resource` |
 
 Path to the [Just](https://just.systems/) command runner. On Windows, `.exe` is appended automatically when the path ends with `just`.
 
@@ -162,8 +183,11 @@ Path to the [Just](https://just.systems/) command runner. On Windows, `.exe` is 
 
 ### workspaceTasks.applicationPath.make
 
-**Type:** `string`
-**Default:** `"make"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"make"` |
+| **Scope:** | `resource` |
 
 Path to the Make executable. On Windows, `.exe` is appended automatically when the path ends with `make`.
 
@@ -181,8 +205,11 @@ Path to the Make executable. On Windows, `.exe` is appended automatically when t
 
 ### workspaceTasks.applicationPath.maven
 
-**Type:** `string`
-**Default:** `"mvn"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"mvn"` |
+| **Scope:** | `resource` |
 
 Path to the [Maven](https://maven.apache.org/) executable. On Windows, `.cmd` is appended automatically when the path ends with `mvn`.
 
@@ -200,8 +227,11 @@ Path to the [Maven](https://maven.apache.org/) executable. On Windows, `.cmd` is
 
 ### workspaceTasks.applicationPath.msbuild
 
-**Type:** `string`
-**Default:** `"msbuild"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"msbuild"` |
+| **Scope:** | `resource` |
 
 Path to the MSBuild executable. On Windows, `.exe` is appended automatically when the path ends with `msbuild`.
 
@@ -219,8 +249,11 @@ Path to the MSBuild executable. On Windows, `.exe` is appended automatically whe
 
 ### workspaceTasks.applicationPath.pipenv
 
-**Type:** `string`
-**Default:** `"pipenv"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"pipenv"` |
+| **Scope:** | `resource` |
 
 Path to the [Pipenv](https://pipenv.pypa.io/) Python environment manager. On Windows, `.exe` is appended automatically when the path ends with `pipenv`.
 
@@ -238,8 +271,11 @@ Path to the [Pipenv](https://pipenv.pypa.io/) Python environment manager. On Win
 
 ### workspaceTasks.applicationPath.poe
 
-**Type:** `string`
-**Default:** `"poe"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"poe"` |
+| **Scope:** | `resource` |
 
 Path to the [Poe the Poet](https://poethepoet.natn.io/) task runner for Python projects. On Windows, `.exe` is appended automatically when the path ends with `poe`.
 
@@ -255,8 +291,11 @@ Path to the [Poe the Poet](https://poethepoet.natn.io/) task runner for Python p
 
 ### workspaceTasks.applicationPath.poetry
 
-**Type:** `string`
-**Default:** `"poetry"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"poetry"` |
+| **Scope:** | `resource` |
 
 Path to the [Poetry](https://python-poetry.org/) Python dependency and packaging tool. On Windows, `.exe` is appended automatically when the path ends with `poetry`.
 
@@ -272,8 +311,11 @@ Path to the [Poetry](https://python-poetry.org/) Python dependency and packaging
 
 ### workspaceTasks.applicationPath.rake
 
-**Type:** `string`
-**Default:** `"rake"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"rake"` |
+| **Scope:** | `resource` |
 
 Path to the [Rake](https://ruby.github.io/rake/) Ruby build tool. On Windows, `.bat` is appended automatically when the path ends with `rake`.
 
@@ -289,9 +331,11 @@ Path to the [Rake](https://ruby.github.io/rake/) Ruby build tool. On Windows, `.
 
 ### workspaceTasks.applicationPath.taskfile
 
-**Type:** `string`
-**Default:** `"task"`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"task"` |
+| **Scope:** | `resource` |
 
 Path to the [Task](https://taskfile.dev/) (`go-task`) executable. On Windows, `.exe` is appended automatically when the path ends with `task`.
 

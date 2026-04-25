@@ -23,7 +23,7 @@ This section describes all configuration settings available in the Workspace Tas
 
 ## Sections
 
-Settings are organised into five groups:
+Settings are organized into five groups:
 
 | Group | Description |
 | --- | --- |

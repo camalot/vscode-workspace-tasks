@@ -21,7 +21,7 @@ Run Bitbucket Pipelines locally using `pipeline-runner` directly from Workspace 
 ---
 
 {: .new }
-> **New in v1.9.0**: Bitbucket Pipelines support.
+> **v1.9.0**: Bitbucket Pipelines support.
 
 ## Overview
 
@@ -176,7 +176,7 @@ Receiving objects: 100% (421/421), 191.25 KiB | 644.00 KiB/s, done.
 Resolving deltas: 100% (155/155), done.
 
 + git reset --hard $BITBUCKET_COMMIT
-HEAD is now at 123d7d4 chore: bitbucket pielines
+HEAD is now at 123d7d4 chore: bitbucket pipelines
 
 + git config user.name bitbucket-pipelines
 

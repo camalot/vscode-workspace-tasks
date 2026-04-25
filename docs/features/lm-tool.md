@@ -23,7 +23,7 @@ LM-powered agents) discover and run tasks directly from the chat interface — n
 of the task tree required.
 
 | Tool | Reference name | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `workspaceTasks_getTasks` | `#wTasks` | List all runnable tasks in the workspace |
 | `workspaceTasks_runTask` | `#runWTask` | Execute a specific workspace task |
 
@@ -46,7 +46,7 @@ supported task type. Each entry contains:
 Optional input parameters allow the model to filter results before they are returned:
 
 | Parameter | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `query` | `string` | Case-insensitive label substring filter |
 | `taskType` | `string` | Task type filter (e.g. `npm`, `shell`) |
 
@@ -62,7 +62,7 @@ includes a warning.
 Required inputs (at least one of `id` or `label` must be provided):
 
 | Parameter | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `id` | `string` | Stable task ID from `#wTasks`. **Preferred** — avoids ambiguity. |
 | `label` | `string` | Task label. May match multiple tasks. |
 | `taskType` | `string` | Narrows label-based matches to a specific type. |
@@ -81,23 +81,23 @@ Required inputs (at least one of `id` or `label` must be provided):
 
 ## Example Prompts
 
-```
+```text
 Which tasks are available in this workspace?
 ```
 
-```
+```text
 Run the build task.
 ```
 
-```
+```text
 Find all npm tasks in the project.
 ```
 
-```
+```text
 Run the deploy task in the my-app workspace folder.
 ```
 
-```
+```text
 What shell script tasks do I have?
 ```
 
