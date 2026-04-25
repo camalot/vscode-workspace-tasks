@@ -24,6 +24,13 @@ function makeGroup(label: string, children: TaskItem[], taskType = 'npm'): TaskI
   return item;
 }
 
+function makeLeafWithLabelObject(label: string, taskType = 'npm'): TaskItem {
+  const item = makeLeaf(label, taskType);
+  (item as any).label = { label };
+  item.originalLabel = label;
+  return item;
+}
+
 function makeCancellationToken(cancelled = false): vscode.CancellationToken {
   return {
     isCancellationRequested: cancelled,
@@ -199,6 +206,20 @@ suite('GetTasksTool Test Suite', () => {
     assert.strictEqual(labels1[0], 'm-task'); // npm:m-task
     assert.strictEqual(labels1[1], 'z-task'); // npm:z-task
     assert.strictEqual(labels1[2], 'a-task'); // shell:a-task
+  });
+
+  test('query filter and deterministic sort use originalLabel for non-string labels', async () => {
+    Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+    TaskCacheService.getInstance().isLoading = () => false;
+    TaskCacheService.getInstance().getAllTasks = () => [
+      makeLeafWithLabelObject('build-two', 'npm'),
+      makeLeafWithLabelObject('build-one', 'npm'),
+    ];
+
+    const result = await invokeGetTasks({ query: 'build' });
+
+    assert.strictEqual(result.tasks.length, 2);
+    assert.deepStrictEqual(result.tasks.map((t: { label: string }) => t.label), ['build-one', 'build-two']);
   });
 
   // ── Cancellation ──────────────────────────────────────────────────────────

@@ -155,6 +155,32 @@ suite('RunTaskTool Test Suite', () => {
     assert.strictEqual(result.candidates.length, 2);
   });
 
+  test('exact label match when item.label is a TreeItemLabel object — started:true', async () => {
+    const objectLabelItem = makeLeaf('build', 'npm:build');
+    (objectLabelItem as any).label = { label: 'build' };
+    objectLabelItem.originalLabel = 'build';
+    TaskCacheService.getInstance().getTask = () => undefined;
+    TaskCacheService.getInstance().getAllTasks = () => [objectLabelItem];
+
+    const result = await invokeRunTask({ label: 'build' });
+    assert.strictEqual(result.started, true);
+    assert.strictEqual(result.task.label, 'build');
+  });
+
+  test('substring match when item.label is a TreeItemLabel object — returns candidates', async () => {
+    const objectLabelItem = makeLeaf('build-lib', 'npm:build-lib');
+    (objectLabelItem as any).label = { label: 'build-lib' };
+    objectLabelItem.originalLabel = 'build-lib';
+    TaskCacheService.getInstance().getTask = () => undefined;
+    TaskCacheService.getInstance().getAllTasks = () => [objectLabelItem];
+
+    const result = await invokeRunTask({ label: 'build' });
+    assert.strictEqual(result.started, false);
+    assert.ok(Array.isArray(result.candidates));
+    assert.strictEqual(result.candidates.length, 1);
+    assert.ok(result.message.toLowerCase().includes('did you mean'));
+  });
+
   test('neither id nor label provided — started:false, not-found message', async () => {
     const result = await invokeRunTask({});
     assert.strictEqual(result.started, false);
