@@ -321,15 +321,16 @@ suite('TaskItem.updateContextValue — secrets taskTypes', () => {
     assert.strictEqual(item.resourceUri, undefined, 'resourceUri should not be set for storedSecret');
   });
 
-  test('secrets taskType is treated as a group and gets "secrets" contextValue', () => {
+  test('secrets taskType is treated as a group and gets "wtSecrets" contextValue', () => {
     const item = new TaskItem('Secrets', vscode.TreeItemCollapsibleState.Collapsed, 'secrets');
     item.id = 'secrets:root';
-    item.contextValue = 'secrets';
+    item.contextValue = 'wtSecrets';
 
     item.updateContextValue();
 
-    // The group branch should set contextValue to the taskType name
-    assert.strictEqual(item.contextValue, 'secrets', 'secrets group contextValue should be "secrets"');
+    // The group branch should set contextValue to 'wtSecrets' (namespaced to avoid clashing
+    // with other extensions such as github.vscode-github-actions which also use viewItem == 'secrets')
+    assert.strictEqual(item.contextValue, 'wtSecrets', 'secrets group contextValue should be "wtSecrets"');
   });
 
   test('secrets group with all-filtered children gets dimmed resourceUri (not filteredSecrets contextValue)', () => {
@@ -349,9 +350,9 @@ suite('TaskItem.updateContextValue — secrets taskTypes', () => {
 
     secretsGroup.updateContextValue();
 
-    // contextValue stays as 'secrets' — it only changes to 'filteredSecrets' when the group itself is filtered
-    assert.strictEqual(secretsGroup.contextValue, 'secrets',
-      `Expected 'secrets', got '${secretsGroup.contextValue}'`);
+    // contextValue stays as 'wtSecrets' — it only changes to 'filteredSecrets' when the group itself is filtered
+    assert.strictEqual(secretsGroup.contextValue, 'wtSecrets',
+      `Expected 'wtSecrets', got '${secretsGroup.contextValue}'`);
 
     // BUT the resourceUri fragment is 'dimmed' because all children are filtered
     assert.strictEqual(secretsGroup.resourceUri?.fragment, 'dimmed',

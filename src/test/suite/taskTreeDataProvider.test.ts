@@ -2562,7 +2562,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.strictEqual(secretsGroup!.label, 'Secrets');
     });
 
-    test('Secrets group has key icon and secrets contextValue', async () => {
+    test('Secrets group has key icon and wtSecrets contextValue', async () => {
       stubServicesForOrganize([]);
       const localCtx = createMockContextWithSecretKeys(['api.key']);
       resetProviderSingleton();
@@ -2571,7 +2571,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
       const roots = await provider.getChildren();
       const secretsGroup = roots.find((r) => r.taskType === 'secrets');
       assert.ok(secretsGroup, 'Secrets group should exist');
-      assert.strictEqual(secretsGroup!.contextValue, 'secrets');
+      assert.strictEqual(secretsGroup!.contextValue, 'wtSecrets');
       assert.ok(
         secretsGroup!.iconPath instanceof vscode.ThemeIcon &&
         (secretsGroup!.iconPath as vscode.ThemeIcon).id === 'key',
