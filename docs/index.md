@@ -76,7 +76,7 @@ See [Getting Started](getting-started) for more installation options.
 3. **Browse tasks** organized by workspace folder and task type
 4. **Run a task** by double-clicking it or clicking the play icon (▶️)
 5. **Add to favorites** by clicking the star icon (☆)
-6. **Create a Compound Task (Queue)** by clicking the list icon to organize task sequences
+6. **Create a Compound Task** by clicking the list icon to organize task sequences
 
 See the [Getting Started guide](getting-started) for full installation and setup instructions.
 

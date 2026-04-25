@@ -206,7 +206,7 @@ Controls which buttons are shown in the inline action bar for each task in the t
 - **runWithArgs** - Run Task with Arguments
 - **openFile** - Open the task's source file
 - **favorite** - Add to / remove from Favorites
-- **queue** - Add to a Compound Task (Queue)
+- **queue** - Add to a Compound Task
 - **hide** - Hide the task
 - **unhide** - Unhide the task
 

@@ -158,7 +158,7 @@ The time in milliseconds to wait after sending a termination signal before forci
 **Type:** `boolean`
 **Default:** `true`
 
-When `true`, stopping a compound task (queue) also stops all of its `dependsOn` child tasks that are currently running. When `false`, child tasks are allowed to continue running after the parent compound task is stopped.
+When `true`, stopping a compound task also stops all of its `dependsOn` child tasks that are currently running. When `false`, child tasks are allowed to continue running after the parent compound task is stopped.
 
 **Example:**
 

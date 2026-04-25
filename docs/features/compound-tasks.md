@@ -160,7 +160,7 @@ Compound tasks appear in the Workspace Tasks tree alongside all other tasks. The
 You can:
 
 - **Favorite** a compound task for quick access
-- **Add** a compound task to a Compound Task (Queue)
+- **Add** a compound task to a Compound Task
 - **Stop** a compound task to terminate the full dependency chain
 
 ---
