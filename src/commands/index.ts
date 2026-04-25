@@ -42,6 +42,8 @@ import * as inspectTaskEnv from './inspectTaskEnvCommand';
 import * as addRunGuard from './addRunGuard';
 import * as removeRunGuard from './removeRunGuard';
 import * as watchTaskfile from './watchTaskfileCommand';
+import * as runActiveEditorTask from './runActiveEditorTask';
+import * as runActiveEditorTaskWithArgs from './runActiveEditorTaskWithArgs';
 
 import { LoggerService } from '../services/loggerService';
 
@@ -92,6 +94,8 @@ export function loadCommands(context: vscode.ExtensionContext) {
     addRunGuard,
     removeRunGuard,
     watchTaskfile,
+    runActiveEditorTask,
+    runActiveEditorTaskWithArgs,
   ];
 
   for (const mod of modules) {

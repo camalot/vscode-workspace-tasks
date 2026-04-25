@@ -7,3 +7,5 @@
 {"id":"1777134294390990","taskName":"npm: test","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777134294390,"status":"Failed","endTime":1777134319040,"exitCode":2,"duration":24650}
 {"id":"1777134341474929","taskName":"npm: test","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777134341474,"status":"Success","endTime":1777134625764,"exitCode":0,"duration":284290}
 {"id":"1777134999356170","taskName":"npm: test","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777134999356,"status":"Success","endTime":1777135275831,"exitCode":0,"duration":276475}
+{"id":"1777151073228736","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777151073228,"status":"Success","endTime":1777151134162,"exitCode":0,"duration":60934}
+{"id":"1777151878102938","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777151878103,"status":"Success","endTime":1777151939446,"exitCode":0,"duration":61343}

@@ -379,6 +379,16 @@
         "icon": "$(eye)"
       },
       {
+        "command": "workspaceTasks.editor.runTask",
+        "title": "%command.editor.runTask%",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "workspaceTasks.editor.runTaskWithArgs",
+        "title": "%command.editor.runTaskWithArgs%",
+        "icon": "$(debug-continue)"
+      },
+      {
         "command": "workspaceTasks.removeFromRecentTasks",
         "title": "%command.removeFromRecentTasks%",
         "icon": "$(trash)"
@@ -1873,6 +1883,28 @@
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "workspaceTasks.editor.runTask",
+          "when": "false"
+        },
+        {
+          "command": "workspaceTasks.editor.runTaskWithArgs",
+          "when": "false"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "workspaceTasks.editor.runTask",
+          "when": "workspaceTasks.activeFileIsRunnableTask && config.workspaceTasks.task.actionBar.run",
+          "group": "navigation@1"
+        },
+        {
+          "command": "workspaceTasks.editor.runTaskWithArgs",
+          "when": "workspaceTasks.activeFileIsRunnableTask && config.workspaceTasks.task.actionBar.runWithArgs",
+          "group": "navigation@2"
+        }
+      ],
       "view/title": [
         {
           "command": "workspaceTasks.metrics.clearWorkspace",

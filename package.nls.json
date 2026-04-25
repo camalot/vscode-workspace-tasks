@@ -364,6 +364,8 @@
   "config.workspaceTasks.taskfile.enableWatchMode": "Show a Watch button on Task (go-task) items to run them in watch mode (task --watch). When enabled, a watch icon appears in the task tree inline actions.",
   "config.workspaceTasks.taskfile.enableWatchMode.markdown": "Show a Watch button on Task (go-task) items to run them in watch mode (`task --watch`). When enabled, a watch icon appears in the task tree inline actions. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/task.html#watch-mode)",
   "command.workspaceTasks.taskfile.watchTask": "Watch Task",
+  "command.editor.runTask": "Run Task",
+  "command.editor.runTaskWithArgs": "Run Task with Arguments",
 
   "config.workspaceTasks.applicationPath.maven": "Path to Maven executable",
   "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathmaven)",

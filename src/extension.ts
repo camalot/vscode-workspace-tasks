@@ -26,6 +26,7 @@ import { registerAllProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
+import { EditorTaskActionService } from './services/editorTaskActionService';
 
 export async function activate(context: vscode.ExtensionContext) {
   LoggerService.getInstance().initialize(context);
@@ -218,6 +219,9 @@ export async function activate(context: vscode.ExtensionContext) {
   } catch (err) {
     logger.error('Command loading error:', err);
   }
+
+  // Initialize editor title bar action buttons
+  EditorTaskActionService.getInstance().initialize(context);
 
   // Register language model tools
   try {
