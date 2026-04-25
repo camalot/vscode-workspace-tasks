@@ -370,6 +370,78 @@ suite('TaskCacheService Test Suite', () => {
         assert.strictEqual(match, itemB);
     });
 
+    test('findMatchingTask - Matches shell execution using command and args path', async () => {
+        const uriA = vscode.Uri.file('/project/scriptA.sh');
+        const uriB = vscode.Uri.file('/project/scriptB.sh');
+        const itemA = createTaskItem('Run Script', 'custom', uriA);
+        const itemB = createTaskItem('Run Script', 'custom', uriB);
+        mockTasks.push(itemA, itemB);
+        await service.refreshProvider('mockType');
+
+        const shellTask = new vscode.Task(
+            { type: 'shell' },
+            vscode.TaskScope.Workspace,
+            'Run Script',
+            'testSource',
+            new vscode.ShellExecution('/bin/sh', ['-c', '/project/scriptB.sh --flag'])
+        );
+
+        const match = service.findMatchingTask(shellTask);
+        assert.strictEqual(match, itemB);
+    });
+
+    test('findMatchingTask - Falls back to first candidate when type and execution do not disambiguate', async () => {
+        const uriA = vscode.Uri.file('/project/scriptA.sh');
+        const uriB = vscode.Uri.file('/project/scriptB.sh');
+        const itemA = createTaskItem('Run Script', 'customA', uriA);
+        const itemB = createTaskItem('Run Script', 'customB', uriB);
+        mockTasks.push(itemA, itemB);
+        await service.refreshProvider('mockType');
+
+        const shellTask = new vscode.Task(
+            { type: 'shell' },
+            vscode.TaskScope.Workspace,
+            'Run Script',
+            'testSource',
+            new vscode.ShellExecution('/bin/sh', ['-c', 'echo no-path-match'])
+        );
+
+        const match = service.findMatchingTask(shellTask);
+        assert.strictEqual(match, itemA, 'Should fall back to the first candidate when no other discriminator matches');
+    });
+
+    test('findMatchingTask - Matches workspace source against vscode task type when exact type differs', async () => {
+        const uri = vscode.Uri.file('/workspace/.vscode/tasks.json');
+        const workspaceTaskItem = createTaskItem('Workspace Task', 'vscode', uri);
+        const otherTaskItem = createTaskItem('Workspace Task', 'npm', vscode.Uri.file('/workspace/package.json'));
+        mockTasks.push(otherTaskItem, workspaceTaskItem);
+        await service.refreshProvider('mockType');
+
+        const workspaceTask = new vscode.Task(
+            { type: 'shell' },
+            vscode.TaskScope.Workspace,
+            'Workspace Task',
+            'Workspace',
+            undefined
+        );
+
+        const match = service.findMatchingTask(workspaceTask);
+        assert.strictEqual(match, workspaceTaskItem);
+    });
+
+    test('findMatchingTask - Matches workspace-task using taskSource when exact type is unavailable', async () => {
+        const regular = createTaskItem('Shared Task', 'other');
+        const workspaceDeclared = createTaskItem('Shared Task', 'other');
+        workspaceDeclared.taskSource = 'workspace';
+        mockTasks.push(regular, workspaceDeclared);
+        await service.refreshProvider('mockType');
+
+        const task = createVsCodeTask('Shared Task', { type: 'workspace-task' });
+        const match = service.findMatchingTask(task);
+
+        assert.strictEqual(match, workspaceDeclared);
+    });
+
     test('findMatchingTask - Returns undefined when path definition does not match any item', async () => {
         const uri = vscode.Uri.file('/project/fileA.js');
         const item = createTaskItem('compile', 'custom', uri);
@@ -594,6 +666,39 @@ suite('TaskCacheService Test Suite', () => {
         }
     });
 
+    test('refresh - ignores providers without a type', async () => {
+        const originalWithProgress = vscode.window.withProgress;
+        let untypedProviderCalled = false;
+
+        try {
+            vscode.window.withProgress = async (_options, task) => task(
+                { report: () => undefined } as any,
+                { isCancellationRequested: false, onCancellationRequested: new vscode.EventEmitter<void>().event } as any,
+            );
+
+            const typedProvider = new MockTaskProvider([createTaskItem('typed', 'typed')], 'typed');
+            const untypedProvider: TaskProvider = {
+                async getTasks(): Promise<TaskItem[]> {
+                    untypedProviderCalled = true;
+                    return [createTaskItem('untyped', 'untyped')];
+                },
+                getFilePatterns(): string[] {
+                    return [];
+                },
+            };
+
+            (service as any).providers = [typedProvider, untypedProvider];
+
+            const tasks = await service.refresh();
+
+            assert.strictEqual(untypedProviderCalled, false, 'Providers without a type should be skipped');
+            assert.strictEqual(tasks.length, 1, 'Only typed provider tasks should be returned');
+            assert.strictEqual(tasks[0].label, 'typed');
+        } finally {
+            (vscode.window as any).withProgress = originalWithProgress;
+        }
+    });
+
     test('rebuildCache - Generates unique IDs for duplicates', async () => {
         mockTasks.length = 0;
         const uri = vscode.Uri.file('/path/to/project');
@@ -624,6 +729,27 @@ suite('TaskCacheService Test Suite', () => {
         assert.ok(child.id, 'Child should have an ID assigned');
         const retrievedChild = service.getTask(child.id!);
         assert.strictEqual(retrievedChild, child);
+    });
+
+    test('rebuildCache - Keeps unlabeled tasks without IDs and appends no-file tasks last', async () => {
+        mockTasks.length = 0;
+        const fileTask = createTaskItem('File Task', 'type', vscode.Uri.file('/path/file-task.json'));
+        fileTask.taskFileUri = vscode.Uri.file('/path/file-task.json');
+        fileTask.startLine = 1;
+
+        const unlabeled = createTaskItem('', 'type');
+        Object.defineProperty(unlabeled, 'label', { value: undefined, configurable: true });
+        Object.defineProperty(unlabeled, 'resourceUri', { value: undefined, configurable: true });
+
+        mockTasks.push(unlabeled, fileTask);
+
+        await service.refreshProvider('mockType');
+
+        const tasks = service.getAllTasks();
+        assert.strictEqual(tasks[0], fileTask, 'file-backed task should come first');
+        assert.strictEqual(tasks[1], unlabeled, 'task without a file should be appended last');
+        assert.ok(!unlabeled.id, 'unlabeled task should not receive a usable ID');
+        assert.strictEqual(service.getTaskById('missing'), undefined, 'missing IDs should remain absent from the cache');
     });
 
     test('getTasksForFile - Case insensitive search on Windows logic', async () => {
@@ -687,6 +813,43 @@ suite('TaskCacheService Test Suite', () => {
             emitter.fire();
 
             assert.strictEqual(invalidateCalled, true, 'invalidateCache should be called when scan completes with no cached paths');
+        } finally {
+            (tfService as any).getCachedPathCount = originalGetCachedPathCount;
+            (tfService as any).hasRegisteredPatterns = originalHasRegisteredPatterns;
+            (tfService as any).invalidateCache = originalInvalidateCache;
+            (tfService as any)._onDidInitialScanComplete = originalEventEmitter;
+            Object.defineProperty(tfService, 'onDidInitialScanComplete', {
+                value: originalEventEmitter.event,
+                configurable: true,
+            });
+        }
+    });
+
+    test('initialize - does not invalidate cache when files are already cached', () => {
+        const tfService = TaskFilesService.getInstance();
+        const originalGetCachedPathCount = tfService.getCachedPathCount.bind(tfService);
+        const originalHasRegisteredPatterns = tfService.hasRegisteredPatterns.bind(tfService);
+        const originalInvalidateCache = tfService.invalidateCache.bind(tfService);
+        const originalEventEmitter = (tfService as any)._onDidInitialScanComplete;
+        let invalidateCalled = false;
+
+        try {
+            (tfService as any).getCachedPathCount = () => 2;
+            (tfService as any).hasRegisteredPatterns = () => true;
+            (tfService as any).invalidateCache = () => { invalidateCalled = true; };
+
+            const emitter = new vscode.EventEmitter<void>();
+            (tfService as any)._onDidInitialScanComplete = emitter;
+            Object.defineProperty(tfService, 'onDidInitialScanComplete', {
+                value: emitter.event,
+                configurable: true,
+            });
+
+            const context = { subscriptions: [] as vscode.Disposable[] } as any;
+            service.initialize(context);
+            emitter.fire();
+
+            assert.strictEqual(invalidateCalled, false, 'invalidateCache should not be called when files are already cached');
         } finally {
             (tfService as any).getCachedPathCount = originalGetCachedPathCount;
             (tfService as any).hasRegisteredPatterns = originalHasRegisteredPatterns;

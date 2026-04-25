@@ -218,8 +218,8 @@
   "workspaceTasks.groups.recentTasks.enabled": false,
   "workspaceTasks.secrets.showEmptyGroup": true,
   "coverlens.overviewRuler": true,
-  "coverlens.runOnSave": "package",
-  "coverlens.testRunner": "custom",
+  "coverlens.runOnSave": "off",
+  "coverlens.testRunner.mode": "custom",
   "coverlens.testRunner.customCommand": "npm run test:coverage",
   "workspaceTasks.groups.justfile.enabled": true,
   "coverlens.excludePatterns": [
