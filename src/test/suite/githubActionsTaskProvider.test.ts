@@ -135,4 +135,103 @@ suite('GithubActionsTaskProvider Test Suite', () => {
     const tasks = await provider.getSystemTasks();
     assert.deepStrictEqual(tasks, []);
   });
+
+  // ---------------------------------------------------------------------------
+  // G01-G06: startLine assignments
+  // ---------------------------------------------------------------------------
+
+  test('G01 - job item startLine is set to the job key line', () => {
+    const file = vscode.Uri.file('/workspace/.github/workflows/ci.yml');
+    const text =
+      'name: CI\n' +
+      'on: [push]\n' +
+      'jobs:\n' +
+      '  build:\n' +
+      '    runs-on: ubuntu-latest\n';
+    const task = (provider as any).parseWorkflowFile(file, text);
+    const jobItem = task.children.find((c: any) => c.label === 'Run Job: build');
+    assert.ok(jobItem, 'build job item should exist');
+    assert.strictEqual(jobItem.startLine, 3, 'build key is on line index 3');
+  });
+
+  test('G02 - second job item gets correct startLine', () => {
+    const file = vscode.Uri.file('/workspace/.github/workflows/ci.yml');
+    const text =
+      'name: CI\n' +
+      'on: [push]\n' +
+      'jobs:\n' +
+      '  build:\n' +
+      '    runs-on: ubuntu-latest\n' +
+      '  test:\n' +
+      '    runs-on: ubuntu-latest\n';
+    const task = (provider as any).parseWorkflowFile(file, text);
+    const testItem = task.children.find((c: any) => c.label === 'Run Job: test');
+    assert.ok(testItem, 'test job item should exist');
+    assert.strictEqual(testItem.startLine, 5, 'test key is on line index 5');
+  });
+
+  test('G03 - event item startLine is set when on is a map with event keys', () => {
+    const file = vscode.Uri.file('/workspace/.github/workflows/ci.yml');
+    const text =
+      'name: CI\n' +
+      'on:\n' +
+      '  push:\n' +
+      '    branches: [main]\n' +
+      'jobs:\n' +
+      '  build:\n' +
+      '    runs-on: ubuntu-latest\n';
+    const task = (provider as any).parseWorkflowFile(file, text);
+    const pushItem = task.children.find((c: any) => c.label === 'Run Workflow (push)');
+    assert.ok(pushItem, 'push event item should exist');
+    // push key appears on line index 2
+    assert.strictEqual(pushItem.startLine, 2, 'push key is on line index 2');
+  });
+
+  test('G04 - event item startLine falls back to on: line when key not found under on map', () => {
+    const file = vscode.Uri.file('/workspace/.github/workflows/ci.yml');
+    const text =
+      'name: CI\n' +
+      'on: [push]\n' +
+      'jobs:\n' +
+      '  build:\n' +
+      '    runs-on: ubuntu-latest\n';
+    const task = (provider as any).parseWorkflowFile(file, text);
+    const pushItem = task.children.find((c: any) => c.label === 'Run Workflow (push)');
+    assert.ok(pushItem, 'push event item should exist');
+    // 'on:' is on line index 1
+    assert.strictEqual(pushItem.startLine, 1, 'startLine should fall back to on: line index 1');
+  });
+
+  test('G05 - workflow parent item startLine is 0 when name is first line', () => {
+    const file = vscode.Uri.file('/workspace/.github/workflows/ci.yml');
+    const text =
+      'name: CI\n' +
+      'on: [push]\n' +
+      'jobs:\n' +
+      '  build:\n' +
+      '    runs-on: ubuntu-latest\n';
+    const task = (provider as any).parseWorkflowFile(file, text);
+    assert.ok(task);
+    // parent item startLine should be set (not undefined)
+    assert.ok(task.startLine !== undefined, 'parent item should have a startLine');
+  });
+
+  test('G06 - deeply indented content under jobs is not parsed as job', () => {
+    const file = vscode.Uri.file('/workspace/.github/workflows/ci.yml');
+    const text =
+      'name: CI\n' +
+      'on: [push]\n' +
+      'jobs:\n' +
+      '  build:\n' +
+      '    runs-on: ubuntu-latest\n' +
+      '    steps:\n' +
+      '      - name: checkout\n' +
+      '        uses: actions/checkout@v3\n';
+    const task = (provider as any).parseWorkflowFile(file, text);
+    const jobLabels = task.children
+      .filter((c: any) => c.label?.startsWith('Run Job:'))
+      .map((c: any) => c.label);
+    // Only 'build' should be a job; 'steps', 'checkout' must not appear
+    assert.deepStrictEqual(jobLabels, ['Run Job: build'], 'Only direct jobs should be parsed');
+  });
 });

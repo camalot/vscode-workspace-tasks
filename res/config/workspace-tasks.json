@@ -673,7 +673,7 @@
     "version": "2.0.0",
     "globs": {
       "include": [
-        "**/package.json"
+        "**/package.{json,yaml,yml,jsonc}"
       ]
     },
     "inputs": [

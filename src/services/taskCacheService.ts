@@ -292,6 +292,10 @@ export class TaskCacheService {
     );
   }
 
+  public hasTasksForFile(uri: vscode.Uri): boolean {
+    return this.fileTaskMap.has(uri.toString());
+  }
+
   public getTasksForFile(uri: vscode.Uri): TaskItem[] {
     // Try exact match
     let tasks = this.fileTaskMap.get(uri.toString());

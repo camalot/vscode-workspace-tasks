@@ -269,9 +269,35 @@ The maximum number of recently executed tasks to track and display in the Recent
 
 ---
 
+### workspaceTasks.codeLens.enabled
+
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
+| **Scope:** | Window |
+
+When enabled, shows inline **CodeLens** action buttons directly above each task definition in its source file (e.g. `package.json`, `Taskfile.yml`, `.github/workflows/*.yml`).
+
+The CodeLens row mirrors the inline action bar in the task tree view and respects the same `workspaceTasks.task.actionBar.*` flags. Disabling this setting removes all CodeLens lenses without affecting any other behaviour.
+
+{: .note }
+> The individual buttons shown in each CodeLens row are controlled by [`workspaceTasks.task.actionBar`](#workspacetaskstaskactionbar). Set `codeLens.enabled` to `false` to remove all lenses entirely.
+
+**Example — disable CodeLens actions:**
+
+```json
+{
+  "workspaceTasks.codeLens.enabled": false
+}
+```
+
+---
+
 ## Related
 
 - [Favorites](../../features/favorites)
 - [Recent Tasks](../../features/recents)
 - [Hide Tasks](../../features/hide-tasks)
 - [Compound Tasks](../../features/task-queues)
+- [Inline CodeLens Actions](../../features/codelens)
