@@ -106,6 +106,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
 
       return { task, command: displayCommand, cwd, native: false };
     }
+
   }
 
   // Track 1: registry-based providers.
@@ -211,6 +212,12 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       return undefined;
     }
     case 'dockerfile': {
+      // If a workspace-sourced command resolution already ran and returned undefined,
+      // do not invoke dockerfile resolution again with a different language id.
+      if (item.taskSource) {
+        return undefined;
+      }
+
       const command = await WorkspaceTasksService.getInstance().resolveTaskCommand(
         taskLabel,
         'DockerFile',
