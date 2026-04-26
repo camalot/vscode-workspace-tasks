@@ -23,10 +23,8 @@ const constants: Record<string, any> = {
   // - build.xml
   GLOB_ANT: '**/*.xml',
   // should match:
-  // - Makefile.toml
-  // - makefile.toml
-  // - custom.toml
-  GLOB_CARGO_MAKE: '**/[Mm]ake[Ff]ile.toml,**/*.toml',
+  // - any *.toml file (cargo-make can use arbitrary TOML task definition files)
+  GLOB_CARGO_MAKE: '**/*.toml',
   // should match:
   // - deno.json
   // - deno.jsonc

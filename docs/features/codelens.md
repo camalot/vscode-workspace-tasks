@@ -24,6 +24,8 @@ Workspace Tasks adds **inline CodeLens action buttons** directly above each task
 
 The CodeLens row mirrors the action bar buttons in the task tree view and respects the same [`workspaceTasks.task.actionBar.*`](../configuration/display-interaction/tasks#workspacetaskstaskactionbar) visibility flags.
 
+![CodeLens Actions](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/codelens-actions.png)
+
 ---
 
 ## Supported File Types
@@ -49,7 +51,7 @@ CodeLens actions appear in any file that Workspace Tasks can discover tasks from
 Each visible task gets a row of CodeLens lenses positioned above its definition line:
 
 | Lens | Command | Condition |
-|------|---------|-----------|
+| --- | --- | --- |
 | **$(debug-start) Run Task** | `workspaceTasks.runTask` | Task is idle |
 | **$(debug-stop) Stop Task** | `workspaceTasks.stopTask` | Task is currently running |
 | **$(debug-continue) Run with Args** | `workspaceTasks.runTaskWithArgs` | Task is idle |
@@ -96,7 +98,7 @@ Individual lenses are controlled by the same [`workspaceTasks.task.actionBar`](.
 
 ---
 
-## Behaviour Notes
+## Behavior Notes
 
 - **Show Hidden Mode** — When show-hidden mode is active, hidden tasks display an **Unhide Task** lens instead of the standard visible-task lenses.
 - **Running Tasks** — The **Run Task** lens is replaced by **Stop Task** while the task is executing. **Run with Args** is hidden while the task is running.

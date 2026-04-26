@@ -7,7 +7,7 @@
 | <code>GLOB_EXTENSIONLESS_EXCLUDE</code> | <code>**/node_modules/**,**/.git/**,**/.venv/**,**/dist/**,**/out/**,**/build/**,**/coverage/**,**/.vscode/**,**/.vscode-test/**,**/vendor/bundle/**</code> |  |
 | <code>GLOB_SHELL_EXCLUDE</code> | <code>**/.venv/**</code> |  |
 | <code>GLOB_ANT</code> | <code>**/*.xml</code> | <code>build.xml</code> |
-| <code>GLOB_CARGO_MAKE</code> | <code>**/[Mm]akefile.toml</code> | <code>Makefile.toml</code><br><code>makefile.toml</code> |
+| <code>GLOB_CARGO_MAKE</code> | <code>**/*.toml</code> | <code>any *.toml file (cargo-make can use arbitrary TOML task definition files)</code> |
 | <code>GLOB_DENO</code> | <code>**/deno.{json,jsonc}</code> | <code>deno.json</code><br><code>deno.jsonc</code> |
 | <code>GLOB_JUST</code> | <code>{**/[Jj]ust[Ff]ile,**/.[Jj]ust[Ff]ile,**/*.just}</code> | <code>justfile</code><br><code>Justfile</code><br><code>justFile</code><br><code>.justfile</code><br><code>.Justfile</code><br><code>.justFile</code><br><code>foo.just</code> |
 | <code>GLOB_MAVEN</code> | <code>**/pom.xml</code> | <code>pom.xml</code> |
@@ -24,6 +24,7 @@
 | <code>GLOB_GITHUB_ACTIONS</code> | <code>**/.github/workflows/*.{yml,yaml}</code> | <code>.github/workflows/ci.yml</code><br><code>.github/workflows/ci.yaml</code><br><code>.github/workflows/release.yml</code><br><code>.github/workflows/release.yaml</code> |
 | <code>GLOB_GITLAB_CI</code> | <code>**/.gitlab-ci.{yml,yaml}</code> | <code>.gitlab-ci.yml</code><br><code>.gitlab-ci.yaml</code> |
 | <code>GLOB_CIRCLECI</code> | <code>**/.circleci/config.{yml,yaml}</code> | <code>.circleci/config.yml</code><br><code>.circleci/config.yaml</code> |
+| <code>GLOB_BITBUCKET_PIPELINES</code> | <code>**/bitbucket-pipelines.yml</code> | <code>bitbucket-pipelines.yml</code> |
 | <code>GLOB_JUPYTER</code> | <code>**/*.ipynb</code> | <code>foo.ipynb</code> |
 | <code>GLOB_PYTHON</code> | <code>**/*.py</code> | <code>foo.py</code> |
 | <code>GLOB_PIPENV</code> | <code>**/[Pp]ip[Ff]ile</code> | <code>Pipfile</code><br><code>pipfile</code><br><code>PipFile</code> |

@@ -203,7 +203,7 @@ No user-visible documentation changes required. These are bug fixes for behavior
 1. I11/I12 (Poe off-by-one) — isolated, lowest risk ✅ COMPLETED
 2. I8 (Maven) — single line ✅ COMPLETED
 3. I9 (Shell) — single line ✅ COMPLETED
-4. I2 (custom.toml glob) — low risk, content-gated
-5. I1 (cargo-make table header) — requires base class visibility change
+4. I2 (custom.toml glob) — low risk, content-gated ✅ COMPLETED
+5. I1 (cargo-make table header) — requires base class visibility change ✅ COMPLETED
 6. I4 (Bitbucket Pipelines text search) — moderate complexity
 7. I5 (CircleCI) — deferred
