@@ -56,6 +56,16 @@ Declutter your task view by temporarily hiding individual tasks or entire task g
 
 ---
 
+## Known Limitations
+
+- **Editor title bar buttons** — Hidden tasks are excluded from the editor title bar **Run** and
+  **Run with Arguments** buttons. If every task in a file is hidden, the buttons do not appear.
+  However, for task providers that use a flat tree structure (e.g. npm, Make), hiding the entire
+  *type group* in the task tree does **not** suppress the buttons. Hide the individual tasks within
+  the group instead.
+
+---
+
 ## Difference from Task Filtering
 
 | | Hide Tasks | `.tasksignore` / Exclude |

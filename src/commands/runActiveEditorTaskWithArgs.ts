@@ -1,14 +1,10 @@
 import BaseCommand from '../common/baseCommand';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskRunner } from '../taskRunner';
-import { TaskCacheService } from '../services/taskCacheService';
 import { TaskRunGuardService } from '../services/taskRunGuardService';
-import constants from '../libs/constants';
-
-interface TaskQuickPickItem extends vscode.QuickPickItem {
-  taskItem: TaskItem;
-}
+import { getRunnableTasksForFile, pickTaskFromList } from '../libs/taskQuickPick';
 
 export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -21,8 +17,7 @@ export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
       return;
     }
 
-    const allTasks = TaskCacheService.getInstance().getTasksForFile(uri);
-    const tasks = allTasks.filter(t => constants.RUNNABLE_TASK_TYPES.has(t.taskType));
+    const tasks = getRunnableTasksForFile(uri);
     if (tasks.length === 0) {
       return;
     }
@@ -36,14 +31,6 @@ export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
         return;
       }
       item = picked;
-    }
-
-    // Resolve the real cached instance so all properties (e.g. guardedByDefinition) are intact.
-    if (item.id) {
-      const cached = TaskCacheService.getInstance().getTask(item.id);
-      if (cached) {
-        item = cached;
-      }
     }
 
     // Confirm guard BEFORE prompting for arguments
@@ -63,15 +50,8 @@ export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
 
   /** Shows a QuickPick for selecting among multiple tasks. Protected for testing. */
   protected async pickTask(tasks: TaskItem[]): Promise<TaskItem | undefined> {
-    const picks: TaskQuickPickItem[] = tasks.map(t => ({
-      label: (t.originalLabel ?? t.label ?? '') as string,
-      description: t.taskType,
-      detail: t.taskFileUri?.fsPath,
-      taskItem: t,
-    }));
-    const selection = await vscode.window.showQuickPick(picks, {
-      placeHolder: 'Select a task to run',
-    });
-    return selection?.taskItem;
+    const uri = vscode.window.activeTextEditor?.document.uri;
+    const fileName = uri ? path.basename(uri.fsPath) : '';
+    return pickTaskFromList(tasks, { placeHolder: `Select a task to run with arguments from ${fileName}` });
   }
 }
