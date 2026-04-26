@@ -1,7 +1,7 @@
 # Plan: argv Security Refactor — Eliminate Shell-String Injection
 
-**Status:** Draft  
-**Branch:** v1.10.1  
+**Status:** Draft
+**Branch:** v1.10.1
 **Area:** Task Execution Security
 
 ---
@@ -98,7 +98,7 @@ if (args) {
 
 ## 4. Design
 
-### 4.1 New Utility: `injectArgsArray()`
+### 4.1 New Utility: `injectArgs()`
 
 Add to `src/libs/taskCreationUtils.ts`:
 
@@ -119,7 +119,7 @@ Add to `src/libs/taskCreationUtils.ts`:
  * @param userArgs       Raw user-typed argument string from "Run with Args", or undefined.
  * @returns              { command, args } ready for new ShellExecution(command, args, options).
  */
-export function injectArgsArray(
+export function injectArgs(
   commandString: string,
   userArgs?: string,
 ): { command: string; args: string[] } {
@@ -171,12 +171,12 @@ export function injectArgsArray(
 }
 ```
 
-**Tokenization note:** `injectArgsArray()` relies on `splitArgs()` to parse the command string
+**Tokenization note:** `injectArgs()` relies on `splitArgs()` to parse the command string
 into tokens. `splitArgs()` already handles single- and double-quoted tokens with embedded spaces,
 so `'"My Tool" run --flag'` correctly produces `["My Tool", "run", "--flag"]`.
 
 **`${args}` in the executable position:** If a workspace task defines `command = "${args} run"`,
-`injectArgsArray` tokenizes to `executable = "${args}"` and `baseArgs = ["run"]`. The `${args}`
+`injectArgs` tokenizes to `executable = "${args}"` and `baseArgs = ["run"]`. The `${args}`
 token does not appear in `baseArgs`, so user args are appended: `{command: "${args}", args: ["run", ...userArgs]}`. This results in `ShellExecution` trying to execute a binary literally named
 `${args}`, which will fail. This edge case is **explicitly unsupported** — workspace task configs
 should never use `${args}` as the executable itself.
@@ -189,7 +189,7 @@ this PR. After this refactor:
 
 - `injectArgs()` is no longer used to build any `ShellExecution`.
 - The `command` property on `CreatedTask` (used for logging/display) is derived from the result
-  of `injectArgsArray()`:  `command = args.length > 0 ? \`${command} ${args.join(' ')}\` : command`.
+  of `injectArgs()`:  `command = args.length > 0 ? \`${command} ${args.join(' ')}\` : command`.
 
 **Known display limitation:** When a user passes quoted args like `--name 'John Doe'`, the
 display command string becomes `"npm run --name John Doe"` (quotes stripped), making it look like
@@ -207,7 +207,7 @@ new vscode.ShellExecution(fullCommand, { cwd })
 
 **After:**
 ```typescript
-const { command: execCmd, args: execArgs } = injectArgsArray(declared, args);
+const { command: execCmd, args: execArgs } = injectArgs(declared, args);
 const displayCommand = execArgs.length > 0 ? `${execCmd} ${execArgs.join(' ')}` : execCmd;
 new vscode.ShellExecution(execCmd, execArgs, { cwd })
 // returned CreatedTask.command = displayCommand
@@ -223,7 +223,7 @@ new vscode.ShellExecution(fullCommand, { cwd })
 
 **After:**
 ```typescript
-const { command: execCmd, args: execArgs } = injectArgsArray(command, args);
+const { command: execCmd, args: execArgs } = injectArgs(command, args);
 const displayCommand = execArgs.length > 0 ? `${execCmd} ${execArgs.join(' ')}` : execCmd;
 new vscode.ShellExecution(execCmd, execArgs, { cwd })
 ```
@@ -271,7 +271,7 @@ if (args) {
 shellArgs.push(...splitArgs(args));  // FIXED
 ```
 
-Import `splitArgs` and `injectArgsArray` from `taskCreationUtils` in `taskFactory.ts`.
+Import `splitArgs` and `injectArgs` from `taskCreationUtils` in `taskFactory.ts`.
 
 **Pre-existing out-of-scope limitation:** When `interpreter` is a multi-word string such as
 `"wsl.exe /bin/bash"`, passing it as the `command` argument to array-form `ShellExecution` causes
@@ -285,8 +285,8 @@ assume the `splitArgs` fix also resolves multi-word interpreter support.
 
 | File | Change |
 |------|--------|
-| `src/libs/taskCreationUtils.ts` | Add `injectArgsArray()` and export it |
-| `src/taskFactory.ts` | Fix 4 execution paths; import `splitArgs`; `@deprecated` `injectArgs` |
+| `src/libs/taskCreationUtils.ts` | Add `injectArgs()` and export it |
+| `src/taskFactory.ts` | Fix 4 execution paths; import `splitArgs`; `@remove` original `injectArgs` |
 
 ---
 
@@ -294,11 +294,11 @@ assume the `splitArgs` fix also resolves multi-word interpreter support.
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/test/suite/taskCreationUtils.test.ts` | **Update** | Add `injectArgsArray()` suite (all cases including injection attacks) — consistent with existing pattern of testing utilities in their source-file counterpart |
+| `src/test/suite/taskCreationUtils.test.ts` | **Update** | Add `injectArgs()` suite (all cases including injection attacks) — consistent with existing pattern of testing utilities in their source-file counterpart |
 | `src/test/suite/taskFactoryWorkspaceTask.test.ts` | **Update** | Assert `ShellExecution` uses array form; assert injection strings are not executed |
 | `src/test/suite/taskFactoryShell.test.ts` | **Update** | Fix two existing tests that assert `exec.commandLine` (see §7.3); add array-form assertion for no-interpreter path |
 
-**Note:** A separate `injectArgsArray.test.ts` file is **not** created. The `injectArgsArray()`
+**Note:** A separate `injectArgs.test.ts` file is **not** created. The `injectArgs()`
 tests belong in `taskCreationUtils.test.ts` to match the existing convention of one test file
 per source module (`splitArgs()` tests are already in that file).
 
@@ -306,14 +306,14 @@ per source module (`splitArgs()` tests are already in that file).
 
 ## 7. Test Strategy
 
-### 7.1 Unit Tests for `injectArgsArray()`
+### 7.1 Unit Tests for `injectArgs()`
 
 File: `src/test/suite/taskCreationUtils.test.ts` (new suite added to existing file)
 
 Tests to include:
 
 | Scenario | Input | Expected |
-|----------|-------|----------|
+| --- | --- | --- |
 | No user args | `("npm run build")` | `{command:"npm", args:["run","build"]}` |
 | Append user args | `("npm run build", "--watch")` | `{command:"npm", args:["run","build","--watch"]}` |
 | Exact `${args}` replacement | `("docker run ${args} alpine", "--rm")` | `{command:"docker", args:["run","--rm","alpine"]}` |
@@ -335,7 +335,7 @@ Tests to include:
 **Key assertion for injection tests:** The `args` array elements are plain strings. When passed to
 `ShellExecution(command, args, options)`, VSCode wraps each in shell quotes, making them inert.
 The test verifies that the tokens are *present in the array* (not merged into the command string)
-and that no shell metacharacter is interpreted at the `injectArgsArray()` level — VSCode handles
+and that no shell metacharacter is interpreted at the `injectArgs()` level — VSCode handles
 quoting at execution time.
 
 **Platform caveat — PowerShell and `$(...)` injection:** On Windows, VSCode may use double-quote
@@ -371,12 +371,12 @@ test('workspace-task uses array-form ShellExecution (no injection)', async () =>
 
 **Existing tests that will break and must be updated:**
 
-- `'executes script directly (no interpreter prefix) when useShebang is true'`  
+- `'executes script directly (no interpreter prefix) when useShebang is true'`
   Currently asserts `exec.commandLine` (string-form field). After the fix, `exec.commandLine`
   is `undefined` and `exec.command` / `exec.args` hold the execution data. Update to assert on
   `exec.command` (the script path) instead.
 
-- `'command string for direct execution contains the script path'`  
+- `'command string for direct execution contains the script path'`
   Same issue — asserts `exec.commandLine`. Update similarly.
 
 Add test for no-interpreter path using array form:
@@ -403,7 +403,7 @@ test('no-interpreter shell task uses array-form ShellExecution with user args', 
 To run only affected test suites during development:
 
 ```bash
-# Run taskCreationUtils tests (includes injectArgsArray suite)
+# Run taskCreationUtils tests (includes injectArgs suite)
 npm test -- --grep "taskCreationUtils"
 
 # Run workspace task factory tests
@@ -445,14 +445,14 @@ npm test
 The following are **not** changed in this refactoring:
 
 - `WorkspaceTasksService.resolveTaskCommand()` — continues to return a command string. The
-  string is parsed by `injectArgsArray()` at the call site in `taskFactory.ts`.
+  string is parsed by `injectArgs()` at the call site in `taskFactory.ts`.
 - Provider `createTask()` methods — all already use array-form `buildShellTask()` or direct
   `ShellExecution(command, args, options)`. No changes needed.
 - `execFile` calls in providers (justfile, gitlab-ci, rake, taskfile) — these are for task
   discovery only and already use the safe `execFile(cmd, argsArray, options)` form from Node.js.
 - `taskSecretWarningService.ts` — uses `execFile('git', [...], ...)` for security checks; already
   array form.
-- The `splitArgs()` function itself — it works correctly and is reused by `injectArgsArray()`.
+- The `splitArgs()` function itself — it works correctly and is reused by `injectArgs()`.
 - `injectArgs()` function tests (`injectArgs.test.ts`) — the function is deprecated but kept;
   existing tests continue to pass.
 
@@ -462,9 +462,9 @@ The following are **not** changed in this refactoring:
 
 > **TDD order:** Write failing tests first, then implement the code to make them pass.
 
-1. **Write `injectArgsArray()` tests** in `taskCreationUtils.test.ts` (new suite). Run with
+1. **Write `injectArgs()` tests** in `taskCreationUtils.test.ts` (new suite). Run with
    `npm test -- --grep "taskCreationUtils"` — tests **must fail** (function not yet defined).
-2. **Implement `injectArgsArray()`** in `taskCreationUtils.ts` and export it. Run tests again
+2. **Implement `injectArgs()`** in `taskCreationUtils.ts` and export it. Run tests again
    to confirm all pass.
 3. **Update failing `taskFactoryShell.test.ts` tests** that assert `exec.commandLine` (two tests
    — see §7.3). Adjust assertions to use `exec.command` / `exec.args`. These tests should pass
@@ -472,7 +472,7 @@ The following are **not** changed in this refactoring:
 4. **Add new tests** to `taskFactoryWorkspaceTask.test.ts` and `taskFactoryShell.test.ts` that
    assert array-form execution and injection safety. These tests **must fail** at this point.
 5. **Patch `taskFactory.ts`**:
-   a. Import `splitArgs` and `injectArgsArray` from `taskCreationUtils`.
+   a. Import `splitArgs` and `injectArgs` from `taskCreationUtils`.
    b. Fix `workspace-task` case.
    c. Fix `dockerfile` case.
    d. Fix `shell` case — no interpreter (array form).
@@ -486,8 +486,8 @@ The following are **not** changed in this refactoring:
 
 ## 12. Acceptance Criteria
 
-- [ ] `injectArgsArray()` is exported from `taskCreationUtils.ts`.
-- [ ] The `injectArgsArray()` suite in `taskCreationUtils.test.ts` passes with 100% coverage of
+- [ ] `injectArgs()` is exported from `taskCreationUtils.ts`.
+- [ ] The `injectArgs()` suite in `taskCreationUtils.test.ts` passes with 100% coverage of
       the new function, including all injection attack scenarios listed in §7.1.
 - [ ] The `workspace-task`, `dockerfile`, and `shell` (no-interpreter) cases in `taskFactory.ts` always use array-form `ShellExecution`, regardless of whether user args are provided.
 - [ ] `args.split(' ')` no longer appears in `taskFactory.ts`; replaced with `splitArgs()`.

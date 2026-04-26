@@ -84,7 +84,7 @@ The `command` field for workspace tasks supports context token substitution at e
 
 | Token | Value |
 | --- | --- |
-| `${args}` | Args typed in **Run with Args**. If omitted from `command`, args are appended to the end. |
+| `${args}` | Args typed in **Run with Args**. If omitted from `command`, args are appended to the end. Use as a **standalone token** (e.g. `docker run ${args} image`) or **embedded** (e.g. `tool --name=${args}`). |
 | `${workspaceFolder}` | Absolute path of the workspace folder that contains the task source file. |
 | `${workspaceFolderBasename}` | Base name of `${workspaceFolder}`. |
 | `${file}` | Absolute path of the active editor file (empty string if no active editor). |
@@ -96,6 +96,21 @@ The `command` field for workspace tasks supports context token substitution at e
 | `${env.VAR}` | `process.env.VAR` value at execution time (empty string if missing). |
 
 Unknown `${...}` tokens are preserved unchanged so shell-style patterns such as `${HOME}` continue to work.
+
+{: .note }
+**Arguments are passed as separate tokens, not raw shell text.** Each argument entered in the
+**Run with Args** prompt is passed to the shell as a discrete quoted value. Shell metacharacters
+such as `;`, `&&`, `|`, and `$(...)` are treated as **literal strings**. This prevents shell
+injection attacks but also means **shell operators in the base `command` field** (e.g.
+`"npm run build && npm run test"`) are now treated as literal argument tokens rather than
+control operators. Use VSCode [compound tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks)
+(`dependsOn`) or a wrapper script to chain commands.
+
+**Embedded `${args}` behaviour:** When `${args}` is embedded inside a token (e.g.
+`--name=${args}`), the entire user input is kept as a single argument. When it appears as a
+standalone token, each whitespace-separated word in the user input becomes a separate argument.
+Quoted phrases (e.g. `'my value'`) in the user input are collapsed into a single token with
+quotes removed.
 
 ## Custom Icons (`iconUri`)
 

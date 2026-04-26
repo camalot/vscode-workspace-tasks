@@ -64,6 +64,13 @@ For most tasks, arguments are appended to the command when it executes. For cust
 commands that include `${args}`, the typed value is injected at that exact position (and for every
 `${args}` occurrence).
 
+{: .note }
+**Security — arguments are passed as separate tokens, not shell code.** Each argument you type is
+passed to the shell as a discrete quoted value. Shell metacharacters such as `;`, `&&`, `|`, and
+`$(...)` typed in the argument box are treated as **literal strings**, not as shell operators. For
+example, typing `; rm -rf /` simply passes `;`, `rm`, `-rf`, and `/` as individual command
+arguments — they are never executed as shell commands.
+
 Example:
 
 ```json
@@ -82,6 +89,28 @@ docker run --rm -it ghcr.io/example/app:latest
 
 If `${args}` is not present, the value is appended to the end (backward-compatible behavior).
 Pressing Escape without entering anything cancels the operation.
+
+### `${args}` placeholder — embedded use
+
+You can use `${args}` as a **standalone token** in the command string (as shown above), or as an
+**embedded substring** inside an argument value:
+
+```json
+{ "command": "my-tool --name=${args} --output=./dist" }
+```
+
+When `${args}` appears embedded inside a token (e.g. `--name=${args}`), the entire user-supplied
+value is treated as a single argument. Spaces in the user's input are kept as part of that
+argument rather than splitting into multiple tokens.
+
+{: .warning }
+**Breaking change for commands with shell operators in the base command string.** Commands that
+use shell operators (`&&`, `||`, `|`, `;`) directly in the `command` field of a workspace task
+are now treated as **literal argument tokens**, not as shell control operators. For example, a
+command like `"npm run build && npm run test"` will no longer chain two commands — it will pass
+`&&` as a literal argument to `npm`. To chain commands, use VSCode's
+[compound tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks)
+(`dependsOn`) or a wrapper shell script instead.
 
 {: .note }
 The `workspaceTasks.task.doubleClickAction` or `workspaceTasks.task.singleClickAction` settings can be set to `runWithArgs` to make clicking a task always prompt for arguments.

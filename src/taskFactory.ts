@@ -4,7 +4,7 @@ import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
-import { resolveTaskContext, CreatedTask } from './libs/taskCreationUtils';
+import { resolveTaskContext, CreatedTask, splitArgs, injectArgs } from './libs/taskCreationUtils';
 import { TaskProviderRegistry } from './taskProviderRegistry';
 import { LoggerService } from './services/loggerService';
 import { ensureTaskProviderRegistryPopulated } from './providers';
@@ -30,22 +30,6 @@ function buildKnownTaskTypes(): ReadonlySet<string> {
 }
 
 export const KNOWN_TASK_TYPES: ReadonlySet<string> = buildKnownTaskTypes();
-
-/**
- * Injects runtime args into a command.
- * If ${args} exists, all occurrences are replaced; otherwise args are appended.
- */
-export function injectArgs(command: string, args?: string): string {
-  if (!args) {
-    return command;
-  }
-
-  if (command.includes('${args}')) {
-    return command.replaceAll('${args}', () => args);
-  }
-
-  return `${command} ${args}`;
-}
 
 export function createJupyterPseudoterminal(
   resourceUri: vscode.Uri,
@@ -110,16 +94,17 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       resourceUri,
     );
     if (declared) {
-      const fullCommand = injectArgs(declared, args);
+      const { command: execCmd, args: execArgs } = injectArgs(declared, args);
+      const displayCommand = execArgs.length > 0 ? `${execCmd} ${execArgs.join(' ')}` : execCmd;
       const task = new vscode.Task(
         { type: 'workspace-task', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'workspace-task',
-        new vscode.ShellExecution(fullCommand, { cwd }),
+        new vscode.ShellExecution(execCmd, execArgs, { cwd }),
       );
 
-      return { task, command: fullCommand, cwd, native: false };
+      return { task, command: displayCommand, cwd, native: false };
     }
   }
 
@@ -180,8 +165,9 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
 
       // Use array form to properly handle paths with spaces in both interpreter and script
       const shellArgs = [resourceUri.fsPath];
+      // Fix: use splitArgs() instead of split(' ') to correctly handle quoted arguments
       if (args) {
-        shellArgs.push(...args.split(' '));
+        shellArgs.push(...splitArgs(args));
       }
 
       if (interpreter) {
@@ -189,11 +175,12 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         commandString = `${interpreter} ${shellArgs.join(' ')}`;
       } else {
         // Execute directly — the OS will use the shebang interpreter (if present)
-        commandString = `"${resourceUri.fsPath}"`;
-        if (args) {
-          commandString += ` ${shellArgs.slice(1).join(' ')}`;
-        }
-        shellExec = new vscode.ShellExecution(commandString, { cwd });
+        // Array form: VSCode handles quoting of the path per platform
+        const scriptUserArgs = splitArgs(args);
+        shellExec = new vscode.ShellExecution(resourceUri.fsPath, scriptUserArgs, { cwd });
+        commandString = scriptUserArgs.length > 0
+          ? `"${resourceUri.fsPath}" ${scriptUserArgs.join(' ')}`
+          : `"${resourceUri.fsPath}"`;
       }
 
       // Use relative path as task name to ensure uniqueness and prevent terminal reuse conflicts
@@ -230,18 +217,16 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         resourceUri,
       );
       if (command) {
-        // Dockerfile provider uses resolveTaskCommand which returns a string presumably from user config map?
-        // It does not use ExecutableService.getCommand directly here on taskFactory level.
-        // So we leave it as is.
-        const fullCommand = args ? `${command} ${args}` : command;
+        const { command: execCmd, args: execArgs } = injectArgs(command, args);
+        const displayCommand = execArgs.length > 0 ? `${execCmd} ${execArgs.join(' ')}` : execCmd;
         const task = new vscode.Task(
           { type: 'dockerfile', task: taskLabel, path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'dockerfile',
-          new vscode.ShellExecution(fullCommand, { cwd }),
+          new vscode.ShellExecution(execCmd, execArgs, { cwd }),
         );
-        return { task, command: fullCommand, cwd, native: false };
+        return { task, command: displayCommand, cwd, native: false };
       }
       return undefined;
     }
