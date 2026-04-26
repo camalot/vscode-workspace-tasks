@@ -1,7 +1,7 @@
 # Plan: argv Security Refactor — Eliminate Shell-String Injection
 
-**Status:** Draft  
-**Branch:** v1.10.1  
+**Status:** Draft
+**Branch:** v1.10.1
 **Area:** Task Execution Security
 
 ---
@@ -371,12 +371,12 @@ test('workspace-task uses array-form ShellExecution (no injection)', async () =>
 
 **Existing tests that will break and must be updated:**
 
-- `'executes script directly (no interpreter prefix) when useShebang is true'`  
+- `'executes script directly (no interpreter prefix) when useShebang is true'`
   Currently asserts `exec.commandLine` (string-form field). After the fix, `exec.commandLine`
   is `undefined` and `exec.command` / `exec.args` hold the execution data. Update to assert on
   `exec.command` (the script path) instead.
 
-- `'command string for direct execution contains the script path'`  
+- `'command string for direct execution contains the script path'`
   Same issue — asserts `exec.commandLine`. Update similarly.
 
 Add test for no-interpreter path using array form:
