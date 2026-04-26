@@ -81,6 +81,7 @@ export async function activate(context: vscode.ExtensionContext) {
   TaskSecretWarningService.getInstance().initialize(context);
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
+  context.subscriptions.push(FavoritesService.getInstance());
   CompoundTaskService.getInstance().initialize(context);
   // Enable Settings Sync for favorites and compound tasks so they sync across machines
   context.globalState.setKeysForSync(['favorites', 'savedQueues']);

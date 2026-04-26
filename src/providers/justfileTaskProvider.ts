@@ -93,7 +93,7 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
     }
   }
 
-  private findRecipeLineNumber(lines: string[], recipeName: string): number {
+  private findRecipeLineNumber(lines: string[], recipeName: string): number | undefined {
     const escaped = recipeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`^@?${escaped}(?:\\s|:|$)`);
     for (let i = 0; i < lines.length; i++) {
@@ -101,7 +101,7 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
         return i;
       }
     }
-    return 0;
+    return undefined; // Not found in this file (e.g., recipe lives in an imported file)
   }
 
   private getRecipeGroup(recipe: JustRecipe): string | null {
@@ -115,7 +115,7 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
     recipe: JustRecipe,
     file: vscode.Uri,
     iconPath: unknown,
-    line: number,
+    line: number | undefined,
   ): TaskItem {
     const item = new TaskItem(
       recipe.name,
@@ -127,14 +127,14 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
     );
     item.taskFileUri = file;
     item.description = vscode.workspace.asRelativePath(file);
-    item.startLine = line;
+    item.startLine = line; // undefined when not found — excluded from CodeLens
     if (recipe.doc) {
       item.tooltip = recipe.doc;
     }
     item.onOpenActionCommand = {
       command: 'workspaceTasks.openFileAtLine',
       title: 'Open File',
-      arguments: [file, line],
+      arguments: [file, line ?? 0], // fallback to top-of-file for open action
     };
     return item;
   }

@@ -19,6 +19,7 @@ let _onDidUpdateHandlers: Array<() => void> = [];
 let _onDidFilterChangeHandlers: Array<() => void> = [];
 let _onDidStateChangeHandlers: Array<(e: { id: string; status: string }) => void> = [];
 let _onDidConfigChangeHandlers: Array<(e: vscode.ConfigurationChangeEvent) => void> = [];
+let _onDidFavChangeHandlers: Array<() => void> = [];
 
 /**
  * Creates a minimal TaskItem with the supplied properties.
@@ -75,6 +76,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
     _onDidFilterChangeHandlers = [];
     _onDidStateChangeHandlers = [];
     _onDidConfigChangeHandlers = [];
+    _onDidFavChangeHandlers = [];
 
     // Reset stub defaults
     stubHasTasksForFile = (_uri: vscode.Uri): boolean => true;
@@ -115,6 +117,10 @@ suite('TaskCodeLensProvider Test Suite', () => {
     // Stub FavoritesService
     (FavoritesService as any).instance = {
       isFavorite: (id: string | TaskItem) => stubIsFavorite(id),
+      onDidChangeFavorites: (handler: () => void) => {
+        _onDidFavChangeHandlers.push(handler);
+        return { dispose: () => {} };
+      },
     };
 
     // Stub TaskStateManager
@@ -625,5 +631,55 @@ suite('TaskCodeLensProvider Test Suite', () => {
     const titles = lenses.map((l) => l.command?.title ?? '');
     assert.ok(titles.some((t) => t.includes('Run Task')), 'Visible task should have Run Task');
     assert.ok(titles.some((t) => t.includes('Unhide Task')), 'Hidden task should have Unhide Task');
+  });
+
+  // ---------------------------------------------------------------------------
+  // T35-T39: FavoritesService event subscription
+  // ---------------------------------------------------------------------------
+
+  test('T35 - subscribes to FavoritesService.onDidChangeFavorites on construction', () => {
+    // The provider was constructed in setup() — verify a handler was registered
+    assert.ok(_onDidFavChangeHandlers.length > 0, 'Should have subscribed to onDidChangeFavorites');
+  });
+
+  test('T36 - fires onDidChangeCodeLenses when favorites change', () => {
+    let fired = false;
+    provider.onDidChangeCodeLenses(() => { fired = true; });
+    _onDidFavChangeHandlers.forEach((h) => h());
+    assert.ok(fired, 'Expected onDidChangeCodeLenses to fire when favorites change');
+  });
+
+  test('T37 - duplicate tasks at same startLine+label are deduplicated', () => {
+    const t1 = makeTask({ id: 'npm-build', label: 'build', startLine: 3 });
+    const t2 = makeTask({ id: 'bun-build', label: 'build', startLine: 3 });
+    (t2 as any).label = 'build'; // same label as t1
+    stubGetTasksForFile = () => [t1, t2];
+    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
+    const lenses = provider.provideCodeLenses(doc, makeToken());
+    assert.strictEqual(lenses.length, 1, 'Duplicate (startLine, label) tasks should produce only one lens');
+  });
+
+  test('T38 - tasks with same label but different startLines are not deduplicated', () => {
+    const t1 = makeTask({ id: 'task1', label: 'build', startLine: 3 });
+    const t2 = makeTask({ id: 'task2', label: 'build', startLine: 7 });
+    (t2 as any).label = 'build';
+    stubGetTasksForFile = () => [t1, t2];
+    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
+    const lenses = provider.provideCodeLenses(doc, makeToken());
+    assert.strictEqual(lenses.length, 2, 'Same label at different lines should produce two lenses');
+  });
+
+  test('T39 - tasks with undefined startLine after I3/I5 fixes are excluded from lenses', () => {
+    // Verifies that the startLine=undefined tasks (previously startLine=0) are skipped
+    const located = makeTask({ startLine: 5 });
+    const unlocated = makeTask({ id: 'unlocated', startLine: undefined });
+    stubGetTasksForFile = () => [located, unlocated];
+    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
+    const lenses = provider.provideCodeLenses(doc, makeToken());
+    assert.strictEqual(lenses.length, 1, 'Only the task with a startLine should produce a lens');
+    assert.strictEqual(lenses[0].range.start.line, 5);
   });
 });

@@ -31,7 +31,7 @@ nav_order: 4
 | --- | --- | --- |
 | **Shell Scripts** | `**/*.{sh,bash,zsh,fish,ps1,bat,cmd}` | Executable scripts |
 | **Extensionless Shell Scripts** | *(no extension)* | Shebang + executable bit required; [opt-in only](../configuration/task-discovery/discovery#extensionless-shell-scripts) |
-| **[Jupyter Notebook](https://jupyter.org/)** | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
+| **[Jupyter Notebook](https://jupyter.org/)** | `**/*.ipynb` | Notebook cells (discovery works without extension; execution requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
 | **Visual Studio Code Tasks** | `**/.vscode/tasks.json`, user-level `tasks.json` | Native VS Code tasks |
 | **Workspace Tasks** | `.workspace-tasks.json` | [Custom task templates](../features/custom-workspace-tasks) |
 
@@ -39,11 +39,17 @@ nav_order: 4
 
 ## Jupyter Notebook Details
 
-- **Requirements:** The [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed and a Jupyter Server must be configured
+- **Discovery:** Notebook tasks are discovered from `*.ipynb` files even if the Jupyter extension is not currently available
+- **Requirements for execution:** The [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed and a Jupyter Server must be configured
 - Notebooks appear as **parent tasks** with individual code cells as **child tasks**
 - Click a task to open the notebook in VS Code's notebook editor
 - Execute individual cells or entire notebooks
 - Real-time cell execution status via the Jupyter Extension UI
+
+{: .note }
+>
+> - Inline CodeLens actions are not supported for `.ipynb` notebook documents
+> - Notebook editor title action buttons from this extension are not supported for `.ipynb` files
 
 ---
 

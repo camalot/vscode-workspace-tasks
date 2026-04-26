@@ -105,6 +105,22 @@ Individual lenses are controlled by the same [`workspaceTasks.task.actionBar`](.
 
 ---
 
+## Known Limitations
+
+### Right-Click on a CodeLens Lens Does Nothing
+
+VS Code's CodeLens API does not support context menus. Right-clicking on a lens opens the standard editor context menu rather than a task-specific menu. This is a [VS Code platform limitation](https://github.com/microsoft/vscode/issues/44) and cannot be addressed by the extension.
+
+Use the task tree view to access the full task context menu.
+
+### GitLab CI — Line Numbers Require File Access
+
+GitLab CI job definitions are discovered via the `gitlab-ci-local --list-json` command, which does not report source line numbers. The extension subsequently scans the `.gitlab-ci.yml` file to locate each job's line. If the workspace is untrusted or the file is inaccessible, no CodeLens rows are shown for GitLab CI jobs.
+
+Jobs defined in external files included via the `include:` keyword cannot be mapped to a line in the root `.gitlab-ci.yml` and will not receive a CodeLens row.
+
+---
+
 ## Related
 
 - [Action Bar Configuration](../configuration/display-interaction/tasks#workspacetaskstaskactionbar)

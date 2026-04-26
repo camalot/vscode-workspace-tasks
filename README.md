@@ -211,13 +211,16 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 
 - **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`; extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
 - **[Jupyter Notebook](https://jupyter.org/)** - Execute notebook cells from `*.ipynb` files
-  - **Requirements:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
+  - **Discovery:** Notebook tasks are discovered from `*.ipynb` files even if the Jupyter extension is not currently available
+  - **Requirements for execution:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
   - **Setup:** Configure a Jupyter Server through the Jupyter extension
   - **Features:**
     - Notebooks appear as parent tasks with code cells as children
     - Click to open notebook in Visual Studio Code's notebook editor
     - Execute individual cells or entire notebooks
     - Real-time cell execution status via the Jupyter Extension UI
+    - Inline CodeLens actions are not supported for `.ipynb` notebook documents
+    - Notebook editor title action buttons from this extension are not supported for `.ipynb` files
 - **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json` and the user-level `tasks.json` (`%APPDATA%\Code\User\tasks.json` on Windows, `~/.config/Code/User/tasks.json` on Linux, `~/Library/Application Support/Code/User/tasks.json` on macOS)
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
   - Supports positional run-time args via `${args}` in `command`

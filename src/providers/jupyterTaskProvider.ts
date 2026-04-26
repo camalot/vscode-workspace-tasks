@@ -3,7 +3,6 @@ import * as path from 'path';
 import { TaskItem } from '../taskItem';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskIconService } from '../services/taskIconService';
-import { ExecutableService } from '../services/executableService';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskConfigService } from '../services/taskConfigService';
@@ -89,25 +88,21 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
       return [];
     }
 
-    // Check if extension (ms-toolsai.jupyter) is installed
-    const extensionId = 'ms-toolsai.jupyter';
-    const command = await ExecutableService.getInstance().getVscodeCommand('jupyter.runcell', extensionId);
-
-    if (!command) {
-      return [];
-    }
-
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const files = await filesService.findFiles([constants.GLOB_JUPYTER]);
 
     for (const file of files) {
-      const content = await vscode.workspace.fs.readFile(file);
-      const text = Buffer.from(content).toString('utf8');
+      try {
+        const content = await vscode.workspace.fs.readFile(file);
+        const text = Buffer.from(content).toString('utf8');
 
-      const fileTasks = this.parseNotebookFile(file, text);
-      if (fileTasks) {
-        tasks.push(fileTasks);
+        const fileTasks = this.parseNotebookFile(file, text);
+        if (fileTasks) {
+          tasks.push(fileTasks);
+        }
+      } catch (e) {
+        this.logger.warn(`[JupyterTaskProvider] Error reading ${file.fsPath}:`, e);
       }
     }
     return tasks;
@@ -180,6 +175,7 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
           new vscode.ThemeIcon('code'),
         );
         item.id = `${this.type}:${uri.toString()}:${index}`;
+        item.startLine = 0;
 
         item.parent = notebookItem;
         item.metadata = {

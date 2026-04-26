@@ -269,7 +269,7 @@ suite('JustfileTaskProvider Test Suite', () => {
       assert.strictEqual(tasks[0].startLine, 1);
     });
 
-    test('returns 0 for startLine when recipe line not found', async () => {
+    test('returns undefined for startLine when recipe line not found', async () => {
       (vscode.workspace as any).openTextDocument = async () => ({
         getText: () => '# no recipes here\n',
       });
@@ -277,7 +277,7 @@ suite('JustfileTaskProvider Test Suite', () => {
       mockJustDump(provider, [{ name: 'build' }]);
       const tasks = await provider.getTasks();
       assert.strictEqual(tasks.length, 1);
-      assert.strictEqual(tasks[0].startLine, 0);
+      assert.strictEqual(tasks[0].startLine, undefined);
     });
 
     test('handles recipes with @ prefix in file', async () => {
@@ -473,10 +473,10 @@ suite('JustfileTaskProvider Test Suite', () => {
       assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), 1);
     });
 
-    test('returns 0 when recipe not found', () => {
+    test('returns undefined when recipe not found', () => {
       const provider = new JustfileTaskProvider();
       const lines = ['# comment', 'test:', '    cargo test'];
-      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), 0);
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), undefined);
     });
 
     test('matches recipe with @ prefix', () => {
@@ -488,8 +488,16 @@ suite('JustfileTaskProvider Test Suite', () => {
     test('does not match body lines with same word', () => {
       const provider = new JustfileTaskProvider();
       // The body line starts with indentation, so it won't match ^@?build
+      // 'build' is line 0 (the recipe line itself) — confirmed match
       const lines = ['build:', '    build stuff'];
       assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), 0);
+    });
+
+    test('returns undefined when recipe is only in body', () => {
+      const provider = new JustfileTaskProvider();
+      // body reference to another recipe name should not match
+      const lines = ['deploy:', '    just build'];
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), undefined);
     });
 
     test('handles recipe name with regex metacharacters', () => {
@@ -498,6 +506,65 @@ suite('JustfileTaskProvider Test Suite', () => {
       const lines = ['my.task:', '    echo ok'];
       // Since dot is escaped, it matches literally
       assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'my.task'), 0);
+    });
+
+    // ─── J01-J06: new tests for undefined sentinel behaviour ───────────────────
+
+    test('J01 - returns undefined when lines array is empty', () => {
+      const provider = new JustfileTaskProvider();
+      assert.strictEqual((provider as any).findRecipeLineNumber([], 'build'), undefined);
+    });
+
+    test('J02 - returns correct 0-based index when recipe is at line 0', () => {
+      const provider = new JustfileTaskProvider();
+      const lines = ['build:', '    echo ok'];
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'build'), 0);
+    });
+
+    test('J03 - returns correct index for recipe with space before colon', () => {
+      const provider = new JustfileTaskProvider();
+      const lines = ['# header', 'deploy :', '    echo deploy'];
+      assert.strictEqual((provider as any).findRecipeLineNumber(lines, 'deploy'), 1);
+    });
+
+    test('J04 - startLine is undefined on TaskItem when recipe not found in file', () => {
+      const provider = new JustfileTaskProvider();
+      const file = vscode.Uri.file('/path/to/justfile');
+      const recipe = {
+        name: 'from-import', doc: null, parameters: [], private: false,
+        quiet: false, body: [], dependencies: [], attributes: [], shebang: false, priors: 0,
+      };
+      const iconPath = new vscode.ThemeIcon('terminal');
+      // Recipe not in lines — should produce undefined startLine
+      const lines: string[] = ['other-recipe:', '    echo other'];
+      const lineNumber = (provider as any).findRecipeLineNumber(lines, recipe.name) as number | undefined;
+      const item = (provider as any).createRecipeTaskItem(recipe, file, iconPath, lineNumber);
+      assert.strictEqual(item.startLine, undefined, 'startLine should be undefined for imported recipe');
+    });
+
+    test('J05 - onOpenActionCommand arguments default to line 0 when startLine is undefined', () => {
+      const provider = new JustfileTaskProvider();
+      const file = vscode.Uri.file('/path/to/justfile');
+      const recipe = {
+        name: 'from-import', doc: null, parameters: [], private: false,
+        quiet: false, body: [], dependencies: [], attributes: [], shebang: false, priors: 0,
+      };
+      const iconPath = new vscode.ThemeIcon('terminal');
+      const item = (provider as any).createRecipeTaskItem(recipe, file, iconPath, undefined);
+      assert.strictEqual(item.onOpenActionCommand?.arguments?.[1], 0, 'Open command line arg should be 0 when startLine is undefined');
+    });
+
+    test('J06 - onOpenActionCommand arguments use startLine when recipe is found', () => {
+      const provider = new JustfileTaskProvider();
+      const file = vscode.Uri.file('/path/to/justfile');
+      const recipe = {
+        name: 'build', doc: null, parameters: [], private: false,
+        quiet: false, body: [], dependencies: [], attributes: [], shebang: false, priors: 0,
+      };
+      const iconPath = new vscode.ThemeIcon('terminal');
+      const item = (provider as any).createRecipeTaskItem(recipe, file, iconPath, 5);
+      assert.strictEqual(item.startLine, 5);
+      assert.strictEqual(item.onOpenActionCommand?.arguments?.[1], 5);
     });
   });
 

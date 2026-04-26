@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { JupyterTaskProvider, JupyterTerm } from '../../providers/jupyterTaskProvider';
-import { ExecutableService } from '../../services/executableService';
 import { TaskConfigService } from '../../services/taskConfigService';
 import { TaskFilesService } from '../../services/taskFilesService';
 import { TaskIconService } from '../../services/taskIconService';
@@ -10,7 +9,6 @@ suite('JupyterTaskProvider Test Suite', () => {
   let provider: JupyterTaskProvider;
   let originalFsDescriptor: PropertyDescriptor | undefined;
   let originalFindFiles: any;
-  let originalGetVscodeCommand: any;
   let originalIsTaskTypeEnabled: any;
   let originalGetTaskIcon: any;
 
@@ -29,18 +27,15 @@ suite('JupyterTaskProvider Test Suite', () => {
     provider = new JupyterTaskProvider();
 
     const filesService = TaskFilesService.getInstance();
-    const executableService = ExecutableService.getInstance();
     const configService = TaskConfigService.getInstance();
     const iconService = TaskIconService.getInstance();
 
     originalFindFiles = filesService.findFiles.bind(filesService);
-    originalGetVscodeCommand = executableService.getVscodeCommand.bind(executableService);
     originalIsTaskTypeEnabled = configService.isTaskTypeEnabled.bind(configService);
     originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
     originalFsDescriptor = Object.getOwnPropertyDescriptor(vscode.workspace, 'fs');
 
     filesService.findFiles = async () => [];
-    executableService.getVscodeCommand = async () => 'jupyter.runcell';
     configService.isTaskTypeEnabled = () => true;
     iconService.getTaskIcon = () => new vscode.ThemeIcon('notebook');
 
@@ -56,12 +51,10 @@ suite('JupyterTaskProvider Test Suite', () => {
 
   teardown(() => {
     const filesService = TaskFilesService.getInstance();
-    const executableService = ExecutableService.getInstance();
     const configService = TaskConfigService.getInstance();
     const iconService = TaskIconService.getInstance();
 
     filesService.findFiles = originalFindFiles;
-    executableService.getVscodeCommand = originalGetVscodeCommand;
     configService.isTaskTypeEnabled = originalIsTaskTypeEnabled;
     iconService.getTaskIcon = originalGetTaskIcon;
 
@@ -78,12 +71,15 @@ suite('JupyterTaskProvider Test Suite', () => {
     assert.deepStrictEqual(tasks, []);
   });
 
-  test('getTasks returns empty when jupyter command is unavailable', async () => {
-    ExecutableService.getInstance().getVscodeCommand = async () => undefined;
+  test('getTasks discovers notebooks even when jupyter command availability is unknown', async () => {
+    const notebookUri = vscode.Uri.file('/workspace/command-unknown.ipynb');
+    TaskFilesService.getInstance().findFiles = async () => [notebookUri];
 
     const tasks = await provider.getTasks();
 
-    assert.deepStrictEqual(tasks, []);
+    assert.strictEqual(tasks.length, 1);
+    assert.strictEqual(tasks[0].label, 'command-unknown.ipynb');
+    assert.strictEqual(tasks[0].children.length, 2);
   });
 
   test('getTasks parses notebooks into notebook and cell items', async () => {
@@ -102,6 +98,8 @@ suite('JupyterTaskProvider Test Suite', () => {
     assert.strictEqual(tasks[0].children[1].label, 'Cell 3');
     assert.strictEqual(tasks[0].children[0].metadata?.source, 'print("Hello")');
     assert.strictEqual(tasks[0].children[1].metadata?.source, 'import os\nprint(os.getcwd())');
+    assert.strictEqual(tasks[0].children[0].startLine, 0);
+    assert.strictEqual(tasks[0].children[1].startLine, 0);
   });
 
   test('getTasks skips notebooks with invalid JSON', async () => {

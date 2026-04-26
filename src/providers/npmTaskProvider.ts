@@ -62,22 +62,26 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
       }
 
       // Load and cache document content
-      let document: vscode.TextDocument;
+      let document: vscode.TextDocument | undefined;
       if (fileUri) {
         const fileKey = fileUri.toString();
         if (documentsCache.has(fileKey)) {
           document = documentsCache.get(fileKey)!;
         } else {
-          document = await vscode.workspace.openTextDocument(fileUri);
-          documentsCache.set(fileKey, document);
+          try {
+            document = await vscode.workspace.openTextDocument(fileUri);
+            documentsCache.set(fileKey, document);
+          } catch {
+            // File unreadable — startLine will remain undefined, no CodeLens shown
+          }
         }
 
-        if (!contentCache.has(fileKey)) {
+        if (document && !contentCache.has(fileKey)) {
           contentCache.set(fileKey, document.getText());
         }
         if (!jsonCache.has(fileKey)) {
           try {
-            jsonCache.set(fileKey, JSON.parse(contentCache.get(fileKey)!));
+            jsonCache.set(fileKey, JSON.parse(contentCache.get(fileKey) ?? 'null'));
           } catch (e) {
             jsonCache.set(fileKey, null);
           }
@@ -109,15 +113,13 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
             break;
           }
         }
-      } else {
-        // Could not verify script exists in package.json, skip
-        item.startLine = 0;
       }
+      // If script not found in content/JSON, startLine stays undefined — no CodeLens shown
 
       item.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [fileUri, item.startLine || 0],
+        arguments: [fileUri, item.startLine ?? 0],
       };
 
       const id = TaskStateManager.getInstance().getTaskId(item);
@@ -354,22 +356,26 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
       }
 
       // Load and cache document content
-      let document: vscode.TextDocument;
+      let document: vscode.TextDocument | undefined;
       if (fileUri) {
         const fileKey = fileUri.toString();
         if (documentsCache.has(fileKey)) {
           document = documentsCache.get(fileKey)!;
         } else {
-          document = await vscode.workspace.openTextDocument(fileUri);
-          documentsCache.set(fileKey, document);
+          try {
+            document = await vscode.workspace.openTextDocument(fileUri);
+            documentsCache.set(fileKey, document);
+          } catch {
+            // File unreadable — startLine will remain undefined, no CodeLens shown
+          }
         }
 
-        if (!contentCache.has(fileKey)) {
+        if (document && !contentCache.has(fileKey)) {
           contentCache.set(fileKey, document.getText());
         }
         if (!jsonCache.has(fileKey)) {
           try {
-            jsonCache.set(fileKey, JSON.parse(contentCache.get(fileKey)!));
+            jsonCache.set(fileKey, JSON.parse(contentCache.get(fileKey) ?? 'null'));
           } catch (e) {
             jsonCache.set(fileKey, null);
           }
@@ -401,15 +407,13 @@ export class BunTaskProvider extends PackageJsonTaskProvider {
             break;
           }
         }
-      } else {
-        // Could not verify script exists in package.json, skip
-        item.startLine = 0;
       }
+      // If script not found in content/JSON, startLine stays undefined — no CodeLens shown
 
       item.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [fileUri, item.startLine || 0],
+        arguments: [fileUri, item.startLine ?? 0],
       };
 
       const id = TaskStateManager.getInstance().getTaskId(item);

@@ -47,6 +47,11 @@ export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Dis
         this._onDidChangeCodeLenses.fire()
       ),
 
+      // Invalidate when favorites change so the Add/Remove favorite lens reflects current state
+      FavoritesService.getInstance().onDidChangeFavorites(() =>
+        this._onDidChangeCodeLenses.fire()
+      ),
+
       // Invalidate on task status change, but only when the affected task's file
       // is currently open — avoids a global invalidation storm for every running task.
       TaskStateManager.getInstance().onDidStateChange(({ id }) => {
@@ -84,16 +89,18 @@ export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Dis
     const filteredService = FilteredTaskService.getInstance();
     const showHidden = filteredService.isShowHiddenMode();
 
-    // Only leaf tasks with a known source line are eligible for a lens
-    const locatedTasks = allTasks.filter(
-      (t) => isLeafTask(t) && t.startLine !== undefined,
+    // Deduplicate before split: multiple providers (e.g. npm, bun, pnpm, yarn) all
+    // index the same file and emit tasks with identical (startLine, label) tuples.
+    // Keep only the first occurrence (first-registered provider).
+    const locatedUnique = this._deduplicateByLine(
+      allTasks.filter((t) => isLeafTask(t) && t.startLine !== undefined),
     );
 
-    const visibleTasks = locatedTasks.filter(
+    const visibleTasks = locatedUnique.filter(
       (t) => !filteredService.isFilteredOrHasFilteredParent(t),
     );
     const hiddenTasks = showHidden
-      ? locatedTasks.filter((t) => filteredService.isFilteredOrHasFilteredParent(t))
+      ? locatedUnique.filter((t) => filteredService.isFilteredOrHasFilteredParent(t))
       : [];
 
     if (visibleTasks.length + hiddenTasks.length === 0) { return []; }
@@ -113,6 +120,21 @@ export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Dis
   // resolveCodeLens is intentionally not implemented — all lens data (title, command,
   // range) is synchronously available at provideCodeLenses time so the two-phase API
   // provides no benefit.
+
+  /**
+   * Deduplicates tasks by (startLine, label) key, keeping the first occurrence.
+   * Multiple providers (e.g. npm, bun, pnpm, yarn) can each emit tasks for the same
+   * script at the same line, which would otherwise produce duplicate CodeLens rows.
+   */
+  private _deduplicateByLine(tasks: TaskItem[]): TaskItem[] {
+    const seen = new Set<string>();
+    return tasks.filter((t) => {
+      const key = `${t.startLine}|${String(t.label)}`;
+      if (seen.has(key)) { return false; }
+      seen.add(key);
+      return true;
+    });
+  }
 
   private _buildVisibleLensRow(
     task: TaskItem,
