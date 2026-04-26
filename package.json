@@ -151,6 +151,12 @@
     "smol-toml": "^1.6.1",
     "yaml": "^2.8.3"
   },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "When running in a limited support untrusted workspace, the extension will disable all features that involve executing tasks or user-provided commands, and will not display any tasks in the UI. This ensures that no untrusted code is executed and the user's system remains secure."
+    }
+  },
   "contributes": {
     "languages": [
       {
