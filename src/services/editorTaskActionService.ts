@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { TaskCacheService } from './taskCacheService';
-import constants from '../libs/constants';
+import { getRunnableTasksForFile } from '../libs/taskQuickPick';
 
 export class EditorTaskActionService {
   private static instance: EditorTaskActionService;
@@ -48,13 +48,6 @@ export class EditorTaskActionService {
 
   /** Returns true when the URI belongs to a workspace file that has at least one runnable task. */
   public isRunnableFile(uri: vscode.Uri | undefined): boolean {
-    if (!uri || uri.scheme !== 'file') {
-      return false;
-    }
-    if (!vscode.workspace.isTrusted) {
-      return false;
-    }
-    const tasks = TaskCacheService.getInstance().getTasksForFile(uri);
-    return tasks.some(t => constants.RUNNABLE_TASK_TYPES.has(t.taskType));
+    return getRunnableTasksForFile(uri).length > 0;
   }
 }

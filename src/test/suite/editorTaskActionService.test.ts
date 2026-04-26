@@ -155,9 +155,53 @@ suite('EditorTaskActionService Test Suite', () => {
     assert.strictEqual(service.isRunnableFile(uri), false);
   });
 
-  test('isRunnableFile — file URI with non-runnable task type returns false', () => {
+  test('isRunnableFile — npm task returns true (all task types are runnable)', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [makeTaskItem('build', 'npm')],
+    };
+    const uri = makeUri('/workspace/package.json');
+    assert.strictEqual(service.isRunnableFile(uri), true);
+  });
+
+  test('isRunnableFile — make task returns true', () => {
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [makeTaskItem('all', 'make')],
+    };
+    const uri = makeUri('/workspace/Makefile');
+    assert.strictEqual(service.isRunnableFile(uri), true);
+  });
+
+  test('isRunnableFile — single task that is hidden returns false', () => {
+    (FilteredTaskService as any).instance = {
+      isFiltered: () => true,
+      isFilteredOrHasFilteredParent: () => true,
+    };
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [makeTaskItem('build', 'npm')],
+    };
+    const uri = makeUri('/workspace/package.json');
+    assert.strictEqual(service.isRunnableFile(uri), false);
+  });
+
+  test('isRunnableFile — mixed hidden and visible leaf returns true', () => {
+    const hiddenItem = makeTaskItem('hidden', 'npm');
+    const visibleItem = makeTaskItem('visible', 'npm');
+    (FilteredTaskService as any).instance = {
+      isFiltered: () => false,
+      isFilteredOrHasFilteredParent: (item: TaskItem) => item.id === 'hidden',
+    };
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [hiddenItem, visibleItem],
+    };
+    const uri = makeUri('/workspace/package.json');
+    assert.strictEqual(service.isRunnableFile(uri), true);
+  });
+
+  test('isRunnableFile — parent-only items (no leaf tasks) returns false', () => {
+    const parentItem = new TaskItem('group', vscode.TreeItemCollapsibleState.Collapsed, 'npm');
+    parentItem.id = 'group';
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [parentItem],
     };
     const uri = makeUri('/workspace/package.json');
     assert.strictEqual(service.isRunnableFile(uri), false);
@@ -187,6 +231,14 @@ suite('EditorTaskActionService Test Suite', () => {
       ],
     };
     const uri = makeUri('/workspace/scripts/run.sh');
+    assert.strictEqual(service.isRunnableFile(uri), true);
+  });
+
+  test('isRunnableFile — taskfile task returns true', () => {
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [makeTaskItem('build', 'taskfile')],
+    };
+    const uri = makeUri('/workspace/Taskfile.yml');
     assert.strictEqual(service.isRunnableFile(uri), true);
   });
 

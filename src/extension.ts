@@ -27,6 +27,7 @@ import { configuration } from './libs/configuration';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
 import { EditorTaskActionService } from './services/editorTaskActionService';
+import { TaskCodeLensProvider } from './taskCodeLensProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
   LoggerService.getInstance().initialize(context);
@@ -222,6 +223,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Initialize editor title bar action buttons
   EditorTaskActionService.getInstance().initialize(context);
+
+  // Register inline CodeLens task actions
+  const codeLensProvider = new TaskCodeLensProvider(context);
+  context.subscriptions.push(
+    vscode.languages.registerCodeLensProvider({ scheme: 'file' }, codeLensProvider),
+    codeLensProvider,
+  );
 
   // Register language model tools
   try {

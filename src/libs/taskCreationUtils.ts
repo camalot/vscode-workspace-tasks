@@ -106,6 +106,68 @@ export function splitArgs(args?: string): string[] {
   return result;
 }
 
+/**
+ * Parses a command string into an executable + args array, then injects user-supplied
+ * arguments. Returns values suitable for ShellExecution(command, args, options),
+ * preventing shell injection by treating each argument as a discrete quoted token.
+ *
+ * Injection rules:
+ *  - If the parsed args array contains a token that exactly equals "${args}", all such
+ *    tokens are replaced by the elements of splitArgs(userArgs).
+ *  - If a token contains "${args}" as an embedded substring (e.g. "--name=${args}"),
+ *    the substring is replaced with splitArgs(userArgs).join(' '), keeping it a single token.
+ *  - If no "${args}" token is found, splitArgs(userArgs) elements are appended at the end.
+ *
+ * @param commandString  Resolved command string (may contain "${args}" placeholder).
+ * @param userArgs       Raw user-typed argument string from "Run with Args", or undefined.
+ * @returns              { command, args } ready for new ShellExecution(command, args, options).
+ */
+export function injectArgs(
+  commandString: string,
+  userArgs?: string,
+): { command: string; args: string[] } {
+  const tokens = splitArgs(commandString);
+  if (tokens.length === 0) {
+    return { command: commandString.trim(), args: [] };
+  }
+
+  const [executable, ...baseArgs] = tokens;
+  const userArgTokens = splitArgs(userArgs);
+
+  // No user args to inject — strip any ${args} placeholder tokens so the shell does not
+  // receive the literal string "${args}" as an argument, then return.
+  if (userArgTokens.length === 0) {
+    const cleanArgs = baseArgs.filter((a) => !a.includes('${args}'));
+    return { command: executable, args: cleanArgs };
+  }
+
+  const hasExact = baseArgs.includes('${args}');
+  const hasPartial = !hasExact && baseArgs.some((a) => a.includes('${args}'));
+
+  if (hasExact) {
+    // Replace every exact "${args}" token with the user arg tokens.
+    const finalArgs: string[] = [];
+    for (const token of baseArgs) {
+      if (token === '${args}') {
+        finalArgs.push(...userArgTokens);
+      } else {
+        finalArgs.push(token);
+      }
+    }
+    return { command: executable, args: finalArgs };
+  }
+
+  if (hasPartial) {
+    // Replace "${args}" substring within tokens with user args joined as a single value.
+    const joined = userArgTokens.join(' ');
+    const finalArgs = baseArgs.map((a) => a.replace(/\$\{args\}/g, joined));
+    return { command: executable, args: finalArgs };
+  }
+
+  // No placeholder — append user args at end
+  return { command: executable, args: [...baseArgs, ...userArgTokens] };
+}
+
 /** Options for buildShellTask(). */
 export interface BuildShellTaskOptions {
   /** The VS Code task type (e.g. 'npm', 'yarn'). */

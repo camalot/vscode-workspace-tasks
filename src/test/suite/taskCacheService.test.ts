@@ -1132,4 +1132,21 @@ suite('TaskCacheService Test Suite', () => {
         });
     });
 
+    suite('hasTasksForFile', () => {
+        test('H01 - returns false when no tasks are cached for the uri', () => {
+            const uri = vscode.Uri.file('/workspace/package.json');
+            assert.strictEqual(service.hasTasksForFile(uri), false);
+        });
+
+        test('H02 - returns true after tasks are committed for the uri', () => {
+            const uri = vscode.Uri.file('/workspace/package.json');
+            const task = createTaskItem('build', 'npm', uri);
+            // Bypass refreshProvider filter by setting providerTasks directly
+            (service as any).providerTasks.set('mockType', [task]);
+            (service as any).rebuildCache();
+
+            assert.strictEqual(service.hasTasksForFile(uri), true);
+        });
+    });
+
 });

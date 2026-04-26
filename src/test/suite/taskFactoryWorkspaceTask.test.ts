@@ -53,4 +53,25 @@ suite('Task Factory Workspace Task Test Suite', () => {
     assert.ok(created, 'Should create a task');
     assert.strictEqual(created!.command, 'echo hello');
   });
+
+  test('workspace-task uses array-form ShellExecution (no injection)', async () => {
+    WorkspaceTasksService.getInstance().resolveTaskCommand = async () => 'docker run ${args} alpine:latest';
+
+    const uri = vscode.Uri.file('/workspace/.workspace-tasks.json');
+    const item = new TaskItem('Run Docker', vscode.TreeItemCollapsibleState.None, 'workspace-task', uri);
+    item.taskSource = 'shell';
+    item.taskFileUri = uri;
+
+    const created = await createTaskForItem(item, '; rm -rf /');
+    assert.ok(created, 'Should create a task');
+    const exec = created!.task.execution as vscode.ShellExecution;
+    // Must be array form — commandLine must be undefined
+    assert.strictEqual(exec.commandLine, undefined, 'Must not use string-form ShellExecution');
+    assert.strictEqual(exec.command, 'docker', 'Executable must be docker');
+    // Injection attempt must be a literal arg, not shell code
+    assert.ok(
+      Array.isArray(exec.args) && exec.args.some((a) => typeof a === 'string' && (a as string) === ';'),
+      'Semicolon must appear as a literal array element, not shell operator',
+    );
+  });
 });

@@ -391,5 +391,7 @@
   "config.workspaceTasks.cmake.buildType.relwithdebinfo": "Optimized build that also includes debug information.",
   "config.workspaceTasks.cmake.buildType.minsizerel": "Optimized for minimum binary size.",
   "config.workspaceTasks.cmake.generator": "CMake generator",
-  "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakegenerator)"
+  "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakegenerator)",
+  "config.workspaceTasks.codeLens.enabled": "Show inline CodeLens task actions in task source files.",
+  "config.workspaceTasks.codeLens.enabled.markdown": "When enabled, shows **Run**, **Run with Args**, **Favorites**, **Compound Task**, and **Hide/Unhide** task actions as inline CodeLens lenses above each task definition in task source files. Respects the `workspaceTasks.task.actionBar.*` visibility settings. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/general.html#workspacetaskscodelens)"
 }

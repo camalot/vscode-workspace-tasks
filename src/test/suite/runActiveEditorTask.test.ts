@@ -140,32 +140,54 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
 
   // ── No matching tasks ──────────────────────────────────────────────────────
 
-  test('run — no runnable tasks for file returns early', async () => {
+  test('run — no tasks registered for file returns early', async () => {
     const uri = makeFileUri('/workspace/package.json');
     Object.defineProperty(vscode.window, 'activeTextEditor', {
       get: () => ({ document: { uri } } as unknown as vscode.TextEditor),
       configurable: true,
     });
     (TaskCacheService as any).instance = {
-      getTasksForFile: () => [makeTaskItem('lint', 'npm')],
+      getTasksForFile: () => [],
     };
     const cmd = new RunActiveEditorTaskCommand(context);
     await cmd.run();
     assert.strictEqual(runTaskCalls.length, 0);
   });
 
-  test('run — only non-runnable task types returns early', async () => {
+  test('run — all tasks are hidden returns early', async () => {
     const uri = makeFileUri('/workspace/Makefile');
     Object.defineProperty(vscode.window, 'activeTextEditor', {
       get: () => ({ document: { uri } } as unknown as vscode.TextEditor),
       configurable: true,
     });
+    (FilteredTaskService as any).instance = {
+      isFiltered: () => true,
+      isFilteredOrHasFilteredParent: () => true,
+    };
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [makeTaskItem('build', 'make'), makeTaskItem('test', 'npm')],
     };
     const cmd = new RunActiveEditorTaskCommand(context);
     await cmd.run();
     assert.strictEqual(runTaskCalls.length, 0);
+  });
+
+  test('run — npm task in package.json runs directly', async () => {
+    const uri = makeFileUri('/workspace/package.json');
+    const npmTask = makeTaskItem('lint', 'npm');
+    Object.defineProperty(vscode.window, 'activeTextEditor', {
+      get: () => ({ document: { uri } } as unknown as vscode.TextEditor),
+      configurable: true,
+    });
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [npmTask],
+    };
+    const cmd = new TestableRunActiveEditorTaskCommand(context);
+    await cmd.run();
+    assert.strictEqual(runTaskCalls.length, 1);
+    assert.strictEqual(runTaskCalls[0].item, npmTask);
+    assert.strictEqual(runTaskCalls[0].skipGuard, true);
+    assert.strictEqual((cmd as TestableRunActiveEditorTaskCommand).pickTaskCalled, false);
   });
 
   // ── Single task ────────────────────────────────────────────────────────────
@@ -179,7 +201,6 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     });
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
-      getTask: () => taskItem,
     };
     const cmd = new TestableRunActiveEditorTaskCommand(context);
     await cmd.run();
@@ -198,46 +219,6 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     });
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
-      getTask: () => taskItem,
-    };
-    const cmd = new TestableRunActiveEditorTaskCommand(context);
-    await cmd.run();
-    assert.strictEqual(runTaskCalls.length, 1);
-    assert.strictEqual(runTaskCalls[0].item, taskItem);
-    assert.strictEqual(runTaskCalls[0].skipGuard, true);
-  });
-
-  test('run — single task resolves from cache when cached item differs', async () => {
-    const uri = makeFileUri('/workspace/deploy.sh');
-    const staleItem = makeTaskItem('deploy', 'shell');
-    const freshItem = makeTaskItem('deploy', 'shell');
-    freshItem.guardedByDefinition = true;
-    Object.defineProperty(vscode.window, 'activeTextEditor', {
-      get: () => ({ document: { uri } } as unknown as vscode.TextEditor),
-      configurable: true,
-    });
-    (TaskCacheService as any).instance = {
-      getTasksForFile: () => [staleItem],
-      getTask: (id: string) => (id === 'deploy' ? freshItem : undefined),
-    };
-    const cmd = new TestableRunActiveEditorTaskCommand(context);
-    await cmd.run();
-    assert.strictEqual(runTaskCalls.length, 1);
-    assert.strictEqual(runTaskCalls[0].item, freshItem);
-    assert.strictEqual(runTaskCalls[0].item.guardedByDefinition, true);
-    assert.strictEqual(runTaskCalls[0].skipGuard, true);
-  });
-
-  test('run — single task with no cache entry uses original item', async () => {
-    const uri = makeFileUri('/workspace/deploy.sh');
-    const taskItem = makeTaskItem('deploy', 'shell');
-    Object.defineProperty(vscode.window, 'activeTextEditor', {
-      get: () => ({ document: { uri } } as unknown as vscode.TextEditor),
-      configurable: true,
-    });
-    (TaskCacheService as any).instance = {
-      getTasksForFile: () => [taskItem],
-      getTask: () => undefined,
     };
     const cmd = new TestableRunActiveEditorTaskCommand(context);
     await cmd.run();
@@ -257,7 +238,6 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     });
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
-      getTask: () => undefined,
     };
     (TaskRunGuardService as any)._instance = {
       confirmIfNeeded: async () => false,
@@ -280,7 +260,6 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     });
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [task1, task2],
-      getTask: (id: string) => (id === 'build' ? task1 : id === 'deploy' ? task2 : undefined),
     };
     const cmd = new TestableRunActiveEditorTaskCommand(context);
     (cmd as TestableRunActiveEditorTaskCommand).pickTaskResult = task1;
@@ -301,7 +280,6 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     });
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [task1, task2],
-      getTask: () => undefined,
     };
     const cmd = new TestableRunActiveEditorTaskCommand(context);
     (cmd as TestableRunActiveEditorTaskCommand).pickTaskResult = undefined;
@@ -309,7 +287,7 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     assert.strictEqual(runTaskCalls.length, 0);
   });
 
-  test('run — mix of runnable and non-runnable tasks only passes runnable to QuickPick', async () => {
+  test('run — all task types (npm, make, shell, github-actions) are passed to QuickPick', async () => {
     const uri = makeFileUri('/workspace/deploy.sh');
     const shellTask = makeTaskItem('deploy', 'shell');
     const npmTask = makeTaskItem('lint', 'npm');
@@ -327,19 +305,20 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     })(context);
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [shellTask, npmTask, ghTask],
-      getTask: (id: string) => (id === 'deploy' ? shellTask : id === 'ci' ? ghTask : undefined),
     };
     await cmd.run();
-    // Only shell and github-actions should be passed to pickTask
-    assert.ok(pickedTasks.every(t => t.taskType === 'shell' || t.taskType === 'github-actions'));
-    assert.ok(!pickedTasks.some(t => t.taskType === 'npm'));
+    // All three task types should reach pickTask
+    assert.strictEqual(pickedTasks.length, 3);
+    assert.ok(pickedTasks.some(t => t.taskType === 'npm'));
+    assert.ok(pickedTasks.some(t => t.taskType === 'shell'));
+    assert.ok(pickedTasks.some(t => t.taskType === 'github-actions'));
     assert.strictEqual(runTaskCalls.length, 1);
     assert.strictEqual(runTaskCalls[0].skipGuard, true);
   });
 
-  // ── pickTask uses correct QuickPickItem labels ─────────────────────────────
+  // ── pickTask receives full runnable task list ────────────────────────────
 
-  test('pickTask is called with tasks array from filtered list', async () => {
+  test('pickTask is called with all non-hidden leaf tasks', async () => {
     const uri = makeFileUri('/workspace/deploy.sh');
     const task1 = makeTaskItem('alpha', 'shell');
     const task2 = makeTaskItem('beta', 'github-actions');
@@ -357,7 +336,6 @@ suite('RunActiveEditorTaskCommand Test Suite', () => {
     })(context);
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [task1, task2],
-      getTask: (id: string) => (id === 'alpha' ? task1 : undefined),
     };
     await cmd.run();
     assert.deepStrictEqual(receivedTasks, [task1, task2]);

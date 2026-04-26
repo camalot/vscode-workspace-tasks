@@ -1216,6 +1216,14 @@
             "minimum": 0,
             "description": "%config.workspaceTasks.recentTasks.maxItems.description%",
             "markdownDescription": "%config.workspaceTasks.recentTasks.maxItems.markdown%"
+          },
+          "workspaceTasks.codeLens.enabled": {
+            "title": "%config.workspaceTasks.codeLens.enabled%",
+            "type": "boolean",
+            "default": true,
+            "scope": "window",
+            "description": "%config.workspaceTasks.codeLens.enabled%",
+            "markdownDescription": "%config.workspaceTasks.codeLens.enabled.markdown%"
           }
         }
       },

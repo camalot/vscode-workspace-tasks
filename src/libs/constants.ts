@@ -203,9 +203,6 @@ const constants: Record<string, any> = {
   // - taskFile.local.yaml
   GLOB_TASKFILE: '**/[Tt]ask[Ff]ile{.dist,.*,}.{yml,yaml}',
   MAX_SHEBANG_READ_BYTES: 255,
-
-  /** Task types that can be executed directly from the editor title bar. */
-  RUNNABLE_TASK_TYPES: Object.freeze(new Set(['shell', 'github-actions'])) as ReadonlySet<string>,
 };
 
 export default constants;
