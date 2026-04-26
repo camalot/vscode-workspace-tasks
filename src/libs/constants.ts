@@ -25,7 +25,8 @@ const constants: Record<string, any> = {
   // should match:
   // - Makefile.toml
   // - makefile.toml
-  GLOB_CARGO_MAKE: '**/[Mm]akefile.toml',
+  // - custom.toml
+  GLOB_CARGO_MAKE: '**/[Mm]ake[Ff]ile.toml,**/*.toml',
   // should match:
   // - deno.json
   // - deno.jsonc

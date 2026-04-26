@@ -158,7 +158,8 @@ Effect:
 
 **I2 — Cargo-Make `custom.toml` glob:**
 - File: `src/providers/cargoMakeTaskProvider.ts`
-- Add `'**/custom.toml'` to `getGlobPatterns()` return array
+- Add `'**/*.toml'` to `getGlobPatterns()` return array
+- In `tomlTaskProvider.getTasks()`, after parsing TOML, check if `tomlObj` has the expected matching `scriptsPath` before proceeding to create task items. If not, skip this file. This gates `*.toml` discovery on the presence of a `[tasks]` table for cargo-make.
 
 **I1 — Cargo-Make table header matching:**
 - File: `src/providers/tomlTaskProvider.ts`: change `private findScriptLine` → `protected findScriptLine`
@@ -199,9 +200,9 @@ No user-visible documentation changes required. These are bug fixes for behavior
 
 ## 7. Implementation Order
 
-1. I11/I12 (Poe off-by-one) — isolated, lowest risk
-2. I8 (Maven) — single line
-3. I9 (Shell) — single line
+1. I11/I12 (Poe off-by-one) — isolated, lowest risk ✅ COMPLETED
+2. I8 (Maven) — single line ✅ COMPLETED
+3. I9 (Shell) — single line ✅ COMPLETED
 4. I2 (custom.toml glob) — low risk, content-gated
 5. I1 (cargo-make table header) — requires base class visibility change
 6. I4 (Bitbucket Pipelines text search) — moderate complexity

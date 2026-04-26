@@ -113,7 +113,7 @@ suite('Poe the Poet Provider', () => {
 test = "pytest"
 build = "poetry build"`;
     const lineNumber = (provider as any).findTaskLineInContent(content, 'test');
-    assert.strictEqual(lineNumber, 2);
+    assert.strictEqual(lineNumber, 1);
   });
 
   test('finds task line in content - table syntax', function () {
@@ -122,7 +122,7 @@ build = "poetry build"`;
 cmd = "pytest"
 help = "Run tests"`;
     const lineNumber = (provider as any).findTaskLineInContent(content, 'test');
-    assert.strictEqual(lineNumber, 1);
+    assert.strictEqual(lineNumber, 0);
   });
 
   test('returns 0 for task not found', function () {
@@ -141,6 +141,6 @@ test = "pytest"
 [tool.other]
 test = "other"`;
     const lineNumber = (provider as any).findTaskLineInContent(content, 'test');
-    assert.strictEqual(lineNumber, 2);
+    assert.strictEqual(lineNumber, 1);
   });
 });

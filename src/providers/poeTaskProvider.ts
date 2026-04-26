@@ -131,7 +131,7 @@ export class PoeTaskProvider extends TomlTaskProvider {
    * Finds the line number where a task is defined in the TOML content
    * @param content The TOML file content
    * @param taskName The name of the task to find
-   * @returns The 1-based line number, or 0 if not found
+    * @returns The 0-based line number, or 0 if not found
    */
   private findTaskLineInContent(content: string, taskName: string): number {
     const lines = content.split('\n');
@@ -155,12 +155,12 @@ export class PoeTaskProvider extends TomlTaskProvider {
       // Look for the task name in the section
       // Handle both simple tasks (task = "cmd") and table tasks ([tool.poe.tasks.taskname])
       if (inSection && (line.startsWith(`${taskName} =`) || line.startsWith(`${taskName}.`))) {
-        return i + 1; // 1-based line number
+        return i;
       }
 
       // Also check for table syntax: [tool.poe.tasks.taskname]
       if (line === `[tool.poe.tasks.${taskName}]` || line === `[tool.poe.tasks."${taskName}"]`) {
-        return i + 1; // 1-based line number
+        return i;
       }
     }
 
