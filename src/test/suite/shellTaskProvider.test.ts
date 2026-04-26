@@ -252,6 +252,7 @@ suite('ShellTaskProvider Test Suite', () => {
     assert.ok(bashTask, 'Should find a task for no-shebang.sh');
     assert.strictEqual(bashTask?.metadata?.interpreter, 'bash', 'Should use default bash interpreter');
     assert.strictEqual(bashTask?.metadata?.useShebang, false, 'useShebang should be false');
+    assert.strictEqual(bashTask?.startLine, 0, 'Shell task should anchor CodeLens at the top of the file');
   });
 
   test('bash files with a shebang are executed directly', async () => {
