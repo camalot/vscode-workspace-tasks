@@ -81,7 +81,7 @@ export class NpmTaskProvider extends PackageJsonTaskProvider {
         }
         if (!jsonCache.has(fileKey)) {
           try {
-            jsonCache.set(fileKey, JSON.parse(contentCache.get(fileKey) ?? 'null'));
+            jsonCache.set(fileKey, this.parseContent(contentCache.get(fileKey) ?? 'null'));
           } catch (e) {
             jsonCache.set(fileKey, null);
           }
