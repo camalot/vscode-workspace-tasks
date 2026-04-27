@@ -1,10 +1,14 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { RakeTaskProvider } from '../../providers/rakeTaskProvider';
 import constants from '../../libs/constants';
 import { TaskFilesService } from '../../services/taskFilesService';
 
 suite('Rake Provider Test Suite', () => {
+  const FIXTURE_DIR = path.join(__dirname, '..', '..', '..', 'src', 'test', 'task-files', 'rake');
+
   let provider: RakeTaskProvider;
   let originalFindFiles: any;
   let originalFetchTasks: any;
@@ -140,12 +144,130 @@ suite('Rake Provider Test Suite', () => {
 
   test('getTasks handles command execution failures gracefully', async () => {
     const filesService = TaskFilesService.getInstance();
-    filesService.findFiles = async () => [vscode.Uri.file('/workspace/Rakefile')];
+    const fixtureFile = vscode.Uri.file(path.join(FIXTURE_DIR, 'Rakefile'));
+    filesService.findFiles = async () => [fixtureFile];
 
     (provider as any).getCommand = () => ({ command: 'definitely-not-a-real-command', args: [], cwd: '/workspace' });
 
     const tasks = await provider.getTasks();
-    assert.deepStrictEqual(tasks, []);
+    assert.ok(tasks.length > 0, 'Expected static parse fallback tasks when CLI fails');
+    assert.ok(String(tasks[0].tooltip).includes('(static parse)'));
+  });
+
+  test('parseRakeFileFallback parses task symbol syntax with startLine', () => {
+    const file = vscode.Uri.file('/workspace/Rakefile');
+    const content = 'desc "Build app"\ntask :build do\nend\n';
+    const tasks = (provider as any).parseRakeFileFallback(content, file);
+
+    assert.strictEqual(tasks.length, 1);
+    assert.strictEqual(tasks[0].label, 'build');
+    assert.strictEqual(tasks[0].startLine, 1);
+    assert.strictEqual(tasks[0].onOpenActionCommand?.arguments?.[1], 1);
+  });
+
+  test('parseRakeFileFallback parses quoted task syntax', () => {
+    const file = vscode.Uri.file('/workspace/custom.rake');
+    const content = 'task "release:prod" do\nend\n\ntask \'clean\' do\nend\n';
+    const tasks = (provider as any).parseRakeFileFallback(content, file);
+
+    assert.deepStrictEqual(tasks.map((t: vscode.TreeItem) => t.label), ['release:prod', 'clean']);
+  });
+
+  test('parseRakeFileFallback skips comments and clears pending desc on non-task content', () => {
+    const file = vscode.Uri.file('/workspace/custom.rake');
+    const content = [
+      '# comment',
+      'desc "Applies to next task only"',
+      'puts "non-task line"',
+      'task :actual do',
+      'end',
+    ].join('\n');
+    const tasks = (provider as any).parseRakeFileFallback(content, file);
+
+    assert.strictEqual(tasks.length, 1);
+    assert.strictEqual(tasks[0].label, 'actual');
+    assert.strictEqual(tasks[0].tooltip, 'actual (static parse)');
+  });
+
+  test('buildTaskLineMap returns 0-based mapping', () => {
+    const content = [
+      'desc "Build"',
+      'task :build do',
+      'end',
+      'task "deploy" do',
+      'end',
+    ].join('\n');
+
+    const map = (provider as any).buildTaskLineMap(content) as Map<string, number>;
+    assert.strictEqual(map.get('build'), 1);
+    assert.strictEqual(map.get('deploy'), 3);
+  });
+
+  test('getTasks applies CLI output with mapped startLine from static line map', async () => {
+    const filesService = TaskFilesService.getInstance();
+    const fixtureFile = vscode.Uri.file(path.join(FIXTURE_DIR, 'cli-line-map.rake'));
+    filesService.findFiles = async () => [fixtureFile];
+
+    (provider as any).getCommand = () => ({
+      command: 'sh',
+      args: ['-c', 'printf "rake build # Build project\\nrake test # Run test suite\\n"'],
+      cwd: '/workspace',
+    });
+
+    const tasks = await provider.getTasks();
+    assert.strictEqual(tasks.length, 2);
+    const build = tasks.find((t) => t.label === 'build');
+    const testTask = tasks.find((t) => t.label === 'test');
+    assert.ok(build);
+    assert.ok(testTask);
+    assert.strictEqual(build!.startLine, 1);
+    assert.strictEqual(testTask!.startLine, 6);
+    assert.strictEqual(build!.onOpenActionCommand?.arguments?.[1], 1);
+    assert.strictEqual(testTask!.onOpenActionCommand?.arguments?.[1], 6);
+  });
+
+  test('getTasks warns once for ENOENT and still returns fallback tasks', async () => {
+    const filesService = TaskFilesService.getInstance();
+    const fixtureA = vscode.Uri.file(path.join(FIXTURE_DIR, 'Rakefile'));
+    const fixtureB = vscode.Uri.file(path.join(FIXTURE_DIR, 'custom.rake'));
+    filesService.findFiles = async () => [fixtureA, fixtureB];
+
+    (provider as any).getCommand = () => ({ command: 'definitely-not-a-real-command', args: [], cwd: '/workspace' });
+
+    const warnings: string[] = [];
+    const originalWarn = (provider as any).logger.warn.bind((provider as any).logger);
+    (provider as any).logger.warn = (message: string) => {
+      warnings.push(message);
+    };
+
+    try {
+      const first = await provider.getTasks();
+      const second = await provider.getTasks();
+      assert.ok(first.length > 0);
+      assert.ok(second.length > 0);
+      const notFoundWarnings = warnings.filter((w) => w.includes("'rake' executable not found"));
+      assert.strictEqual(notFoundWarnings.length, 1);
+    } finally {
+      (provider as any).logger.warn = originalWarn;
+    }
+  });
+
+  test('getTasks uses CLI output when command succeeds', async () => {
+    const filesService = TaskFilesService.getInstance();
+    const fixtureFile = vscode.Uri.file(path.join(FIXTURE_DIR, 'Rakefile'));
+    filesService.findFiles = async () => [fixtureFile];
+
+    (provider as any).getCommand = () => ({
+      command: 'sh',
+      args: ['-c', 'printf "rake lint # Lint tasks\\n"'],
+      cwd: '/workspace',
+    });
+
+    const tasks = await provider.getTasks();
+    assert.strictEqual(tasks.length, 1);
+    assert.strictEqual(tasks[0].label, 'lint');
+    assert.strictEqual(tasks[0].tooltip, 'Lint tasks');
+    assert.ok(!String(tasks[0].tooltip).includes('(static parse)'));
   });
 
   test('getSystemTasks returns empty array when provider is disabled', async () => {
