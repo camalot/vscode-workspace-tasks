@@ -5,6 +5,8 @@ import { TaskItem } from '../taskItem';
 import { TaskRunner } from '../taskRunner';
 import { TaskRunGuardService } from '../services/taskRunGuardService';
 import { getRunnableTasksForFile, pickTaskFromList } from '../libs/taskQuickPick';
+import { configuration } from '../libs/configuration';
+import { tryGuidedInput } from '../libs/guidedArgInput';
 
 export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -37,6 +39,15 @@ export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
     const confirmed = await TaskRunGuardService.getInstance().confirmIfNeeded(item);
     if (!confirmed) {
       return;
+    }
+
+    if (configuration.get<boolean>('task.guidedArgInput', false)) {
+      const argArray = await tryGuidedInput(item);
+      if (argArray !== undefined) {
+        await TaskRunner.getInstance().runTask(item, argArray.join(' '), true);
+        return;
+      }
+      // Fall through to free-text if guided input was skipped or unavailable.
     }
 
     const args = await vscode.window.showInputBox({

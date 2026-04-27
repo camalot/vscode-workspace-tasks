@@ -56,3 +56,7 @@
 {"id":"1777252381824507","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777252381824,"status":"Success","endTime":1777252418951,"exitCode":0,"duration":37127}
 {"id":"1777256414149846","taskName":"test","taskSource":"taskfile","scope":"2","definitionType":"taskfile","startTime":1777256414149,"status":"Failed","definitionPath":"/workspace/Taskfile.yml","endTime":1777256755528,"exitCode":201,"duration":341379}
 {"id":"1777259147047635","taskName":"npm: test","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777259147047,"status":"Failed","endTime":1777259328373,"exitCode":1,"duration":181326}
+{"id":"1777262328409242","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777262328409,"status":"Success","endTime":1777262407405,"exitCode":0,"duration":78996}
+{"id":"1777263560593879","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777263560594,"status":"Success","endTime":1777263643780,"exitCode":0,"duration":83186}
+{"id":"1777264426681823","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777264426681,"status":"Success","endTime":1777264515078,"exitCode":0,"duration":88397}
+{"id":"1777266715545017","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777266715545,"status":"Success","endTime":1777266804681,"exitCode":0,"duration":89136}

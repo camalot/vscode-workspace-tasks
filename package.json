@@ -1209,6 +1209,11 @@
             "description": "%config.workspaceTasks.task.iconTypeCustom%",
             "markdownDescription": "%config.workspaceTasks.task.iconTypeCustom.markdown%"
           },
+          "workspaceTasks.task.guidedArgInput": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "When enabled, running script tasks with arguments will attempt to discover the script's parameters and show guided input prompts. Currently supported for PowerShell (`.ps1`) via `Get-Help` (with static `param()` block parsing as fallback) and Python (`.py`) scripts using `argparse`. Falls back to free-text input when parameters cannot be detected."
+          },
           "workspaceTasks.recentTasks.maxItems": {
             "title": "%config.workspaceTasks.recentTasks.maxItems%",
             "type": "number",

@@ -28,6 +28,7 @@ import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
 import { EditorTaskActionService } from './services/editorTaskActionService';
 import { TaskCodeLensProvider } from './taskCodeLensProvider';
+import { registerBuiltInResolvers } from './libs/scriptArgumentResolvers/index';
 
 export async function activate(context: vscode.ExtensionContext) {
   LoggerService.getInstance().initialize(context);
@@ -179,6 +180,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register Providers
   registerAllProviders(context);
+  // Register built-in script argument resolvers for guided arg input
+  registerBuiltInResolvers();
   // Initial refresh
   taskTreeDataProvider.refresh();
 

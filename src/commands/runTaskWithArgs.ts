@@ -4,6 +4,8 @@ import { TaskItem } from '../taskItem';
 import { TaskRunner } from '../taskRunner';
 import { TaskRunGuardService } from '../services/taskRunGuardService';
 import { TaskCacheService } from '../services/taskCacheService';
+import { configuration } from '../libs/configuration';
+import { tryGuidedInput } from '../libs/guidedArgInput';
 
 export class RunTaskWithArgsCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -26,6 +28,16 @@ export class RunTaskWithArgsCommand extends BaseCommand {
     // Confirm guard BEFORE prompting for arguments
     const confirmed = await TaskRunGuardService.getInstance().confirmIfNeeded(item);
     if (!confirmed) { return; }
+
+    if (configuration.get<boolean>('task.guidedArgInput', false)) {
+      const argArray = await tryGuidedInput(item);
+      if (argArray !== undefined) {
+        await TaskRunner.getInstance().runTask(item, argArray.join(' '), true);
+        return;
+      }
+      // Fall through to free-text if guided input was skipped or unavailable.
+    }
+
     const args = await vscode.window.showInputBox({
       prompt: `Enter arguments for task '${item.label}'`,
       placeHolder: 'Arguments',
