@@ -40,8 +40,8 @@ If the extension cannot discover parameters (no `import argparse`, unsupported p
 untrusted workspace), it falls through to the standard free-text input box.
 
 {: .note }
-Guided argument input is **disabled by default**. Enable it in Settings:
-`workspaceTasks.task.guidedArgInput: true`.
+Guided argument input is **enabled by default**. Disable it in Settings:
+`workspaceTasks.task.guidedArgInput: false`.
 
 ---
 
@@ -108,7 +108,7 @@ parser.add_argument("--dry-run",  action="store_true",  help="Simulate without c
 args = parser.parse_args()
 ```
 
-Guided input shows three consecutive Yes / No QuickPicks.  
+Guided input shows three consecutive Yes / No QuickPicks.
 Selecting **Yes** for `--verbose` adds `--verbose` to the assembled command.
 
 ---
@@ -269,4 +269,4 @@ When discovery fails, the extension falls back to the standard free-text argumen
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `workspaceTasks.task.guidedArgInput` | `false` | Enable guided argument input for supported script types |
+| `workspaceTasks.task.guidedArgInput` | `true` | Enable guided argument input for supported script types |

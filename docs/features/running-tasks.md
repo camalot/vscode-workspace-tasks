@@ -149,7 +149,7 @@ If the extension cannot detect parameters (e.g. no `import argparse`, untrusted 
 falls back to the free-text input box automatically.
 
 {: .note }
-`guidedArgInput` defaults to `false` and must be explicitly enabled.
+`guidedArgInput` defaults to `true`. If disabled, all script tasks will use the free-text input box for arguments. This setting does not affect non-script tasks or the editor title bar buttons, which always use free-text input.
 
 See the detailed per-language guides:
 

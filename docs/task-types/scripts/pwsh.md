@@ -234,5 +234,5 @@ back to the standard free-text argument input box.
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `workspaceTasks.task.guidedArgInput` | `false` | Enable guided argument input for supported script types |
+| `workspaceTasks.task.guidedArgInput` | `true` | Enable guided argument input for supported script types |
 | `workspaceTasks.shellPaths.pwsh` | `pwsh` | Path or name of the PowerShell executable |

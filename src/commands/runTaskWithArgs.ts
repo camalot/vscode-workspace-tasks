@@ -29,7 +29,7 @@ export class RunTaskWithArgsCommand extends BaseCommand {
     const confirmed = await TaskRunGuardService.getInstance().confirmIfNeeded(item);
     if (!confirmed) { return; }
 
-    if (configuration.get<boolean>('task.guidedArgInput', false)) {
+    if (configuration.get<boolean>('task.guidedArgInput', true)) {
       const argArray = await tryGuidedInput(item);
       if (argArray !== undefined) {
         await TaskRunner.getInstance().runTask(item, argArray.join(' '), true);
