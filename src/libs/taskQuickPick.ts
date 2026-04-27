@@ -2,27 +2,27 @@ import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskCacheService } from '../services/taskCacheService';
 import { FilteredTaskService } from '../services/filteredTaskService';
-import { isLeafTask } from '../tools/taskToolsUtils';
+import { isRunnableTask } from '../tools/taskToolsUtils';
 
 interface TaskQuickPickItem extends vscode.QuickPickItem {
   taskItem: TaskItem;
 }
 
 /**
- * Returns the runnable (non-hidden, leaf-level) tasks for a given file URI.
+ * Returns the runnable (non-hidden) tasks for a given file URI.
  *
- * A task is considered runnable when {@link isLeafTask} returns `true` and it is
+ * A task is considered runnable when {@link isRunnableTask} returns `true` and it is
  * not filtered (hidden) by the user.
  *
- * `getTasksForFile()` may return both parent/group container nodes (from hierarchical
- * providers such as `github-actions`) and leaf nodes. This function keeps only the
- * leaf nodes so that container nodes never reach the run command.
+ * `getTasksForFile()` may return both parent/group container nodes and leaf nodes.
+ * This function includes any node that explicitly exposes a run action command,
+ * including runnable group nodes.
  *
  * Returns `[]` when:
  *  - `uri` is `undefined` or its scheme is not `'file'`
  *  - the workspace is not trusted
  *  - no tasks are registered for the file
- *  - all registered tasks are hidden or are container nodes
+ *  - all registered tasks are hidden or are not runnable
  *
  * Note: For flat providers (npm, make, etc.) task items have no `.parent` set.
  * If the tree-level TYPE group is hidden, `isFilteredOrHasFilteredParent()` cannot
@@ -39,7 +39,7 @@ export function getRunnableTasksForFile(uri: vscode.Uri | undefined): TaskItem[]
   const all = TaskCacheService.getInstance().getTasksForFile(uri);
   const filteredService = FilteredTaskService.getInstance();
   return all.filter(
-    (t) => isLeafTask(t) && !filteredService.isFilteredOrHasFilteredParent(t),
+    (t) => isRunnableTask(t) && !filteredService.isFilteredOrHasFilteredParent(t),
   );
 }
 

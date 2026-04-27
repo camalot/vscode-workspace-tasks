@@ -190,6 +190,9 @@ Effect:
 | I9 | `shellTaskProvider.test.ts` | T12: script task items have `startLine = 0` |
 | I11/I12 | `poeTaskProvider.test.ts` | T13: task at content line 5 returns `startLine = 5` (0-based, not 6); T14: table-header task `[tool.poe.tasks.name]` returns correct 0-based line; T15: task not found returns 0 |
 
+{: .note }
+> I8: Maven lifecycle is by design here. pom.xml has the build definition, but the maven goals are "tasks" ran against the pom file. it should have an editor action bar, but not have codelens. if it had codelens, the first row would be over populated with all the maven tasks.
+
 ---
 
 ## 6. Documentation Plan

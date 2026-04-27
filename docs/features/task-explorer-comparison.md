@@ -122,6 +122,8 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Task Monitor (fullscreen webview console) | ❌ | ✅ (v3+) | ❌ |
 | Estimated task duration display | ✅ | ❌ | ✅ v1.8.0 |
 | Run Guard (confirm before running) | ✅ | ❌ | ✅ v1.8.0 |
+| CodeLens support | ✅ | ❌ | |
+| Editor Title Actions | ✅ | ❌ | |
 
 ---
 

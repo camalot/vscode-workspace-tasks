@@ -230,7 +230,7 @@ suite('MavenTaskProvider Test Suite', () => {
       assert.strictEqual(cleanTask!.tooltip as string, 'Run mvn clean');
     });
 
-    test('getTasks sets startLine = 0 for all lifecycle goal items', async () => {
+    test('getTasks sets startLine = undefined for all lifecycle goal items', async () => {
       const filesService = TaskFilesService.getInstance();
       const goodUri = vscode.Uri.file('/test/pom.xml');
       filesService.findFiles = async () => [goodUri];
@@ -239,7 +239,7 @@ suite('MavenTaskProvider Test Suite', () => {
       const tasks = await provider.getTasks();
 
       for (const task of tasks) {
-        assert.strictEqual(task.startLine, 0, `Expected startLine=0 for goal ${task.label}`);
+        assert.strictEqual(task.startLine, undefined, `Expected startLine=undefined for goal ${task.label}`);
       }
     });
   });

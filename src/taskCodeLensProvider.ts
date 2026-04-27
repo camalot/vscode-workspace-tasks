@@ -4,7 +4,7 @@ import { FilteredTaskService } from './services/filteredTaskService';
 import { FavoritesService } from './services/favoritesService';
 import { TaskStateManager } from './taskStateManager';
 import { TaskItem } from './taskItem';
-import { isLeafTask } from './tools/taskToolsUtils';
+import { isRunnableTask } from './tools/taskToolsUtils';
 
 /**
  * Provides inline CodeLens actions above task definitions in task source files.
@@ -93,7 +93,7 @@ export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Dis
     // index the same file and emit tasks with identical (startLine, label) tuples.
     // Keep only the first occurrence (first-registered provider).
     const locatedUnique = this._deduplicateByLine(
-      allTasks.filter((t) => isLeafTask(t) && t.startLine !== undefined),
+      allTasks.filter((t) => isRunnableTask(t) && t.startLine !== undefined),
     );
 
     const visibleTasks = locatedUnique.filter(

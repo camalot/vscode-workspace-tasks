@@ -254,10 +254,34 @@ suite('TaskCodeLensProvider Test Suite', () => {
     (parent as any).collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
     // Make task not have a vscode task so isLeafTask uses collapsibleState
     (parent as any).task = undefined;
+    // Ensure this test item is non-runnable.
+    parent.onRunActionCommand = undefined;
+    parent.command = undefined;
+    parent.startLine = undefined;
     stubGetTasksForFile = () => [parent];
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     assert.deepStrictEqual(lenses, []);
+  });
+
+  test('T07b - includes runnable non-leaf tasks when startLine is set', () => {
+    const runnableParent = makeTask({
+      collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+      startLine: 4,
+      metadata: { type: 'pipeline' } as any,
+    });
+    runnableParent.children = [makeTask({ id: 'child' })];
+    runnableParent.onRunActionCommand = {
+      command: 'workspaceTasks.runTask',
+      title: 'Run Pipeline',
+      arguments: [runnableParent],
+    };
+
+    stubGetTasksForFile = () => [runnableParent];
+    const doc = makeDocument(vscode.Uri.file('/workspace/bitbucket-pipelines.yml'));
+    const lenses = provider.provideCodeLenses(doc, makeToken());
+    assert.ok(lenses.length > 0, 'Expected CodeLens for runnable non-leaf item');
+    assert.strictEqual(lenses[0].range.start.line, 4);
   });
 
   // ---------------------------------------------------------------------------

@@ -136,6 +136,23 @@ suite('taskQuickPick — getRunnableTasksForFile()', () => {
     assert.deepStrictEqual(getRunnableTasksForFile(uri), []);
   });
 
+  test('includes non-leaf group node when it has an onRunActionCommand', () => {
+    const runnableGroup = makeParentItem('master', 'bitbucket');
+    runnableGroup.onRunActionCommand = {
+      command: 'workspaceTasks.runTask',
+      title: 'Run Pipeline',
+      arguments: [runnableGroup],
+    };
+
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [runnableGroup],
+    };
+    const uri = vscode.Uri.file('/workspace/bitbucket-pipelines.yml');
+    const result = getRunnableTasksForFile(uri);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0], runnableGroup);
+  });
+
   test('returns [] when all leaf tasks are hidden', () => {
     (FilteredTaskService as any).instance = {
       isFiltered: () => true,

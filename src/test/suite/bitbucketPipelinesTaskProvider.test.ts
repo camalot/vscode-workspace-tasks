@@ -301,6 +301,15 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
     assert.strictEqual(pipelineItem!.metadata?.pipelinePath, 'default');
   });
 
+  test('parseConfig pipeline item has startLine from yaml key', () => {
+    const fileUri = makeFileUri(tempDir);
+    const text = fs.readFileSync(path.join(FIXTURE_DIR, 'simple-default.yml'), 'utf8');
+    const result = provider.parseConfig(fileUri, text);
+    const pipelineItem = result!.children?.find((c) => c.label === 'default');
+    assert.ok(pipelineItem);
+    assert.strictEqual(pipelineItem!.startLine, 1);
+  });
+
   test('parseConfig default pipeline item is runnable', () => {
     const fileUri = makeFileUri(tempDir);
     const text = fs.readFileSync(path.join(FIXTURE_DIR, 'simple-default.yml'), 'utf8');
@@ -438,6 +447,16 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
     assert.ok(buildStage!.onRunActionCommand, 'Named stage should be runnable');
   });
 
+  test('parseConfig named stage item has startLine from stage name line', () => {
+    const fileUri = makeFileUri(tempDir);
+    const text = fs.readFileSync(path.join(FIXTURE_DIR, 'stage-blocks.yml'), 'utf8');
+    const result = provider.parseConfig(fileUri, text);
+    const pipelineItem = result!.children?.find((c) => c.label === 'master');
+    const buildStage = pipelineItem!.children!.find((c) => c.label === 'Build Stage');
+    assert.ok(buildStage);
+    assert.strictEqual(buildStage!.startLine, 4);
+  });
+
   test('parseConfig stage items have steps as children', () => {
     const fileUri = makeFileUri(tempDir);
     const text = fs.readFileSync(path.join(FIXTURE_DIR, 'stage-blocks.yml'), 'utf8');
@@ -545,6 +564,49 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
     assert.strictEqual(buildStep!.metadata?.type, 'step');
     assert.strictEqual(buildStep!.metadata?.stepName, 'Build');
     assert.strictEqual(buildStep!.metadata?.pipelinePath, 'default');
+  });
+
+  // ──────────────────────────────────────────────────────────────
+  // parseConfig — step startLine mapping
+  // ──────────────────────────────────────────────────────────────
+
+  test('parseConfig named step gets 0-based startLine from name key', () => {
+    const fileUri = makeFileUri(tempDir);
+    const text = fs.readFileSync(path.join(FIXTURE_DIR, 'simple-default.yml'), 'utf8');
+    const result = provider.parseConfig(fileUri, text);
+    assert.ok(result);
+
+    const pipelineItem = result!.children?.find((c) => c.label === 'default');
+    const buildStep = pipelineItem!.children!.find((c) => c.label === 'Build');
+    assert.ok(buildStep);
+    assert.strictEqual(buildStep!.startLine, 3);
+  });
+
+  test('parseConfig unnamed step uses top-of-file startLine sentinel', () => {
+    const fileUri = makeFileUri(tempDir);
+    const text = fs.readFileSync(path.join(FIXTURE_DIR, 'unnamed-steps.yml'), 'utf8');
+    const result = provider.parseConfig(fileUri, text);
+    assert.ok(result);
+
+    const pipelineItem = result!.children?.find((c) => c.label === 'default');
+    const unnamedStep = pipelineItem!.children!.find((c) => c.label === '[unnamed step]');
+    assert.ok(unnamedStep);
+    assert.strictEqual(unnamedStep!.startLine, 0);
+  });
+
+  test('parseConfig duplicate named steps resolve startLine to first name occurrence', () => {
+    const fileUri = makeFileUri(tempDir);
+    const text = fs.readFileSync(path.join(FIXTURE_DIR, 'duplicate-step-names.yml'), 'utf8');
+    const result = provider.parseConfig(fileUri, text);
+    assert.ok(result);
+
+    const pipelineItem = result!.children?.find((c) => c.label === 'default');
+    const firstBuild = pipelineItem!.children!.find((c) => c.label === 'Build');
+    const secondBuild = pipelineItem!.children!.find((c) => c.label === 'Build (1)');
+    assert.ok(firstBuild);
+    assert.ok(secondBuild);
+    assert.strictEqual(firstBuild!.startLine, 3);
+    assert.strictEqual(secondBuild!.startLine, 3);
   });
 
   // ──────────────────────────────────────────────────────────────

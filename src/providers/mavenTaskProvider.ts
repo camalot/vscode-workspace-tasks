@@ -57,7 +57,7 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
         for (const goal of standardGoals) {
           const item = new TaskItem(goal, vscode.TreeItemCollapsibleState.None, this.type, file, undefined, iconPath);
 
-          item.startLine = 0;
+          item.startLine = undefined;
           item.taskFileUri = file;
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',

@@ -52,6 +52,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **[🌱 Recent Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/recents.html)** - Tracks the most recently executed tasks
 - **[📋 Multiple Compound Tasks (Queues) ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)** - Create and manage named sequences of tasks with sequential or parallel execution
 - **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
+- **⚡ Fast Performance** — Optimized for large workspaces with caching and incremental updates
 - **[📄 Editor Title Bar Buttons ↗](https://camalot.github.io/vscode-workspace-tasks/features/editor-title-run-buttons.html)** - Run shell scripts and GitHub Actions workflows directly from the editor title bar without switching to the task tree
 - **[🔍 Inline CodeLens Actions ↗](https://camalot.github.io/vscode-workspace-tasks/features/codelens.html)** - Run, favorite, queue, and hide tasks directly from inline CodeLens lenses above each task definition in its source file
 - **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task

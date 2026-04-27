@@ -24,6 +24,16 @@ export function isLeafTask(item: TaskItem): boolean {
 }
 
 /**
+ * Returns `true` when the task item exposes a run action.
+ *
+ * This intentionally includes runnable group nodes (for example, Bitbucket
+ * pipelines and stages) in addition to traditional leaf tasks.
+ */
+export function isRunnableTask(item: TaskItem): boolean {
+  return item.onRunActionCommand !== undefined || item.task !== undefined;
+}
+
+/**
  * Recursively collects all leaf `TaskItem`s from a hierarchical provider tree.
  *
  * Uses an exclusive `if / else if` branch so that a compound task node that is both
