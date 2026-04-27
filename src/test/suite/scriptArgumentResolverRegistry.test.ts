@@ -250,7 +250,12 @@ suite('RunActiveEditorTaskWithArgsCommand — guided arg input integration', () 
     (TaskCacheService as any).instance = { getTasksForFile: () => [item] };
 
     let showInputBoxCalled = false;
-    (vscode.window as any).showInputBox = async () => { showInputBoxCalled = true; return '--foo bar'; };
+    const responses: Array<string | undefined> = ['--foo=bar', ''];
+    let i = 0;
+    (vscode.window as any).showInputBox = async () => {
+      showInputBoxCalled = true;
+      return responses[i++];
+    };
 
     // Register a resolver that would succeed (to confirm it's not used)
     registrySingleton.register('.ps1', makeResolver('R', '.ps1', {

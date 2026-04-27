@@ -22,8 +22,6 @@ nav_order: 9
 
 Workspace Tasks adds **inline CodeLens action buttons** directly above each task definition in its source file. You can run, favorite, add to a compound task, or hide a task without ever leaving the editor.
 
-The CodeLens row mirrors the action bar buttons in the task tree view and respects the same [`workspaceTasks.task.actionBar.*`](../configuration/display-interaction/tasks#workspacetaskstaskactionbar) visibility flags.
-
 ![CodeLens Actions](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/codelens-actions.png)
 
 ---
@@ -59,8 +57,6 @@ Each visible task gets a row of CodeLens lenses positioned above its definition 
 | **$(star-full) Remove from Favorites** | `workspaceTasks.removeFromFavorites` | Task is a favorite |
 | **$(list-unordered) Add to Compound Task** | `workspaceTasks.addToCompoundTask` | Task is not queued |
 | **$(trash) Remove from Compound Task** | `workspaceTasks.removeFromCompoundTask` | Task is in a compound task |
-| **$(eye-closed) Hide Task** | `workspaceTasks.hideTask` | Task is visible |
-| **$(eye) Unhide Task** | `workspaceTasks.unhideTask` | Task is hidden (show-hidden mode) |
 
 {: .note }
 > The **Run with Args** and **Stop Task** lenses are mutually exclusive with **Run Task** — only the appropriate one is shown based on the task's current status.
@@ -81,17 +77,15 @@ Set [`workspaceTasks.codeLens.enabled`](../configuration/display-interaction/tas
 
 ### Control Individual Actions
 
-Individual lenses are controlled by the same [`workspaceTasks.task.actionBar`](../configuration/display-interaction/tasks#workspacetaskstaskactionbar) flags used by the tree view action bar:
+Individual lenses are controlled by [`workspaceTasks.codeLens.actionBar`](../configuration/display-interaction/tasks#workspacetaskscodelensactionbar) flags used by the tree view action bar:
 
 ```jsonc
 {
-  "workspaceTasks.task.actionBar": {
+  "workspaceTasks.codeLens.actionBar": {
     "run": true,
     "runWithArgs": false,   // hides Run with Args lens
     "favorite": true,
-    "queue": false,          // hides Add/Remove Compound Task lenses
-    "hide": false,           // hides Hide Task lens
-    "unhide": true
+    "queue": false          // hides Add/Remove Compound Task lenses
   }
 }
 ```
@@ -109,7 +103,7 @@ Individual lenses are controlled by the same [`workspaceTasks.task.actionBar`](.
 
 ## Known Limitations
 
-### Right-Click on a CodeLens Lens Does Nothing
+### Right-Click on a CodeLens Lens Triggers Action, Not Context Menu
 
 VS Code's CodeLens API does not support context menus. Right-clicking on a lens opens the standard editor context menu rather than a task-specific menu. This is a [VS Code platform limitation](https://github.com/microsoft/vscode/issues/44) and cannot be addressed by the extension.
 

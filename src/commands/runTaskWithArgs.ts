@@ -5,7 +5,7 @@ import { TaskRunner } from '../taskRunner';
 import { TaskRunGuardService } from '../services/taskRunGuardService';
 import { TaskCacheService } from '../services/taskCacheService';
 import { configuration } from '../libs/configuration';
-import { tryGuidedInput } from '../libs/guidedArgInput';
+import { collectAdditionalArgs, tryGuidedInputWithStatus } from '../libs/guidedArgInput';
 
 export class RunTaskWithArgsCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -30,20 +30,27 @@ export class RunTaskWithArgsCommand extends BaseCommand {
     if (!confirmed) { return; }
 
     if (configuration.get<boolean>('task.guidedArgInput', true)) {
-      const argArray = await tryGuidedInput(item);
-      if (argArray !== undefined) {
-        await TaskRunner.getInstance().runTask(item, argArray.join(' '), true);
+      const guidedResult = await tryGuidedInputWithStatus(item);
+      if (guidedResult.status === 'cancelled') {
         return;
       }
-      // Fall through to free-text if guided input was skipped or unavailable.
+
+      if (guidedResult.status === 'collected') {
+        const extraArgs = await collectAdditionalArgs(item.label as string);
+        if (extraArgs === undefined) {
+          return;
+        }
+
+        const mergedArgs = [...guidedResult.args, ...extraArgs];
+        await TaskRunner.getInstance().runTask(item, mergedArgs.join(' '), true);
+        return;
+      }
+      // Fall through to free-form if guided input was unavailable.
     }
 
-    const args = await vscode.window.showInputBox({
-      prompt: `Enter arguments for task '${item.label}'`,
-      placeHolder: 'Arguments',
-    });
-    if (args !== undefined) {
-      await TaskRunner.getInstance().runTask(item, args, true);
+    const extraArgs = await collectAdditionalArgs(item.label as string);
+    if (extraArgs !== undefined) {
+      await TaskRunner.getInstance().runTask(item, extraArgs.join(' '), true);
     }
   }
 }

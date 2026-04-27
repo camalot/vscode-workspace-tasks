@@ -214,6 +214,6 @@ For example, a task can be guarded by a `confirmPatterns` pattern in the team's 
 ## Next Steps
 
 - [Running Tasks](running-tasks) — Full task execution options
-- [Compound Tasks (Queues)](task-queues) — Sequential and parallel task sequences
+- [Compound Tasks](task-queues) — Sequential and parallel task sequences
 - [Custom Workspace Tasks](custom-workspace-tasks) — `.workspace-tasks.json` reference including the `confirm` field
 - [Configuration](../configuration) — Full settings reference

@@ -144,12 +144,13 @@ When enabled, running a supported script with **Run with Args** shows:
 - A **Yes / No QuickPick** for boolean flags (`action='store_true'` / `[switch]`)
 - A **loop of input boxes** for multi-value parameters (`nargs`, `action='append'`)
 - A standard **input box** for everything else
+- A final **additional arguments** prompt that accepts one `--flag=value` entry at a time; submit an empty value to finish
 
 If the extension cannot detect parameters (e.g. no `import argparse`, untrusted workspace), it
-falls back to the free-text input box automatically.
+falls back to the additional-arguments free-form prompt automatically.
 
 {: .note }
-`guidedArgInput` defaults to `true`. If disabled, all script tasks will use the free-text input box for arguments. This setting does not affect non-script tasks or the editor title bar buttons, which always use free-text input.
+`guidedArgInput` defaults to `true`. If disabled, script tasks use the additional-arguments free-form prompt. This setting does not affect non-script tasks.
 
 See the detailed per-language guides:
 
@@ -219,7 +220,7 @@ See [Favorites](favorites) for more details on managing and configuring favorite
 
 ## Adding a Task to a Compound Task
 
-Compound Tasks (Queues) let you run multiple tasks in sequence.
+Compound Tasks let you run multiple tasks in sequence.
 
 1. **Hover** over the task to reveal the action bar
 2. Click the **compound task icon** (`$(list-unordered)`) in the action bar

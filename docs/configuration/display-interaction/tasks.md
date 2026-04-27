@@ -198,7 +198,7 @@ A custom icon to display for tasks when `workspaceTasks.task.iconType` is set to
 | | |
 | --- | --- |
 | **Type:** | `object` |
-| **Default:** |
+| **Default:** | see below |
 
 ```jsonc
 {
@@ -279,16 +279,58 @@ The maximum number of recently executed tasks to track and display in the Recent
 
 When enabled, shows inline **CodeLens** action buttons directly above each task definition in its source file (e.g. `package.json`, `Taskfile.yml`, `.github/workflows/*.yml`).
 
-The CodeLens row mirrors the inline action bar in the task tree view and respects the same `workspaceTasks.task.actionBar.*` flags. Disabling this setting removes all CodeLens lenses without affecting any other behaviour.
-
 {: .note }
-> The individual buttons shown in each CodeLens row are controlled by [`workspaceTasks.task.actionBar`](#workspacetaskstaskactionbar). Set `codeLens.enabled` to `false` to remove all lenses entirely.
+> The individual buttons shown in each CodeLens row are controlled by [`workspaceTasks.codeLens.actionBar`](#workspacetaskscodelensactionbar). Set `codeLens.enabled` to `false` to remove all lenses entirely.
 
 **Example — disable CodeLens actions:**
 
 ```json
 {
   "workspaceTasks.codeLens.enabled": false
+}
+```
+
+---
+
+### workspaceTasks.codeLens.actionBar
+
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | see below |
+
+```jsonc
+{
+  "run": true,
+  "runWithArgs": true,
+  "favorite": true,
+  "queue": true
+}
+```
+
+Controls which buttons are shown in the inline codelens action bar for each task.
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Properties
+
+<!-- markdownlint-disable-next-line MD033 -->
+<a id="workspacetaskscodelensactionbarproperties"></a>
+
+- **run** - Run Task
+- **runWithArgs** - Run Task with Arguments
+- **favorite** - Add to / remove from Favorites
+- **queue** - Add to a Compound Task
+
+**Example:**
+
+```jsonc
+{
+  "workspaceTasks.codeLens.actionBar": {
+    "run": true,
+    "runWithArgs": false,
+    "favorite": true,
+    "queue": false
+  }
 }
 ```
 

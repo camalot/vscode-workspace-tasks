@@ -1047,10 +1047,6 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.groups.expanded.compoundTasks%"
               },
-              "queue": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.groups.expanded.queue.deprecated%"
-              },
               "recent": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.groups.expanded.recent%"
@@ -1212,7 +1208,7 @@
           "workspaceTasks.task.guidedArgInput": {
             "type": "boolean",
             "default": true,
-            "markdownDescription": "When enabled, running script tasks with arguments will attempt to discover the script's parameters and show guided input prompts. Currently supported for PowerShell (`.ps1`) via `Get-Help` (with static `param()` block parsing as fallback) and Python (`.py`) scripts using `argparse`. Falls back to free-text input when parameters cannot be detected."
+            "markdownDescription": "When enabled, running script tasks with arguments will attempt to discover the script's parameters and show guided input prompts. Supported for PowerShell (`.ps1`) via `Get-Help` (with static `param()` block parsing as fallback), Python (`.py`) scripts using `argparse`, and Node.js (`.js`/`.mjs`/`.cjs`) scripts using `argparse` or `parseArgs` (`node:util` and `@pkgjs/parseargs`). Falls back to free-text input when parameters cannot be detected."
           },
           "workspaceTasks.recentTasks.maxItems": {
             "title": "%config.workspaceTasks.recentTasks.maxItems%",
@@ -1229,6 +1225,35 @@
             "scope": "window",
             "description": "%config.workspaceTasks.codeLens.enabled%",
             "markdownDescription": "%config.workspaceTasks.codeLens.enabled.markdown%"
+          },
+          "workspaceTasks.codeLens.actionBar": {
+            "type": "object",
+            "markdownDescription": "%config.workspaceTasks.codeLens.actionBar%",
+            "additionalProperties": false,
+            "properties": {
+              "run": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.run%"
+              },
+              "runWithArgs": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.runWithArgs%"
+              },
+              "favorite": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.favorite%"
+              },
+              "queue": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.compoundTask%"
+              }
+            },
+            "default": {
+              "run": true,
+              "runWithArgs": true,
+              "favorite": false,
+              "queue": false
+            }
           }
         }
       },

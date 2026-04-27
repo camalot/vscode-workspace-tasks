@@ -55,7 +55,8 @@ nav_order: 4
 
 ## Guided Argument Input for Scripts
 
-Python (`.py`) and PowerShell (`.ps1`) scripts support **guided argument input** — instead of
+Python (`.py`), PowerShell (`.ps1`), and Node.js (`.js`/`.mjs`/`.cjs`) scripts support
+**guided argument input** — instead of
 typing a raw argument string, the extension parses the script's parameter declarations and
 presents each parameter as an individual prompt (input box, QuickPick for choices, Yes/No for
 flags, etc.).
@@ -72,6 +73,8 @@ See the per-language pages for full details:
   `nargs` types
 - [🐚 PowerShell Scripts — Guided Argument Input](pwsh) — `param()` block, `[ValidateSet]`,
   `[switch]`, `[Mandatory]`
+- [🟢 Node.js Scripts — Guided Argument Input](node) — `argparse` and `parseArgs`
+  (`node:util`, `@pkgjs/parseargs` polyfill)
 
 ---
 
@@ -79,6 +82,7 @@ See the per-language pages for full details:
 
 - [🐍 Python Scripts — Guided Argument Input](python)
 - [🐚 PowerShell Scripts — Guided Argument Input](pwsh)
+- [🟢 Node.js Scripts — Guided Argument Input](node)
 - [Package Managers & Build Tools](package-managers) — npm, Yarn, pnpm, Bun, Composer, and more
 - [Task Runners](task-runners) — Gulp, Grunt, Cargo, Just, Make, mise
 - [DevOps & Containers](devops) — Docker, Docker Compose, GitHub Actions

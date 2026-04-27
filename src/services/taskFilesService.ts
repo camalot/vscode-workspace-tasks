@@ -487,6 +487,9 @@ export class TaskFilesService {
     this.context = context;
     this.globalIgnore = ignore();
     this.ignoreFiles = [];
+    clearTimeout(this._saveDebounceTimer);
+    this._saveDebounceTimer = undefined;
+    this._pendingProviderTypes.clear();
 
     // Add patterns from extension configuration (workspaceTasks.exclude)
     try {

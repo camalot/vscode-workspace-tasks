@@ -1540,7 +1540,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
     if (type === 'compoundTask' || type === 'compoundTasks') {
-      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
+      return (expandedGroups.compoundTask ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
@@ -1574,7 +1574,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
     if (rootType === 'compoundTask' || rootType === 'compoundTasks') {
-      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
+      return (expandedGroups.compoundTask ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }

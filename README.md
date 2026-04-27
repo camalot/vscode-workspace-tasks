@@ -50,7 +50,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
 - **[⭐ Favorites ↗](https://camalot.github.io/vscode-workspace-tasks/features/favorites.html)** - Pin frequently used tasks for instant access
 - **[🌱 Recent Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/recents.html)** - Tracks the most recently executed tasks
-- **[📋 Multiple Compound Tasks (Queues) ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)** - Create and manage named sequences of tasks with sequential or parallel execution
+- **[📋 Multiple Compound Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)** - Create and manage named sequences of tasks with sequential or parallel execution
 - **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
 - **⚡ Fast Performance** — Optimized for large workspaces with caching and incremental updates
 - **[📄 Editor Title Bar Buttons ↗](https://camalot.github.io/vscode-workspace-tasks/features/editor-title-run-buttons.html)** - Run shell scripts and GitHub Actions workflows directly from the editor title bar without switching to the task tree

@@ -25,6 +25,9 @@ When `workspaceTasks.task.guidedArgInput` is enabled, running a PowerShell (`.ps
 **Run with Args** prompts you for each parameter individually instead of asking for a raw argument
 string.
 
+After guided prompts complete, you can add optional extra arguments one at a time using
+`--flag=value` style entries. Submit an empty value to finish.
+
 The extension uses **two resolvers** to discover parameters from your script:
 
 | Resolver | Method | Workspace trust required |
@@ -226,7 +229,7 @@ The static fallback resolver uses regex to parse the `param(...)` block and may 
 - `CmdletBinding` attributes (not used for argument discovery)
 
 When the primary resolver fails and the static fallback returns no parameters, the extension falls
-back to the standard free-text argument input box.
+back to the additional-arguments free-form prompt.
 
 ---
 

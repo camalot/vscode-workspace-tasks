@@ -183,6 +183,7 @@
     "vscmarketplace",
     "vscodeignore",
     "winget",
+    "workspacetaskscodelensactionbarproperties",
     "workspacetasksenvvarswarnifgittracked",
     "wrongfile",
     "xauth",
@@ -251,5 +252,6 @@
     "**/out/**",
     "**/.devcontainer/**",
     "**/docs/**"
-  ]
+  ],
+  "coverlens.diffBase": "origin/develop"
 }

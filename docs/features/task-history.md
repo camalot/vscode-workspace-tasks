@@ -165,7 +165,7 @@ The Dashboard requires at least one completed task execution before any charts a
 
 ## Next Steps
 
-- [Compound Tasks (Queues)](task-queues) — Run sequences of tasks
+- [Compound Tasks](task-queues) — Run sequences of tasks
 - [Configuration](../configuration) — Full settings reference
 - [Metrics Configuration](../configuration/metrics) — Configure metrics scope, sample size, and retention
 

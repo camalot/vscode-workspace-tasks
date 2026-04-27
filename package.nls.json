@@ -78,7 +78,7 @@
   "command.history.disableFilterTerminated": "Terminated ✓",
 
   "tree.favorites": "Favorites",
-  "tree.compoundTasks": "Compound Tasks (Queues)",
+  "tree.compoundTasks": "Compound Tasks",
   "tree.tasks": "Tasks",
   "tree.recentTasks": "Recent Tasks",
 
@@ -244,8 +244,7 @@
   "config.workspaceTasks.groups.expanded": "Expanded Groups",
   "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, compound tasks, and recent tasks. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-grouping.html#workspacetasksgroupsexpanded)",
   "config.workspaceTasks.groups.expanded.favorites": "Favorites",
-  "config.workspaceTasks.groups.expanded.compoundTasks": "Compound Tasks (Queues)",
-  "config.workspaceTasks.groups.expanded.queue.deprecated": "Deprecated: use 'compoundTask' instead. Controls whether the Compound Tasks group is expanded by default.",
+  "config.workspaceTasks.groups.expanded.compoundTasks": "Compound Tasks",
   "config.workspaceTasks.groups.expanded.recent": "Recent",
 
   "config.workspaceTasks.recentTasks.maxItems": "Max Recent Tasks",
@@ -393,5 +392,8 @@
   "config.workspaceTasks.cmake.generator": "CMake generator",
   "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakegenerator)",
   "config.workspaceTasks.codeLens.enabled": "Show inline CodeLens task actions in task source files.",
-  "config.workspaceTasks.codeLens.enabled.markdown": "When enabled, shows **Run**, **Run with Args**, **Favorites**, **Compound Task**, and **Hide/Unhide** task actions as inline CodeLens lenses above each task definition in task source files. Respects the `workspaceTasks.task.actionBar.*` visibility settings. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/general.html#workspacetaskscodelens)"
+  "config.workspaceTasks.codeLens.enabled.markdown": "When enabled, shows **Run**, **Run with Args**, **Favorites**, and **Compound Task** task actions as inline CodeLens lenses above each task definition in task source files. CodeLens has separate action visibility settings than the task tree actions. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/general.html#workspacetaskscodelens)",
+
+  "config.workspaceTasks.codeLens.actionBar": "Select which items should be shown in the task action bar for each task. This allows you to customize the actions available for tasks in the workspace. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-action.html#workspacetaskscodelensactionbar)"
+
 }

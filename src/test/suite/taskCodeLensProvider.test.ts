@@ -62,7 +62,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
   let stubIsShowHiddenMode = (): boolean => false;
   let stubGetStatus = (_id: string): string => 'idle';
   let stubIsFavorite = (_id: string | TaskItem): boolean => false;
-  let configMap: Record<string, unknown> = { 'codeLens.enabled': true, 'task.actionBar': {} };
+  let configMap: Record<string, unknown> = { 'codeLens.enabled': true, 'codeLens.actionBar': {} };
 
   setup(() => {
     // Reset singletons
@@ -86,7 +86,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
     stubIsShowHiddenMode = (): boolean => false;
     stubGetStatus = (_id: string): string => 'idle';
     stubIsFavorite = (_id: string | TaskItem): boolean => false;
-    configMap = { 'codeLens.enabled': true, 'task.actionBar': {} };
+    configMap = { 'codeLens.enabled': true, 'codeLens.actionBar': {} };
 
     // Stub workspace trust
     originalIsTrusted = (vscode.workspace as any).isTrusted;
@@ -285,10 +285,10 @@ suite('TaskCodeLensProvider Test Suite', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // T08: Default actionBar (all enabled) → run, runWithArgs, favorite, queue, hide
+  // T08: Default actionBar (all enabled) → run, runWithArgs, favorite, queue
   // ---------------------------------------------------------------------------
 
-  test('T08 - default actionBar emits run, runWithArgs, favorite, queue, hide lenses', () => {
+  test('T08 - default actionBar emits run, runWithArgs, favorite, queue', () => {
     stubGetTasksForFile = () => [makeTask()];
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
@@ -297,7 +297,6 @@ suite('TaskCodeLensProvider Test Suite', () => {
     assert.ok(titles.some((t) => t.includes('Run with Args')), 'Expected Run with Args lens');
     assert.ok(titles.some((t) => t.includes('Favorites')), 'Expected Favorites lens');
     assert.ok(titles.some((t) => t.includes('Compound Task')), 'Expected Compound Task lens');
-    assert.ok(titles.some((t) => t.includes('Hide Task')), 'Expected Hide Task lens');
   });
 
   // ---------------------------------------------------------------------------
@@ -305,7 +304,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
   // ---------------------------------------------------------------------------
 
   test('T09 - actionBar.run=false suppresses run lens', () => {
-    configMap['task.actionBar'] = { run: false };
+    configMap['codeLens.actionBar'] = { run: false };
     stubGetTasksForFile = () => [makeTask()];
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
@@ -319,7 +318,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
   // ---------------------------------------------------------------------------
 
   test('T10 - actionBar.runWithArgs=false suppresses run-with-args lens', () => {
-    configMap['task.actionBar'] = { runWithArgs: false };
+    configMap['codeLens.actionBar'] = { runWithArgs: false };
     stubGetTasksForFile = () => [makeTask()];
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
@@ -332,7 +331,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
   // ---------------------------------------------------------------------------
 
   test('T11 - actionBar.favorite=false suppresses favorite lens', () => {
-    configMap['task.actionBar'] = { favorite: false };
+    configMap['codeLens.actionBar'] = { favorite: false };
     stubGetTasksForFile = () => [makeTask()];
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
@@ -344,26 +343,13 @@ suite('TaskCodeLensProvider Test Suite', () => {
   // T12: actionBar.queue = false → no compound task lens
   // ---------------------------------------------------------------------------
 
-  test('T12 - actionBar.queue=false suppresses compound task lens', () => {
-    configMap['task.actionBar'] = { queue: false };
+  test('T12 - codeLens.actionBar.queue=false suppresses compound task lens', () => {
+    configMap['codeLens.actionBar'] = { queue: false };
     stubGetTasksForFile = () => [makeTask()];
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     const titles = lenses.map((l) => l.command?.title ?? '');
     assert.ok(!titles.some((t) => t.includes('Compound Task')), 'Compound Task lens should be absent');
-  });
-
-  // ---------------------------------------------------------------------------
-  // T13: actionBar.hide = false → no hide lens
-  // ---------------------------------------------------------------------------
-
-  test('T13 - actionBar.hide=false suppresses hide lens', () => {
-    configMap['task.actionBar'] = { hide: false };
-    stubGetTasksForFile = () => [makeTask()];
-    const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
-    const lenses = provider.provideCodeLenses(doc, makeToken());
-    const titles = lenses.map((l) => l.command?.title ?? '');
-    assert.ok(!titles.some((t) => t.includes('Hide Task')), 'Hide Task lens should be absent');
   });
 
   // ---------------------------------------------------------------------------
@@ -422,36 +408,6 @@ suite('TaskCodeLensProvider Test Suite', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // T18: show-hidden mode → hidden tasks get Unhide lens
-  // ---------------------------------------------------------------------------
-
-  test('T18 - hidden task in show-hidden mode gets Unhide Task lens', () => {
-    stubIsShowHiddenMode = () => true;
-    stubIsFilteredOrHasFilteredParent = () => true; // all tasks are hidden
-    stubGetTasksForFile = () => [makeTask()];
-    const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
-    const lenses = provider.provideCodeLenses(doc, makeToken());
-    const titles = lenses.map((l) => l.command?.title ?? '');
-    assert.ok(titles.some((t) => t.includes('Unhide Task')), 'Expected Unhide Task lens');
-    assert.ok(!titles.some((t) => t.includes('Hide Task')), 'Hide should be absent for hidden tasks');
-  });
-
-  // ---------------------------------------------------------------------------
-  // T19: actionBar.unhide = false → hidden task gets no lens
-  // ---------------------------------------------------------------------------
-
-  test('T19 - actionBar.unhide=false suppresses Unhide Task lens', () => {
-    configMap['task.actionBar'] = { unhide: false };
-    stubIsShowHiddenMode = () => true;
-    stubIsFilteredOrHasFilteredParent = () => true;
-    stubGetTasksForFile = () => [makeTask()];
-    const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
-    const lenses = provider.provideCodeLenses(doc, makeToken());
-    const titles = lenses.map((l) => l.command?.title ?? '');
-    assert.ok(!titles.some((t) => t.includes('Unhide Task')), 'Unhide should be absent');
-  });
-
-  // ---------------------------------------------------------------------------
   // T20: Multiple tasks → each gets its own row of lenses
   // ---------------------------------------------------------------------------
 
@@ -459,7 +415,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
     const t1 = makeTask({ id: 'task1', startLine: 0 });
     const t2 = makeTask({ id: 'task2', startLine: 5 });
     stubGetTasksForFile = () => [t1, t2];
-    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    configMap['codeLens.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false };
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     assert.strictEqual(lenses.length, 2, 'Should be exactly one lens per task with only run enabled');
@@ -472,7 +428,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
   test('T21 - lens range is positioned at task startLine', () => {
     const task = makeTask({ startLine: 7 });
     stubGetTasksForFile = () => [task];
-    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    configMap['codeLens.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false };
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     assert.strictEqual(lenses.length, 1);
@@ -486,7 +442,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
   test('T22 - lens command arguments include the task item', () => {
     const task = makeTask();
     stubGetTasksForFile = () => [task];
-    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    configMap['codeLens.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false };
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     assert.strictEqual(lenses[0].command?.arguments?.[0], task);
@@ -630,7 +586,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
   // ---------------------------------------------------------------------------
 
   test('T33 - undefined actionBar config falls back to all-enabled defaults', () => {
-    configMap['task.actionBar'] = undefined;
+    configMap['codeLens.actionBar'] = undefined;
     stubGetTasksForFile = () => [makeTask()];
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
@@ -649,12 +605,11 @@ suite('TaskCodeLensProvider Test Suite', () => {
     stubGetTasksForFile = () => [visible, hidden];
     stubIsShowHiddenMode = () => true;
     stubIsFilteredOrHasFilteredParent = (t: TaskItem) => t.id === 'hidden';
-    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false, unhide: true };
+    configMap['codeLens.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false };
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     const titles = lenses.map((l) => l.command?.title ?? '');
     assert.ok(titles.some((t) => t.includes('Run Task')), 'Visible task should have Run Task');
-    assert.ok(titles.some((t) => t.includes('Unhide Task')), 'Hidden task should have Unhide Task');
   });
 
   // ---------------------------------------------------------------------------
@@ -678,7 +633,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
     const t2 = makeTask({ id: 'bun-build', label: 'build', startLine: 3 });
     (t2 as any).label = 'build'; // same label as t1
     stubGetTasksForFile = () => [t1, t2];
-    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    configMap['codeLens.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false };
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     assert.strictEqual(lenses.length, 1, 'Duplicate (startLine, label) tasks should produce only one lens');
@@ -689,7 +644,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
     const t2 = makeTask({ id: 'task2', label: 'build', startLine: 7 });
     (t2 as any).label = 'build';
     stubGetTasksForFile = () => [t1, t2];
-    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    configMap['codeLens.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false };
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     assert.strictEqual(lenses.length, 2, 'Same label at different lines should produce two lenses');
@@ -700,7 +655,7 @@ suite('TaskCodeLensProvider Test Suite', () => {
     const located = makeTask({ startLine: 5 });
     const unlocated = makeTask({ id: 'unlocated', startLine: undefined });
     stubGetTasksForFile = () => [located, unlocated];
-    configMap['task.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false, hide: false };
+    configMap['codeLens.actionBar'] = { run: true, runWithArgs: false, favorite: false, queue: false };
     const doc = makeDocument(vscode.Uri.file('/workspace/package.json'));
     const lenses = provider.provideCodeLenses(doc, makeToken());
     assert.strictEqual(lenses.length, 1, 'Only the task with a startLine should produce a lens');

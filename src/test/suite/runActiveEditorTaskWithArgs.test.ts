@@ -55,7 +55,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
   let context: vscode.ExtensionContext;
   let runTaskCalls: Array<{ item: TaskItem; args?: string; skipGuard?: boolean }>;
   let confirmCalls: TaskItem[];
-  let showInputBoxResult: string | undefined;
+  let showInputBoxResponses: Array<string | undefined>;
   let showInputBoxCalls: number;
   let originalRegisterCommand: typeof vscode.commands.registerCommand;
   let originalShowInputBox: typeof vscode.window.showInputBox;
@@ -65,7 +65,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     context = makeContext();
     runTaskCalls = [];
     confirmCalls = [];
-    showInputBoxResult = undefined;
+    showInputBoxResponses = [];
     showInputBoxCalls = 0;
 
     originalRegisterCommand = vscode.commands.registerCommand;
@@ -106,7 +106,10 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     originalShowInputBox = vscode.window.showInputBox;
     (vscode.window as any).showInputBox = async () => {
       showInputBoxCalls++;
-      return showInputBoxResult;
+      if (showInputBoxResponses.length === 0) {
+        return undefined;
+      }
+      return showInputBoxResponses.shift();
     };
   });
 
@@ -203,7 +206,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [npmTask],
     };
-    showInputBoxResult = '--fix';
+    showInputBoxResponses = ['--fix', ''];
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = npmTask;
     await cmd.run();
@@ -227,6 +230,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     };
 
     const order: string[] = [];
+    showInputBoxResponses = ['someArg', ''];
     (TaskRunGuardService as any)._instance = {
       confirmIfNeeded: async (item: TaskItem) => {
         order.push('guard');
@@ -238,15 +242,17 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (vscode.window as any).showInputBox = async () => {
       order.push('inputBox');
       showInputBoxCalls++;
-      return 'someArg';
+      if (showInputBoxResponses.length === 0) {
+        return undefined;
+      }
+      return showInputBoxResponses.shift();
     };
 
-    showInputBoxResult = 'someArg';
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
     await cmd.run();
 
-    assert.deepStrictEqual(order, ['guard', 'inputBox'],
+    assert.deepStrictEqual(order, ['guard', 'inputBox', 'inputBox'],
       'Guard must be called before input box');
   });
 
@@ -283,7 +289,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
     };
-    showInputBoxResult = undefined;
+    showInputBoxResponses = [undefined];
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
     await cmd.run();
@@ -300,7 +306,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
     };
-    showInputBoxResult = '';
+    showInputBoxResponses = [''];
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
     await cmd.run();
@@ -321,7 +327,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
     };
-    showInputBoxResult = '--env prod';
+    showInputBoxResponses = ['--env', 'prod', ''];
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
     await cmd.run();
@@ -329,6 +335,25 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     assert.strictEqual(runTaskCalls[0].item, taskItem);
     assert.strictEqual(runTaskCalls[0].args, '--env prod');
     assert.strictEqual(runTaskCalls[0].skipGuard, true);
+  });
+
+  test('run — escape after one entered argument cancels execution', async () => {
+    const uri = makeFileUri('/workspace/deploy.sh');
+    const taskItem = makeTaskItem('deploy', 'shell');
+    Object.defineProperty(vscode.window, 'activeTextEditor', {
+      get: () => ({ document: { uri } } as unknown as vscode.TextEditor),
+      configurable: true,
+    });
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [taskItem],
+    };
+    showInputBoxResponses = ['--env=prod', undefined];
+
+    const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
+    (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
+    await cmd.run();
+
+    assert.strictEqual(runTaskCalls.length, 0);
   });
 
   test('run — item returned by getRunnableTasksForFile is used directly (no secondary lookup)', async () => {
@@ -342,7 +367,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
     };
-    showInputBoxResult = 'arg1';
+    showInputBoxResponses = ['arg1', ''];
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
     await cmd.run();
@@ -361,7 +386,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [taskItem],
     };
-    showInputBoxResult = '--dry-run';
+    showInputBoxResponses = ['--dry-run', ''];
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
     await cmd.run();
@@ -383,7 +408,7 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     (TaskCacheService as any).instance = {
       getTasksForFile: () => [task1, task2],
     };
-    showInputBoxResult = '--flag';
+    showInputBoxResponses = ['--flag', ''];
     const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
     (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = task1;
     await cmd.run();

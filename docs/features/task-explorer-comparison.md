@@ -160,11 +160,11 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 
 ---
 
-## Compound Tasks (Queues)
+## Compound Tasks
 
 | Feature | **Workspace Tasks** | **Task Explorer** | **WST Planned** |
 | --- | :---: | :---: | :---: |
-| Named compound task sequences (Queues) | ✅ | ❌ | |
+| Named compound task sequences | ✅ | ❌ | |
 | Multiple independent queues | ✅ | ❌ | |
 | Sequential execution mode | ✅ | ❌ | |
 | Parallel execution mode | ✅ | ❌ | |

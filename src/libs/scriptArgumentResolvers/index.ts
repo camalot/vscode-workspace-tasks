@@ -10,6 +10,8 @@ import { ScriptArgumentResolverRegistry } from '../scriptArgumentResolverRegistr
 import { PwshGetHelpResolver } from './pwshGetHelpResolver';
 import { PwshStaticParamBlockResolver } from './pwshStaticParamBlockResolver';
 import { PythonArgparseResolver } from './pythonArgparseResolver';
+import { NodeArgparseResolver } from './nodeArgparseResolver';
+import { NodeParseArgsResolver } from './nodeParseArgsResolver';
 
 export function registerBuiltInResolvers(): void {
   const registry = ScriptArgumentResolverRegistry.getInstance();
@@ -20,9 +22,19 @@ export function registerBuiltInResolvers(): void {
 
   // Python: argparse-based discovery.
   registry.register('.py', new PythonArgparseResolver());
+
+  // Node.js: parseArgs (node:util or @pkgjs/parseargs) and argparse port.
+  registry.register('.js', new NodeParseArgsResolver());
+  registry.register('.js', new NodeArgparseResolver());
+  registry.register('.mjs', new NodeParseArgsResolver());
+  registry.register('.mjs', new NodeArgparseResolver());
+  registry.register('.cjs', new NodeParseArgsResolver());
+  registry.register('.cjs', new NodeArgparseResolver());
 }
 
 export { ScriptArgumentResolverRegistry } from '../scriptArgumentResolverRegistry';
 export { PwshGetHelpResolver } from './pwshGetHelpResolver';
 export { PwshStaticParamBlockResolver } from './pwshStaticParamBlockResolver';
 export { PythonArgparseResolver } from './pythonArgparseResolver';
+export { NodeArgparseResolver } from './nodeArgparseResolver';
+export { NodeParseArgsResolver } from './nodeParseArgsResolver';

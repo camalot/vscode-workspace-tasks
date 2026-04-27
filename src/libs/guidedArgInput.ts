@@ -5,6 +5,11 @@ import { TaskItem } from '../taskItem';
 
 const MAX_GUIDED_PARAMS = 10;
 
+export type GuidedInputResult =
+  | { status: 'unavailable' }
+  | { status: 'cancelled' }
+  | { status: 'collected'; args: string[] };
+
 /**
  * Collects argument values for the given parameters using VS Code's quick-pick
  * and input-box APIs.  Returns an array of CLI argument tokens suitable for
@@ -204,9 +209,18 @@ async function collectMultiValueTokens(param: ScriptParameter, flag: string): Pr
  * parameter prompt).
  */
 export async function tryGuidedInput(item: TaskItem): Promise<string[] | undefined> {
+  const result = await tryGuidedInputWithStatus(item);
+  return result.status === 'collected' ? result.args : undefined;
+}
+
+/**
+ * Attempts to collect guided arguments and returns an explicit status so callers
+ * can distinguish cancellation from "guided input unavailable" fallback cases.
+ */
+export async function tryGuidedInputWithStatus(item: TaskItem): Promise<GuidedInputResult> {
   const fileUri = item.taskFileUri;
   if (!fileUri) {
-    return undefined;
+    return { status: 'unavailable' };
   }
 
   let content: string;
@@ -214,14 +228,50 @@ export async function tryGuidedInput(item: TaskItem): Promise<string[] | undefin
     const bytes = await vscode.workspace.fs.readFile(fileUri);
     content = new TextDecoder().decode(bytes);
   } catch {
-    return undefined;
+    return { status: 'unavailable' };
   }
 
   const registry = ScriptArgumentResolverRegistry.getInstance();
   const result = await registry.resolveForFile(fileUri.fsPath, content);
   if (!result || result.parameters.length === 0) {
-    return undefined;
+    return { status: 'unavailable' };
   }
 
-  return collectGuidedArgs(result.parameters, item.label as string);
+  const args = await collectGuidedArgs(result.parameters, item.label as string);
+  if (args === undefined) {
+    return { status: 'cancelled' };
+  }
+
+  return { status: 'collected', args };
+}
+
+/**
+ * Collects additional ad-hoc arguments one at a time.
+ *
+ * - Entering an empty value completes input and returns collected args.
+ * - Pressing Escape returns undefined so callers can abort task execution.
+ */
+export async function collectAdditionalArgs(taskName: string): Promise<string[] | undefined> {
+  const extraArgs: string[] = [];
+
+  while (true) {
+    const value = await vscode.window.showInputBox({
+      title: taskName,
+      prompt: extraArgs.length === 0
+        ? 'Enter a single argument and value: --foo=bar (Enter with empty value to complete)'
+        : 'Enter next argument and value: --foo=bar (Enter with empty value to complete)',
+      placeHolder: '--foo=bar',
+    });
+
+    if (value === undefined) {
+      return undefined;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      return extraArgs;
+    }
+
+    extraArgs.push(trimmed);
+  }
 }

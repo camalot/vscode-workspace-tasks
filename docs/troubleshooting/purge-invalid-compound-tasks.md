@@ -109,5 +109,5 @@ With debug logging enabled, the **Workspace Tasks** output channel (View → Out
 
 ## Related
 
-- [Compound Tasks (Queues)](../features/task-queues) — Creating and managing compound tasks
+- [Compound Tasks](../features/task-queues) — Creating and managing compound tasks
 - [VSCode Compound Tasks](../features/compound-tasks) — Using VS Code's native `dependsOn` compound tasks

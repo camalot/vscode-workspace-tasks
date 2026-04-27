@@ -10,17 +10,14 @@ import { isRunnableTask } from './tools/taskToolsUtils';
  * Provides inline CodeLens actions above task definitions in task source files.
  *
  * For every located leaf task in an open file the provider emits one or more
- * CodeLens items that mirror the action-bar buttons shown on the corresponding
- * tree-view task item:
+ * CodeLens items that allow quick interaction without leaving the editor. Possible actions include:
  *  - Run Task / Stop Task
  *  - Run with Args
  *  - Add / Remove from Favorites
  *  - Add / Remove from Compound Task
- *  - Hide Task
- *  - Unhide Task (show-hidden mode only)
  *
- * The set of lenses respects the same `workspaceTasks.task.actionBar.*` flags
- * that control tree-view inline buttons, and can be completely disabled via
+ * The set of lenses respects the `workspaceTasks.codeLens.actionBar.*` flags
+ * that control inline buttons, and can be completely disabled via
  * `workspaceTasks.codeLens.enabled`.
  */
 export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Disposable {
@@ -105,7 +102,7 @@ export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Dis
 
     if (visibleTasks.length + hiddenTasks.length === 0) { return []; }
 
-    const actionBar = config.get<Record<string, boolean>>('task.actionBar') ?? {};
+    const actionBar = config.get<Record<string, boolean>>('codeLens.actionBar') ?? {};
     const lenses: vscode.CodeLens[] = [];
 
     for (const task of visibleTasks) {
@@ -188,14 +185,6 @@ export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Dis
         command: isQueued
           ? 'workspaceTasks.removeFromCompoundTask'
           : 'workspaceTasks.addToCompoundTask',
-        arguments: [task],
-      }));
-    }
-
-    if (actionBar['hide'] !== false) {
-      lenses.push(new vscode.CodeLens(range, {
-        title: '$(eye-closed) Hide Task',
-        command: 'workspaceTasks.hideTask',
         arguments: [task],
       }));
     }

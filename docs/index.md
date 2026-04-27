@@ -45,14 +45,14 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📍 Flexible Placement** — View tasks in the dedicated sidebar or as a dockable panel in the Explorer
 - **⭐ Favorites** — Pin frequently used tasks for instant access
 - **🌱 Recent Tasks** — Tracks the most recently executed tasks
-- **📋 Multiple Compound Tasks (Queues)** — Create and manage named sequences of tasks
+- **📋 Multiple Compound Tasks** — Create and manage named sequences of tasks
 - **▶️ Quick Execution** — Double-click tasks to run instantly, or use the play icon (▶️)
 - **⚡ Fast Performance** — Optimized for large workspaces with caching and incremental updates
 - **[📄 Editor Title Bar Buttons](https://camalot.github.io/vscode-workspace-tasks/features/editor-title-run-buttons.html)** - Run shell scripts and GitHub Actions workflows directly from the editor title bar without switching to the task tree
 - **[🔍 Inline CodeLens Actions](https://camalot.github.io/vscode-workspace-tasks/features/codelens.html)** - Run, favorite, queue, and hide tasks directly from inline CodeLens lenses above each task definition in its source file
 - **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task
 - **🎯 Smart Organization** — Hierarchical tree view organized by workspace, task type, and file
-- **🔀 Drag & Drop** — Reorder tasks in Compound Tasks (Queues) with drag and drop
+- **🔀 Drag & Drop** — Reorder tasks in Compound Tasks with drag and drop
 - **🎭 GitHub Actions Support** — Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
 - **📝 Custom Tasks** — Define reusable task templates with dynamic inputs
 - **🚫 Task Filtering** — Use `.tasksignore` files to exclude unwanted tasks
@@ -94,7 +94,7 @@ See the [Getting Started guide](getting-started) for full installation and setup
 | [Getting Started](getting-started) | Installation and initial setup |
 | [Supported Task Types](task-types) | All supported build tools and frameworks |
 | [Favorites & Recent Tasks](features/favorites) | Pin and track frequently used tasks |
-| [Compound Tasks (Queues)](features/task-queues) | Create sequences of tasks to run in order |
+| [Compound Tasks](features/task-queues) | Create sequences of tasks to run in order |
 | [Hide Tasks & Groups](features/hide-tasks) | Declutter your task view |
 | [Task History](features/task-history) | Track and review all task executions |
 | [GitHub Actions Integration](task-types/github-actions) | Run workflows locally with act |

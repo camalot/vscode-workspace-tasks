@@ -1501,6 +1501,32 @@ package.json@build`;
         }
     });
 
+    test('T03b — initialize clears pending debounced provider refresh state', async function() {
+        this.timeout(5000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+
+        const originalGetProviders = cache.getProviders.bind(cache);
+        const originalRefreshProvider = cache.refreshProvider.bind(cache);
+        cache.getProviders = () => [{ type: 'mockType', getFilePatterns: () => ['**/package.json'], getTasks: async () => [] } as any];
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        service.registerPatterns(['**/package.json']);
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/package.json'));
+            assert.deepStrictEqual(refreshedTypes, [], 'refresh should remain debounced before reinitialize');
+
+            await service.initialize({ subscriptions: [] } as any);
+            await new Promise(r => setTimeout(r, 400));
+
+            assert.deepStrictEqual(refreshedTypes, [], 'reinitialize should cancel pending debounced provider refreshes');
+        } finally {
+            cache.getProviders = originalGetProviders;
+            cache.refreshProvider = originalRefreshProvider;
+        }
+    });
+
     test('T04 — three rapid saves of the same file coalesce into one provider refresh', async function() {
         this.timeout(3000);
         const cache = TaskCacheService.getInstance();

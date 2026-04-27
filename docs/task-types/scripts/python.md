@@ -24,6 +24,9 @@ nav_order: 1
 When `workspaceTasks.task.guidedArgInput` is enabled, running a Python script **Run with Args**
 prompts you for each argument individually rather than asking for a raw argument string.
 
+After guided prompts complete, you can add optional extra arguments one at a time using
+`--flag=value` style entries. Submit an empty value to finish.
+
 The extension statically parses your script's `argparse` `add_argument()` calls to discover what
 parameters the script accepts, then presents each parameter in the most appropriate VS Code UI:
 
@@ -37,7 +40,7 @@ parameters the script accepts, then presents each parameter in the most appropri
 | Everything else | Single input box |
 
 If the extension cannot discover parameters (no `import argparse`, unsupported pattern, or
-untrusted workspace), it falls through to the standard free-text input box.
+untrusted workspace), it falls through to the additional-arguments free-form prompt.
 
 {: .note }
 Guided argument input is **enabled by default**. Disable it in Settings:
@@ -261,7 +264,7 @@ following patterns are **not** detected:
 - `add_argument()` calls inside loops or conditionals
 - `click`, `typer`, `docopt`, and other third-party argument libraries
 
-When discovery fails, the extension falls back to the standard free-text argument input box.
+When discovery fails, the extension falls back to the additional-arguments free-form prompt.
 
 ---
 

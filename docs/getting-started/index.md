@@ -34,7 +34,7 @@ Getting started with Workspace Tasks. This will describe how to install, what re
 | --- | --- |
 | [Supported Task Types](task-types) | See all 20+ supported build tools and frameworks |
 | [Favorites & Recent Tasks](features/favorites) | Learn how to pin and track tasks |
-| [Compound Tasks (Queues)](features/task-queues) | Build and run workflow sequences |
+| [Compound Tasks](features/task-queues) | Build and run workflow sequences |
 | [Configuration](configuration) | Customize the extension to your needs |
 | [Task Filtering](features/task-filtering) | Exclude unwanted tasks with `.tasksignore` |
 | [Requirements](requirements) | External tool requirements for task execution |

@@ -67,5 +67,5 @@ When `true`, compound tasks defined in the workspace's `.vscode/tasks.json` file
 
 ## Related
 
-- [Compound Tasks (Queues)](../../features/task-queues)
+- [Compound Tasks](../../features/task-queues)
 - [Running Tasks](../../features/running-tasks)

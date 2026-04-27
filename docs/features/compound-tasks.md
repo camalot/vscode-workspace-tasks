@@ -210,5 +210,5 @@ Click **▶️** next to `Full Build` in the Workspace Tasks view to run the ent
 ## Related
 
 - [Running Tasks](running-tasks)
-- [Compound Tasks (Queues)](task-queues)
+- [Compound Tasks](task-queues)
 - [Task Display Configuration](../configuration/task-display)
