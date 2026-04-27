@@ -71,6 +71,7 @@ export class TaskFilesService {
   private configWatcher?: vscode.Disposable;
   private fileWatcher?: vscode.Disposable;
   private fileEventsWatcher?: vscode.Disposable;
+  private _saveDebounceTimer?: ReturnType<typeof setTimeout>;
   private context?: vscode.ExtensionContext;
   private logger = LoggerService.getInstance();
   private registeredPatterns: Set<string> = new Set();
@@ -470,6 +471,8 @@ export class TaskFilesService {
   }
 
   public dispose(): void {
+    clearTimeout(this._saveDebounceTimer);
+    this._saveDebounceTimer = undefined;
     this.configWatcher?.dispose();
     this.configWatcher = undefined;
     this.fileWatcher?.dispose();
@@ -585,12 +588,30 @@ export class TaskFilesService {
         }
       }),
       vscode.workspace.onDidSaveTextDocument((document) => {
-        if (!this.isTaskfileUri(document.uri)) {
+        const uri = document.uri;
+
+        // Only process real on-disk files
+        if (uri.scheme !== 'file') {
           return;
         }
-        TaskCacheService.getInstance().refreshProvider('taskfile').catch((e) => {
-          this.logger.error('[TaskFilesService] Failed to refresh taskfile provider after Taskfile save', e);
-        });
+
+        // Taskfile-specific hot-reload (preserve existing targeted behavior)
+        if (this.isTaskfileUri(uri)) {
+          TaskCacheService.getInstance().refreshProvider('taskfile').catch((e) => {
+            this.logger.error('[TaskFilesService] Failed to refresh taskfile provider after Taskfile save', e);
+          });
+          return; // early return prevents double-trigger via general handler below
+        }
+
+        // General: debounced full invalidation for any other matching task file
+        if (this.anyFileMatchesRegisteredPatterns([uri])) {
+          this.logger.debug(`[TaskFilesService] Task file saved, scheduling cache invalidation: ${uri.fsPath}`);
+          clearTimeout(this._saveDebounceTimer);
+          this._saveDebounceTimer = setTimeout(() => {
+            this.logger.debug('[TaskFilesService] Executing debounced cache invalidation after save');
+            this.invalidateCache();
+          }, 300);
+        }
       }),
     );
 

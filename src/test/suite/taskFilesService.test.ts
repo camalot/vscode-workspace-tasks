@@ -1433,4 +1433,131 @@ package.json@build`;
             assert.strictEqual((r2 as PromiseRejectedResult).reason, batchError);
         });
     });
+
+    // ── Save-refresh tests (T01–T06) ──────────────────────────────────────────
+
+    test('T01 — saving package.json triggers invalidateCache after debounce', async function() {
+        this.timeout(5000);
+        let invalidateCount = 0;
+        const original = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; original(); };
+
+        const pattern = '**/save-refresh-test/package.json';
+        service.registerPatterns([pattern]);
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/save-refresh-test/package.json'));
+            assert.strictEqual(invalidateCount, 0, 'invalidateCache should not fire immediately');
+            await new Promise(r => setTimeout(r, 400));
+            assert.strictEqual(invalidateCount, 1, 'invalidateCache should fire once after debounce');
+        } finally {
+            service.invalidateCache = original;
+        }
+    });
+
+    test('T02 — saving a non-matching file does not trigger invalidateCache', async function() {
+        this.timeout(2000);
+        let invalidateCount = 0;
+        const original = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; original(); };
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/README.md'));
+            await new Promise(r => setTimeout(r, 400));
+            assert.strictEqual(invalidateCount, 0, 'non-matching file save should not trigger invalidateCache');
+        } finally {
+            service.invalidateCache = original;
+        }
+    });
+
+    test('T03 — saving Taskfile.yml calls refreshProvider not invalidateCache', async function() {
+        this.timeout(2000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+        let invalidateCount = 0;
+
+        const originalRefresh = cache.refreshProvider.bind(cache);
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+        const originalInvalidate = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; originalInvalidate(); };
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/Taskfile.yml'));
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, ['taskfile']);
+            assert.strictEqual(invalidateCount, 0, 'invalidateCache must not fire for Taskfile.yml save');
+        } finally {
+            cache.refreshProvider = originalRefresh;
+            service.invalidateCache = originalInvalidate;
+        }
+    });
+
+    test('T04 — three rapid saves of the same file trigger only one invalidateCache call', async function() {
+        this.timeout(3000);
+        let invalidateCount = 0;
+        const original = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; original(); };
+
+        const pattern = '**/debounce-test/package.json';
+        service.registerPatterns([pattern]);
+        const uri = vscode.Uri.file('/workspace/debounce-test/package.json');
+
+        try {
+            await fireDidSave(uri);
+            await fireDidSave(uri);
+            await fireDidSave(uri);
+            assert.strictEqual(invalidateCount, 0, 'Should not fire immediately');
+            await new Promise(r => setTimeout(r, 400));
+            assert.strictEqual(invalidateCount, 1, 'Debounce should coalesce three saves into one invalidation');
+        } finally {
+            service.invalidateCache = original;
+        }
+    });
+
+    test('T05 — saving an untitled document does not trigger any refresh', async function() {
+        this.timeout(2000);
+        let invalidateCount = 0;
+        const originalInvalidate = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; originalInvalidate(); };
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+        const originalRefresh = cache.refreshProvider.bind(cache);
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        try {
+            const untitledUri = vscode.Uri.parse('untitled:package.json');
+            await fireDidSave(untitledUri);
+            await new Promise(r => setTimeout(r, 400));
+            assert.strictEqual(invalidateCount, 0, 'untitled document save should not trigger invalidateCache');
+            assert.strictEqual(refreshedTypes.length, 0, 'untitled document save should not trigger refreshProvider');
+        } finally {
+            service.invalidateCache = originalInvalidate;
+            cache.refreshProvider = originalRefresh;
+        }
+    });
+
+    test('T06 — after dispose(), saving a task file does not trigger invalidation', async function() {
+        this.timeout(2000);
+        let invalidateCount = 0;
+        const original = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; original(); };
+
+        const pattern = '**/dispose-test/package.json';
+        service.registerPatterns([pattern]);
+        const uri = vscode.Uri.file('/workspace/dispose-test/package.json');
+
+        try {
+            service.dispose();
+            // After dispose, captured handlers are removed via their dispose()
+            // callbacks; clear our captured list to reflect that state.
+            capturedDidSaveHandlers.length = 0;
+
+            await fireDidSave(uri);
+            await new Promise(r => setTimeout(r, 400));
+            assert.strictEqual(invalidateCount, 0, 'No invalidation should occur after dispose()');
+        } finally {
+            service.invalidateCache = original;
+        }
+    });
+
 });
