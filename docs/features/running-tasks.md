@@ -128,6 +128,36 @@ The `workspaceTasks.task.doubleClickAction` or `workspaceTasks.task.singleClickA
 
 ---
 
+### Guided Argument Input
+
+For **Python** (`.py`) and **PowerShell** (`.ps1`) scripts, the extension can parse the script's
+parameter declarations and present each parameter as a dedicated prompt instead of a single raw
+text input. Enable this feature via:
+
+```json
+"workspaceTasks.task.guidedArgInput": true
+```
+
+When enabled, running a supported script with **Run with Args** shows:
+
+- A **QuickPick** for parameters with a fixed set of choices (`choices=[...]` / `[ValidateSet]`)
+- A **Yes / No QuickPick** for boolean flags (`action='store_true'` / `[switch]`)
+- A **loop of input boxes** for multi-value parameters (`nargs`, `action='append'`)
+- A standard **input box** for everything else
+
+If the extension cannot detect parameters (e.g. no `import argparse`, untrusted workspace), it
+falls back to the free-text input box automatically.
+
+{: .note }
+`guidedArgInput` defaults to `true`. If disabled, all script tasks will use the free-text input box for arguments. This setting does not affect non-script tasks or the editor title bar buttons, which always use free-text input.
+
+See the detailed per-language guides:
+
+- [🐍 Python Scripts — Guided Argument Input](../task-types/scripts/python)
+- [🐚 PowerShell Scripts — Guided Argument Input](../task-types/scripts/pwsh)
+
+---
+
 ## Stopping a Task
 
 While a task is running, the **Run** button in the action bar is replaced by a **Stop** button (⏹).

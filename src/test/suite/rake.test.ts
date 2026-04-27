@@ -33,7 +33,10 @@ suite('Rake Provider Test Suite', () => {
 
     originalGetWorkspaceFolder = vscode.workspace.getWorkspaceFolder;
     (vscode.workspace as any).getWorkspaceFolder = (uri: vscode.Uri) => {
-      if (uri.fsPath.startsWith('/workspace/')) {
+      // Return the mock workspace folder for any file-scheme URI so tests pass
+      // in any environment (local dev container, GitHub Actions, etc.) regardless
+      // of the absolute path where the repository is checked out.
+      if (uri.scheme === 'file') {
         return workspaceFolder;
       }
       return undefined;

@@ -53,8 +53,32 @@ nav_order: 4
 
 ---
 
+## Guided Argument Input for Scripts
+
+Python (`.py`) and PowerShell (`.ps1`) scripts support **guided argument input** — instead of
+typing a raw argument string, the extension parses the script's parameter declarations and
+presents each parameter as an individual prompt (input box, QuickPick for choices, Yes/No for
+flags, etc.).
+
+Enable it in your `settings.json`:
+
+```json
+"workspaceTasks.task.guidedArgInput": true
+```
+
+See the per-language pages for full details:
+
+- [🐍 Python Scripts — Guided Argument Input](python) — `argparse` support, all `action` and
+  `nargs` types
+- [🐚 PowerShell Scripts — Guided Argument Input](pwsh) — `param()` block, `[ValidateSet]`,
+  `[switch]`, `[Mandatory]`
+
+---
+
 ## Next Steps
 
+- [🐍 Python Scripts — Guided Argument Input](python)
+- [🐚 PowerShell Scripts — Guided Argument Input](pwsh)
 - [Package Managers & Build Tools](package-managers) — npm, Yarn, pnpm, Bun, Composer, and more
 - [Task Runners](task-runners) — Gulp, Grunt, Cargo, Just, Make, mise
 - [DevOps & Containers](devops) — Docker, Docker Compose, GitHub Actions

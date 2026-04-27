@@ -26,6 +26,8 @@ Issues **not adopted:**
 | Use `python script.py --help` output for arg discovery | Running user scripts at discovery time is not acceptable; static parse only |
 | Parser confidence scores gating UI display | Adds UI complexity; the `supported` flag in `ParameterParseResult` is sufficient for v1 |
 
+**Post-review addition (E1):** `pwsh -Command Get-Help <script>` is now adopted as the **primary** PowerShell parameter discovery strategy. Unlike executing the user's script, `Get-Help` only introspects the script's `param()` block and comment-based help without running any script logic. Static regex parsing is retained as the fallback when `pwsh` is unavailable, the workspace is untrusted, or `Get-Help` fails. Workspace trust (`vscode.workspace.isTrusted`) must be checked before spawning any process — if the workspace is not trusted, the implementation falls directly to static parsing.
+
 ---
 
 ## 2. Overview
@@ -67,6 +69,14 @@ export interface ParameterParseResult {
 
 export interface ScriptParameterParser {
   canHandle(filePath: string): boolean;
+  /**
+   * Runtime discovery: may spawn an external process (e.g. `pwsh Get-Help`).
+   * Implementations that do not support runtime discovery should return
+   * `{ supported: false, parameters: [] }` so the caller falls back to `parse()`.
+   * Must only be called when `vscode.workspace.isTrusted` is true.
+   */
+  discover?(filePath: string): Promise<ParameterParseResult>;
+  /** Static/offline parse of the raw file content. Always available. */
   parse(content: string): ParameterParseResult;
 }
 ```
@@ -74,6 +84,40 @@ export interface ScriptParameterParser {
 ### 3.2 PowerShell Parser (E1)
 
 **File:** `src/libs/scriptParameterParsers/powershellParameterParser.ts`
+
+#### 3.2.1 Primary strategy — `Get-Help` via `pwsh`
+
+When the workspace is trusted (`vscode.workspace.isTrusted === true`) and `pwsh` is available on the system PATH, the parser uses runtime introspection as the primary discovery mechanism:
+
+```
+pwsh -NoProfile -NonInteractive -Command "Get-Help '<absoluteScriptPath>' -Detailed"
+```
+
+- `Get-Help` reads the script's `param()` block and comment-based help (`.SYNOPSIS`, `.PARAMETER`) **without executing any script logic**.
+- The output is parsed to extract parameter names, types, mandatory status, and descriptions.
+- The script path is passed as a **literal absolute path** — never concatenated from user-supplied strings.
+- If the workspace is **not trusted**, this step is skipped entirely and falls through to static parsing.
+- If `pwsh` is not found on PATH, or the subprocess exits non-zero, falls through to static parsing.
+- Timeout: 5 seconds; if exceeded, process is killed and falls through to static parsing.
+
+**`Get-Help` output example:**
+```
+SYNTAX
+    pwsh-params.ps1 [-Environment] <string> [[-Configuration] <string>] [-DryRun] [<CommonParameters>]
+```
+
+The syntax line is parsed with a regex to extract:
+- `[-ParamName]` → optional parameter
+- `[-ParamName] <type>` → positional/named with type
+- `[[-ParamName] <type>]` → optional with type
+- `-ParamName` (no surrounding `[]`) → mandatory
+- `[-SwitchName]` with no `<type>` → switch
+
+Additionally, the `PARAMETERS` section of `-Detailed` output is parsed for per-parameter metadata (required, description, accepted values).
+
+#### 3.2.2 Fallback strategy — Static regex parsing
+
+Used when: workspace is not trusted, `pwsh` is unavailable, `Get-Help` subprocess fails, or output cannot be parsed.
 
 **Supported patterns (v1):**
 - `param(...)` block at file scope
@@ -83,7 +127,7 @@ export interface ScriptParameterParser {
 - `$Name` variable declarations
 - `= 'default'` default values (string literals only)
 
-**Unsupported (documented):**
+**Unsupported by static parser (documented):**
 - Parameter sets (`ParameterSetName`)
 - Pipeline input (`ValueFromPipeline`)
 - Complex default expressions (`= (Get-Date)`)
@@ -247,8 +291,24 @@ private async tryGuidedInput(item: TaskItem): Promise<string[] | undefined> {
   const parser = getParserForFile(fileUri.fsPath); // factory returns appropriate parser
   if (!parser) { return undefined; }
 
-  const content = await vscode.workspace.fs.readFile(fileUri);
-  const result = parser.parse(new TextDecoder().decode(content));
+  let result: ParameterParseResult | undefined;
+
+  // Attempt runtime discovery first (e.g. Get-Help for PowerShell).
+  // Only permitted when the workspace is trusted.
+  if (parser.discover && vscode.workspace.isTrusted) {
+    try {
+      result = await parser.discover(fileUri.fsPath);
+    } catch {
+      // Subprocess failed — fall through to static parse.
+    }
+  }
+
+  // Fall back to static parsing if runtime discovery was skipped or failed.
+  if (!result?.supported || result.parameters.length === 0) {
+    const content = await vscode.workspace.fs.readFile(fileUri);
+    result = parser.parse(new TextDecoder().decode(content));
+  }
+
   if (!result.supported || result.parameters.length === 0) { return undefined; }
 
   return collectGuidedArgs(result.parameters, item.label as string);
@@ -266,7 +326,12 @@ private async tryGuidedInput(item: TaskItem): Promise<string[] | undefined> {
 
 ### Phase 2 — PowerShell (E1)
 1. Create `src/libs/scriptParameterParsers/powershellParameterParser.ts`
-2. Write unit tests
+   - Implement `discover(filePath)`: spawns `pwsh -NoProfile -NonInteractive -Command "Get-Help '<path>' -Detailed"` and parses the output
+   - Check workspace trust before spawning; skip to static parse if untrusted
+   - Detect `pwsh` availability via PATH lookup before spawning
+   - Enforce 5-second timeout; kill process on timeout
+   - Implement `parse(content)` static regex fallback
+2. Write unit tests (see §9)
 3. Wire into `RunActiveEditorTaskWithArgsCommand`
 
 ### Phase 3 — Python (E2)
@@ -278,40 +343,53 @@ private async tryGuidedInput(item: TaskItem): Promise<string[] | undefined> {
 
 ## 9. Testing Plan
 
-### E1 — PowerShell
+### E1 — PowerShell (`Get-Help` / runtime discovery)
 | Test | Description |
 |---|---|
-| T01 | Parses mandatory string parameter |
-| T02 | Parses optional string with string default value |
-| T03 | Parses `[ValidateSet('Debug','Release')]` choices |
-| T04 | Parses `[switch]` parameter (type = switch, required = false) |
-| T05 | Script without `param()` → `supported: false` |
-| T06 | Multi-line `param()` block across many lines |
-| T07 | Comment inside `param()` block does not confuse parser |
-| T08 | Task name with special characters in parameter default |
-| T09 | `canHandle('.ps1')` returns true; `canHandle('.py')` returns false |
+| T01 | `discover()` — parses mandatory string parameter from `Get-Help` output |
+| T02 | `discover()` — parses optional parameter with default value from `Get-Help` output |
+| T03 | `discover()` — parses switch parameter (no `<type>` token) from syntax line |
+| T04 | `discover()` — `Get-Help` subprocess exits non-zero → returns `{ supported: false }` |
+| T05 | `discover()` — subprocess times out → process killed; returns `{ supported: false }` |
+| T06 | `discover()` — workspace not trusted → method is not called (caller skips) |
+| T07 | `discover()` — `pwsh` not on PATH → returns `{ supported: false }` |
+
+### E1 — PowerShell (static fallback)
+| Test | Description |
+|---|---|
+| T08 | Parses mandatory string parameter |
+| T09 | Parses optional string with string default value |
+| T10 | Parses `[ValidateSet('Debug','Release')]` choices |
+| T11 | Parses `[switch]` parameter (type = switch, required = false) |
+| T12 | Script without `param()` → `supported: false` |
+| T13 | Multi-line `param()` block across many lines |
+| T14 | Comment inside `param()` block does not confuse parser |
+| T15 | Task name with special characters in parameter default |
+| T16 | `canHandle('.ps1')` returns true; `canHandle('.py')` returns false |
 
 ### E2 — Python
 | Test | Description |
 |---|---|
-| T10 | `import argparse` → `supported: true` |
-| T11 | `from argparse import ArgumentParser` → `supported: true` |
-| T12 | `add_argument` with `choices=[...]` → choices populated |
-| T13 | `add_argument` with `type=int` → `type: 'int'` |
-| T14 | `add_argument` with `required=True` → `required: true` |
-| T15 | `action='store_true'` → `type: 'bool'` |
-| T16 | `help='description'` → `description` populated |
-| T17 | Script without `argparse` → `supported: false` |
-| T18 | Dynamic `add_argument` in a loop → does not crash; may miss arguments (acceptable) |
-| T19 | `canHandle('.py')` returns true; `canHandle('.ps1')` returns false |
+| T17 | `import argparse` → `supported: true` |
+| T18 | `from argparse import ArgumentParser` → `supported: true` |
+| T19 | `add_argument` with `choices=[...]` → choices populated |
+| T20 | `add_argument` with `type=int` → `type: 'int'` |
+| T21 | `add_argument` with `required=True` → `required: true` |
+| T22 | `action='store_true'` → `type: 'bool'` |
+| T23 | `help='description'` → `description` populated |
+| T24 | Script without `argparse` → `supported: false` |
+| T25 | Dynamic `add_argument` in a loop → does not crash; may miss arguments (acceptable) |
+| T26 | `canHandle('.py')` returns true; `canHandle('.ps1')` returns false |
 
 ### Integration
 | Test | Description |
 |---|---|
-| T20 | When `guidedArgInput: false`, free-text input is used regardless of script type |
-| T21 | When `guidedArgInput: true` and parse succeeds, guided input is shown |
-| T22 | When `guidedArgInput: true` and parse returns `supported: false`, free-text is used |
-| T23 | Cancelling a required parameter guided prompt → task is not run |
+| T27 | When `guidedArgInput: false`, free-text input is used regardless of script type |
+| T28 | When `guidedArgInput: true` and `discover()` succeeds, guided input is shown |
+| T29 | When `guidedArgInput: true` and `discover()` returns `supported: false`, falls back to static parse |
+| T30 | When `guidedArgInput: true` and both discovery strategies fail, free-text is used |
+| T31 | Cancelling a required parameter guided prompt → task is not run |
+| T32 | Workspace not trusted + `.ps1` task → `discover()` is never called; static parse is used |
 
 ---
 
@@ -331,5 +409,9 @@ private async tryGuidedInput(item: TaskItem): Promise<string[] | undefined> {
 |---|---|
 | Parser misidentifies parameters | Feature is opt-in (default: false); falls back to free-text on failure |
 | Shell injection via assembled args | Use array form `ShellExecution(cmd, argsArray)`; never string-concatenate user input |
+| `pwsh` not installed on host machine | Detect via PATH lookup before spawning; silently fall back to static parsing |
+| Script path injected into `Get-Help` command | Script path is passed as a fixed absolute path derived from the workspace URI, not from user input |
+| `Get-Help` slow or hanging | Enforce a 5-second timeout; kill child process on timeout; fall through to static parsing |
+| Workspace not trusted — spawning blocked | Check `vscode.workspace.isTrusted` before any `child_process.spawn`; static parse used for untrusted workspaces |
 | Python argparse patterns not recognized | Falls back to free-text; document known limitations |
 | UX friction for scripts with many parameters | Show maximum 10 params in guided mode; remainder available as free-text |
