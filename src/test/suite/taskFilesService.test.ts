@@ -28,6 +28,12 @@ suite('TaskFilesService Test Suite', () => {
     setup(async function(this: Mocha.Context) {
         this.timeout(60000);
         service = TaskFilesService.getInstance();
+        // Fully reset singleton lifecycle state from prior suites/tests.
+        service.dispose();
+        // Defensive reset for singleton state that can leak across tests in CI.
+        clearTimeout((service as any)._saveDebounceTimer);
+        (service as any)._saveDebounceTimer = undefined;
+        (service as any)._pendingProviderTypes?.clear?.();
         mockConfigValues = {};
         capturedConfigChangeHandlers = [];
         capturedDidSaveHandlers = [];
@@ -91,6 +97,13 @@ suite('TaskFilesService Test Suite', () => {
 
     teardown(async function(this: Mocha.Context) {
         this.timeout(60000);
+        // Ensure all watchers/timers are torn down before the next test/suite.
+        service.dispose();
+        // Ensure no debounced refresh callbacks survive into the next test.
+        clearTimeout((service as any)._saveDebounceTimer);
+        (service as any)._saveDebounceTimer = undefined;
+        (service as any)._pendingProviderTypes?.clear?.();
+
         try {
             await vscode.workspace.fs.delete(testFolder, { recursive: true, useTrash: false });
         } catch { }

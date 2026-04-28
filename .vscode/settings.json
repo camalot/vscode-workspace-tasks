@@ -207,6 +207,7 @@
   "workspaceTasks.groups.compoundTasks.enabled": true,
   "workspaceTasks.recentTasks.maxItems": 5,
   "workspaceTasks.debug": true,
+  "workspaceTasks.applicationPath.act": "/home/vscode/bin/act",
   "workspaceTasks.enabledTaskTypes": {
     "ant": false,
     "ruby": false,

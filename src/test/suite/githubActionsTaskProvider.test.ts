@@ -4,6 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { GithubActionsTaskProvider } from '../../providers/githubActionsTaskProvider';
+import { configuration } from '../../libs/configuration';
 import { TaskFilesService } from '../../services/taskFilesService';
 import { TaskIconService } from '../../services/taskIconService';
 
@@ -11,6 +12,7 @@ suite('GithubActionsTaskProvider Test Suite', () => {
   let provider: GithubActionsTaskProvider;
   let originalFindFiles: any;
   let originalGetTaskIcon: any;
+  let originalConfigGet: typeof configuration.get;
   let tempDir: string;
 
   setup(() => {
@@ -21,6 +23,7 @@ suite('GithubActionsTaskProvider Test Suite', () => {
 
     const iconService = TaskIconService.getInstance();
     originalGetTaskIcon = iconService.getTaskIcon.bind(iconService);
+    originalConfigGet = configuration.get.bind(configuration);
 
     filesService.findFiles = async () => [];
     iconService.getTaskIcon = () => new vscode.ThemeIcon('github');
@@ -34,13 +37,21 @@ suite('GithubActionsTaskProvider Test Suite', () => {
 
     const iconService = TaskIconService.getInstance();
     iconService.getTaskIcon = originalGetTaskIcon;
+    configuration.get = originalConfigGet;
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('getCommand returns act as default command', () => {
+  test('getCommand returns mocked configured act command', () => {
+    configuration.get = (key: string, def?: any) => {
+      if (key === 'applicationPath.act') {
+        return '/mock/tools/act';
+      }
+      return originalConfigGet(key, def);
+    };
+
     const command = provider.getCommand();
-    assert.strictEqual(command.command, 'act');
+    assert.strictEqual(command.command, '/mock/tools/act');
   });
 
   test('getTasks returns empty array when provider is disabled', async () => {
