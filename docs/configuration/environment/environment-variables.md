@@ -20,7 +20,7 @@ nav_order: 2
 ---
 
 {: .new }
-v1.7.0 introduces a powerful new system for environment variables and secrets.
+> **v1.7.0** introduces a powerful new system for environment variables and secrets.
 
 Full settings reference for all `workspaceTasks.envVars.*` configuration keys. For a
 conceptual overview, worked examples, and the fourteen-layer precedence table see
@@ -32,8 +32,11 @@ conceptual overview, worked examples, and the fourteen-layer precedence table se
 
 ### workspaceTasks.envVars.env
 
-**Type:** `object` (`additionalProperties: string`)
-**Default:** `{}`
+| | |
+| --- | --- |
+| **Type:** | `object` (`additionalProperties: string`) |
+| **Default:** | `{}` |
+| **Scope:** | `resource` |
 
 A flat map of environment variable names to values applied to **all** tasks (Layer 1).
 
@@ -50,8 +53,11 @@ A flat map of environment variable names to values applied to **all** tasks (Lay
 
 ### workspaceTasks.envVars.envFiles
 
-**Type:** `string | string[] | { include: string[]; exclude?: string[] }`
-**Default:** `[]`
+| | |
+| --- | --- |
+| **Type:** | `string | string[] | { include: string[]; exclude?: string[] }` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 `.env`-format files loaded for **all** tasks (Layer 2). Accepts three forms:
 
@@ -76,8 +82,11 @@ the order they are resolved; later files override earlier files for duplicate ke
 
 ### workspaceTasks.envVars.secretFiles
 
-**Type:** `string | string[] | { include: string[]; exclude?: string[] }`
-**Default:** `[]`
+| | |
+| --- | --- |
+| **Type:** | `string \| string[] \| { include: string[]; exclude?: string[] }` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 `.secret`-format files loaded for **all** tasks (Layer 3). These files are parsed identically to
 `.env` files but variables from them are tagged `isSecret = true` and **never trigger** the
@@ -97,10 +106,13 @@ secret-pattern warning. The same three forms are accepted as `envFiles`.
 ### workspaceTasks.envVars.warnIfGitTracked
 
 {: .new }
-Added in v1.8.0
+> **Added in v1.8.0**
 
-**Type:** `boolean`
-**Default:** `true`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
+| **Scope:** | `resource` |
 
 When `true`, the extension checks every file listed in `workspaceTasks.envVars.envFiles` and
 `workspaceTasks.envVars.secretFiles` against git at startup and whenever those settings change.
@@ -111,7 +123,7 @@ There is no pop-up notification — warnings appear only in the Problems panel s
 remain visible without interrupting your workflow.
 
 | Diagnostic code | Setting that listed the file |
-|---|---|
+| --- | --- |
 | `config-env-file-git-tracked` | `workspaceTasks.envVars.envFiles` |
 | `config-secret-file-git-tracked` | `workspaceTasks.envVars.secretFiles` |
 
@@ -137,8 +149,11 @@ the guidance above to remediate or set the option to `false` to suppress them.
 
 ### workspaceTasks.envVars.secretPatterns
 
-**Type:** `string[]`
-**Default:** `["*_TOKEN", "*_KEY", "*_SECRET", "PASSWORD", "PASSWD", "CREDENTIALS", "API_KEY"]`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `["*_TOKEN", "*_KEY", "*_SECRET", "PASSWORD", "PASSWD", "CREDENTIALS", "API_KEY"]` |
+| **Scope:** | `resource` |
 
 A list of glob patterns matched against variable key names. When a key name matches and the value
 came from a plain `env` block or `.env` file (not from a `.secret` file or `SecretStorage`), the
@@ -163,8 +178,11 @@ This is advisory only — the task still runs.
 
 ### workspaceTasks.envVars.taskEnv
 
-**Type:** `ITaskEnvRule[]`
-**Default:** `[]`
+| | |
+| --- | --- |
+| **Type:** | `ITaskEnvRule[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 An array of rules that inject environment variables into any discovered task — npm scripts,
 Makefile targets, shell scripts, etc. — without requiring a `.workspace-tasks.json` file (Layers
@@ -202,7 +220,7 @@ of `env`, `envFiles`, `secretFiles`, and `secrets` payloads.
 All specified fields must match (AND logic). Omitting a field skips that check.
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `taskName` | `string` | Exact match, glob (`publish*`), or `/regex/` match against the task label |
 | `taskType` | `string \| string[]` | Task source type, e.g. `"npm"`, `"shell"`. Array: any element must match |
 | `source` | `string \| string[]` | Glob pattern(s) matched against the task definition file path |
@@ -218,7 +236,7 @@ All specified fields must match (AND logic). Omitting a field skips that check.
 #### Rule Payload Fields
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `env` | `Record<string, string>` | Inline variable overrides (may trigger secret-pattern warning) |
 | `envFiles` | `IEnvFileReference` | `.env`-type files (same three forms as global setting) |
 | `secretFiles` | `IEnvFileReference` | `.secret`-type files — never triggers warning |
@@ -297,7 +315,7 @@ block) and the **per-task** level. Per-task values override language-block value
 key.
 
 | Field | Type | Layer | Description |
-|-------|------|-------|-------------|
+| --- | --- | --- | --- |
 | `env` | `Record<string, string>` | 5 (block) / 8 (task) | Inline variable overrides |
 | `envFiles` | `IEnvFileReference` | 4 (block) / 7 (task) | `.env`-type files |
 | `secretFiles` | `IEnvFileReference` | 6 (block) / 9 (task) | `.secret`-type files |

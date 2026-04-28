@@ -27,15 +27,15 @@
 
   "command.addToFavorites": "Add to Favorites",
   "command.removeFromFavorites": "Remove from Favorites",
-  "command.addToCompoundTask": "Add to Compound Task (Queue)",
-  "command.runCompoundTask": "Run Compound Task (Queue)",
-  "command.clearCompoundTask": "Clear Compound Task (Queue)",
-  "command.purgeInvalidCompoundTasks": "Purge Invalid Compound Tasks (Queue) from Storage",
+  "command.addToCompoundTask": "Add to Compound Task",
+  "command.runCompoundTask": "Run Compound Task",
+  "command.clearCompoundTask": "Clear Compound Task",
+  "command.purgeInvalidCompoundTasks": "Purge Invalid Compound Tasks from Storage",
   "command.removeFromRecentTasks": "Remove from Recent Tasks",
   "command.clearRecentTasks": "Clear Recent Tasks",
-  "command.removeFromCompoundTask": "Remove from Compound Task (Queue)",
-  "command.renameCompoundTask": "Rename Compound Task (Queue)",
-  "command.setCompoundTaskExecutionType": "Toggle Compound Task (Queue) Execution Type",
+  "command.removeFromCompoundTask": "Remove from Compound Task",
+  "command.renameCompoundTask": "Rename Compound Task",
+  "command.setCompoundTaskExecutionType": "Toggle Compound Task Execution Type",
   "command.runTaskWithArgs": "Run Task with Arguments",
   "command.runTask": "Run Task",
   "command.copyTaskCommand": "Copy Command",
@@ -48,7 +48,7 @@
   "command.env.copySecretKey": "Copy Secret Key",
   "command.env.inspect": "Inspect Task Environment",
   "command.stopTask": "Stop Task",
-  "command.stopCompoundTask": "Stop Compound Task (Queue)",
+  "command.stopCompoundTask": "Stop Compound Task",
   "command.restartTask": "Restart Task",
   "command.refreshTasks": "Refresh Tasks",
   "command.openSettings": "Workspace Tasks Settings",
@@ -78,7 +78,7 @@
   "command.history.disableFilterTerminated": "Terminated ✓",
 
   "tree.favorites": "Favorites",
-  "tree.compoundTasks": "Compound Tasks (Queues)",
+  "tree.compoundTasks": "Compound Tasks",
   "tree.tasks": "Tasks",
   "tree.recentTasks": "Recent Tasks",
 
@@ -91,7 +91,7 @@
   "config.workspaceTasks.task.actionBar.runWithArgs": "Run Task with Arguments",
   "config.workspaceTasks.task.actionBar.openFile": "Open File",
   "config.workspaceTasks.task.actionBar.favorite": "Add to Favorites",
-  "config.workspaceTasks.task.actionBar.compoundTask": "Add to Compound Task (Queue)",
+  "config.workspaceTasks.task.actionBar.compoundTask": "Add to Compound Task",
 
   "config.workspaceTasks.autoRefresh": "Automatically refresh tasks when changes are detected",
   "config.workspaceTasks.autoRefresh.description": "Automatically refresh tasks when changes are detected",
@@ -244,8 +244,7 @@
   "config.workspaceTasks.groups.expanded": "Expanded Groups",
   "config.workspaceTasks.groups.expanded.markdown": "Control which groups are expanded by default. You can specify favorites, compound tasks, and recent tasks. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-grouping.html#workspacetasksgroupsexpanded)",
   "config.workspaceTasks.groups.expanded.favorites": "Favorites",
-  "config.workspaceTasks.groups.expanded.compoundTasks": "Compound Tasks (Queues)",
-  "config.workspaceTasks.groups.expanded.queue.deprecated": "Deprecated: use 'compoundTask' instead. Controls whether the Compound Tasks group is expanded by default.",
+  "config.workspaceTasks.groups.expanded.compoundTasks": "Compound Tasks",
   "config.workspaceTasks.groups.expanded.recent": "Recent",
 
   "config.workspaceTasks.recentTasks.maxItems": "Max Recent Tasks",
@@ -364,6 +363,8 @@
   "config.workspaceTasks.taskfile.enableWatchMode": "Show a Watch button on Task (go-task) items to run them in watch mode (task --watch). When enabled, a watch icon appears in the task tree inline actions.",
   "config.workspaceTasks.taskfile.enableWatchMode.markdown": "Show a Watch button on Task (go-task) items to run them in watch mode (`task --watch`). When enabled, a watch icon appears in the task tree inline actions. [Read More](https://camalot.github.io/vscode-workspace-tasks/task-types/task.html#watch-mode)",
   "command.workspaceTasks.taskfile.watchTask": "Watch Task",
+  "command.editor.runTask": "Run Task",
+  "command.editor.runTaskWithArgs": "Run Task with Arguments",
 
   "config.workspaceTasks.applicationPath.maven": "Path to Maven executable",
   "config.workspaceTasks.applicationPath.maven.markdown": "Specify the path to the [Maven](https://maven.apache.org/) executable. On Windows, if the path ends with `mvn`, `.cmd` will be appended automatically. On all platforms, '~/` will be expanded to the user's home directory. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/application-path.html#workspacetasksapplicationpathmaven)",
@@ -389,5 +390,10 @@
   "config.workspaceTasks.cmake.buildType.relwithdebinfo": "Optimized build that also includes debug information.",
   "config.workspaceTasks.cmake.buildType.minsizerel": "Optimized for minimum binary size.",
   "config.workspaceTasks.cmake.generator": "CMake generator",
-  "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakegenerator)"
+  "config.workspaceTasks.cmake.generator.markdown": "CMake generator to use when configuring the project (e.g. `Ninja`, `Unix Makefiles`, `Visual Studio 17 2022`). Leave empty to use the platform default. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/environment/application-paths/cmake.html#workspacetaskscmakegenerator)",
+  "config.workspaceTasks.codeLens.enabled": "Show inline CodeLens task actions in task source files.",
+  "config.workspaceTasks.codeLens.enabled.markdown": "When enabled, shows **Run**, **Run with Args**, **Favorites**, and **Compound Task** task actions as inline CodeLens lenses above each task definition in task source files. CodeLens has separate action visibility settings than the task tree actions. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/general.html#workspacetaskscodelens)",
+
+  "config.workspaceTasks.codeLens.actionBar": "Select which items should be shown in the task action bar for each task. This allows you to customize the actions available for tasks in the workspace. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-action.html#workspacetaskscodelensactionbar)"
+
 }

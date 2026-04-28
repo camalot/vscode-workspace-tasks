@@ -131,15 +131,22 @@ export class PoeTaskProvider extends TomlTaskProvider {
    * Finds the line number where a task is defined in the TOML content
    * @param content The TOML file content
    * @param taskName The name of the task to find
-   * @returns The 1-based line number, or 0 if not found
+    * @returns The 0-based line number, or 0 if not found
    */
   private findTaskLineInContent(content: string, taskName: string): number {
     const lines = content.split('\n');
     let inSection = false;
     const sectionHeader = '[tool.poe.tasks]';
+    const tableHeader = `[tool.poe.tasks.${taskName}]`;
+    const tableHeaderQuoted = `[tool.poe.tasks."${taskName}"]`;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
+
+      // Direct table match before section scoping so subtable headers are found.
+      if (line === tableHeader || line === tableHeaderQuoted) {
+        return i;
+      }
 
       // Check if we're entering the [tool.poe.tasks] section
       if (line === sectionHeader) {
@@ -147,20 +154,15 @@ export class PoeTaskProvider extends TomlTaskProvider {
         continue;
       }
 
-      // Check if we've left the section (new section starts)
-      if (inSection && line.startsWith('[') && line.endsWith(']')) {
+      // Check if we've left the section (new top-level section starts)
+      if (inSection && line.startsWith('[') && line.endsWith(']') && !line.startsWith('[tool.poe.tasks')) {
         break;
       }
 
       // Look for the task name in the section
-      // Handle both simple tasks (task = "cmd") and table tasks ([tool.poe.tasks.taskname])
+      // Handle both simple tasks (task = "cmd") and dotted keys (task.script = ...)
       if (inSection && (line.startsWith(`${taskName} =`) || line.startsWith(`${taskName}.`))) {
-        return i + 1; // 1-based line number
-      }
-
-      // Also check for table syntax: [tool.poe.tasks.taskname]
-      if (line === `[tool.poe.tasks.${taskName}]` || line === `[tool.poe.tasks."${taskName}"]`) {
-        return i + 1; // 1-based line number
+        return i;
       }
     }
 

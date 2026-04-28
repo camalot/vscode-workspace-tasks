@@ -31,7 +31,7 @@ nav_order: 4
 | --- | --- | --- |
 | **Shell Scripts** | `**/*.{sh,bash,zsh,fish,ps1,bat,cmd}` | Executable scripts |
 | **Extensionless Shell Scripts** | *(no extension)* | Shebang + executable bit required; [opt-in only](../configuration/task-discovery/discovery#extensionless-shell-scripts) |
-| **[Jupyter Notebook](https://jupyter.org/)** | `**/*.ipynb` | Notebook cells (requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
+| **[Jupyter Notebook](https://jupyter.org/)** | `**/*.ipynb` | Notebook cells (discovery works without extension; execution requires [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)) |
 | **Visual Studio Code Tasks** | `**/.vscode/tasks.json`, user-level `tasks.json` | Native VS Code tasks |
 | **Workspace Tasks** | `.workspace-tasks.json` | [Custom task templates](../features/custom-workspace-tasks) |
 
@@ -39,16 +39,50 @@ nav_order: 4
 
 ## Jupyter Notebook Details
 
-- **Requirements:** The [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed and a Jupyter Server must be configured
+- **Discovery:** Notebook tasks are discovered from `*.ipynb` files even if the Jupyter extension is not currently available
+- **Requirements for execution:** The [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed and a Jupyter Server must be configured
 - Notebooks appear as **parent tasks** with individual code cells as **child tasks**
 - Click a task to open the notebook in VS Code's notebook editor
 - Execute individual cells or entire notebooks
 - Real-time cell execution status via the Jupyter Extension UI
 
+{: .note }
+>
+> - Inline CodeLens actions are not supported for `.ipynb` notebook documents
+> - Notebook editor title action buttons from this extension are not supported for `.ipynb` files
+
+---
+
+## Guided Argument Input for Scripts
+
+Python (`.py`), PowerShell (`.ps1`), and Node.js (`.js`/`.mjs`/`.cjs`) scripts support
+**guided argument input** — instead of
+typing a raw argument string, the extension parses the script's parameter declarations and
+presents each parameter as an individual prompt (input box, QuickPick for choices, Yes/No for
+flags, etc.).
+
+Enable it in your `settings.json`:
+
+```json
+"workspaceTasks.task.guidedArgInput": true
+```
+
+See the per-language pages for full details:
+
+- [🐍 Python Scripts — Guided Argument Input](python) — `argparse` support, all `action` and
+  `nargs` types
+- [🐚 PowerShell Scripts — Guided Argument Input](pwsh) — `param()` block, `[ValidateSet]`,
+  `[switch]`, `[Mandatory]`
+- [🟢 Node.js Scripts — Guided Argument Input](node) — `argparse` and `parseArgs`
+  (`node:util`, `@pkgjs/parseargs` polyfill)
+
 ---
 
 ## Next Steps
 
+- [🐍 Python Scripts — Guided Argument Input](python)
+- [🐚 PowerShell Scripts — Guided Argument Input](pwsh)
+- [🟢 Node.js Scripts — Guided Argument Input](node)
 - [Package Managers & Build Tools](package-managers) — npm, Yarn, pnpm, Bun, Composer, and more
 - [Task Runners](task-runners) — Gulp, Grunt, Cargo, Just, Make, mise
 - [DevOps & Containers](devops) — Docker, Docker Compose, GitHub Actions

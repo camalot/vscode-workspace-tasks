@@ -21,8 +21,10 @@ nav_order: 1
 
 ### workspaceTasks.groups.enabled
 
-**Type:** `boolean`
-**Default:** `true`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
 
 When enabled, tasks in the tree view are grouped by task type (e.g. npm, shell, vscode). When disabled, all tasks from all providers appear in a flat list.
 
@@ -40,8 +42,10 @@ When enabled, tasks in the tree view are grouped by task type (e.g. npm, shell, 
 
 ### workspaceTasks.groups.useParentFolder
 
-**Type:** `boolean`
-**Default:** `false`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
 
 When enabled, tasks are additionally sub-grouped by the folder that contains their source file, giving a workspace-folder > task-type > folder > task hierarchy. When disabled, tasks are grouped at workspace-folder > task-type > task level.
 
@@ -59,8 +63,10 @@ When enabled, tasks are additionally sub-grouped by the folder that contains the
 
 ### workspaceTasks.groups.taskSeparator
 
-**Type:** `string`
-**Default:** `""`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `""` |
 
 A string that is inserted between the task-type group label and the task name when rendering tree items. Leave empty for no separator.
 
@@ -78,8 +84,10 @@ A string that is inserted between the task-type group label and the task name wh
 
 ### workspaceTasks.groups.recentTasks.enabled
 
-**Type:** `boolean`
-**Default:** `false`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
 
 When enabled, a **Recent Tasks** group is shown at the top of the task tree, surfacing the most recently executed tasks for quick access.
 
@@ -97,8 +105,10 @@ When enabled, a **Recent Tasks** group is shown at the top of the task tree, sur
 
 ### workspaceTasks.groups.compoundTasks.enabled
 
-**Type:** `boolean`
-**Default:** `false`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
 
 When enabled, a **Compound Tasks** group is shown at the top of the task tree, listing all defined compound task sequences for quick access. Has no effect if compound tasks are not configured.
 
@@ -114,8 +124,10 @@ When enabled, a **Compound Tasks** group is shown at the top of the task tree, l
 
 ### workspaceTasks.groups.justfile.enabled
 
-**Type:** `boolean`
-**Default:** `false`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
 
 When enabled, justfile recipes that carry a `[group('name')]` attribute are shown as
 collapsible group nodes in the task tree rather than as a flat list. Recipes without
@@ -173,8 +185,10 @@ justfile
 
 ### workspaceTasks.groups.expanded
 
-**Type:** `object`
-**Default:** `{ "favorites": true, "compoundTask": true, "recent": true }`
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | `{ "favorites": true, "compoundTask": true, "recent": true }` |
 
 Controls which special group headers are **expanded** by default when the task tree loads. Each property corresponds to one of the pinned groups at the top of the tree. Set a key to `false` to start that group collapsed.
 

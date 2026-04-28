@@ -2,13 +2,22 @@
 
 <!-- markdownlint-disable-file MD033 -->
 
-[![package_json version](https://img.shields.io/github/package-json/v/camalot/vscode-workspace-tasks.svg?logo=github)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks) [![Codecov](https://img.shields.io/codecov/c/github/camalot/vscode-workspace-tasks)](https://app.codecov.io/gh/camalot/vscode-workspace-tasks/tree/develop)
+[![VS Code Marketplace Version](https://vsmarketplacebadges.dev/version-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=VERSION)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![VS Code Marketplace Rating](https://vsmarketplacebadges.dev/rating-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=RATING)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![VS Code Marketplace Downloads](https://vsmarketplacebadges.dev/downloads-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=DOWNLOADS)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+[![VS Code Marketplace Installs](https://vsmarketplacebadges.dev/installs-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=INSTALLS)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
+
+[![Open VSX Version](https://img.shields.io/open-vsx/v/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=VERSION)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+[![Open VSX Rating](https://img.shields.io/open-vsx/rating/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=RATING)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=DOWNLOADS)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+[![Open VSX Release Date](https://img.shields.io/open-vsx/release-date/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=RELEASE%20DATE)](https://open-vsx.org/extension/darthminos/workspace-tasks)
+
+[![Codecov](https://img.shields.io/codecov/c/github/camalot/vscode-workspace-tasks?style=for-the-badge&label=COVERAGE&logo=codecov&logoColor=white)](https://app.codecov.io/gh/camalot/vscode-workspace-tasks/tree/develop)
+[![GitHub Build](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fci.yml?style=for-the-badge&logo=github&label=BUILD)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fjekyll-gh-pages.yml?style=for-the-badge&logo=github&label=DOCS)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/jekyll-gh-pages.yml)
+[![Issues](https://img.shields.io/github/issues/camalot/vscode-workspace-tasks?style=for-the-badge&logo=github&color=%2313773d)](https://github.com/camalot/vscode-workspace-tasks/issues)
 
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and queues—all from a single, intuitive interface.
-
----
-
-**v1.6.0** 98.5% performance improvement of task discovery in large workspaces.
 
 ---
 
@@ -26,8 +35,8 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 <a id="screenshots"></a>
 
-![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png) <!--![Workspace-Tasks Sidebar Expanded](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-expanded.png)--> ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
- ![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif)![Workspace-Tasks Load v1.6.0](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-load-v1.6.0.gif)
+![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png) ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png)
+ ![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif)![Workspace-Tasks Load v1.6.0](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-load-v1.6.0.gif)  ![CodeLens](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/codelens-actions.png)
 
 ## ✨ Key Features
 
@@ -37,9 +46,12 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **📍 Flexible Placement** - View tasks in the dedicated sidebar or as a dockable panel in the Explorer
 - **[⭐ Favorites ↗](https://camalot.github.io/vscode-workspace-tasks/features/favorites.html)** - Pin frequently used tasks for instant access
 - **[🌱 Recent Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/recents.html)** - Tracks the most recently executed tasks
-- **[📋 Multiple Compound Tasks (Queues) ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)** - Create and manage named sequences of tasks with sequential or parallel execution
+- **[📋 Multiple Compound Tasks ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-queues.html)** - Create and manage named sequences of tasks with sequential or parallel execution
 - **▶️ Quick Execution** - Double-click tasks to run instantly, or use the play icon (▶️)
-- **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task
+- **⚡ Fast Performance** — Optimized for large workspaces with caching and incremental updates
+- **[📄 Editor Title Bar Buttons ↗](https://camalot.github.io/vscode-workspace-tasks/features/editor-title-run-buttons.html)** - Run shell scripts and GitHub Actions workflows directly from the editor title bar without switching to the task tree
+- **[🔍 Inline CodeLens Actions ↗](https://camalot.github.io/vscode-workspace-tasks/features/codelens.html)** - Run, favorite, queue, and hide tasks directly from inline CodeLens lenses above each task definition in its source file
+- **⏹️ Smarter Stop Controls** - Stop tasks gracefully with a configurable delay, or force kill after the timeout; Compound Tasks have an option to stop all child tasks together or individually
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
 - **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
 - **[🎭 GitHub Actions Support ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/github-actions.html)** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
@@ -54,7 +66,9 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 - **[🛡️ Run Guard ↗](https://camalot.github.io/vscode-workspace-tasks/features/run-guard.html)** - Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern
 - **[🕜 Estimated Task Duration ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-duration-estimates.html)** - View estimated duration for tasks based on historical execution data
+- **[🤖 Language Model Tools ↗](https://camalot.github.io/vscode-workspace-tasks/features/lm-tool.html)** - Use `#wTasks` and `#runWTask` in GitHub Copilot chat to discover and run tasks without leaving the chat interface
 - **🔒 Workspace Trust** - Respects [VS Code Workspace Trust](https://code.visualstudio.com/docs/editor/workspace-trust): no tasks are discovered or displayed in untrusted workspaces
+- **[👉 Guided Arguments ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/scripts/#guided-argument-input-for-scripts)** - Arguments for supported `shell script` types are discovered and prompted as defined inputs when `Run with Args`.
 
 ## 📥 Installation
 
@@ -195,13 +209,16 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 
 - **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`; extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
 - **[Jupyter Notebook](https://jupyter.org/)** - Execute notebook cells from `*.ipynb` files
-  - **Requirements:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
+  - **Discovery:** Notebook tasks are discovered from `*.ipynb` files even if the Jupyter extension is not currently available
+  - **Requirements for execution:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
   - **Setup:** Configure a Jupyter Server through the Jupyter extension
   - **Features:**
     - Notebooks appear as parent tasks with code cells as children
     - Click to open notebook in Visual Studio Code's notebook editor
     - Execute individual cells or entire notebooks
     - Real-time cell execution status via the Jupyter Extension UI
+    - Inline CodeLens actions are not supported for `.ipynb` notebook documents
+    - Notebook editor title action buttons from this extension are not supported for `.ipynb` files
 - **Visual Studio Code Tasks** - Tasks from `.vscode/tasks.json` and the user-level `tasks.json` (`%APPDATA%\Code\User\tasks.json` on Windows, `~/.config/Code/User/tasks.json` on Linux, `~/Library/Application Support/Code/User/tasks.json` on macOS)
 - **Workspace Tasks** - Custom tasks from `.workspace-tasks.json`
   - Supports positional run-time args via `${args}` in `command`

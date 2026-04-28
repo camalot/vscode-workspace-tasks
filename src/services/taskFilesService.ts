@@ -71,6 +71,8 @@ export class TaskFilesService {
   private configWatcher?: vscode.Disposable;
   private fileWatcher?: vscode.Disposable;
   private fileEventsWatcher?: vscode.Disposable;
+  private _saveDebounceTimer?: ReturnType<typeof setTimeout>;
+  private _pendingProviderTypes: Set<string> = new Set();
   private context?: vscode.ExtensionContext;
   private logger = LoggerService.getInstance();
   private registeredPatterns: Set<string> = new Set();
@@ -470,18 +472,36 @@ export class TaskFilesService {
   }
 
   public dispose(): void {
+    clearTimeout(this._saveDebounceTimer);
+    this._saveDebounceTimer = undefined;
+    this._pendingProviderTypes.clear();
     this.configWatcher?.dispose();
     this.configWatcher = undefined;
     this.fileWatcher?.dispose();
     this.fileWatcher = undefined;
     this.fileEventsWatcher?.dispose();
     this.fileEventsWatcher = undefined;
+    this.registeredPatterns.clear();
+    this.cachedPaths = null;
+    this.cacheInvalidated = true;
+    this.buildCacheInFlight = null;
+    this.cacheGeneration = 0;
+    this.initialScanFired = false;
+    this.ignoreFiles = [];
+    this.globalIgnore = ignore();
+    this.ignoreList = [];
+    this.lastExcludes = [];
   }
 
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.context = context;
     this.globalIgnore = ignore();
     this.ignoreFiles = [];
+    this.ignoreList = [];
+    this.lastExcludes = [];
+    clearTimeout(this._saveDebounceTimer);
+    this._saveDebounceTimer = undefined;
+    this._pendingProviderTypes.clear();
 
     // Add patterns from extension configuration (workspaceTasks.exclude)
     try {
@@ -585,12 +605,45 @@ export class TaskFilesService {
         }
       }),
       vscode.workspace.onDidSaveTextDocument((document) => {
-        if (!this.isTaskfileUri(document.uri)) {
+        const uri = document.uri;
+
+        // Only process real on-disk files
+        if (uri.scheme !== 'file') {
           return;
         }
-        TaskCacheService.getInstance().refreshProvider('taskfile').catch((e) => {
-          this.logger.error('[TaskFilesService] Failed to refresh taskfile provider after Taskfile save', e);
-        });
+
+        // Taskfile-specific hot-reload (preserve existing targeted behavior)
+        if (this.isTaskfileUri(uri)) {
+          TaskCacheService.getInstance().refreshProvider('taskfile').catch((e) => {
+            this.logger.error('[TaskFilesService] Failed to refresh taskfile provider after Taskfile save', e);
+          });
+          return; // early return prevents double-trigger via general handler below
+        }
+
+        // General: debounced targeted refresh for the providers that own the saved file.
+        // Saving a file does not change which files exist, so the file-path cache does
+        // not need to be invalidated — only the affected providers need to re-read
+        // their tasks from the updated file content.
+        if (this.anyFileMatchesRegisteredPatterns([uri])) {
+          const matchingTypes = this.getProviderTypesForUri(uri);
+          if (matchingTypes.length > 0) {
+            this.logger.debug(`[TaskFilesService] Task file saved, scheduling provider refresh for [${matchingTypes.join(', ')}]: ${uri.fsPath}`);
+            for (const type of matchingTypes) {
+              this._pendingProviderTypes.add(type);
+            }
+            clearTimeout(this._saveDebounceTimer);
+            this._saveDebounceTimer = setTimeout(() => {
+              const types = Array.from(this._pendingProviderTypes);
+              this._pendingProviderTypes.clear();
+              this.logger.debug(`[TaskFilesService] Executing debounced provider refresh after save: [${types.join(', ')}]`);
+              for (const type of types) {
+                TaskCacheService.getInstance().refreshProvider(type).catch((e) => {
+                  this.logger.error(`[TaskFilesService] Failed to refresh provider ${type} after save`, e);
+                });
+              }
+            }, 300);
+          }
+        }
       }),
     );
 
@@ -645,6 +698,29 @@ export class TaskFilesService {
       const normalized = uri.fsPath.replace(/\\/g, '/');
       return micromatch.isMatch(normalized, patterns, { dot: true });
     });
+  }
+
+  /**
+   * Returns the provider `type` strings for every registered provider whose
+   * file patterns match the given URI.  Used by the save-event handler to
+   * determine which providers need to be refreshed when a task file is saved.
+   */
+  private getProviderTypesForUri(uri: vscode.Uri): string[] {
+    const providers = TaskCacheService.getInstance().getProviders();
+    const normalized = uri.fsPath.replace(/\\/g, '/');
+    const types: string[] = [];
+    for (const provider of providers) {
+      if (!provider.getFilePatterns) { continue; }
+      const patterns = provider.getFilePatterns();
+      if (patterns.length === 0) { continue; }
+      if (micromatch.isMatch(normalized, patterns, { dot: true })) {
+        const type = (provider as any).type as string | undefined;
+        if (type && !types.includes(type)) {
+          types.push(type);
+        }
+      }
+    }
+    return types;
   }
 
   private isTaskfileUri(uri: vscode.Uri): boolean {

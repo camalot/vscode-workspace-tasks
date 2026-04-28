@@ -12,11 +12,36 @@ export class CargoMakeTaskProvider extends TomlTaskProvider {
   }
 
   protected getGlobPatterns(): string[] {
-    return [constants.GLOB_CARGO_MAKE];
+    // Accept both legacy comma-delimited constant values and explicit glob arrays.
+    // cargo-make can use arbitrary *.toml files as task definitions.
+    const patterns = constants.GLOB_CARGO_MAKE
+      .split(',')
+      .map((p: string) => p.trim())
+      .filter((p: string) => p.length > 0);
+
+    if (!patterns.includes('**/*.toml')) {
+      patterns.push('**/*.toml');
+    }
+
+    return patterns.length > 0 ? patterns : ['**/*.toml'];
   }
 
   protected getScriptsPath(): string[] {
     return ['tasks'];
+  }
+
+  protected override findScriptLine(content: string, taskName: string): number {
+    const lines = content.split('\n');
+    const escaped = taskName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`^\\s*\\[tasks\\.(?:"${escaped}"|'${escaped}'|${escaped})\\]`, 'i');
+
+    for (let i = 0; i < lines.length; i++) {
+      if (pattern.test(lines[i])) {
+        return i;
+      }
+    }
+
+    return 0;
   }
 
   get enabled(): boolean {

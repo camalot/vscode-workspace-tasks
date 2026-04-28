@@ -40,6 +40,21 @@ Right-click any task and select **Run Task** from the context menu.
 
 Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Workspace Tasks: Run Task**.
 
+### Editor Title Bar
+
+When a file with one or more registered tasks is open in the editor, **Run** (`▶`) and
+**Run with Arguments** (`▷`) buttons appear in the editor title bar. This works for **all
+discovered task file types** — shell scripts, GitHub Actions workflows, `package.json`,
+`Makefile`, `Taskfile.yml`, and any other file type the extension recognises.
+
+- **Single task** — the task runs immediately without a prompt.
+- **Multiple tasks** — a QuickPick appears listing all runnable, non-hidden tasks for
+  that file. The placeholder shows the filename (e.g. *Select a task to run from
+  package.json*) so you always know which file the tasks belong to.
+
+Hidden tasks are excluded from the QuickPick and do not count toward the button appearing.
+See [Editor Title Bar Buttons](editor-title-run-buttons) for full details.
+
 ---
 
 ## Running a Task with Arguments
@@ -60,6 +75,13 @@ For most tasks, arguments are appended to the command when it executes. For cust
 commands that include `${args}`, the typed value is injected at that exact position (and for every
 `${args}` occurrence).
 
+{: .note }
+**Security — arguments are passed as separate tokens, not shell code.** Each argument you type is
+passed to the shell as a discrete quoted value. Shell metacharacters such as `;`, `&&`, `|`, and
+`$(...)` typed in the argument box are treated as **literal strings**, not as shell operators. For
+example, typing `; rm -rf /` simply passes `;`, `rm`, `-rf`, and `/` as individual command
+arguments — they are never executed as shell commands.
+
 Example:
 
 ```json
@@ -79,8 +101,61 @@ docker run --rm -it ghcr.io/example/app:latest
 If `${args}` is not present, the value is appended to the end (backward-compatible behavior).
 Pressing Escape without entering anything cancels the operation.
 
+### `${args}` placeholder — embedded use
+
+You can use `${args}` as a **standalone token** in the command string (as shown above), or as an
+**embedded substring** inside an argument value:
+
+```json
+{ "command": "my-tool --name=${args} --output=./dist" }
+```
+
+When `${args}` appears embedded inside a token (e.g. `--name=${args}`), the entire user-supplied
+value is treated as a single argument. Spaces in the user's input are kept as part of that
+argument rather than splitting into multiple tokens.
+
+{: .warning }
+**Breaking change for commands with shell operators in the base command string.** Commands that
+use shell operators (`&&`, `||`, `|`, `;`) directly in the `command` field of a workspace task
+are now treated as **literal argument tokens**, not as shell control operators. For example, a
+command like `"npm run build && npm run test"` will no longer chain two commands — it will pass
+`&&` as a literal argument to `npm`. To chain commands, use VSCode's
+[compound tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks)
+(`dependsOn`) or a wrapper shell script instead.
+
 {: .note }
 The `workspaceTasks.task.doubleClickAction` or `workspaceTasks.task.singleClickAction` settings can be set to `runWithArgs` to make clicking a task always prompt for arguments.
+
+---
+
+### Guided Argument Input
+
+For **Python** (`.py`) and **PowerShell** (`.ps1`) scripts, the extension can parse the script's
+parameter declarations and present each parameter as a dedicated prompt instead of a single raw
+text input. Enable this feature via:
+
+```json
+"workspaceTasks.task.guidedArgInput": true
+```
+
+When enabled, running a supported script with **Run with Args** shows:
+
+- A **QuickPick** for parameters with a fixed set of choices (`choices=[...]` / `[ValidateSet]`)
+- A **Yes / No QuickPick** for boolean flags (`action='store_true'` / `[switch]`)
+- A **loop of input boxes** for multi-value parameters (`nargs`, `action='append'`)
+- A standard **input box** for everything else
+- A final **additional arguments** prompt that accepts one `--flag=value` entry at a time; submit an empty value to finish
+
+If the extension cannot detect parameters (e.g. no `import argparse`, untrusted workspace), it
+falls back to the additional-arguments free-form prompt automatically.
+
+{: .note }
+`guidedArgInput` defaults to `true`. If disabled, script tasks use the additional-arguments free-form prompt. This setting does not affect non-script tasks.
+
+See the detailed per-language guides:
+
+- [🐍 Python Scripts — Guided Argument Input](../task-types/scripts/python)
+- [🐚 PowerShell Scripts — Guided Argument Input](../task-types/scripts/pwsh)
 
 ---
 
@@ -143,20 +218,20 @@ See [Favorites](favorites) for more details on managing and configuring favorite
 
 ---
 
-## Adding a Task to a Compound Task (Queue)
+## Adding a Task to a Compound Task
 
-Compound Tasks (Queues) let you run multiple tasks in sequence.
+Compound Tasks let you run multiple tasks in sequence.
 
 1. **Hover** over the task to reveal the action bar
 2. Click the **compound task icon** (`$(list-unordered)`) in the action bar
 
    — or —
 
-   **Right-click** the task and select **Add to Compound Task (Queue)**
+   **Right-click** the task and select **Add to Compound Task**
 
 3. If no compound tasks exist, you are prompted to enter a name for a new compound task
-4. If compound tasks already exist, select an existing compound task from the list or choose **New Compound Task (Queue)...** to create one
+4. If compound tasks already exist, select an existing compound task from the list or choose **New Compound Task...** to create one
 
-The task is added to the selected compound task group and appears in the **Compound Tasks (Queues)** section of the task tree.
+The task is added to the selected compound task group and appears in the **Compound Tasks** section of the task tree.
 
-See [Compound Tasks (Queues)](task-queues) for details on running, reordering, and managing compound tasks.
+See [Compound Tasks](task-queues) for details on running, reordering, and managing compound tasks.

@@ -21,8 +21,11 @@ nav_order: 2
 
 ### workspaceTasks.applicationPath.ant
 
-**Type:** `string`
-**Default:** `"ant"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"ant"` |
+| **Scope:** | `resource` |
 
 Path to the Ant executable. On Windows, `.bat` is appended automatically when the path ends with `ant`.
 
@@ -40,8 +43,11 @@ Path to the Ant executable. On Windows, `.bat` is appended automatically when th
 
 ### workspaceTasks.ant.ansicon.enabled
 
-**Type:** `boolean`
-**Default:** `true`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
+| **Scope:** | `resource` |
 
 When `true`, ANSICON is used to provide colored output for Ant tasks in the Windows terminal. Requires the ANSICON executable to be available — see [`workspaceTasks.applicationPath.ansicon`](../index#workspacetasksapplicationpathansicon).
 

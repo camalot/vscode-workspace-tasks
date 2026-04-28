@@ -57,7 +57,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 ## Statistics View
 
 {: .new }
-> **New in v1.7.0**
+> **v1.7.0**
 > Task Statistics View — aggregated per-task
 
 The Statistics View provides aggregated per-task execution metrics, giving you a quick overview of how each task is performing over time.
@@ -109,7 +109,7 @@ See the [Metrics Configuration](../configuration/metrics) page for all available
 ## Dashboard Tab
 
 {: .new }
-> **New in v1.7.0**
+> **v1.7.0**
 > Task Dashboard — aggregated workspace-wide view of task execution health with interactive charts.
 
 The Dashboard tab provides an at-a-glance, workspace-wide view of task execution health using interactive charts powered by [Chart.js](https://www.chartjs.org/). All charts automatically adapt to your active VS Code color theme.
@@ -165,7 +165,7 @@ The Dashboard requires at least one completed task execution before any charts a
 
 ## Next Steps
 
-- [Compound Tasks (Queues)](task-queues) — Run sequences of tasks
+- [Compound Tasks](task-queues) — Run sequences of tasks
 - [Configuration](../configuration) — Full settings reference
 - [Metrics Configuration](../configuration/metrics) — Configure metrics scope, sample size, and retention
 
@@ -174,7 +174,7 @@ The Dashboard requires at least one completed task execution before any charts a
 ## Persistence
 
 {: .new }
-> **New in v1.9.0**
+> **v1.9.0**
 > Task History is now persisted across VS Code restarts.
 
 Task History now survives VS Code restarts. Every time a task reaches a terminal state (Success,
@@ -204,7 +204,7 @@ Two settings control persistence behavior:
 The NDJSON file contains local execution history and should not be committed to source control.
 Add the following line to your `.gitignore`:
 
-```
+```text
 .vscode/task-history.ndjson
 ```
 

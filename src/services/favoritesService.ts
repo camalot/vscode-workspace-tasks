@@ -9,6 +9,9 @@ export class FavoritesService {
   private readonly STORAGE_KEY = 'favorites';
   private readonly taskStateManager = TaskStateManager.getInstance();
 
+  private readonly _onDidChangeFavorites = new vscode.EventEmitter<void>();
+  public readonly onDidChangeFavorites = this._onDidChangeFavorites.event;
+
   private constructor() {}
 
   public static getInstance(): FavoritesService {
@@ -115,5 +118,10 @@ export class FavoritesService {
 
   private save() {
     this.context?.workspaceState.update(this.STORAGE_KEY, Array.from(this.favorites));
+    this._onDidChangeFavorites.fire();
+  }
+
+  public dispose(): void {
+    this._onDidChangeFavorites.dispose();
   }
 }

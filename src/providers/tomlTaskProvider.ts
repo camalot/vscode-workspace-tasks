@@ -127,7 +127,7 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
     return result;
   }
 
-  private findScriptLine(content: string, scriptName: string): number {
+  protected findScriptLine(content: string, scriptName: string): number {
     // Naive implementation: find "scriptName =" or "[scriptName]" if it was table
     // Since TOML format varies, strictly matching `key =` is decent heuristic for config files
     // We can improve this if needed by parsing tokens but smol-toml doesn't expose location info easily

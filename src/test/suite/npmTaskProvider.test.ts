@@ -258,5 +258,64 @@ suite('BunTaskProvider Test Suite', () => {
       const tasks = await provider.getSystemTasks();
       assert.deepStrictEqual(tasks, [], 'Should return empty array on fetchTasks error');
     });
+
+    // ──────────────────────────────────────────────────────────────
+    // N01-N03: startLine sentinel fix — undefined instead of 0
+    // ──────────────────────────────────────────────────────────────
+
+    test('N01 - Bun task has startLine set when script is found in package.json', async () => {
+      const mockTask = {
+        name: 'build',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'bun' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockTask];
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => JSON.stringify({ scripts: { build: 'bun build' } }),
+      });
+
+      const tasks = await provider.getSystemTasks();
+      const task = tasks.find(t => t.label === 'build');
+      assert.ok(task, 'Should find task');
+      assert.notStrictEqual(task!.startLine, undefined, 'startLine should be set when script found');
+    });
+
+    test('N02 - Bun task has undefined startLine when package.json content cannot be fetched', async () => {
+      const mockTask = {
+        name: 'build',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'bun' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockTask];
+      (vscode.workspace as any).openTextDocument = async () => { throw new Error('no file'); };
+
+      const tasks = await provider.getSystemTasks();
+      const task = tasks.find(t => t.label === 'build');
+      assert.ok(task, 'Should still create a task item even if file read fails');
+      assert.strictEqual(task!.startLine, undefined, 'startLine should be undefined, not 0');
+    });
+
+    test('N03 - Bun task has undefined startLine when script not in package.json scripts block', async () => {
+      const mockTask = {
+        name: 'lint',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'bun' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockTask];
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => JSON.stringify({ scripts: { build: 'bun build' } }),
+      });
+
+      const tasks = await provider.getSystemTasks();
+      const task = tasks.find(t => t.label === 'lint');
+      assert.ok(task, 'Should create task item even when script is not in JSON scripts');
+      assert.strictEqual(task!.startLine, undefined, 'startLine should be undefined (not 0) when script not found in file');
+    });
   });
 });

@@ -45,8 +45,10 @@ suite('Glob Pattern Constants Test Suite', () => {
       matches: [
         'repo/Makefile.toml',
         'repo/makefile.toml',
+        'repo/custom.toml',
+        'repo/Cargo.toml',
       ],
-      nonMatches: ['repo/README.md', 'repo/Makefile', 'repo/file.toml.md', 'repo/MakeFile.toml', 'repo/Makefile.local.toml', 'repo/Cargo.toml', 'repo/custom.toml'],
+      nonMatches: ['repo/README.md', 'repo/Makefile', 'repo/file.toml.md'],
     },
     {
       name: 'GLOB_DENO',

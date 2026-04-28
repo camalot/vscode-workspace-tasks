@@ -619,7 +619,7 @@ An object controlling which inline buttons appear when hovering over a task row.
   "runWithArgs": true,// Run with arguments
   "openFile": true,   // Open source file
   "favorite": true,   // Add to / remove from Favorites
-  "queue": true,      // Add to Compound Task (Queue)
+  "queue": true,      // Add to Compound Task
   "hide": false,      // Hide this task
   "unhide": true      // Unhide a hidden task (visible in show-hidden mode)
 }
@@ -668,7 +668,7 @@ An object controlling which inline buttons appear when hovering over a task row.
   "runWithArgs": true,// Run with arguments
   "openFile": true,   // Open source file
   "favorite": true,   // Add to / remove from Favorites
-  "queue": true,      // Add to Compound Task (Queue)
+  "queue": true,      // Add to Compound Task
   "hide": false,      // Hide this task
   "unhide": true      // Unhide a hidden task (visible in show-hidden mode)
 }

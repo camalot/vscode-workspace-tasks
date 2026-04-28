@@ -383,4 +383,61 @@ suite('GitlabCiTaskProvider Test Suite', () => {
     const [parent] = provider.parseOutput(stdout, fileUri);
     assert.strictEqual(parent.children![0].collapsibleState, vscode.TreeItemCollapsibleState.None);
   });
+
+  // ──────────────────────────────────────────────────────────────
+  // GL01-GL04: findJobLineNumber
+  // ──────────────────────────────────────────────────────────────
+
+  test('GL01 - findJobLineNumber returns correct 0-based line index', () => {
+    const lines = [
+      'image: alpine',
+      '',
+      'build-job:',
+      '  stage: build',
+      '  script: make',
+    ];
+    assert.strictEqual(provider.findJobLineNumber(lines, 'build-job'), 2);
+  });
+
+  test('GL02 - findJobLineNumber returns undefined when job is not present', () => {
+    const lines = [
+      'build-job:',
+      '  stage: build',
+    ];
+    assert.strictEqual(provider.findJobLineNumber(lines, 'missing-job'), undefined);
+  });
+
+  test('GL03 - findJobLineNumber returns undefined for reserved keys', () => {
+    const lines = [
+      'image: alpine',
+      'variables:',
+      '  FOO: bar',
+    ];
+    // Reserved keys must not produce a line number even if they match the pattern
+    for (const key of ['image', 'services', 'stages', 'types', 'before_script',
+      'after_script', 'variables', 'cache', 'default', 'workflow', 'include']) {
+      assert.strictEqual(
+        provider.findJobLineNumber(lines, key),
+        undefined,
+        `Reserved key '${key}' should return undefined`,
+      );
+    }
+  });
+
+  test('GL04 - parseOutput children have startLine set when fileLines are provided', () => {
+    const fileUri = makeFileUri(tempDir);
+    const fileLines = [
+      'stages:',
+      '  - build',
+      '',
+      'npm-install:',
+      '  stage: build',
+    ];
+    const stdout = JSON.stringify([
+      { name: 'npm-install', stage: 'build', when: 'on_success', allow_failure: false, needs: [] },
+    ]);
+    const [parent] = provider.parseOutput(stdout, fileUri, undefined, fileLines);
+    const child = parent.children!.find((c) => c.label === 'npm-install');
+    assert.strictEqual(child?.startLine, 3);
+  });
 });

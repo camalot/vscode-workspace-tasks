@@ -423,6 +423,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
       iconPath || vscode.ThemeIcon.File,
     );
 
+    item.startLine = 0;
     item.description = vscode.workspace.asRelativePath(resourceUri);
     // Store interpreter info for TaskFactory
     item.metadata = {

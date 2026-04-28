@@ -21,9 +21,12 @@ nav_order: 2
 
 ### workspaceTasks.compoundTasks.defaultExecutionType
 
-**Type:** `string`
-**Default:** `"sequential"`
-**Options:** `"sequential"`, `"parallel"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"sequential"` |
+| **Options:** | `"sequential"`, `"parallel"` |
+| **Scope:** | `application` |
 
 The default execution mode for new compound tasks (queues).
 
@@ -44,8 +47,11 @@ This value is used when a compound task is created without an explicit execution
 
 ### workspaceTasks.compoundTasks.includeVsCodeCompoundTasks
 
-**Type:** `boolean`
-**Default:** `false`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
+| **Scope:** | `application` |
 
 When `true`, compound tasks defined in the workspace's `.vscode/tasks.json` file (tasks that use `dependsOn`) are also shown in the Compound Tasks tree. When `false`, only compound tasks managed by this extension are shown.
 
@@ -61,5 +67,5 @@ When `true`, compound tasks defined in the workspace's `.vscode/tasks.json` file
 
 ## Related
 
-- [Compound Tasks (Queues)](../../features/task-queues)
+- [Compound Tasks](../../features/task-queues)
 - [Running Tasks](../../features/running-tasks)

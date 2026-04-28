@@ -1,0 +1,48 @@
+---
+name: ONLY-TEST-CI
+
+on: # yamllint disable-line rule:truthy
+  workflow_dispatch:
+
+permissions: {}
+env:
+  ACT: ""
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      statuses: write
+      id-token: write
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run compile && npm run pretest
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnspr4 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 \
+          libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
+
+      - name: Test
+        run: xvfb-run -a npx vscode-test #-- \
+        # --run ./out/test/suite/taskFilesService.test.js \
+        # --run ./out/test/suite/poetry.test.js \
+        # --run ./out/test/suite/taskTreeDataProvider.test.js

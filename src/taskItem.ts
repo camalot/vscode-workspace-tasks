@@ -205,6 +205,10 @@ export class TaskItem extends vscode.TreeItem {
         this.contextValue = isFav ? 'favoriteCompoundTask' : 'compoundTask';
       } else if (this.taskType === 'compoundTasks') {
         this.contextValue = 'compoundTasks';
+      } else if (this.taskType === 'secrets') {
+        // Use a namespaced contextValue to avoid clashing with other extensions
+        // (e.g. github.vscode-github-actions uses viewItem == 'secrets').
+        this.contextValue = 'wtSecrets';
       } else {
         this.contextValue = this.taskType;
       }

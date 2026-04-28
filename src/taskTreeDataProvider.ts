@@ -1259,7 +1259,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
       );
       secretsGroup.id = secretsGroupId;
       secretsGroup.iconPath = new vscode.ThemeIcon('key');
-      secretsGroup.contextValue = 'secrets';
+      secretsGroup.contextValue = 'wtSecrets';
       secretsGroup.tooltip = secretKeys.length > 0
         ? 'Secrets stored in VS Code SecretStorage'
         : 'No secrets stored. Use "Workspace Tasks: Store Secret" to add one.';
@@ -1540,7 +1540,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
     if (type === 'compoundTask' || type === 'compoundTasks') {
-      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
+      return (expandedGroups.compoundTask ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
@@ -1574,7 +1574,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         : vscode.TreeItemCollapsibleState.Collapsed;
     }
     if (rootType === 'compoundTask' || rootType === 'compoundTasks') {
-      return (expandedGroups.compoundTask ?? expandedGroups.queue ?? true)
+      return (expandedGroups.compoundTask ?? true)
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
     }

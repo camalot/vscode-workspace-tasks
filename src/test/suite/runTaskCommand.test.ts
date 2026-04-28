@@ -249,7 +249,9 @@ suite('RunTaskCommand Test Suite', () => {
     };
 
     const originalInputBox = vscode.window.showInputBox;
-    (vscode.window as any).showInputBox = async () => 'some-arg';
+    const responses: Array<string | undefined> = ['some-arg', ''];
+    let i = 0;
+    (vscode.window as any).showInputBox = async () => responses[i++];
 
     try {
       const cmd = new RunTaskWithArgsCommand(context);
@@ -273,7 +275,9 @@ suite('RunTaskCommand Test Suite', () => {
     (TaskCacheService as any).instance = { getTask: () => undefined };
 
     const originalInputBox = vscode.window.showInputBox;
-    (vscode.window as any).showInputBox = async () => '--verbose';
+    const responses: Array<string | undefined> = ['--verbose', ''];
+    let i = 0;
+    (vscode.window as any).showInputBox = async () => responses[i++];
 
     try {
       const cmd = new RunTaskWithArgsCommand(context);
@@ -285,6 +289,55 @@ suite('RunTaskCommand Test Suite', () => {
       assert.strictEqual(runTaskCalls[0].args, '--verbose');
       assert.strictEqual(runTaskCalls[0].skipGuard, true,
         'runTask should be called with skipGuard=true to avoid double guard dialog');
+    } finally {
+      (vscode.window as any).showInputBox = originalInputBox;
+    }
+  });
+
+  test('RunTaskWithArgsCommand: multiple single-argument entries are joined', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+    (TaskCacheService as any).instance = { getTask: () => undefined };
+
+    const originalInputBox = vscode.window.showInputBox;
+    const responses: Array<string | undefined> = ['--foo=bar', '--verbose', ''];
+    let i = 0;
+    (vscode.window as any).showInputBox = async () => responses[i++];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      const item = makeTaskItem('build');
+      item.contextValue = 'task';
+      await cmd.run(item);
+
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].args, '--foo=bar --verbose');
+    } finally {
+      (vscode.window as any).showInputBox = originalInputBox;
+    }
+  });
+
+  test('RunTaskWithArgsCommand: escape after entering args cancels execution', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+    (TaskCacheService as any).instance = { getTask: () => undefined };
+
+    const originalInputBox = vscode.window.showInputBox;
+    const responses: Array<string | undefined> = ['--foo=bar', undefined];
+    let i = 0;
+    (vscode.window as any).showInputBox = async () => responses[i++];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      const item = makeTaskItem('build');
+      item.contextValue = 'task';
+      await cmd.run(item);
+
+      assert.strictEqual(runTaskCalls.length, 0, 'Task should not run when additional-args input is cancelled');
     } finally {
       (vscode.window as any).showInputBox = originalInputBox;
     }

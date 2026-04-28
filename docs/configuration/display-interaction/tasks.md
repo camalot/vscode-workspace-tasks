@@ -22,10 +22,12 @@ nav_order: 2
 ### workspaceTasks.tasks.sortingEnabled
 
 {: .new }
-v1.7.0: Added `workspaceTasks.tasks.sortingEnabled` setting to control whether tasks are sorted alphabetically or displayed in definition order.
+> **v1.7.0**: Added `workspaceTasks.tasks.sortingEnabled` setting to control whether tasks are sorted alphabetically or displayed in definition order.
 
-**Type:** `boolean`
-**Default:** `true`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
 
 Controls whether tasks are sorted alphabetically within their groups and type buckets. When enabled (the default), tasks are sorted alphabetically by label at every level of the tree. When disabled, tasks are displayed in the order they are defined in their source file (e.g. `package.json`, `Makefile`, `Taskfile.yml`) or discovered by the provider.
 
@@ -54,9 +56,11 @@ Disabling this setting is useful when the definition order carries semantic mean
 
 ### workspaceTasks.task.singleClickAction
 
-**Type:** `string`
-**Default:** `"open"`
-**Options:** `"run"`, `"runWithArgs"`, `"open"`, `"none"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"open"` |
+| **Options:** | `"run"`, `"runWithArgs"`, `"open"`, `"none"` |
 
 The action performed when a task item in the tree is single-clicked.
 
@@ -79,9 +83,11 @@ The action performed when a task item in the tree is single-clicked.
 
 ### workspaceTasks.task.doubleClickAction
 
-**Type:** `string`
-**Default:** `"run"`
-**Options:** `"run"`, `"runWithArgs"`, `"open"`, `"none"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"run"` |
+| **Options:** | `"run"`, `"runWithArgs"`, `"open"`, `"none"` |
 
 The action performed when a task item in the tree is double-clicked.
 
@@ -104,8 +110,10 @@ The action performed when a task item in the tree is double-clicked.
 
 ### workspaceTasks.task.statusResetDelay
 
-**Type:** `number`
-**Default:** `500`
+| | |
+| --- | --- |
+| **Type:** | `number` |
+| **Default:** | `500` |
 
 The time in milliseconds to display a task's completion status indicator (✔ or ✖) in the tree view before resetting it to the idle state. Set to `0` to keep the status until the next action.
 
@@ -123,9 +131,11 @@ The time in milliseconds to display a task's completion status indicator (✔ or
 
 ### workspaceTasks.task.iconType
 
-**Type:** `string`
-**Default:** `"type"`
-**Options:** `"type"`, `"file"`, `"gear"`, `"run"`, `"custom"`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"type"` |
+| **Options:** | `"type"`, `"file"`, `"gear"`, `"run"`, `"custom"` |
 
 The icon style to display next to each task in the tree view.
 
@@ -149,8 +159,10 @@ The icon style to display next to each task in the tree view.
 
 ### workspaceTasks.task.iconTypeCustom
 
-**Type:** `string`
-**Default:** `""`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `""` |
 
 A custom icon to display for tasks when `workspaceTasks.task.iconType` is set to `"custom"`. This can be:
 
@@ -183,8 +195,10 @@ A custom icon to display for tasks when `workspaceTasks.task.iconType` is set to
 
 ### workspaceTasks.task.actionBar
 
-**Type:** `object`
-**Default:**
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | see below |
 
 ```jsonc
 {
@@ -200,13 +214,16 @@ A custom icon to display for tasks when `workspaceTasks.task.iconType` is set to
 
 Controls which buttons are shown in the inline action bar for each task in the tree view.
 
+{: .note }
+> The `run` and `runWithArgs` flags also control the **editor title bar buttons** that appear when a shell script or GitHub Actions workflow file is open in the editor. See [Editor Title Bar Buttons](../../features/editor-title-run-buttons) for details.
+
 #### Properties
 
 - **run** - Run Task
 - **runWithArgs** - Run Task with Arguments
 - **openFile** - Open the task's source file
 - **favorite** - Add to / remove from Favorites
-- **queue** - Add to a Compound Task (Queue)
+- **queue** - Add to a Compound Task
 - **hide** - Hide the task
 - **unhide** - Unhide the task
 
@@ -232,9 +249,11 @@ Controls which buttons are shown in the inline action bar for each task in the t
 
 ### workspaceTasks.recentTasks.maxItems
 
-**Type:** `number`
-**Default:** `20`
-**Minimum:** `0`
+| | |
+| --- | --- |
+| **Type:** | `number` |
+| **Default:** | `20` |
+| **Minimum:** | `0` |
 
 The maximum number of recently executed tasks to track and display in the Recent Tasks group. Setting this to `0` effectively disables recent-task tracking.
 
@@ -250,9 +269,77 @@ The maximum number of recently executed tasks to track and display in the Recent
 
 ---
 
+### workspaceTasks.codeLens.enabled
+
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
+| **Scope:** | Window |
+
+When enabled, shows inline **CodeLens** action buttons directly above each task definition in its source file (e.g. `package.json`, `Taskfile.yml`, `.github/workflows/*.yml`).
+
+{: .note }
+> The individual buttons shown in each CodeLens row are controlled by [`workspaceTasks.codeLens.actionBar`](#workspacetaskscodelensactionbar). Set `codeLens.enabled` to `false` to remove all lenses entirely.
+
+**Example — disable CodeLens actions:**
+
+```json
+{
+  "workspaceTasks.codeLens.enabled": false
+}
+```
+
+---
+
+### workspaceTasks.codeLens.actionBar
+
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | see below |
+
+```jsonc
+{
+  "run": true,
+  "runWithArgs": true,
+  "favorite": true,
+  "queue": true
+}
+```
+
+Controls which buttons are shown in the inline codelens action bar for each task.
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Properties
+
+<!-- markdownlint-disable-next-line MD033 -->
+<a id="workspacetaskscodelensactionbarproperties"></a>
+
+- **run** - Run Task
+- **runWithArgs** - Run Task with Arguments
+- **favorite** - Add to / remove from Favorites
+- **queue** - Add to a Compound Task
+
+**Example:**
+
+```jsonc
+{
+  "workspaceTasks.codeLens.actionBar": {
+    "run": true,
+    "runWithArgs": false,
+    "favorite": true,
+    "queue": false
+  }
+}
+```
+
+---
+
 ## Related
 
 - [Favorites](../../features/favorites)
 - [Recent Tasks](../../features/recents)
 - [Hide Tasks](../../features/hide-tasks)
 - [Compound Tasks](../../features/task-queues)
+- [Inline CodeLens Actions](../../features/codelens)

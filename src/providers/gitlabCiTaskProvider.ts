@@ -68,7 +68,14 @@ export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvid
 
     try {
       const { stdout } = await execFileAsync(command, cmdArgs, { cwd, timeout: 15000 });
-      return this.parseOutput(stdout, file);
+      let fileLines: string[] | undefined;
+      try {
+        const doc = await vscode.workspace.openTextDocument(file);
+        fileLines = doc.getText().split(/\r?\n/);
+      } catch {
+        // If the file can't be opened for reading, startLine will be undefined
+      }
+      return this.parseOutput(stdout, file, undefined, fileLines);
     } catch (err: unknown) {
       LoggerService.getInstance().warn(
         `[gitlab-ci] Failed to list jobs in ${file.fsPath}: ${err instanceof Error ? err.message : String(err)}`,
@@ -77,11 +84,34 @@ export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvid
     }
   }
 
+  /** Known GitLab CI reserved top-level YAML keys that can never be job definition lines. */
+  private static readonly GITLAB_RESERVED_KEYS = new Set([
+    'image', 'services', 'stages', 'types', 'before_script', 'after_script',
+    'variables', 'cache', 'default', 'workflow', 'include',
+  ]);
+
+  /**
+   * Scans YAML file lines for the line index of a job definition at column 0.
+   * Returns `undefined` when the job name is a reserved key or is not found.
+   * Extracted for unit testing.
+   */
+  public findJobLineNumber(lines: string[], jobName: string): number | undefined {
+    if (GitlabCiTaskProvider.GITLAB_RESERVED_KEYS.has(jobName)) {
+      return undefined;
+    }
+    const escaped = jobName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`^${escaped}\\s*:`);
+    for (let i = 0; i < lines.length; i++) {
+      if (pattern.test(lines[i])) { return i; }
+    }
+    return undefined;
+  }
+
   /**
    * Parses the JSON array output of `gitlab-ci-local --list-json`.
    * Extracted as public for direct unit testing without spawning a process.
    */
-  public parseOutput(stdout: string, fileUri: vscode.Uri, iconService?: TaskIconService): TaskItem[] {
+  public parseOutput(stdout: string, fileUri: vscode.Uri, iconService?: TaskIconService, fileLines?: string[]): TaskItem[] {
     let entries: GitlabCiJobEntry[];
     try {
       entries = JSON.parse(stdout) as GitlabCiJobEntry[];
@@ -146,7 +176,7 @@ export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvid
       jobItem.taskFileUri = fileUri; // required for factory cwd resolution
       jobItem.description = entry.stage;
       jobItem.tooltip = tooltipParts.join('\n');
-      jobItem.startLine = 0; // --list-json does not emit line numbers
+      jobItem.startLine = fileLines ? this.findJobLineNumber(fileLines, entry.name) : undefined;
       jobItem.metadata = {
         stage: entry.stage,
         when: entry.when,
@@ -157,7 +187,7 @@ export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvid
       jobItem.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [fileUri, 0],
+        arguments: [fileUri, jobItem.startLine ?? 0],
       };
       parentItem.children.push(jobItem);
     }

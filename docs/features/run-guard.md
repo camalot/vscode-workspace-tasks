@@ -118,9 +118,11 @@ Patterns are matched case-insensitively against the task's original label (befor
 
 #### workspaceTasks.task.confirmPatterns
 
-**Type:** `array` of `string`
-**Default:** `[]`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Array of regular expression strings (case-insensitive) matched against task labels. Any task whose label matches at least one pattern will prompt for confirmation before running.
 
@@ -151,6 +153,7 @@ Array of regular expression strings (case-insensitive) matched against task labe
 
 When a guarded task is triggered, a modal dialog appears before the task runs:
 
+{: .tip }
 > **Run guarded task?**
 >
 > _Task name_ is marked as a guarded task. Are you sure you want to run it?
@@ -211,6 +214,6 @@ For example, a task can be guarded by a `confirmPatterns` pattern in the team's 
 ## Next Steps
 
 - [Running Tasks](running-tasks) — Full task execution options
-- [Compound Tasks (Queues)](task-queues) — Sequential and parallel task sequences
+- [Compound Tasks](task-queues) — Sequential and parallel task sequences
 - [Custom Workspace Tasks](custom-workspace-tasks) — `.workspace-tasks.json` reference including the `confirm` field
 - [Configuration](../configuration) — Full settings reference

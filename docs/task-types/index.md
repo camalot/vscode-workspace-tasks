@@ -59,7 +59,7 @@ Control how deep the extension searches for tasks using the `workspaceTasks.task
 
 Depth is measured from the workspace folder root:
 
-``` text
+``` tree
 workspace-folder/          (depth 0)
 ├── package.json           ✅ depth 0
 └── src/                   (depth 1)

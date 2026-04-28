@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -129,7 +129,6 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.9.1",
     "chart.js": "^4.5.1",
-    "codecov": "^3.8.3",
     "eslint": "^10.0",
     "git-cliff": "^2.12.0",
     "glob": "^13.0.6",
@@ -151,6 +150,12 @@
     "micromatch": "^4.0.8",
     "smol-toml": "^1.6.1",
     "yaml": "^2.8.3"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "When running in a limited support untrusted workspace, the extension will disable all features that involve executing tasks or user-provided commands, and will not display any tasks in the UI. This ensures that no untrusted code is executed and the user's system remains secure."
+    }
   },
   "contributes": {
     "languages": [
@@ -378,6 +383,16 @@
         "command": "workspaceTasks.taskfile.watchTask",
         "title": "%command.workspaceTasks.taskfile.watchTask%",
         "icon": "$(eye)"
+      },
+      {
+        "command": "workspaceTasks.editor.runTask",
+        "title": "%command.editor.runTask%",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "workspaceTasks.editor.runTaskWithArgs",
+        "title": "%command.editor.runTaskWithArgs%",
+        "icon": "$(debug-continue)"
       },
       {
         "command": "workspaceTasks.removeFromRecentTasks",
@@ -1032,10 +1047,6 @@
                 "type": "boolean",
                 "description": "%config.workspaceTasks.groups.expanded.compoundTasks%"
               },
-              "queue": {
-                "type": "boolean",
-                "description": "%config.workspaceTasks.groups.expanded.queue.deprecated%"
-              },
               "recent": {
                 "type": "boolean",
                 "description": "%config.workspaceTasks.groups.expanded.recent%"
@@ -1194,6 +1205,11 @@
             "description": "%config.workspaceTasks.task.iconTypeCustom%",
             "markdownDescription": "%config.workspaceTasks.task.iconTypeCustom.markdown%"
           },
+          "workspaceTasks.task.guidedArgInput": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "When enabled, running script tasks with arguments will attempt to discover the script's parameters and show guided input prompts. Supported for PowerShell (`.ps1`) via `Get-Help` (with static `param()` block parsing as fallback), Python (`.py`) scripts using `argparse`, and Node.js (`.js`/`.mjs`/`.cjs`) scripts using `argparse` or `parseArgs` (`node:util` and `@pkgjs/parseargs`). Falls back to free-text input when parameters cannot be detected."
+          },
           "workspaceTasks.recentTasks.maxItems": {
             "title": "%config.workspaceTasks.recentTasks.maxItems%",
             "type": "number",
@@ -1201,6 +1217,43 @@
             "minimum": 0,
             "description": "%config.workspaceTasks.recentTasks.maxItems.description%",
             "markdownDescription": "%config.workspaceTasks.recentTasks.maxItems.markdown%"
+          },
+          "workspaceTasks.codeLens.enabled": {
+            "title": "%config.workspaceTasks.codeLens.enabled%",
+            "type": "boolean",
+            "default": true,
+            "scope": "window",
+            "description": "%config.workspaceTasks.codeLens.enabled%",
+            "markdownDescription": "%config.workspaceTasks.codeLens.enabled.markdown%"
+          },
+          "workspaceTasks.codeLens.actionBar": {
+            "type": "object",
+            "markdownDescription": "%config.workspaceTasks.codeLens.actionBar%",
+            "additionalProperties": false,
+            "properties": {
+              "run": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.run%"
+              },
+              "runWithArgs": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.runWithArgs%"
+              },
+              "favorite": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.favorite%"
+              },
+              "queue": {
+                "type": "boolean",
+                "description": "%config.workspaceTasks.task.actionBar.compoundTask%"
+              }
+            },
+            "default": {
+              "run": true,
+              "runWithArgs": true,
+              "favorite": false,
+              "queue": false
+            }
           }
         }
       },
@@ -1874,6 +1927,28 @@
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "workspaceTasks.editor.runTask",
+          "when": "false"
+        },
+        {
+          "command": "workspaceTasks.editor.runTaskWithArgs",
+          "when": "false"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "workspaceTasks.editor.runTask",
+          "when": "workspaceTasks.activeFileIsRunnableTask && config.workspaceTasks.task.actionBar.run",
+          "group": "navigation@1"
+        },
+        {
+          "command": "workspaceTasks.editor.runTaskWithArgs",
+          "when": "workspaceTasks.activeFileIsRunnableTask && config.workspaceTasks.task.actionBar.runWithArgs",
+          "group": "navigation@2"
+        }
+      ],
       "view/title": [
         {
           "command": "workspaceTasks.metrics.clearWorkspace",
@@ -2211,12 +2286,12 @@
         },
         {
           "command": "workspaceTasks.env.storeSecret",
-          "when": "viewItem == secrets",
+          "when": "viewItem == wtSecrets",
           "group": "inline@1"
         },
         {
           "command": "workspaceTasks.env.storeSecret",
-          "when": "viewItem == secrets",
+          "when": "viewItem == wtSecrets",
           "group": "1_secrets@1"
         },
         {
@@ -2260,6 +2335,58 @@
           "group": "9_guard@1"
         }
       ]
-    }
+    },
+    "languageModelTools": [
+      {
+        "name": "workspaceTasks_getTasks",
+        "displayName": "Get Workspace Tasks",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "wTasks",
+        "icon": "$(list-flat)",
+        "userDescription": "Lists all tasks available in the current workspace.",
+        "modelDescription": "Returns a JSON array of all runnable tasks in the workspace (id, label, type, source file, workspace folder). Use when the user asks which tasks are available or wants to find a task by name. Apply 'query' to filter by label substring and 'taskType' to filter by type. When 'isLoading' is true, re-invoke after a delay. When 'truncated' is true, apply filters. Results sorted by type then label. You can infer the task type from the source file (e.g. 'package.json' = npm/yarn/pnpm script, 'Makefile' = make, 'Taskfile.yml' = Taskfile, etc.) but it's not guaranteed. Always prefer stable 'id' for lookups instead of 'label' + 'type' since labels can change and may not be unique. If the name the user provides doesn't match exactly, use this tool to find the task ID first, then use the ID to run the task with workspaceTasks_runTask. If multiple tasks match the filters and the user is trying to run a task, return the candidates so the user can pick. Note: 'taskType' is only used for filtering and disambiguation and is not returned by workspaceTasks_runTask when running a task by ID.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Case-insensitive label substring filter."
+            },
+            "taskType": {
+              "type": "string",
+              "description": "Task type filter (e.g. 'npm', 'shell')."
+            }
+          },
+          "additionalProperties": {}
+        }
+      },
+      {
+        "name": "workspaceTasks_runTask",
+        "displayName": "Run Workspace Task",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "runWTask",
+        "icon": "$(run)",
+        "userDescription": "Runs a task from the workspace. Use #wTasks first to discover available task IDs.",
+        "modelDescription": "Executes a workspace task by its stable ID (preferred) or by label + optional taskType. Provide 'id' from workspaceTasks_getTasks for precise lookup. If only 'label' is given and multiple tasks match, the tool returns candidates. The task runs asynchronously; the tool returns immediately after starting the task. Always use workspaceTasks_getTasks first to get the task ID. Note: 'taskType' is only used to disambiguate label matches and is ignored when 'id' is provided.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Stable task ID from workspaceTasks_getTasks. Preferred."
+            },
+            "label": {
+              "type": "string",
+              "description": "Task label. May match multiple tasks."
+            },
+            "taskType": {
+              "type": "string",
+              "description": "Task type to narrow label matches."
+            }
+          },
+          "additionalProperties": {}
+        }
+      }
+    ]
   }
 }

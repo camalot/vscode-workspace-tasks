@@ -128,6 +128,8 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
       return undefined;
     }
 
+    const lines = text.split('\n');
+
     const svc = iconService ?? TaskIconService.getInstance();
     const iconPath = svc.getTaskIcon('bitbucket', fileUri);
 
@@ -166,8 +168,15 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
 
     // ── default pipeline ──────────────────────────────────────────
     if (Array.isArray(pipelines.default)) {
-      const pipelineItem = this.createPipelineItem('default', 'default', undefined, fileUri, iconPath);
-      this.populatePipelineChildren(pipelineItem, pipelines.default, 'default', fileUri, iconPath);
+      const pipelineItem = this.createPipelineItem(
+        'default',
+        'default',
+        undefined,
+        fileUri,
+        iconPath,
+        this.findPipelineLine(lines, 'default'),
+      );
+      this.populatePipelineChildren(pipelineItem, pipelines.default, 'default', fileUri, iconPath, lines);
       if (pipelineItem.children && pipelineItem.children.length > 0) {
         pipelineItem.parent = fileItem;
         fileItem.children.push(pipelineItem);
@@ -186,8 +195,15 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
           continue;
         }
         const pipelinePath = `${section}.${key}`;
-        const pipelineItem = this.createPipelineItem(key, pipelinePath, section, fileUri, iconPath);
-        this.populatePipelineChildren(pipelineItem, entries, pipelinePath, fileUri, iconPath);
+        const pipelineItem = this.createPipelineItem(
+          key,
+          pipelinePath,
+          section,
+          fileUri,
+          iconPath,
+          this.findPipelineLine(lines, pipelinePath),
+        );
+        this.populatePipelineChildren(pipelineItem, entries, pipelinePath, fileUri, iconPath, lines);
         if (pipelineItem.children && pipelineItem.children.length > 0) {
           pipelineItem.parent = fileItem;
           fileItem.children.push(pipelineItem);
@@ -267,6 +283,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     section: string | undefined,
     fileUri: vscode.Uri,
     iconPath: IconPath,
+    startLine: number,
   ): TaskItem {
     const item = new TaskItem(
       label,
@@ -277,6 +294,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
       iconPath,
     );
     item.taskFileUri = fileUri;
+    item.startLine = startLine;
     if (section) {
       item.description = section;
     }
@@ -284,7 +302,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     item.onOpenActionCommand = {
       command: 'workspaceTasks.openFileAtLine',
       title: 'Open File',
-      arguments: [fileUri, 0],
+      arguments: [fileUri, item.startLine],
     };
     item.onRunActionCommand = {
       command: 'workspaceTasks.runTask',
@@ -305,6 +323,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     pipelinePath: string,
     fileUri: vscode.Uri,
     iconPath: IconPath,
+    startLine: number,
   ): TaskItem {
     const label = stageName ?? '[unnamed stage]';
     const item = new TaskItem(
@@ -316,11 +335,12 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
       iconPath,
     );
     item.taskFileUri = fileUri;
+    item.startLine = startLine;
     item.metadata = { type: 'stage', pipelinePath, ...(stageName !== undefined ? { stageName } : {}) };
     item.onOpenActionCommand = {
       command: 'workspaceTasks.openFileAtLine',
       title: 'Open File',
-      arguments: [fileUri, 0],
+      arguments: [fileUri, item.startLine],
     };
     // Named stages are runnable; unnamed stages are display-only.
     if (stageName !== undefined) {
@@ -344,6 +364,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     pipelinePath: string,
     fileUri: vscode.Uri,
     iconPath: IconPath,
+    lines: string[],
     nameCounts: Map<string, number>,
     isParallel = false,
   ): TaskItem {
@@ -384,6 +405,8 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
       item.tooltip = `[parallel] ${label}`;
     }
 
+    item.startLine = stepName !== undefined ? this.findStepLine(lines, stepName) : 0;
+
     // The TaskItem constructor auto-assigns onRunActionCommand for all leaf nodes.
     // For unnamed steps we clear it: they cannot be targeted by pipeline-runner.
     if (resolvedName === undefined) {
@@ -404,7 +427,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     item.onOpenActionCommand = {
       command: 'workspaceTasks.openFileAtLine',
       title: 'Open File',
-      arguments: [fileUri, 0],
+      arguments: [fileUri, item.startLine],
     };
 
     return item;
@@ -420,6 +443,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
     pipelinePath: string,
     fileUri: vscode.Uri,
     iconPath: IconPath,
+    lines: string[],
   ): void {
     const nameCounts = new Map<string, number>();
 
@@ -435,6 +459,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
           pipelinePath,
           fileUri,
           iconPath,
+          lines,
           nameCounts,
         );
         stepItem.parent = pipelineItem;
@@ -464,6 +489,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
               pipelinePath,
               fileUri,
               iconPath,
+              lines,
               nameCounts,
               true,
             );
@@ -475,7 +501,13 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
         // ── stage block ───────────────────────────────────────────
         const stage = entry.stage as BitbucketStage;
         const stageName = typeof stage.name === 'string' ? stage.name : undefined;
-        const stageItem = this.createStageItem(stageName, pipelinePath, fileUri, iconPath);
+        const stageItem = this.createStageItem(
+          stageName,
+          pipelinePath,
+          fileUri,
+          iconPath,
+          stageName !== undefined ? this.findStageLine(lines, stageName) : 0,
+        );
         const stageNameCounts = new Map<string, number>();
 
         if (Array.isArray(stage.steps)) {
@@ -486,6 +518,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
                 pipelinePath,
                 fileUri,
                 iconPath,
+                lines,
                 stageNameCounts,
               );
               stepItem.parent = stageItem;
@@ -500,5 +533,78 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
         }
       }
     }
+  }
+
+  private findStepLine(lines: string[], stepName: string): number {
+    const escaped = stepName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`^\\s*name:\\s*['\"]?${escaped}['\"]?\\s*$`);
+    for (let i = 0; i < lines.length; i++) {
+      if (pattern.test(lines[i])) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
+  private findStageLine(lines: string[], stageName: string): number {
+    const escaped = stageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const namePattern = new RegExp(`^\\s*name:\\s*['\"]?${escaped}['\"]?\\s*$`);
+    for (let i = 0; i < lines.length; i++) {
+      if (!namePattern.test(lines[i])) {
+        continue;
+      }
+      const lookbackStart = Math.max(0, i - 3);
+      for (let j = lookbackStart; j < i; j++) {
+        if (/^\s*(?:-\s*)?stage:\s*$/.test(lines[j])) {
+          return i;
+        }
+      }
+    }
+    return 0;
+  }
+
+  private findPipelineLine(lines: string[], pipelinePath: string): number {
+    if (pipelinePath === 'default') {
+      for (let i = 0; i < lines.length; i++) {
+        if (/^\s{2}default:\s*$/.test(lines[i])) {
+          return i;
+        }
+      }
+      return 0;
+    }
+
+    const firstDot = pipelinePath.indexOf('.');
+    if (firstDot < 0) {
+      return 0;
+    }
+
+    const section = pipelinePath.slice(0, firstDot);
+    const key = pipelinePath.slice(firstDot + 1);
+    const sectionEscaped = section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sectionPattern = new RegExp(`^\\s{2}${sectionEscaped}:\\s*$`);
+    const keyEscaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const keyPattern = new RegExp(`^\\s{4}(?:"${keyEscaped}"|'${keyEscaped}'|${keyEscaped}):\\s*$`);
+
+    let sectionLine = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (sectionPattern.test(lines[i])) {
+        sectionLine = i;
+        break;
+      }
+    }
+    if (sectionLine < 0) {
+      return 0;
+    }
+
+    for (let i = sectionLine + 1; i < lines.length; i++) {
+      if (/^\s{2}[^\s].*:\s*$/.test(lines[i])) {
+        break;
+      }
+      if (keyPattern.test(lines[i])) {
+        return i;
+      }
+    }
+
+    return 0;
   }
 }

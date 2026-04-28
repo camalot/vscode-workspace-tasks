@@ -16,6 +16,15 @@ format = "black src/"
 build-docs = "mkdocs build"
 serve = "python -m http.server 8000"
 
+# PEP 621 GUI scripts section
+[project.gui-scripts]
+start-gui = "sample_poetry_project.gui:main"
+
+# Deprecated Poetry-specific scripts section for legacy support
+[tool.poetry.scripts]
+legacy-cli = "legacy_package.cli:main"
+legacy-tool = { reference = "scripts/legacy-tool.sh", type = "file" }
+
 [tool.poetry.tasks]
 goodbye = "sample_poetry_project.main:goodbye"
 

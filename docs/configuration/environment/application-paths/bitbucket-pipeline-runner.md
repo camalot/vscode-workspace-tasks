@@ -23,9 +23,11 @@ Bitbucket Pipelines support uses the local `pipeline-runner` CLI to run pipeline
 
 ### workspaceTasks.applicationPath.bitbucketPipelineRunner
 
-**Type:** `string`
-**Default:** `"pipeline-runner"`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"pipeline-runner"` |
+| **Scope:** | `resource` |
 
 Path to the `pipeline-runner` executable. Install via:
 
@@ -43,9 +45,11 @@ pipx install bitbucket-pipeline-runner
 
 ### workspaceTasks.bitbucketPipelineRunner.environmentFiles
 
-**Type:** `string[]`
-**Default:** `[]`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 List of environment files passed to `pipeline-runner` via `--env-file`. Each entry becomes a separate `--env-file` argument.
 

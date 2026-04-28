@@ -42,7 +42,7 @@ See the [Performance overview](index.md) for the full dataset description. In br
 Before any optimizations, a cold load with a warm OS file cache measured **~52,000 ms**. The dominant costs were:
 
 | Root Cause | Time Lost |
-|---|---|
+| --- | --- |
 | Duplicate `getProviders()` call reloading config | ~15,204 ms |
 | Sequential per-provider file-glob dispatching (no cache) | ~31,000 ms |
 | VS Code task provider opening files sequentially | ~4,700 ms |
@@ -133,7 +133,7 @@ Measurements taken against the sample-workspace-tasks dataset with a warm OS fil
 ### Per-Fix Improvement
 
 | Fix | Description | Time Saved |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Guard duplicate `getProviders()` | ~15,204 ms |
 | 2 | Register dynamic workspace-task globs | ~3,800 ms (warm) |
 | 3 | Parallelize provider file-scan loop | ~562 ms |
@@ -145,19 +145,20 @@ Measurements taken against the sample-workspace-tasks dataset with a warm OS fil
 ### Cold Load Comparison
 
 | Stage | Baseline | After All Fixes |
-|---|---|---|
+| --- | --- | --- |
 | `loadWorkspaceConfig()` | ~17,443 ms | ~444 ms |
 | `WorkspaceTasksProvider` file scans (16 providers) | ~31,000 ms | ~677 ms |
 | `ShellTaskProvider` (10 shell types) | ~15,483 ms | ~798 ms (cache) |
 | `VscodeTaskProvider` | ~4,700 ms | ~4,230 ms |
 | **Total `getTasks()`** | **~52,000 ms** | **~795 ms** |
 
-> **Note:** The ~795 ms result is from a very warm session where the OS file cache and `TaskFilesService` cache were already populated. A true cold start (first VS Code launch, empty caches) will be higher, but the structural improvements still eliminate the majority of redundant work on all subsequent loads.
+{: .note }
+> The ~795 ms result is from a very warm session where the OS file cache and `TaskFilesService` cache were already populated. A true cold start (first VS Code launch, empty caches) will be higher, but the structural improvements still eliminate the majority of redundant work on all subsequent loads.
 
 ### Warm Reload Comparison
 
 | Provider | Baseline | After All Fixes |
-|---|---|---|
+| --- | --- | --- |
 | `WorkspaceTasksService.loadWorkspaceConfig()` | ~15,204 ms | ~444 ms |
 | `WorkspaceTasksProvider` (16 providers) | ~4,000 ms | ~200 ms |
 | `ShellTaskProvider` (10 shell types, warm) | ~500 ms | <10 ms |
@@ -170,7 +171,7 @@ Measurements taken against the sample-workspace-tasks dataset with a warm OS fil
 
 Key lines from `results-fix6-7.log` demonstrating the improvements on a warm session:
 
-```
+```log
 [03:02:10.200] loadWorkspaceConfig() completed in 444ms (17 provider(s) loaded)
 [03:02:10.845] Cache built with 53 files from combined pattern ... in 636ms
 [03:02:10.896] Finished shell type: fish   — 0 file(s) resolved in 686ms

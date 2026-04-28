@@ -9,11 +9,13 @@ import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { TaskStateManager } from '../taskStateManager';
+import { CreatedTask, splitArgs } from '../libs/taskCreationUtils';
 
 const execFileAsync = promisify(execFile);
 
 export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
   private readonly iconService = TaskIconService.getInstance();
+  private _rakeNotFoundWarned = false;
 
   constructor() {
     super('rake', constants.GLOB_RAKE);
@@ -40,6 +42,10 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
           continue;
         }
 
+        const contentBuffer = await vscode.workspace.fs.readFile(file);
+        const content = Buffer.from(contentBuffer).toString('utf8');
+        const taskLineMap = this.buildTaskLineMap(content);
+
         const fileDir = path.dirname(file.fsPath);
         const rakeCmd = this.getCommand(workspaceFolder.uri);
 
@@ -61,6 +67,7 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
         const iconPath = this.iconService.getTaskIcon(this.type);
 
         for (const taskLine of taskLines) {
+          const startLine = taskLineMap.get(taskLine.name) ?? 0;
           const item = new TaskItem(
             taskLine.name,
             vscode.TreeItemCollapsibleState.None,
@@ -71,20 +78,39 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
           );
 
           item.taskFileUri = file;
+          item.startLine = startLine;
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = taskLine.description || taskLine.name;
 
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [file, 0],
+            arguments: [file, startLine],
           };
 
           tasks.push(item);
         }
       } catch (error) {
-        // Log the error but continue with other files
-        this.logger.error(`[RakeTaskProvider] Failed to get tasks from ${file.fsPath}:`, error);
+        // Fall back to static parsing so users still get best-effort tasks when CLI fails.
+        const errorCode = (error as { code?: string })?.code;
+        if (errorCode === 'ENOENT') {
+          if (!this._rakeNotFoundWarned) {
+            this._rakeNotFoundWarned = true;
+            this.logger.warn(
+              "[RakeTaskProvider] 'rake' executable not found. Falling back to static file parsing. Install rake or configure 'applicationPath.rake' in settings.",
+            );
+          }
+        } else {
+          this.logger.warn(`[RakeTaskProvider] Falling back to static parsing for ${file.fsPath}.`, error);
+        }
+
+        try {
+          const contentBuffer = await vscode.workspace.fs.readFile(file);
+          const content = Buffer.from(contentBuffer).toString('utf8');
+          tasks.push(...this.parseRakeFileFallback(content, file));
+        } catch (fallbackError) {
+          this.logger.error(`[RakeTaskProvider] Failed static parse fallback for ${file.fsPath}:`, fallbackError);
+        }
       }
     }
 
@@ -152,6 +178,34 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
     return tasks;
   }
 
+  public async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+    if (!item.taskFileUri) {
+      return undefined;
+    }
+
+    const taskLabel = item.originalLabel || String(item.label);
+    const { command: rakeCmd, args: providerArgs } = this.getCommand(item.taskFileUri);
+    const rakeArgs = [...(providerArgs ?? [])];
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(item.taskFileUri);
+    const cwd = workspaceFolder?.uri.fsPath ?? path.dirname(item.taskFileUri.fsPath);
+    const configPath = workspaceFolder
+      ? path.relative(workspaceFolder.uri.fsPath, item.taskFileUri.fsPath) || path.basename(item.taskFileUri.fsPath)
+      : item.taskFileUri.fsPath;
+
+    rakeArgs.push('--file', configPath, taskLabel, ...splitArgs(args));
+
+    const shellExec = new vscode.ShellExecution(rakeCmd, rakeArgs, { cwd });
+    const task = new vscode.Task(
+      { type: 'rake', task: taskLabel, path: item.taskFileUri.fsPath },
+      vscode.TaskScope.Workspace,
+      taskLabel,
+      'rake',
+      shellExec,
+    );
+    return { task, command: `${rakeCmd} ${rakeArgs.join(' ')}`, cwd, native: false };
+  }
+
   public getCommand(workspaceUri?: vscode.Uri): ExecutableResult {
     const execService = ExecutableService.getInstance();
     return execService.getCommand(
@@ -199,5 +253,73 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
 
     return tasks;
+  }
+
+  private parseRakeFileFallback(content: string, fileUri: vscode.Uri): TaskItem[] {
+    const tasks: TaskItem[] = [];
+    const lines = content.split(/\r?\n/);
+    const iconPath = this.iconService.getTaskIcon(this.type);
+    const taskPattern = /^\s*task\s+[:'\"]?([A-Za-z0-9_:-]+)['\":]?\s*/;
+
+    let pendingDesc: string | undefined;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith('#')) {
+        pendingDesc = undefined;
+        continue;
+      }
+
+      const descMatch = trimmed.match(/^desc\s+['\"]([^'\"]+)['\"]/);
+      if (descMatch) {
+        pendingDesc = descMatch[1];
+        continue;
+      }
+
+      const taskMatch = trimmed.match(taskPattern);
+      if (taskMatch) {
+        const taskName = taskMatch[1].replace(/:$/, '');
+        const item = new TaskItem(
+          taskName,
+          vscode.TreeItemCollapsibleState.None,
+          this.type,
+          fileUri,
+          undefined,
+          iconPath,
+        );
+        item.taskFileUri = fileUri;
+        item.startLine = i;
+        item.description = vscode.workspace.asRelativePath(fileUri);
+        item.tooltip = pendingDesc ? `${taskName}: ${pendingDesc} (static parse)` : `${taskName} (static parse)`;
+        item.onOpenActionCommand = {
+          command: 'workspaceTasks.openFileAtLine',
+          title: 'Open File',
+          arguments: [fileUri, i],
+        };
+        tasks.push(item);
+        pendingDesc = undefined;
+      } else if (trimmed.length > 0) {
+        pendingDesc = undefined;
+      }
+    }
+
+    return tasks;
+  }
+
+  private buildTaskLineMap(content: string): Map<string, number> {
+    const map = new Map<string, number>();
+    const lines = content.split(/\r?\n/);
+    const taskPattern = /^\s*task\s+[:'\"]?([A-Za-z0-9_:-]+)['\":]?\s*/;
+
+    for (let i = 0; i < lines.length; i++) {
+      const taskMatch = lines[i].trim().match(taskPattern);
+      if (taskMatch) {
+        map.set(taskMatch[1].replace(/:$/, ''), i);
+      }
+    }
+
+    return map;
   }
 }

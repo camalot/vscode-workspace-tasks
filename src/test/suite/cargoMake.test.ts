@@ -16,6 +16,33 @@ suite('Cargo-Make Provider Test Suite', function () {
     assert.strictEqual(provider.filePattern, constants.GLOB_CARGO_MAKE);
   });
 
+  test('getGlobPatterns includes wildcard toml discovery', function () {
+    const provider = new CargoMakeTaskProvider();
+    const globs = (provider as any).getGlobPatterns() as string[];
+    assert.ok(globs.includes('**/*.toml'), 'Expected cargo-make glob list to include **/*.toml');
+  });
+
+  test('findScriptLine matches [tasks.<name>] table header (0-based)', function () {
+    const provider = new CargoMakeTaskProvider();
+    const content = `# Example\n[tasks.build]\ncommand = "cargo"\n`;
+    const line = (provider as any).findScriptLine(content, 'build');
+    assert.strictEqual(line, 1);
+  });
+
+  test('findScriptLine matches quoted and hyphenated task table headers', function () {
+    const provider = new CargoMakeTaskProvider();
+    const content = `[tasks."build-release"]\ncommand = "cargo"\n`;
+    const line = (provider as any).findScriptLine(content, 'build-release');
+    assert.strictEqual(line, 0);
+  });
+
+  test('findScriptLine does not use key=value fallback for cargo-make', function () {
+    const provider = new CargoMakeTaskProvider();
+    const content = `[tasks]\nbuild = "echo hello"\n`;
+    const line = (provider as any).findScriptLine(content, 'build');
+    assert.strictEqual(line, 0);
+  });
+
   test('getCommand returns default cargo-make command', function () {
     const provider = new CargoMakeTaskProvider();
     const result = provider.getCommand();

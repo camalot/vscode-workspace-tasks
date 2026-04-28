@@ -1,6 +1,6 @@
 ---
 layout: default
-title: 📊 Compound Tasks (Queues)
+title: 📊 Compound Tasks
 parent: 🚀 Features
 nav_order: 2
 ---

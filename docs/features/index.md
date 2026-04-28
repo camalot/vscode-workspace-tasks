@@ -19,14 +19,16 @@ Workspace Tasks provides a rich set of features to help you discover, organize, 
 | Feature | Description |
 | --- | --- |
 | [Running Tasks](running-tasks) | Run tasks, pass arguments, stop execution, and navigate to source files |
+| [Editor Title Bar Buttons](editor-title-run-buttons) | Run shell scripts and GitHub Actions workflows directly from the editor title bar |
 | [Favorites & Recent Tasks](favorites) | Pin frequently used tasks and track recently run tasks |
-| [Compound Tasks (Queues)](task-queues) | Create and run sequences of tasks in order |
+| [Compound Tasks](task-queues) | Create and run sequences of tasks in order |
 | [VSCode Compound Tasks](compound-tasks) | Wire multiple tasks together with `dependsOn` for sequential or parallel execution |
 | [Hide Tasks & Groups](hide-tasks) | Declutter your task view by hiding unused tasks |
 | [Task History](task-history) | Track and review all task executions with status and timing |
 | [Environment Variables & Secrets](task-environment-variables) | Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys from the tree view |
 | [Task Duration Estimates](task-duration-estimates) | See estimated run time while a task executes, in the hover tooltip before launch, and as a Typical Duration row in the Statistics tab |
 | [Run Guard](run-guard) | Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern |
+| [Language Model Tools](lm-tool) | Use `#wTasks` and `#runWTask` in GitHub Copilot chat to discover and run tasks without leaving the chat interface |
 
 ---
 

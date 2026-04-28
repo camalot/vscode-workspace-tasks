@@ -20,7 +20,7 @@ This section documents the performance investigations and improvements made to t
 All performance measurements were taken against the **sample-workspace-tasks** project — a comprehensive multi-language workspace representative of a real-world monorepo.
 
 | Attribute | Value |
-|---|---|
+| --- | --- |
 | Workspace task providers | 17 (16 built-in + 1 custom) |
 | Files indexed by `TaskFilesService` | 53 |
 | Shell script tasks | 27 across 10 shell types |
@@ -32,7 +32,7 @@ All performance measurements were taken against the **sample-workspace-tasks** p
 The sample workspace exercises every major provider and task runner supported by the extension:
 
 | Category | Technologies |
-|---|---|
+| --- | --- |
 | **Package managers** | npm, poetry, pipenv, cargo, bun, pnpm, yarn |
 | **Build tools** | webpack, cmake, cargo-make, gradle, maven |
 | **Task runners** | make, just, grunt, gulp, cake |
@@ -44,9 +44,9 @@ The sample workspace exercises every major provider and task runner supported by
 
 ### Sample Directory Layout
 
-```
+```tree
 sample-workspace-tasks/
-├── apps/                   # Multi-root app subfolders (appA, appB, appC)
+├── apps/                   # Multi-root app sub-folders (appA, appB, appC)
 ├── cargo/                  # Rust / Cargo tasks
 ├── cmake/                  # CMake build tasks
 ├── deno/                   # Deno tasks
@@ -73,6 +73,6 @@ sample-workspace-tasks/
 ## Improvement Plans
 
 | Plan | Baseline | After Optimization | Improvement |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | [Workspace Tasks Loading](workspace-tasks-loading.md) | ~52,000 ms | ~795 ms | **~98.5%** |
 | [Shell Task Loading](shell-task-loading.md) | ~15,483 ms | ~15,419 ms cold / <10 ms warm | FS scan unavoidable; warm reload eliminated |

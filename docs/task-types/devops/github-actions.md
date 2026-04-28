@@ -78,9 +78,11 @@ Configure act in your VS Code `settings.json`:
 
 ### workspaceTasks.applicationPath.act
 
-**Type:** `string`
-**Default:** `"act"`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type** | `string` |
+| **Default** | `"act"` |
+| **Scope** | `resource` |
 
 Path to the act executable. On Windows, if the path ends with `act`, `.exe` will be appended automatically. `~/` is expanded to the user's home directory.
 
@@ -93,29 +95,41 @@ Path to the act executable. On Windows, if the path ends with `act`, `.exe` will
 
 ### workspaceTasks.act.envFile
 
-**Type:** `string`
-**Default:** `""`
+| | |
+| --- | --- |
+| **Type** | `string` |
+| **Default** | `""` |
+| **Scope** | `resource` |
 
 Path to a `.env` file containing environment variables for act. See the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure) for file format details.
 
 ### workspaceTasks.act.secretsFile
 
-**Type:** `string`
-**Default:** `""`
+| | |
+| --- | --- |
+| **Type** | `string` |
+| **Default** | `""` |
+| **Scope** | `resource` |
 
 Path to a secrets file for act. Secrets are used to provide sensitive values to workflows without exposing them in configuration.
 
 ### workspaceTasks.act.variablesFile
 
-**Type:** `string`
-**Default:** `""`
+| | |
+| --- | --- |
+| **Type** | `string` |
+| **Default** | `""` |
+| **Scope** | `resource` |
 
 Path to a variables file for act.
 
 ### workspaceTasks.act.variables
 
-**Type:** `object`
-**Default:** `{}`
+| | |
+| --- | --- |
+| **Type** | `object` |
+| **Default** | `{}` |
+| **Scope** | `resource` |
 
 Inline key/value pairs passed as variables to act runs.
 

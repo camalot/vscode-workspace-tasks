@@ -1,3 +1,81 @@
+## [1.11.0] - 2026-04-28
+
+### 🚀 Features
+
+- Run and run with args for runnable files when in editor
+
+- LM tool for getting and executing tasks
+
+- Refactor ShellExecution calls #194
+
+- Universal File-Level Run Action
+
+- Codelens actions in task files at task line
+
+- Python Script Enhancement to Identify Inputs #209
+
+- PowerShell Script Enhancement to Parse Script Inputs #208
+
+- Guided argument input helper for run with args on scripts
+
+### 🐛 Bug Fixes
+
+- Fix secrets tree item collision with github actions extension which caused 2 + action buttons
+
+- Define untrustedWorkspaces capability
+
+- Jupyter .ipynb File Tasks Are Not Discovered #195
+
+- Dockerfile Editor Action Bar Run Button Shows Input Field / Triggers Twice #196
+
+- Script Files (With or Without Shebang) Have No CodeLens Items #197
+
+- Maven CodeLens Items Not Showing #200
+
+- Poe Task CodeLens Items Appear After the Task Definition Line #199
+
+- Poe Task Codelens Items Added at Line 0 #198
+
+- Cargo-Make Makefile.toml CodeLens Items All on Line 0 #202
+
+- Cargo-make custom.toml Has No CodeLens or Editor Action Bar Items #201
+
+- Bitbucket Pipelines File Has No CodeLens or Editor Action Bar Items #203
+
+- Rakefile Tasks Not Being Discovered #205
+
+- Task File Changes Do Not Refresh CodeLens #206
+
+- Pnpm package.yaml Tasks Are Not Discovered #207
+
+- Resolve failing tests due to fixture path
+
+- Fix codelens issues with poe/poetry/ant
+
+- Resolved some tasks not being discovered by poe
+
+- Resolved some tasks not discovered by poetry
+
+- Resolve filewatcher leak causing test failure in github actions run
+
+### 📚 Documentation
+
+- Added info badges
+
+- Queue name reference removed from UX and docs
+
+- Some documentation layout cleanup
+
+- Added screenshot example for codelens
+
+- Fixed documentation about guidedArgInput default
+
+### 🧪 Testing
+
+- Improved test coverage
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.10.0...v1.11.0
+
 ## [1.10.0] - 2026-04-22
 
 ### 🚀 Features

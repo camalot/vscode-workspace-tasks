@@ -21,10 +21,14 @@ import { TaskMetricsService } from './services/taskMetricsService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { loadCommands } from './commands/index';
 import { findTerminalForTask } from './commands/stopTask';
+import { registerLmTools } from './tools/index';
 import { registerAllProviders } from './providers/index';
 import { configuration } from './libs/configuration';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
+import { EditorTaskActionService } from './services/editorTaskActionService';
+import { TaskCodeLensProvider } from './taskCodeLensProvider';
+import { registerBuiltInResolvers } from './libs/scriptArgumentResolvers/index';
 
 export async function activate(context: vscode.ExtensionContext) {
   LoggerService.getInstance().initialize(context);
@@ -78,6 +82,7 @@ export async function activate(context: vscode.ExtensionContext) {
   TaskSecretWarningService.getInstance().initialize(context);
   RecentTasksService.getInstance().initialize(context);
   FavoritesService.getInstance().initialize(context);
+  context.subscriptions.push(FavoritesService.getInstance());
   CompoundTaskService.getInstance().initialize(context);
   // Enable Settings Sync for favorites and compound tasks so they sync across machines
   context.globalState.setKeysForSync(['favorites', 'savedQueues']);
@@ -175,6 +180,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register Providers
   registerAllProviders(context);
+  // Register built-in script argument resolvers for guided arg input
+  registerBuiltInResolvers();
   // Initial refresh
   taskTreeDataProvider.refresh();
 
@@ -216,6 +223,23 @@ export async function activate(context: vscode.ExtensionContext) {
     loadCommands(context);
   } catch (err) {
     logger.error('Command loading error:', err);
+  }
+
+  // Initialize editor title bar action buttons
+  EditorTaskActionService.getInstance().initialize(context);
+
+  // Register inline CodeLens task actions
+  const codeLensProvider = new TaskCodeLensProvider(context);
+  context.subscriptions.push(
+    vscode.languages.registerCodeLensProvider({ scheme: 'file' }, codeLensProvider),
+    codeLensProvider,
+  );
+
+  // Register language model tools
+  try {
+    registerLmTools(context);
+  } catch (err) {
+    logger.error('LM tools registration error:', err);
   }
 
   // Monitor state changes to cancel pending resets if task restarts

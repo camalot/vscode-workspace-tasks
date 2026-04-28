@@ -22,7 +22,7 @@ nav_order: 1
 
 Compound task definitions are persisted in VS Code's workspace state storage so they survive between sessions. Under certain circumstances, the stored data can become stale — containing entries that reference files outside the current workspace, tasks with unrecognized task types, or entire compound tasks that have no runnable items remaining. These are referred to as **invalid** or **ghost** entries.
 
-The **Purge Invalid Compound Tasks (Queue) from Storage** command inspects the stored compound task data and removes anything that can no longer run. It operates in three phases:
+The **Purge Invalid Compound Tasks from Storage** command inspects the stored compound task data and removes anything that can no longer run. It operates in three phases:
 
 | Phase | What it does |
 | --- | --- |
@@ -40,13 +40,13 @@ The most common symptom. When running a compound task, one or more of its stored
 
 ### A compound task appears in the Command Palette but not in the Sidebar
 
-The **Run Compound Task (Queue)** command palette entry uses the workspace-filtered list (the same set shown in the tree). If a compound task appears in the command palette but is invisible in the Compound Tasks section of the sidebar, the compound task exists in storage but has no items that belong to the current workspace. This means all its items reference files that are not part of the open workspace folders.
+The **Run Compound Task** command palette entry uses the workspace-filtered list (the same set shown in the tree). If a compound task appears in the command palette but is invisible in the Compound Tasks section of the sidebar, the compound task exists in storage but has no items that belong to the current workspace. This means all its items reference files that are not part of the open workspace folders.
 
 ### Items listed in a compound task do not run and are silently skipped
 
 If the extension's debug logging is enabled (`workspaceTasks.debug: true`), skipped items are reported to the **Workspace Tasks** output channel with a message such as:
 
-```
+```log
 [WARN] [TaskRunner] Skipping unrunnable item 'Queue' in compound task 'My Pipeline': taskType='queue'.
 ```
 
@@ -81,7 +81,7 @@ If a file that was added to a compound task (e.g. a `Makefile`, `Gruntfile.js`, 
 
 1. Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`).
 2. Type **Purge Invalid Compound Tasks**.
-3. Select **Purge Invalid Compound Tasks (Queue) from Storage**.
+3. Select **Purge Invalid Compound Tasks from Storage**.
 
 If items with unrecognized task types are found, they are removed automatically and a summary notification is shown.
 
@@ -109,5 +109,5 @@ With debug logging enabled, the **Workspace Tasks** output channel (View → Out
 
 ## Related
 
-- [Compound Tasks (Queues)](../features/task-queues) — Creating and managing compound tasks
+- [Compound Tasks](../features/task-queues) — Creating and managing compound tasks
 - [VSCode Compound Tasks](../features/compound-tasks) — Using VS Code's native `dependsOn` compound tasks

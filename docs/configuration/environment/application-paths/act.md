@@ -23,9 +23,11 @@ nav_order: 1
 
 ### workspaceTasks.applicationPath.act
 
-**Type:** `string`
-**Default:** `"act"`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"act"` |
+| **Scope:** | `resource` |
 
 Path to the `act` executable. On Windows, `.exe` is appended automatically when the path ends with `act`. On all platforms, `~/` is expanded to the user's home directory.
 
@@ -44,9 +46,11 @@ Path to the `act` executable. On Windows, `.exe` is appended automatically when 
 
 ### workspaceTasks.act.envFile
 
-**Type:** `string`
-**Default:** `""`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `""` |
+| **Scope:** | `resource` |
 
 Path to a `.env` file that provides environment variables when running workflows with `act`. See the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure) for the expected file format.
 
@@ -64,9 +68,11 @@ Path to a `.env` file that provides environment variables when running workflows
 
 ### workspaceTasks.act.variablesFile
 
-**Type:** `string`
-**Default:** `""`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `""` |
+| **Scope:** | `resource` |
 
 Path to a variables file for `act`. The file uses the same key=value format as `.env` files.
 
@@ -84,9 +90,11 @@ Path to a variables file for `act`. The file uses the same key=value format as `
 
 ### workspaceTasks.act.variables
 
-**Type:** `object`
-**Default:** `{}`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | `{}` |
+| **Scope:** | `resource` |
 
 Inline key-value variables passed to `act` at runtime. These supplement or override variables loaded from `workspaceTasks.act.variablesFile`.
 
@@ -107,9 +115,11 @@ Inline key-value variables passed to `act` at runtime. These supplement or overr
 
 ### workspaceTasks.act.secretsFile
 
-**Type:** `string`
-**Default:** `".secrets"`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `".secrets"` |
+| **Scope:** | `resource` |
 
 Path to a `.env`-format file containing secrets for `act`. This file should be added to `.gitignore` to avoid committing credentials. See the [Act documentation](https://nektosact.com/usage/index.html#envsecrets-files-structure) for the expected file format.
 

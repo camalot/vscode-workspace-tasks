@@ -28,6 +28,12 @@ suite('TaskFilesService Test Suite', () => {
     setup(async function(this: Mocha.Context) {
         this.timeout(60000);
         service = TaskFilesService.getInstance();
+        // Fully reset singleton lifecycle state from prior suites/tests.
+        service.dispose();
+        // Defensive reset for singleton state that can leak across tests in CI.
+        clearTimeout((service as any)._saveDebounceTimer);
+        (service as any)._saveDebounceTimer = undefined;
+        (service as any)._pendingProviderTypes?.clear?.();
         mockConfigValues = {};
         capturedConfigChangeHandlers = [];
         capturedDidSaveHandlers = [];
@@ -91,6 +97,13 @@ suite('TaskFilesService Test Suite', () => {
 
     teardown(async function(this: Mocha.Context) {
         this.timeout(60000);
+        // Ensure all watchers/timers are torn down before the next test/suite.
+        service.dispose();
+        // Ensure no debounced refresh callbacks survive into the next test.
+        clearTimeout((service as any)._saveDebounceTimer);
+        (service as any)._saveDebounceTimer = undefined;
+        (service as any)._pendingProviderTypes?.clear?.();
+
         try {
             await vscode.workspace.fs.delete(testFolder, { recursive: true, useTrash: false });
         } catch { }
@@ -1218,6 +1231,8 @@ package.json@build`;
             (service as any).initialScanFired = false;
             (service as any).cachedPaths = null;
             (service as any).cacheInvalidated = true;
+            (service as any).registeredPatterns.clear();
+            service.registerPatterns(['**/package.json']);
 
             let firedCount = 0;
             const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
@@ -1236,6 +1251,8 @@ package.json@build`;
             (service as any).initialScanFired = false;
             (service as any).cachedPaths = null;
             (service as any).cacheInvalidated = true;
+            (service as any).registeredPatterns.clear();
+            service.registerPatterns(['**/package.json']);
 
             let firedCount = 0;
             const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
@@ -1433,4 +1450,169 @@ package.json@build`;
             assert.strictEqual((r2 as PromiseRejectedResult).reason, batchError);
         });
     });
+
+    // ── Save-refresh tests (T01–T06) ──────────────────────────────────────────
+
+    test('T01 — saving package.json refreshes matching providers after debounce', async function() {
+        this.timeout(5000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+
+        const originalGetProviders = cache.getProviders.bind(cache);
+        const originalRefreshProvider = cache.refreshProvider.bind(cache);
+        cache.getProviders = () => [{ type: 'npm', getFilePatterns: () => ['**/package.json'], getTasks: async () => [] } as any];
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        service.registerPatterns(['**/save-refresh-test/package.json']);
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/save-refresh-test/package.json'));
+            assert.deepStrictEqual(refreshedTypes, [], 'refreshProvider should not fire immediately');
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, ['npm'], 'refreshProvider should fire once for the matching provider after debounce');
+        } finally {
+            cache.getProviders = originalGetProviders;
+            cache.refreshProvider = originalRefreshProvider;
+        }
+    });
+
+    test('T02 — saving a non-matching file does not trigger any refresh', async function() {
+        this.timeout(2000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+
+        const originalGetProviders = cache.getProviders.bind(cache);
+        const originalRefreshProvider = cache.refreshProvider.bind(cache);
+        cache.getProviders = () => [{ type: 'npm', getFilePatterns: () => ['**/package.json'], getTasks: async () => [] } as any];
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/README.md'));
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, [], 'non-matching file save should not trigger refreshProvider');
+        } finally {
+            cache.getProviders = originalGetProviders;
+            cache.refreshProvider = originalRefreshProvider;
+        }
+    });
+
+    test('T03 — saving Taskfile.yml calls refreshProvider not invalidateCache', async function() {
+        this.timeout(2000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+        let invalidateCount = 0;
+
+        const originalRefresh = cache.refreshProvider.bind(cache);
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+        const originalInvalidate = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; originalInvalidate(); };
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/Taskfile.yml'));
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, ['taskfile']);
+            assert.strictEqual(invalidateCount, 0, 'invalidateCache must not fire for Taskfile.yml save');
+        } finally {
+            cache.refreshProvider = originalRefresh;
+            service.invalidateCache = originalInvalidate;
+        }
+    });
+
+    test('T03b — initialize clears pending debounced provider refresh state', async function() {
+        this.timeout(5000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+
+        const originalGetProviders = cache.getProviders.bind(cache);
+        const originalRefreshProvider = cache.refreshProvider.bind(cache);
+        cache.getProviders = () => [{ type: 'mockType', getFilePatterns: () => ['**/package.json'], getTasks: async () => [] } as any];
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        service.registerPatterns(['**/package.json']);
+
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/package.json'));
+            assert.deepStrictEqual(refreshedTypes, [], 'refresh should remain debounced before reinitialize');
+
+            await service.initialize({ subscriptions: [] } as any);
+            await new Promise(r => setTimeout(r, 400));
+
+            assert.deepStrictEqual(refreshedTypes, [], 'reinitialize should cancel pending debounced provider refreshes');
+        } finally {
+            cache.getProviders = originalGetProviders;
+            cache.refreshProvider = originalRefreshProvider;
+        }
+    });
+
+    test('T04 — three rapid saves of the same file coalesce into one provider refresh', async function() {
+        this.timeout(3000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+
+        const originalGetProviders = cache.getProviders.bind(cache);
+        const originalRefreshProvider = cache.refreshProvider.bind(cache);
+        cache.getProviders = () => [{ type: 'npm', getFilePatterns: () => ['**/package.json'], getTasks: async () => [] } as any];
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        service.registerPatterns(['**/debounce-test/package.json']);
+        const uri = vscode.Uri.file('/workspace/debounce-test/package.json');
+
+        try {
+            await fireDidSave(uri);
+            await fireDidSave(uri);
+            await fireDidSave(uri);
+            assert.deepStrictEqual(refreshedTypes, [], 'Should not fire immediately');
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, ['npm'], 'Debounce should coalesce three saves into one refreshProvider call');
+        } finally {
+            cache.getProviders = originalGetProviders;
+            cache.refreshProvider = originalRefreshProvider;
+        }
+    });
+
+    test('T05 — saving an untitled document does not trigger any refresh', async function() {
+        this.timeout(2000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+        const originalRefresh = cache.refreshProvider.bind(cache);
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        try {
+            const untitledUri = vscode.Uri.parse('untitled:package.json');
+            await fireDidSave(untitledUri);
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, [], 'untitled document save should not trigger refreshProvider');
+        } finally {
+            cache.refreshProvider = originalRefresh;
+        }
+    });
+
+    test('T06 — after dispose(), saving a task file does not trigger any refresh', async function() {
+        this.timeout(2000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+
+        const originalGetProviders = cache.getProviders.bind(cache);
+        const originalRefreshProvider = cache.refreshProvider.bind(cache);
+        cache.getProviders = () => [{ type: 'npm', getFilePatterns: () => ['**/package.json'], getTasks: async () => [] } as any];
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+
+        service.registerPatterns(['**/dispose-test/package.json']);
+        const uri = vscode.Uri.file('/workspace/dispose-test/package.json');
+
+        try {
+            service.dispose();
+            // After dispose, captured handlers are removed via their dispose()
+            // callbacks; clear our captured list to reflect that state.
+            capturedDidSaveHandlers.length = 0;
+
+            await fireDidSave(uri);
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, [], 'No refresh should occur after dispose()');
+        } finally {
+            cache.getProviders = originalGetProviders;
+            cache.refreshProvider = originalRefreshProvider;
+        }
+    });
+
 });

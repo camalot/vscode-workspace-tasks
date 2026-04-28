@@ -43,15 +43,13 @@
         "editorconfig.editorconfig",
         "igorsbitnev.error-gutters",
         "timonwong.shellcheck",
-        "tamasfe.even-better-toml"
+        "tamasfe.even-better-toml",
+        "fogio.coverlens"
       ]
     }
   },
   "postCreateCommand": "chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
   "remoteUser": "vscode",
-  "runArgs": [
-    "--privileged"
-  ],
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
   "mounts": [

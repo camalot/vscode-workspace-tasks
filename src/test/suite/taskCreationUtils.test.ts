@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { resolveTaskContext, splitArgs, buildShellTask, TaskContext } from '../../libs/taskCreationUtils';
+import { resolveTaskContext, splitArgs, buildShellTask, injectArgs, TaskContext } from '../../libs/taskCreationUtils';
 import { TaskItem } from '../../taskItem';
 
 suite('taskCreationUtils', () => {
@@ -234,6 +234,126 @@ suite('taskCreationUtils', () => {
 
       assert.strictEqual(result.task.name, 'deploy');
       assert.strictEqual(result.task.source, 'npm');
+    });
+  });
+
+  // ── injectArgs ────────────────────────────────────────────────────────
+
+  suite('injectArgs()', () => {
+    test('no user args — parses command into command+args', () => {
+      assert.deepStrictEqual(injectArgs('npm run build'), {
+        command: 'npm',
+        args: ['run', 'build'],
+      });
+    });
+
+    test('appends user args when no placeholder', () => {
+      assert.deepStrictEqual(injectArgs('npm run build', '--watch'), {
+        command: 'npm',
+        args: ['run', 'build', '--watch'],
+      });
+    });
+
+    test('exact ${args} replacement — single placeholder', () => {
+      assert.deepStrictEqual(injectArgs('docker run ${args} alpine', '--rm'), {
+        command: 'docker',
+        args: ['run', '--rm', 'alpine'],
+      });
+    });
+
+    test('multiple exact ${args} tokens all replaced', () => {
+      assert.deepStrictEqual(injectArgs('echo ${args} && echo ${args}', 'x'), {
+        command: 'echo',
+        args: ['x', '&&', 'echo', 'x'],
+      });
+    });
+
+    test('no user args with ${args} placeholder — placeholder stripped', () => {
+      assert.deepStrictEqual(injectArgs('docker run ${args} alpine', undefined), {
+        command: 'docker',
+        args: ['run', 'alpine'],
+      });
+    });
+
+    test('partial ${args} in token — replaced with joined user args', () => {
+      assert.deepStrictEqual(injectArgs('tool --name=${args} end', 'myval'), {
+        command: 'tool',
+        args: ['--name=myval', 'end'],
+      });
+    });
+
+    test('partial ${args} in token — multi-token user args joined into single token', () => {
+      assert.deepStrictEqual(injectArgs('tool --name=${args}', 'val1 val2'), {
+        command: 'tool',
+        args: ['--name=val1 val2'],
+      });
+    });
+
+    test('injection via partial match — semicolon embedded inside token, not standalone', () => {
+      assert.deepStrictEqual(injectArgs('tool --cmd=${args}', '; rm -rf /'), {
+        command: 'tool',
+        args: ['--cmd=; rm -rf /'],
+      });
+    });
+
+    test('quoted path as command is unquoted into executable', () => {
+      assert.deepStrictEqual(injectArgs('"My Tool" run', '--flag'), {
+        command: 'My Tool',
+        args: ['run', '--flag'],
+      });
+    });
+
+    test('quoted user arg kept as single element', () => {
+      assert.deepStrictEqual(injectArgs('npm run build', "--name 'John Doe'"), {
+        command: 'npm',
+        args: ['run', 'build', '--name', 'John Doe'],
+      });
+    });
+
+    test('injection: shell operator in args becomes literal tokens', () => {
+      const result = injectArgs('npm install', '; rm -rf /');
+      assert.strictEqual(result.command, 'npm');
+      // The semicolon must be a discrete literal array element, not concatenated into the command
+      assert.ok(result.args.includes(';'), 'Semicolon must appear as a literal array element');
+      assert.ok(result.args.includes('rm'), 'rm must appear as a literal array element');
+    });
+
+    test('injection: pipe in args becomes literal tokens', () => {
+      const result = injectArgs('cat file', '| tee /tmp/out');
+      assert.strictEqual(result.command, 'cat');
+      assert.ok(result.args.includes('|'), 'Pipe must appear as a literal array element');
+      assert.ok(result.args.includes('tee'), 'tee must appear as a literal array element');
+    });
+
+    test('injection: subshell tokens in args are literal array elements', () => {
+      const result = injectArgs('echo', '$(cat /etc/passwd)');
+      assert.strictEqual(result.command, 'echo');
+      // splitArgs splits on the space inside $(cat /etc/passwd), so we get two tokens
+      // both are literal strings, not executed as shell code
+      const allArgs = result.args.join(' ');
+      assert.ok(allArgs.includes('$(cat'), 'Subshell prefix must appear as a literal token');
+    });
+
+    test('injection: shell operator in ${args} placeholder becomes literal tokens', () => {
+      const result = injectArgs('docker run ${args} alpine', '; rm -rf /');
+      assert.strictEqual(result.command, 'docker');
+      assert.ok(result.args.includes(';'), 'Semicolon must appear as a literal array element');
+      assert.ok(result.args.includes('alpine'), 'alpine must appear after injection');
+    });
+
+    test('empty command string returns empty command and no args', () => {
+      assert.deepStrictEqual(injectArgs(''), { command: '', args: [] });
+    });
+
+    test('whitespace-only command string returns empty command and no args', () => {
+      assert.deepStrictEqual(injectArgs('   '), { command: '', args: [] });
+    });
+
+    test('single command with no args and no user args', () => {
+      assert.deepStrictEqual(injectArgs('echo hello'), {
+        command: 'echo',
+        args: ['hello'],
+      });
     });
   });
 });

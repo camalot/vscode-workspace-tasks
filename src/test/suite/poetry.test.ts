@@ -78,7 +78,7 @@ suite('Poetry Provider Test Suite', () => {
       'serve = "python -m app"\n';
 
     const line = (provider as any).findScriptLineInContent(content, 'serve', 'project.scripts');
-    assert.strictEqual(line, 5);
+    assert.strictEqual(line, 4);
   });
 
   test('findScriptLineInContent returns 0 when script is not present', () => {
@@ -141,7 +141,43 @@ suite('Poetry Provider Test Suite', () => {
     const tasks = await provider.getTasks();
     assert.strictEqual(tasks.length, 1);
     assert.strictEqual(tasks[0].label, 'serve');
-    assert.strictEqual(tasks[0].startLine, 5);
+    assert.strictEqual(tasks[0].startLine, 4);
+  });
+
+  test('getTasks merges project.scripts with tool.poetry.scripts when both are present', async () => {
+    const filePath = path.join(tempDir, 'mixed-pyproject.toml');
+    const file = vscode.Uri.file(filePath);
+    const filesService = TaskFilesService.getInstance();
+    filesService.findFiles = async () => [file];
+
+    fs.writeFileSync(
+      filePath,
+      '[project]\n' +
+        'name = "demo"\n' +
+        '\n' +
+        '[project.scripts]\n' +
+        'build = "python -m build"\n' +
+        '\n' +
+        '[tool.poetry]\n' +
+        'name = "demo"\n' +
+        '\n' +
+        '[tool.poetry.scripts]\n' +
+        'serve = "legacy.main:run"\n' +
+        'build = "legacy.build:run"\n',
+      'utf8',
+    );
+
+    const tasks = await provider.getTasks();
+    assert.strictEqual(tasks.length, 2);
+    assert.ok(
+      tasks.some(
+        (t) =>
+          t.label === 'build' &&
+          typeof t.tooltip === 'string' &&
+          t.tooltip.includes('python -m build'),
+      ),
+    );
+    assert.ok(tasks.some((t) => t.label === 'serve'));
   });
 
   test('getTasks skips invalid TOML files', async () => {

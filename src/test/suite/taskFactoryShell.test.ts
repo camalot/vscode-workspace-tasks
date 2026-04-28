@@ -65,12 +65,17 @@ suite('TaskFactory Shell Tests', () => {
     const exec = created?.task.execution as vscode.ShellExecution;
     assert.ok(exec, 'Task should have ShellExecution');
 
-    // When no interpreter, the factory uses the commandLine form of ShellExecution.
-    // exec.commandLine holds the quoted script path; exec.command is undefined in this form.
-    const cmd = typeof exec.commandLine === 'string' ? exec.commandLine : '';
-    assert.ok(cmd.includes('with-shebang.py'), 'Command should include the script path');
+    // Factory now uses array-form ShellExecution — exec.command holds the script path.
+    assert.strictEqual(exec.commandLine, undefined, 'Must not use string-form ShellExecution');
+    assert.ok(
+      typeof exec.command === 'string' && (exec.command as string).includes('with-shebang.py'),
+      'exec.command should include the script path',
+    );
     // Interpreter should NOT appear as a separate prefix executable
-    assert.ok(!cmd.includes('python'), 'Command should not contain an explicit interpreter');
+    assert.ok(
+      !(exec.command as string).includes('python'),
+      'Command should not contain an explicit interpreter',
+    );
   });
 
   test('command string for direct execution contains the script path', async () => {
@@ -83,6 +88,14 @@ suite('TaskFactory Shell Tests', () => {
 
     assert.ok(created, 'Should create a task');
     assert.ok(created.command?.includes('with-shebang.sh'), 'Command string should include the script path');
+
+    // Also verify array-form is used
+    const exec = created.task.execution as vscode.ShellExecution;
+    assert.strictEqual(exec.commandLine, undefined, 'Must not use string-form ShellExecution');
+    assert.ok(
+      typeof exec.command === 'string' && (exec.command as string).includes('with-shebang.sh'),
+      'exec.command should hold the script path',
+    );
   });
 
   // ── CWD ───────────────────────────────────────────────────────────────────
@@ -144,5 +157,22 @@ suite('TaskFactory Shell Tests', () => {
     const created = await createTaskForItem(item);
 
     assert.strictEqual(created, undefined, 'Should return undefined when no file URI is set');
+  });
+
+  test('no-interpreter shell task uses array-form ShellExecution with user args', async () => {
+    const uri = shellUri('with-shebang.sh');
+    const item = new TaskItem('with-shebang.sh', vscode.TreeItemCollapsibleState.None, 'shell', uri);
+    item.metadata = { interpreter: '', subType: 'bash', useShebang: true };
+
+    const created = await createTaskForItem(item, '--config "my config.json"');
+    assert.ok(created, 'Should create a task');
+    const exec = created!.task.execution as vscode.ShellExecution;
+    assert.strictEqual(exec.commandLine, undefined, 'Must not use string-form ShellExecution');
+    assert.ok(Array.isArray(exec.args), 'exec.args must be an array');
+    // splitArgs() should parse the quoted arg correctly, keeping "my config.json" as a single element
+    assert.ok(
+      exec.args.some((a) => a === 'my config.json'),
+      'Quoted arg should be a single element without quotes',
+    );
   });
 });

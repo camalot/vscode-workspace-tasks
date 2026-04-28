@@ -227,7 +227,13 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
       typeIcon,
     );
 
+    workflowItem.startLine = 0;
     workflowItem.children = [];
+
+    // Split lines once for line-number lookups used by both events and jobs
+    const lines = text.split(/\r?\n/);
+    // Find the on: block at column 0
+    const onLineIndex = lines.findIndex((l) => /^on\s*:/.test(l));
 
     // Parse Events
     const events: string[] = [];
@@ -244,6 +250,17 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
 
     // Add Tasks for Events
     for (const event of events) {
+      // Find the specific event key as a direct child of on: (2-space indent)
+      const eventLineIndex = lines.findIndex(
+        (l, i) =>
+          i > onLineIndex &&
+          /^  \S/.test(l) &&
+          l.trimStart().startsWith(`${event}:`),
+      );
+      const eventLine =
+        eventLineIndex >= 0 ? eventLineIndex :
+        onLineIndex >= 0    ? onLineIndex    : 0;
+
       const item = new TaskItem(
         `Run Workflow (${event})`,
         vscode.TreeItemCollapsibleState.None,
@@ -252,10 +269,11 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
         {
           command: 'workspaceTasks.openFileAtLine',
           title: 'Open Workflow',
-          arguments: [uri, 0],
+          arguments: [uri, eventLine],
         },
         typeIcon,
       );
+      item.startLine = eventLine;
 
       let metadata: any = { type: 'workflow', event };
 
@@ -279,13 +297,17 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
 
     // Parse Jobs
     if (workflow.jobs) {
+      // Find the jobs: key at column 0 so we can restrict the job search to its direct children
+      const jobsLineIndex = lines.findIndex((l) => /^jobs\s*:/.test(l));
+
       for (const [jobId, _] of Object.entries(workflow.jobs)) {
-        // Find line number using simple string match fallback or if we had source map
-        // YAML parser might give source map but let's stick to simple match for line number for now
-        // Or we just default to 0.
-        // To be better, we can scan line by line or find index of `jobId:`
-        const lines = text.split(/\r?\n/);
-        const lineNo = lines.findIndex((l) => l.trim().startsWith(`${jobId}:`)); // Simple heuristic
+        // Find the job key as a direct child of jobs: (exactly 2-space indent)
+        const lineNo = lines.findIndex(
+          (l, i) =>
+            i > jobsLineIndex &&
+            /^  \S/.test(l) &&
+            l.trimStart().startsWith(`${jobId}:`),
+        );
 
         const jobItem = new TaskItem(
           `Run Job: ${jobId}`,
@@ -299,6 +321,7 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
           },
           typeIcon,
         );
+        jobItem.startLine = lineNo >= 0 ? lineNo : 0;
         jobItem.metadata = { type: 'job', jobId };
         workflowItem.children.push(jobItem);
       }

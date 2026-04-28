@@ -140,8 +140,11 @@ If the graceful stop is already in progress and you click **Stop** a second time
 
 ### `workspaceTasks.task.stopCompoundDependencies`
 
-**Type:** `boolean`
-**Default:** `true`
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `true` |
+| **Scope:** | `resource` |
 
 When enabled, stopping a compound task also stops all currently running `dependsOn` child tasks. See [Task Display Configuration](../configuration/task-display#workspacetaskstaskstopcompounddependencies) for full details.
 
@@ -160,7 +163,7 @@ Compound tasks appear in the Workspace Tasks tree alongside all other tasks. The
 You can:
 
 - **Favorite** a compound task for quick access
-- **Add** a compound task to a Compound Task (Queue)
+- **Add** a compound task to a Compound Task
 - **Stop** a compound task to terminate the full dependency chain
 
 ---
@@ -207,5 +210,5 @@ Click **▶️** next to `Full Build` in the Workspace Tasks view to run the ent
 ## Related
 
 - [Running Tasks](running-tasks)
-- [Compound Tasks (Queues)](task-queues)
+- [Compound Tasks](task-queues)
 - [Task Display Configuration](../configuration/task-display)

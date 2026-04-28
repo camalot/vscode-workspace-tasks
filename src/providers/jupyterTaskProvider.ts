@@ -3,7 +3,6 @@ import * as path from 'path';
 import { TaskItem } from '../taskItem';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskIconService } from '../services/taskIconService';
-import { ExecutableService } from '../services/executableService';
 import constants from '../libs/constants';
 import { TaskFilesService } from '../services/taskFilesService';
 import { TaskConfigService } from '../services/taskConfigService';
@@ -89,25 +88,21 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
       return [];
     }
 
-    // Check if extension (ms-toolsai.jupyter) is installed
-    const extensionId = 'ms-toolsai.jupyter';
-    const command = await ExecutableService.getInstance().getVscodeCommand('jupyter.runcell', extensionId);
-
-    if (!command) {
-      return [];
-    }
-
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
     const files = await filesService.findFiles([constants.GLOB_JUPYTER]);
 
     for (const file of files) {
-      const content = await vscode.workspace.fs.readFile(file);
-      const text = Buffer.from(content).toString('utf8');
+      try {
+        const content = await vscode.workspace.fs.readFile(file);
+        const text = Buffer.from(content).toString('utf8');
 
-      const fileTasks = this.parseNotebookFile(file, text);
-      if (fileTasks) {
-        tasks.push(fileTasks);
+        const fileTasks = this.parseNotebookFile(file, text);
+        if (fileTasks) {
+          tasks.push(fileTasks);
+        }
+      } catch (e) {
+        this.logger.warn(`[JupyterTaskProvider] Error reading ${file.fsPath}:`, e);
       }
     }
     return tasks;
@@ -151,42 +146,46 @@ export class JupyterTaskProvider extends BaseTaskProvider implements TaskProvide
     notebookItem.metadata = { type: 'notebook' };
 
     if (notebook.cells && Array.isArray(notebook.cells)) {
-      notebook.cells.forEach((cell, index) => {
-        if (cell.cell_type === 'code') {
-          const sourceLines = Array.isArray(cell.source)
-            ? cell.source
-            : typeof cell.source === 'string'
-              ? [cell.source]
-              : [];
+      for (let index = 0; index < notebook.cells.length; index++) {
+        const cell = notebook.cells[index];
 
-          const sourceText = sourceLines.join('').trim();
-          // Even empty cells are cells. But maybe skip empty ones?
-          const label = `Cell ${index + 1}`;
-
-          const item = new TaskItem(
-            label,
-            vscode.TreeItemCollapsibleState.None,
-            this.type,
-            uri,
-            {
-              command: 'vscode.open',
-              title: 'Open Notebook',
-              arguments: [uri],
-            },
-            new vscode.ThemeIcon('code'),
-          );
-          item.id = `${this.type}:${uri.toString()}:${index}`;
-
-          item.parent = notebookItem;
-          item.metadata = {
-            type: 'cell',
-            cellIndex: index,
-            source: sourceText,
-          };
-
-          notebookItem.children.push(item);
+        if (cell.cell_type !== 'code') {
+          continue;
         }
-      });
+
+        const sourceLines = Array.isArray(cell.source)
+          ? cell.source
+          : typeof cell.source === 'string'
+            ? [cell.source]
+            : [];
+
+        const sourceText = sourceLines.join('').trim();
+        const label = `Cell ${index + 1}`;
+
+        const item = new TaskItem(
+          label,
+          vscode.TreeItemCollapsibleState.None,
+          this.type,
+          uri,
+          {
+            command: 'vscode.open',
+            title: 'Open Notebook',
+            arguments: [uri],
+          },
+          new vscode.ThemeIcon('code'),
+        );
+        item.id = `${this.type}:${uri.toString()}:${index}`;
+        item.startLine = 0;
+
+        item.parent = notebookItem;
+        item.metadata = {
+          type: 'cell',
+          cellIndex: index,
+          source: sourceText,
+        };
+
+        notebookItem.children.push(item);
+      }
     }
 
     return notebookItem;

@@ -278,4 +278,124 @@ suite('FavoritesService Test Suite', () => {
     assert.strictEqual(svc.isFavorite('undefined:NewName'), false, 'new id should not be added');
     assert.strictEqual(updates.length, 0, 'should not persist when old id was not in favorites');
   });
+
+  // ---------------------------------------------------------------------------
+  // F01-F06: onDidChangeFavorites event tests
+  // ---------------------------------------------------------------------------
+
+  function makeTaskStateStub(): TaskStateManager {
+    return {
+      normalizeTaskIds: (ids: string[]) => ids || [],
+      normalizeTaskId: (id: string) => id,
+      generatePortableTaskId: (item: TaskItem) => String(item.label),
+      getTaskId: (item: TaskItem) => String(item.label),
+    } as unknown as TaskStateManager;
+  }
+
+  function makeEmptyContext(): vscode.ExtensionContext {
+    const fakeStateValue = {
+      get: (_k: string, d?: any) => d,
+      update: async (_k: string, _v: any) => Promise.resolve(),
+    };
+    return {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
+    } as unknown as vscode.ExtensionContext;
+  }
+
+  test('F01 - onDidChangeFavorites is exposed as an event', () => {
+    (TaskStateManager as any).instance = makeTaskStateStub();
+    const svc = FavoritesService.getInstance();
+    svc.initialize(makeEmptyContext());
+    assert.strictEqual(typeof svc.onDidChangeFavorites, 'function', 'onDidChangeFavorites should be a function/event');
+  });
+
+  test('F02 - onDidChangeFavorites fires when addToFavorites is called', () => {
+    (TaskStateManager as any).instance = makeTaskStateStub();
+    const svc = FavoritesService.getInstance();
+    svc.initialize(makeEmptyContext());
+
+    let fired = false;
+    svc.onDidChangeFavorites(() => { fired = true; });
+
+    const item = new TaskItem('MyTask', vscode.TreeItemCollapsibleState.None, 'type');
+    svc.addToFavorites(item);
+
+    assert.ok(fired, 'onDidChangeFavorites should fire after addToFavorites');
+  });
+
+  test('F03 - onDidChangeFavorites fires when removeFromFavorites is called', () => {
+    (TaskStateManager as any).instance = makeTaskStateStub();
+
+    const storedValue = ['MyTask'];
+    const fakeStateValue = {
+      get: (_k: string, _d?: any) => storedValue,
+      update: async (_k: string, _v: any) => Promise.resolve(),
+    };
+    const ctxWithData = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
+    } as unknown as vscode.ExtensionContext;
+
+    const svc = FavoritesService.getInstance();
+    svc.initialize(ctxWithData);
+
+    let fired = false;
+    svc.onDidChangeFavorites(() => { fired = true; });
+
+    const item = new TaskItem('MyTask', vscode.TreeItemCollapsibleState.None, 'type');
+    svc.removeFromFavorites(item);
+
+    assert.ok(fired, 'onDidChangeFavorites should fire after removeFromFavorites');
+  });
+
+  test('F04 - onDidChangeFavorites fires when updateFavoriteId renames an existing id', () => {
+    (TaskStateManager as any).instance = makeTaskStateStub();
+
+    const storedValue = ['OldTask'];
+    const fakeStateValue = {
+      get: (_k: string, _d?: any) => storedValue,
+      update: async (_k: string, _v: any) => Promise.resolve(),
+    };
+    const ctxWithData = {
+      globalState: fakeStateValue,
+      workspaceState: fakeStateValue,
+    } as unknown as vscode.ExtensionContext;
+
+    const svc = FavoritesService.getInstance();
+    svc.initialize(ctxWithData);
+
+    let fired = false;
+    svc.onDidChangeFavorites(() => { fired = true; });
+
+    svc.updateFavoriteId('OldTask', 'NewTask');
+
+    assert.ok(fired, 'onDidChangeFavorites should fire when updateFavoriteId renames an id');
+  });
+
+  test('F05 - onDidChangeFavorites does NOT fire when addToFavorites is given a falsy id', () => {
+    (TaskStateManager as any).instance = {
+      normalizeTaskIds: (ids: string[]) => ids || [],
+      normalizeTaskId: (id: string) => id,
+      getTaskId: (_item: TaskItem) => '' as any,
+    } as unknown as TaskStateManager;
+
+    const svc = FavoritesService.getInstance();
+    svc.initialize(makeEmptyContext());
+
+    let fired = false;
+    svc.onDidChangeFavorites(() => { fired = true; });
+
+    const item = new TaskItem('NoId', vscode.TreeItemCollapsibleState.None, 'type');
+    svc.addToFavorites(item);
+
+    assert.ok(!fired, 'onDidChangeFavorites should NOT fire when no portable id is generated');
+  });
+
+  test('F06 - dispose() can be called without error', () => {
+    (TaskStateManager as any).instance = makeTaskStateStub();
+    const svc = FavoritesService.getInstance();
+    svc.initialize(makeEmptyContext());
+    assert.doesNotThrow(() => svc.dispose());
+  });
 });

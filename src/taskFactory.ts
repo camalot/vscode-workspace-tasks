@@ -4,7 +4,7 @@ import { TaskItem } from './taskItem';
 import { WorkspaceTasksService } from './services/workspaceTasksService';
 import { TaskEnvService } from './services/taskEnvService';
 import { TaskSecretWarningService } from './services/taskSecretWarningService';
-import { resolveTaskContext, CreatedTask } from './libs/taskCreationUtils';
+import { resolveTaskContext, CreatedTask, splitArgs, injectArgs } from './libs/taskCreationUtils';
 import { TaskProviderRegistry } from './taskProviderRegistry';
 import { LoggerService } from './services/loggerService';
 import { ensureTaskProviderRegistryPopulated } from './providers';
@@ -31,20 +31,40 @@ function buildKnownTaskTypes(): ReadonlySet<string> {
 
 export const KNOWN_TASK_TYPES: ReadonlySet<string> = buildKnownTaskTypes();
 
-/**
- * Injects runtime args into a command.
- * If ${args} exists, all occurrences are replaced; otherwise args are appended.
- */
-export function injectArgs(command: string, args?: string): string {
-  if (!args) {
-    return command;
+export function createJupyterPseudoterminal(
+  resourceUri: vscode.Uri,
+  cellIndex: number | undefined,
+  taskLabel: string,
+): vscode.Pseudoterminal {
+  return new JupyterTerm(resourceUri, cellIndex, taskLabel);
+}
+
+export function createJupyterExecutionCallback(
+  resourceUri: vscode.Uri,
+  cellIndex: number | undefined,
+  taskLabel: string,
+): () => Promise<vscode.Pseudoterminal> {
+  return async (): Promise<vscode.Pseudoterminal> => createJupyterPseudoterminal(resourceUri, cellIndex, taskLabel);
+}
+
+export function isMatchingVscodeTask(
+  task: vscode.Task,
+  taskLabel: string,
+  targetWorkspaceFolder?: vscode.WorkspaceFolder,
+): boolean {
+  // Accept both workspace tasks and user-level tasks (source === 'User')
+  const nameMatch = task.name === taskLabel && (task.source === 'Workspace' || task.source === 'User');
+  if (!nameMatch) {
+    return false;
   }
 
-  if (command.includes('${args}')) {
-    return command.replaceAll('${args}', () => args);
+  // If we know the target workspace folder, ensure the task belongs to it
+  if (targetWorkspaceFolder && typeof task.scope === 'object' && 'uri' in task.scope) {
+    return task.scope.uri.toString() === targetWorkspaceFolder.uri.toString();
   }
 
-  return `${command} ${args}`;
+  // If we don't know the folder, or the task has global/workspace scope, accept it as fallback
+  return true;
 }
 
 /**
@@ -74,17 +94,19 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       resourceUri,
     );
     if (declared) {
-      const fullCommand = injectArgs(declared, args);
+      const { command: execCmd, args: execArgs } = injectArgs(declared, args);
+      const displayCommand = execArgs.length > 0 ? `${execCmd} ${execArgs.join(' ')}` : execCmd;
       const task = new vscode.Task(
         { type: 'workspace-task', task: taskLabel, path: resourceUri.fsPath },
         vscode.TaskScope.Workspace,
         taskLabel,
         'workspace-task',
-        new vscode.ShellExecution(fullCommand, { cwd }),
+        new vscode.ShellExecution(execCmd, execArgs, { cwd }),
       );
 
-      return { task, command: fullCommand, cwd, native: false };
+      return { task, command: displayCommand, cwd, native: false };
     }
+
   }
 
   // Track 1: registry-based providers.
@@ -117,9 +139,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         vscode.TaskScope.Workspace,
         taskLabel,
         'jupyter',
-        new vscode.CustomExecution(async (): Promise<vscode.Pseudoterminal> => {
-          return new JupyterTerm(resourceUri, item.metadata?.cellIndex, taskLabel);
-        }),
+        new vscode.CustomExecution(createJupyterExecutionCallback(resourceUri, item.metadata?.cellIndex, taskLabel)),
       );
       return { task, command: 'jupyter.runcell', cwd: path.dirname(resourceUri.fsPath), native: false };
     }
@@ -146,8 +166,9 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
 
       // Use array form to properly handle paths with spaces in both interpreter and script
       const shellArgs = [resourceUri.fsPath];
+      // Fix: use splitArgs() instead of split(' ') to correctly handle quoted arguments
       if (args) {
-        shellArgs.push(...args.split(' '));
+        shellArgs.push(...splitArgs(args));
       }
 
       if (interpreter) {
@@ -155,11 +176,12 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         commandString = `${interpreter} ${shellArgs.join(' ')}`;
       } else {
         // Execute directly — the OS will use the shebang interpreter (if present)
-        commandString = `"${resourceUri.fsPath}"`;
-        if (args) {
-          commandString += ` ${shellArgs.slice(1).join(' ')}`;
-        }
-        shellExec = new vscode.ShellExecution(commandString, { cwd });
+        // Array form: VSCode handles quoting of the path per platform
+        const scriptUserArgs = splitArgs(args);
+        shellExec = new vscode.ShellExecution(resourceUri.fsPath, scriptUserArgs, { cwd });
+        commandString = scriptUserArgs.length > 0
+          ? `"${resourceUri.fsPath}" ${scriptUserArgs.join(' ')}`
+          : `"${resourceUri.fsPath}"`;
       }
 
       // Use relative path as task name to ensure uniqueness and prevent terminal reuse conflicts
@@ -182,21 +204,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
         ? vscode.workspace.getWorkspaceFolder(taskUri)
         : undefined;
 
-      const found = tasks.find((t) => {
-        // Accept both workspace tasks and user-level tasks (source === 'User')
-        const nameMatch = t.name === taskLabel && (t.source === 'Workspace' || t.source === 'User');
-        if (!nameMatch) {
-          return false;
-        }
-
-        // If we know the target workspace folder, ensure the task belongs to it
-        if (targetWorkspaceFolder && typeof t.scope === 'object' && 'uri' in t.scope) {
-          return t.scope.uri.toString() === targetWorkspaceFolder.uri.toString();
-        }
-
-        // If we don't know the folder, or the task has global/workspace scope, accepts it as fallback
-        return true;
-      });
+      const found = tasks.find((t) => isMatchingVscodeTask(t, taskLabel, targetWorkspaceFolder));
 
       if (found) {
         return { task: found, cwd: undefined, native: true };
@@ -204,24 +212,28 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
       return undefined;
     }
     case 'dockerfile': {
+      // If a workspace-sourced command resolution already ran and returned undefined,
+      // do not invoke dockerfile resolution again with a different language id.
+      if (item.taskSource) {
+        return undefined;
+      }
+
       const command = await WorkspaceTasksService.getInstance().resolveTaskCommand(
         taskLabel,
         'DockerFile',
         resourceUri,
       );
       if (command) {
-        // Dockerfile provider uses resolveTaskCommand which returns a string presumably from user config map?
-        // It does not use ExecutableService.getCommand directly here on taskFactory level.
-        // So we leave it as is.
-        const fullCommand = args ? `${command} ${args}` : command;
+        const { command: execCmd, args: execArgs } = injectArgs(command, args);
+        const displayCommand = execArgs.length > 0 ? `${execCmd} ${execArgs.join(' ')}` : execCmd;
         const task = new vscode.Task(
           { type: 'dockerfile', task: taskLabel, path: resourceUri.fsPath },
           vscode.TaskScope.Workspace,
           taskLabel,
           'dockerfile',
-          new vscode.ShellExecution(fullCommand, { cwd }),
+          new vscode.ShellExecution(execCmd, execArgs, { cwd }),
         );
-        return { task, command: fullCommand, cwd, native: false };
+        return { task, command: displayCommand, cwd, native: false };
       }
       return undefined;
     }

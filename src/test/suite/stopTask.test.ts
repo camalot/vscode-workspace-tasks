@@ -313,6 +313,41 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(labels.length, 2);
   });
 
+  test('getCompoundDependencyLabels handles self references and cycles without infinite recursion', () => {
+    const tasksJson = JSON.stringify({
+      version: '2.0.0',
+      tasks: [
+        { label: 'root', dependsOn: ['root', '', 'child'] },
+        { label: 'child', dependsOn: 'root' },
+      ],
+    });
+
+    const labels = getCompoundDependencyLabels(tasksJson, 'root');
+    const asSet = new Set(labels);
+
+    assert.strictEqual(asSet.has('child'), true);
+    assert.strictEqual(asSet.has('root'), false);
+    assert.strictEqual(asSet.has(''), false);
+    assert.strictEqual(labels.length, 1);
+  });
+
+  test('getCompoundDependencyLabels parses JSON with comments (catch block with regex fixes)', () => {
+    const tasksJsonWithComments = `{
+      /* this is a block comment */
+      "version": "2.0.0",
+      "tasks": [
+        { "label": "build", "dependsOn": "compile" },
+        { "label": "compile" }
+      ]
+    }`;
+
+    const labels = getCompoundDependencyLabels(tasksJsonWithComments, 'build');
+    const asSet = new Set(labels);
+
+    assert.strictEqual(asSet.has('compile'), true);
+    assert.strictEqual(labels.length, 1);
+  });
+
   // -------------------------------------------------------------------------
   // Stored terminal path – graceful stop with SIGINT
   // -------------------------------------------------------------------------
@@ -554,7 +589,6 @@ suite('StopTaskCommand Test Suite', () => {
 
     fakeStateManager.setStopTimer(id, immediateTimer);
   });
-
   // -------------------------------------------------------------------------
   // Blocking pending sequential dependencies
   // -------------------------------------------------------------------------

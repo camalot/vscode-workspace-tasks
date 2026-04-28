@@ -28,9 +28,11 @@ nav_order: 5
 
 ### workspaceTasks.applicationPath.gitlabCiLocal
 
-**Type:** `string`
-**Default:** `"gitlab-ci-local"`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `"gitlab-ci-local"` |
+| **Scope:** | `resource` |
 
 Path to the `gitlab-ci-local` executable. On all platforms, `~/` is expanded to the user's home directory.
 
@@ -53,9 +55,11 @@ npm install -g gitlab-ci-local
 
 ### workspaceTasks.gitlabCiLocal.additionalFilePatterns
 
-**Type:** `string[]`
-**Default:** `[]`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Additional glob patterns for discovering `.gitlab-ci.yml` files with non-standard names or locations. Patterns are merged with the built-in `**/.gitlab-ci.yml` pattern.
 
@@ -74,9 +78,11 @@ Additional glob patterns for discovering `.gitlab-ci.yml` files with non-standar
 
 ### workspaceTasks.gitlabCiLocal.variablesFile
 
-**Type:** `string`
-**Default:** `""`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `""` |
+| **Scope:** | `resource` |
 
 Path to a YAML file containing CI/CD variables, passed to `gitlab-ci-local` via `--variables-file`.
 
@@ -92,9 +98,11 @@ Path to a YAML file containing CI/CD variables, passed to `gitlab-ci-local` via 
 
 ### workspaceTasks.gitlabCiLocal.variable
 
-**Type:** `string[]`
-**Default:** `[]`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Array of `KEY=VALUE` strings passed via `--variable`. Each entry results in a separate `--variable` flag.
 
@@ -113,9 +121,11 @@ Array of `KEY=VALUE` strings passed via `--variable`. Each entry results in a se
 
 ### workspaceTasks.gitlabCiLocal.unsetVariable
 
-**Type:** `string[]`
-**Default:** `[]`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Array of variable names to unset, passed via `--unset-variable`. Each entry results in a separate `--unset-variable` flag.
 
@@ -131,9 +141,11 @@ Array of variable names to unset, passed via `--unset-variable`. Each entry resu
 
 ### workspaceTasks.gitlabCiLocal.remoteVariables
 
-**Type:** `string[]`
-**Default:** `[]`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string[]` |
+| **Default:** | `[]` |
+| **Scope:** | `resource` |
 
 Array of remote variable sources passed via `--remote-variables`.
 
@@ -149,9 +161,11 @@ Array of remote variable sources passed via `--remote-variables`.
 
 ### workspaceTasks.gitlabCiLocal.home
 
-**Type:** `string`
-**Default:** `""`
-**Scope:** `resource`
+| | |
+| --- | --- |
+| **Type:** | `string` |
+| **Default:** | `""` |
+| **Scope:** | `resource` |
 
 Override the home directory used by `gitlab-ci-local` via `--home`. Leave empty to use the system default.
 

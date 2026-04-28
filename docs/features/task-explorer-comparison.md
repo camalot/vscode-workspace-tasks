@@ -122,6 +122,8 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Task Monitor (fullscreen webview console) | ❌ | ✅ (v3+) | ❌ |
 | Estimated task duration display | ✅ | ❌ | ✅ v1.8.0 |
 | Run Guard (confirm before running) | ✅ | ❌ | ✅ v1.8.0 |
+| CodeLens support | ✅ | ❌ | |
+| Editor Title Actions | ✅ | ❌ | |
 
 ---
 
@@ -133,6 +135,7 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Stop task | ✅ | ✅ (v1.6+) | |
 | Restart task | ✅ | ✅ (v1.20+) | |
 | Run with arguments | ✅ | ✅ (v1.30+) | |
+| Guided argument input | ✅ | ❌ | |
 | Run without terminal | ✅ | ✅ (v1.30+) | |
 | Keep terminal open after stop | ✅ | ✅ (v1.21+) | |
 | Open terminal for running task | ✅ | ✅ (v1.24+) | |
@@ -158,11 +161,11 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 
 ---
 
-## Compound Tasks (Queues)
+## Compound Tasks
 
 | Feature | **Workspace Tasks** | **Task Explorer** | **WST Planned** |
 | --- | :---: | :---: | :---: |
-| Named compound task sequences (Queues) | ✅ | ❌ | |
+| Named compound task sequences | ✅ | ❌ | |
 | Multiple independent queues | ✅ | ❌ | |
 | Sequential execution mode | ✅ | ❌ | |
 | Parallel execution mode | ✅ | ❌ | |

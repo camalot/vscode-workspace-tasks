@@ -52,9 +52,7 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
           const content = document.getText();
           const iconPath = iconService.getTaskIcon(this.type);
 
-
-          // Simple parsing for now
-          const json = JSON.parse(content);
+          const json = await this.parseContent(content, file);
           this.logger.debug(`[${this.type}TaskProvider] Parsed JSON from ${file.fsPath}`);
           if (json.scripts) {
             for (const script of Object.keys(json.scripts)) {
