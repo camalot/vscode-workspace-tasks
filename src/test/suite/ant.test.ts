@@ -192,6 +192,18 @@ suite('Ant Provider Test Suite', function () {
       assert.strictEqual(tasks[1].name, 'y');
       assert.strictEqual(tasks[1].description, 'foo');
     });
+
+    test('findTargetStartLine returns correct zero-based line number', function () {
+      const xml = `<?xml version="1.0"?>\n<project name="Test">\n  <target name="clean" description="Clean build"/>\n  <target name="compile"/>\n</project>`;
+      const line = (provider as any).findTargetStartLine(xml, 'clean');
+      assert.strictEqual(line, 2);
+    });
+
+    test('findTargetStartLine returns 0 when target is missing', function () {
+      const xml = `<?xml version="1.0"?>\n<project name="Test">\n  <target name="compile"/>\n</project>`;
+      const line = (provider as any).findTargetStartLine(xml, 'clean');
+      assert.strictEqual(line, 0);
+    });
   });
 
   suite('getTasks integration', () => {
@@ -254,6 +266,8 @@ suite('Ant Provider Test Suite', function () {
       assert.strictEqual(tasks.length, 2);
       assert.strictEqual(tasks[0].label, 'clean');
       assert.strictEqual(tasks[1].label, 'compile');
+      assert.strictEqual(tasks[0].startLine, 2);
+      assert.strictEqual(tasks[1].startLine, 3);
     });
 
     test('getTasks returns [] when disabled', async function () {

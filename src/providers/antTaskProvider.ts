@@ -66,10 +66,12 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
           item.description = vscode.workspace.asRelativePath(file);
           item.tooltip = target.description || target.name;
 
+          item.startLine = this.findTargetStartLine(xmlString, target.name);
+
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [file, 0],
+            arguments: [file, item.startLine || 0],
           };
 
           tasks.push(item);
@@ -128,6 +130,19 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
 
     return targets;
+  }
+
+  private findTargetStartLine(xmlContent: string, targetName: string): number {
+    const escapedName = targetName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`<target\\s+(?:[^>]*?\\s+)?name=[\"']${escapedName}[\"']`, 'i');
+
+    const match = regex.exec(xmlContent);
+    if (match) {
+      const matchIndex = match.index;
+      const subString = xmlContent.substring(0, matchIndex);
+      return subString.split('\n').length - 1;
+    }
+    return 0;
   }
 
   public getCommandArgs(targetName: string, useAnsicon: boolean = false, buildFilePath?: string): string[] {

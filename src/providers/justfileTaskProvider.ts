@@ -36,7 +36,7 @@ interface JustfileJsonOutput {
 }
 
 export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvider {
-  /** Overrideable in tests to avoid spawning a real process. */
+  /** Overridable in tests to avoid spawning a real process. */
   protected execFileAsync = promisify(execFile);
 
   constructor() {

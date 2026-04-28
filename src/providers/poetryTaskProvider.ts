@@ -47,24 +47,33 @@ export class PoetryTaskProvider extends TomlTaskProvider {
           continue;
         }
 
-        // Check [project.scripts] first (PEP 621 standard, preferred)
-        let scripts = tomlObj?.project?.scripts;
-        let scriptsPath = 'project.scripts';
+        const scripts: Record<string, unknown> = {};
+        const projectScripts = tomlObj?.project?.scripts;
+        const legacyScripts = tomlObj?.tool?.poetry?.scripts;
 
-        // Fall back to [tool.poetry.scripts] for backward compatibility
-        if (!scripts || typeof scripts !== 'object') {
-          scripts = tomlObj?.tool?.poetry?.scripts;
-          scriptsPath = 'tool.poetry.scripts';
+        if (projectScripts && typeof projectScripts === 'object') {
+          Object.assign(scripts, projectScripts);
         }
 
-        if (!scripts || typeof scripts !== 'object') {
+        if (legacyScripts && typeof legacyScripts === 'object') {
+          for (const [name, script] of Object.entries(legacyScripts)) {
+            if (!Object.prototype.hasOwnProperty.call(scripts, name)) {
+              scripts[name] = script;
+            }
+          }
+        }
+
+        if (Object.keys(scripts).length === 0) {
           continue;
         }
 
         const iconPath = iconService.getTaskIcon(this.type);
 
+        const projectScriptNames = new Set(projectScripts && typeof projectScripts === 'object' ? Object.keys(projectScripts) : []);
+
         for (const [name, script] of Object.entries(scripts)) {
           const command = typeof script === 'string' ? script : JSON.stringify(script);
+          const section = projectScriptNames.has(name) ? 'project.scripts' : 'tool.poetry.scripts';
 
           const item = new TaskItem(name, vscode.TreeItemCollapsibleState.None, this.type, file, undefined, iconPath);
 
@@ -73,7 +82,7 @@ export class PoetryTaskProvider extends TomlTaskProvider {
           item.tooltip = `${name}: ${command}`;
 
           // Find the line number in the file
-          item.startLine = this.findScriptLineInContent(textContent, name, scriptsPath);
+          item.startLine = this.findScriptLineInContent(textContent, name, section);
 
           item.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
@@ -111,7 +120,7 @@ export class PoetryTaskProvider extends TomlTaskProvider {
 
       // Look for the script name in the section
       if (inSection && line.startsWith(`${scriptName} =`)) {
-        return i + 1; // 1-based line number
+        return i; // 0-based line number
       }
     }
 

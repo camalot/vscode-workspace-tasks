@@ -125,6 +125,23 @@ help = "Run tests"`;
     assert.strictEqual(lineNumber, 0);
   });
 
+  test('finds task line in content - subtable syntax within base section', function () {
+    const provider = new PoeTaskProvider();
+    const content = `[tool.poe.tasks]
+test = "pytest"
+
+[tool.poe.tasks.create-secret]
+script = "django.core.management.utils:get_random_secret_key()"
+
+[tool.poe.tasks.check]
+parallel = ["lint", "test"]`;
+    const createSecretLine = (provider as any).findTaskLineInContent(content, 'create-secret');
+    const checkLine = (provider as any).findTaskLineInContent(content, 'check');
+
+    assert.strictEqual(createSecretLine, 3);
+    assert.strictEqual(checkLine, 6);
+  });
+
   test('returns 0 for task not found', function () {
     const provider = new PoeTaskProvider();
     const content = `[tool.poe.tasks]
