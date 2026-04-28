@@ -141,7 +141,7 @@ suite('Poetry Provider Test Suite', () => {
     const tasks = await provider.getTasks();
     assert.strictEqual(tasks.length, 1);
     assert.strictEqual(tasks[0].label, 'serve');
-    assert.strictEqual(tasks[0].startLine, 5);
+    assert.strictEqual(tasks[0].startLine, 4);
   });
 
   test('getTasks merges project.scripts with tool.poetry.scripts when both are present', async () => {

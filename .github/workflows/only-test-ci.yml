@@ -42,4 +42,4 @@ jobs:
           libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
 
       - name: Test
-        run: xvfb-run -a npx vscode-test --run ./out/test/suite/taskFilesService.test.js
+        run: xvfb-run -a npx vscode-test #-- --run ./out/test/suite/taskFilesService.test.js --run ./out/test/suite/poetry.test.js --run ./out/test/suite/taskTreeDataProvider.test.js

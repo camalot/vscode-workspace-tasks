@@ -158,10 +158,41 @@ class TestableTaskTreeDataProvider extends TaskTreeDataProvider {
 suite('TaskTreeDataProvider Test Suite', () => {
   let ctx: vscode.ExtensionContext;
   let originalGetConfiguration: typeof vscode.workspace.getConfiguration;
+  let originalCreateFileSystemWatcher: typeof vscode.workspace.createFileSystemWatcher;
 
   setup(() => {
     resetSingletons();
     ctx = createMockContext();
+
+    originalCreateFileSystemWatcher = vscode.workspace.createFileSystemWatcher;
+    (vscode.workspace as any).createFileSystemWatcher = (
+      _globPattern: vscode.GlobPattern,
+      _ignoreCreateEvents?: boolean,
+      _ignoreChangeEvents?: boolean,
+      _ignoreDeleteEvents?: boolean
+    ): vscode.FileSystemWatcher => {
+      let changeCallback: ((uri: vscode.Uri) => any) | undefined;
+      let createCallback: ((uri: vscode.Uri) => any) | undefined;
+      let deleteCallback: ((uri: vscode.Uri) => any) | undefined;
+      return {
+        ignoreCreateEvents: _ignoreCreateEvents ?? false,
+        ignoreChangeEvents: _ignoreChangeEvents ?? false,
+        ignoreDeleteEvents: _ignoreDeleteEvents ?? false,
+        onDidCreate: (listener) => {
+          createCallback = listener;
+          return { dispose: () => { createCallback = undefined; } };
+        },
+        onDidChange: (listener) => {
+          changeCallback = listener;
+          return { dispose: () => { changeCallback = undefined; } };
+        },
+        onDidDelete: (listener) => {
+          deleteCallback = listener;
+          return { dispose: () => { deleteCallback = undefined; } };
+        },
+        dispose: () => {},
+      };
+    };
 
     // Mock getConfiguration to prevent .vscode/settings.json overrides from affecting tests.
     // Notably: groups.compoundTasks.enabled is true in settings.json which changes tree structure.
@@ -191,6 +222,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
   teardown(() => {
     resetSingletons();
     (vscode.workspace as any).getConfiguration = originalGetConfiguration;
+    (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
   });
 
   // ── Instance management ──────────────────────────────────────────────────
