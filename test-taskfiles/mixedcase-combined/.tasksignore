@@ -1,3 +1,0 @@
-apps/appA/**
-!apps/appA/package.json@build
-!apps/appA/script1.sh
