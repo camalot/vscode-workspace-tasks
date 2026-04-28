@@ -18,7 +18,6 @@
 
 - Guided argument input helper for run with args on scripts
 
-
 ### 🐛 Bug Fixes
 
 - Fix secrets tree item collision with github actions extension which caused 2 + action buttons
@@ -59,7 +58,6 @@
 
 - Resolve filewatcher leak causing test failure in github actions run
 
-
 ### 📚 Documentation
 
 - Added info badges
@@ -72,11 +70,9 @@
 
 - Fixed documentation about guidedArgInput default
 
-
 ### 🧪 Testing
 
 - Improved test coverage
-
 
 **Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.10.0...v1.11.0
 

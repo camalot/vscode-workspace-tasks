@@ -35,7 +35,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 ![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png){: .vat }
 ![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png){: .vat }
 ![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif){: .vat }
-![Workspace-Tasks Load v1.6.0](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-load-v1.6.0.gif){: .vat }
+![Workspace-Tasks Load v1.6.0](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-load-v1.6.0.gif){: .vat }  ![CodeLens](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/codelens-actions.png){: .vat }
 
 ---
 
@@ -50,7 +50,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **⚡ Fast Performance** — Optimized for large workspaces with caching and incremental updates
 - **[📄 Editor Title Bar Buttons](https://camalot.github.io/vscode-workspace-tasks/features/editor-title-run-buttons.html)** - Run shell scripts and GitHub Actions workflows directly from the editor title bar without switching to the task tree
 - **[🔍 Inline CodeLens Actions](https://camalot.github.io/vscode-workspace-tasks/features/codelens.html)** - Run, favorite, queue, and hide tasks directly from inline CodeLens lenses above each task definition in its source file
-- **⏹️ Smarter Stop Controls** - Optionally stop running `dependsOn` child tasks when stopping a compound task
+- **⏹️ Smarter Stop Controls** - Stop tasks gracefully with a configurable delay, or force kill after the timeout; Compound Tasks have an option to stop all child tasks together or individually
 - **🎯 Smart Organization** — Hierarchical tree view organized by workspace, task type, and file
 - **🔀 Drag & Drop** — Reorder tasks in Compound Tasks with drag and drop
 - **🎭 GitHub Actions Support** — Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
@@ -63,6 +63,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **[🛡️ Run Guard](features/run-guard)** - Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern
 - **[🕜 Estimated Task Duration](features/task-duration-estimates)** - View estimated duration for tasks based on historical execution data
 - **🔒 Workspace Trust** - Respects [VS Code Workspace Trust](https://code.visualstudio.com/docs/editor/workspace-trust): no tasks are discovered or displayed in untrusted workspaces
+- **[👉 Guided Arguments](task-types/scripts/#guided-argument-input-for-scripts)** - Arguments for supported `shell script` types are discovered and prompted as defined inputs when `Run with Args`.
 
 ---
 

@@ -135,6 +135,7 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Stop task | ✅ | ✅ (v1.6+) | |
 | Restart task | ✅ | ✅ (v1.20+) | |
 | Run with arguments | ✅ | ✅ (v1.30+) | |
+| Guided argument input | ✅ | ❌ | |
 | Run without terminal | ✅ | ✅ (v1.30+) | |
 | Keep terminal open after stop | ✅ | ✅ (v1.21+) | |
 | Open terminal for running task | ✅ | ✅ (v1.24+) | |
