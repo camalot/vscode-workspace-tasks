@@ -481,12 +481,24 @@ export class TaskFilesService {
     this.fileWatcher = undefined;
     this.fileEventsWatcher?.dispose();
     this.fileEventsWatcher = undefined;
+    this.registeredPatterns.clear();
+    this.cachedPaths = null;
+    this.cacheInvalidated = true;
+    this.buildCacheInFlight = null;
+    this.cacheGeneration = 0;
+    this.initialScanFired = false;
+    this.ignoreFiles = [];
+    this.globalIgnore = ignore();
+    this.ignoreList = [];
+    this.lastExcludes = [];
   }
 
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.context = context;
     this.globalIgnore = ignore();
     this.ignoreFiles = [];
+    this.ignoreList = [];
+    this.lastExcludes = [];
     clearTimeout(this._saveDebounceTimer);
     this._saveDebounceTimer = undefined;
     this._pendingProviderTypes.clear();

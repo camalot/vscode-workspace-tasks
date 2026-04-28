@@ -1231,6 +1231,8 @@ package.json@build`;
             (service as any).initialScanFired = false;
             (service as any).cachedPaths = null;
             (service as any).cacheInvalidated = true;
+            (service as any).registeredPatterns.clear();
+            service.registerPatterns(['**/package.json']);
 
             let firedCount = 0;
             const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
@@ -1249,6 +1251,8 @@ package.json@build`;
             (service as any).initialScanFired = false;
             (service as any).cachedPaths = null;
             (service as any).cacheInvalidated = true;
+            (service as any).registeredPatterns.clear();
+            service.registerPatterns(['**/package.json']);
 
             let firedCount = 0;
             const disposable = service.onDidInitialScanComplete(() => { firedCount++; });
@@ -1492,27 +1496,27 @@ package.json@build`;
         }
     });
 
-    // test('T03 — saving Taskfile.yml calls refreshProvider not invalidateCache', async function() {
-    //     this.timeout(2000);
-    //     const cache = TaskCacheService.getInstance();
-    //     const refreshedTypes: string[] = [];
-    //     let invalidateCount = 0;
+    test('T03 — saving Taskfile.yml calls refreshProvider not invalidateCache', async function() {
+        this.timeout(2000);
+        const cache = TaskCacheService.getInstance();
+        const refreshedTypes: string[] = [];
+        let invalidateCount = 0;
 
-    //     const originalRefresh = cache.refreshProvider.bind(cache);
-    //     cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
-    //     const originalInvalidate = service.invalidateCache.bind(service);
-    //     service.invalidateCache = () => { invalidateCount++; originalInvalidate(); };
+        const originalRefresh = cache.refreshProvider.bind(cache);
+        cache.refreshProvider = async (type: string) => { refreshedTypes.push(type); };
+        const originalInvalidate = service.invalidateCache.bind(service);
+        service.invalidateCache = () => { invalidateCount++; originalInvalidate(); };
 
-    //     try {
-    //         await fireDidSave(vscode.Uri.file('/workspace/Taskfile.yml'));
-    //         await new Promise(r => setTimeout(r, 400));
-    //         assert.deepStrictEqual(refreshedTypes, ['taskfile']);
-    //         assert.strictEqual(invalidateCount, 0, 'invalidateCache must not fire for Taskfile.yml save');
-    //     } finally {
-    //         cache.refreshProvider = originalRefresh;
-    //         service.invalidateCache = originalInvalidate;
-    //     }
-    // });
+        try {
+            await fireDidSave(vscode.Uri.file('/workspace/Taskfile.yml'));
+            await new Promise(r => setTimeout(r, 400));
+            assert.deepStrictEqual(refreshedTypes, ['taskfile']);
+            assert.strictEqual(invalidateCount, 0, 'invalidateCache must not fire for Taskfile.yml save');
+        } finally {
+            cache.refreshProvider = originalRefresh;
+            service.invalidateCache = originalInvalidate;
+        }
+    });
 
     test('T03b — initialize clears pending debounced provider refresh state', async function() {
         this.timeout(5000);
