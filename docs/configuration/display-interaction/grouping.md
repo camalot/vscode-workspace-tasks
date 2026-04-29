@@ -82,6 +82,39 @@ A string that is inserted between the task-type group label and the task name wh
 
 ---
 
+### workspaceTasks.groups.taskSeparatorIsRegex
+
+| | |
+| --- | --- |
+| **Type:** | `boolean` |
+| **Default:** | `false` |
+
+When `true`, the value of `workspaceTasks.groups.taskSeparator` is compiled as a JavaScript regular-expression pattern and used to split task names into nested groups. Only the first match at each grouping level is consumed; the algorithm is recursive so multi-level labels are split one level at a time.
+
+If the pattern is syntactically invalid the extension shows a one-time warning notification and falls back to treating the value as a plain string literal.
+
+**Example — split on `:` or `-`:**
+
+```json
+{
+  "workspaceTasks.groups.taskSeparator": "[:\\-]",
+  "workspaceTasks.groups.taskSeparatorIsRegex": true
+}
+```
+
+With this configuration a task named `build:frontend` and a task named `build-backend` will both appear under the same `build` group.
+
+**Example — split on double-colon (`::`) namespace delimiter:**
+
+```json
+{
+  "workspaceTasks.groups.taskSeparator": "::",
+  "workspaceTasks.groups.taskSeparatorIsRegex": true
+}
+```
+
+---
+
 ### workspaceTasks.groups.recentTasks.enabled
 
 | | |

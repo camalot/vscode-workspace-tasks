@@ -1093,6 +1093,13 @@
             "description": "%config.workspaceTasks.groups.taskSeparator.description%",
             "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%"
           },
+          "workspaceTasks.groups.taskSeparatorIsRegex": {
+            "title": "%config.workspaceTasks.groups.taskSeparatorIsRegex%",
+            "type": "boolean",
+            "default": false,
+            "description": "%config.workspaceTasks.groups.taskSeparatorIsRegex.description%",
+            "markdownDescription": "%config.workspaceTasks.groups.taskSeparatorIsRegex.markdown%"
+          },
           "workspaceTasks.task.actionBar": {
             "type": "object",
             "markdownDescription": "%config.workspaceTasks.task.actionBar%",

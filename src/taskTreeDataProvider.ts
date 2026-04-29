@@ -28,6 +28,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   >();
   readonly onDidChangeTreeData: vscode.Event<TaskItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
+  private _lastInvalidSeparatorPattern: string | undefined = undefined;
+
   public dragAndDropController: vscode.TreeDragAndDropController<TaskItem>;
   private views: vscode.TreeView<TaskItem>[] = [];
   private currentRoots: TaskItem[] = [];
@@ -88,6 +90,45 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
   public async initialize(context: vscode.ExtensionContext): Promise<TaskTreeDataProvider> {
     this.context = context;
     return this;
+  }
+
+  /**
+   * Splits a task label on the first occurrence of the separator.
+   * Returns `{ groupName, remainder }` when a valid split is found, or `null` when the
+   * label contains no separator or the split would produce an empty group name or child label.
+   *
+   * String mode: uses `indexOf` for an explicit first-occurrence-only contract.
+   * Regex mode: uses `exec`; a zero-length match (e.g. `/a* /`, ` / (?=:) / `) is treated as
+   *   no-match to prevent infinite recursion in the recursive `groupTasksByName` call.
+   */
+  private static splitOnSeparator(
+    label: string,
+    separator: string | RegExp,
+  ): { groupName: string; remainder: string } | null {
+    if (separator instanceof RegExp) {
+      const match = separator.exec(label);
+      // No match, zero-length match (infinite recursion guard), or whole-string match
+      if (!match || match[0].length === 0 || match.index === 0 && match[0].length === label.length) {
+        return null;
+      }
+      const groupName = label.slice(0, match.index).trim();
+      const remainder = label.slice(match.index + match[0].length).trim();
+      if (!groupName || !remainder) {
+        return null; // separator at start/end — treat as leaf
+      }
+      return { groupName, remainder };
+    } else {
+      const idx = label.indexOf(separator);
+      if (idx === -1 || idx === 0) {
+        return null;
+      }
+      const groupName = label.slice(0, idx).trim();
+      const remainder = label.slice(idx + separator.length).trim();
+      if (!groupName || !remainder) {
+        return null; // empty group or empty child — treat as leaf
+      }
+      return { groupName, remainder };
+    }
   }
 
   public bindView(view: vscode.TreeView<TaskItem>) {
@@ -359,7 +400,33 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const recentGroupsEnabled = config.get<boolean>('groups.recentTasks.enabled', false);
     const compoundTasksGroupEnabled = config.get<boolean>('groups.compoundTasks.enabled', false);
     const includeVsCodeCompoundTasks = config.get<boolean>('compoundTasks.includeVsCodeCompoundTasks', true);
-    const taskSeparator = config.get<string>('groups.taskSeparator', '-');
+
+    const taskSeparatorRaw = config.get<string>('groups.taskSeparator', '-');
+    const taskSeparatorIsRegex = config.get<boolean>('groups.taskSeparatorIsRegex', false);
+
+    let taskSeparator: string | RegExp = taskSeparatorRaw;
+    if (taskSeparatorIsRegex && taskSeparatorRaw) {
+      try {
+        taskSeparator = new RegExp(taskSeparatorRaw);
+        // Pattern is valid — reset deduplication sentinel
+        this._lastInvalidSeparatorPattern = undefined;
+      } catch {
+        // Only warn once per unique invalid pattern to avoid flooding the UI on every refresh.
+        if (this._lastInvalidSeparatorPattern !== taskSeparatorRaw) {
+          this._lastInvalidSeparatorPattern = taskSeparatorRaw;
+          vscode.window.showWarningMessage(
+            `Workspace Tasks: 'workspaceTasks.groups.taskSeparator' is not a valid regular expression: "${taskSeparatorRaw}". Falling back to plain-string matching.`,
+            'Open Settings',
+          ).then((choice) => {
+            if (choice === 'Open Settings') {
+              vscode.commands.executeCommand('workbench.action.openSettings', 'workspaceTasks.groups.taskSeparator');
+            }
+          });
+        }
+        taskSeparator = taskSeparatorRaw;
+      }
+    }
+
     const sortingEnabled = config.get<boolean>('tasks.sortingEnabled', true);
     const showEmptySecretsGroup = config.get<boolean>('secrets.showEmptyGroup', false);
     const expandedGroups = config.get<ExpandedTaskGroups>('groups.expanded', {
@@ -1347,7 +1414,7 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
    */
   public groupTasksByParentFolder(
     tasks: TaskItem[],
-    separator: string,
+    separator: string | RegExp,
     taskType: string,
     workspaceId: string,
     groupSalt: string,
@@ -1405,8 +1472,8 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     return [...folderChildren, ...rootChildren];
   }
 
-  public groupTasksByName(tasks: TaskItem[], separator: string, parentPath: string = '', sortEnabled: boolean = true): TaskItem[] {
-    if (!separator) {
+  public groupTasksByName(tasks: TaskItem[], separator: string | RegExp, parentPath: string = '', sortEnabled: boolean = true): TaskItem[] {
+    if (!separator || (typeof separator === 'string' && separator === '')) {
       return sortEnabled ? tasks.sort((a, b) => a.label.localeCompare(b.label)) : tasks;
     }
 
@@ -1415,15 +1482,14 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
     const leafs: TaskItem[] = [];
 
     for (const task of tasks) {
-      const parts = task.label.split(separator);
-      if (parts.length > 1) {
-        const groupName = parts[0].trim();
+      const split = TaskTreeDataProvider.splitOnSeparator(task.label, separator);
+      if (split) {
+        const { groupName, remainder } = split;
         let groupList = groups.get(groupName);
         if (!groupList) {
           groupList = [];
           groups.set(groupName, groupList);
         }
-        const remainder = parts.slice(1).join(separator).trim();
         const newTask = new TaskItem(
           remainder,
           task.collapsibleState,
@@ -1468,7 +1534,11 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         iconPath = typeItem.iconPath;
       }
 
-      const fullGroupName = parentPath ? `${parentPath}${separator}${groupName}` : groupName;
+      // Always use \u0001 (SOH) as the internal path separator — never shown to the user and never
+      // present in task labels. This keeps group IDs stable regardless of separator mode, ensuring
+      // VS Code's collapse-state persistence is not invalidated when the user changes separator type.
+      const fullGroupName = parentPath ? `${parentPath}\u0001${groupName}` : groupName;
+
       const groupId = `group:${fullGroupName}:${tasks[0]?.taskFileUri?.toString() || tasks[0]?.resourceUri?.toString() || 'unknown'}`;
       const groupItem = new TaskItem(groupName, this.getExpandedState(groupId, vscode.TreeItemCollapsibleState.Collapsed), 'folder', iconUri);
       groupItem.id = groupId;

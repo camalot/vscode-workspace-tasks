@@ -208,6 +208,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
             if (key === 'groups.recentTasks.enabled') { return false as unknown as T; }
             if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return true as unknown as T; }
             if (key === 'groups.taskSeparator') { return '-' as unknown as T; }
+            if (key === 'groups.taskSeparatorIsRegex') { return false as unknown as T; }
             if (key === 'groups.expanded') {
               return { favorites: true, compoundTask: true, recent: true } as unknown as T;
             }
@@ -1408,6 +1409,73 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.ok(favIdx < compoundIdx, 'Favorites should come before compound task');
       assert.ok(compoundIdx < wsIdx, 'Compound task should come before workspace');
     });
+
+    test('invalid regex pattern falls back to plain-string matching and shows warning exactly once', async () => {
+      const task = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm');
+      task.id = 'build-id';
+      task.originalLabel = 'build';
+      task.taskFileUri = vscode.Uri.file('/root/project/package.json');
+      stubServicesForOrganize([task]);
+
+      // Track showWarningMessage calls
+      const warningMessages: string[] = [];
+      const originalShowWarning = vscode.window.showWarningMessage;
+      (vscode.window as any).showWarningMessage = (message: string) => {
+        warningMessages.push(message);
+        return Promise.resolve(undefined);
+      };
+
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: (key: string, defaultValue?: any) => {
+              if (key === 'groups.taskSeparator') { return '[invalid'; }
+              if (key === 'groups.taskSeparatorIsRegex') { return true; }
+              if (key === 'groups.enabled') { return true; }
+              if (key === 'groups.useParentFolder') { return false; }
+              if (key === 'groups.recentTasks.enabled') { return false; }
+              if (key === 'groups.compoundTasks.enabled') { return false; }
+              if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return true; }
+              if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
+              return defaultValue;
+            },
+          };
+        }
+        return originalGetConfig.call(vscode.workspace, section);
+      };
+
+      try {
+        resetProviderSingleton();
+        const provider = new TestableTaskTreeDataProvider(ctx);
+
+        // Call getChildren three times to simulate multiple refreshes
+        await provider.getChildren();
+        await provider.getChildren();
+        await provider.getChildren();
+
+        // Warning should have been shown exactly once (deduplication)
+        assert.strictEqual(warningMessages.length, 1, 'Warning should be shown exactly once, not on every refresh');
+        assert.ok(
+          warningMessages[0].includes('[invalid'),
+          `Warning message should contain the invalid pattern, got: ${warningMessages[0]}`,
+        );
+
+        // Fallback: '[invalid' is used as a plain string — since label 'build' does not contain
+        // the literal string '[invalid', the task should appear as a leaf (ungrouped).
+        const roots = await provider.getChildren();
+        const wsItem = roots.find((r) => r.taskType === 'workspace');
+        assert.ok(wsItem, 'Should have workspace item');
+        // Navigate down to find the task leaf — it should be ungrouped (no folder between type and task)
+        const typeItem = wsItem!.children.find((c) => c.taskType === 'npm');
+        assert.ok(typeItem, 'Should have npm type item');
+        const leaf = typeItem!.children.find((c) => c.originalLabel === 'build' || c.label === 'build');
+        assert.ok(leaf, 'Task should be present as a leaf (not grouped)');
+      } finally {
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+        (vscode.window as any).showWarningMessage = originalShowWarning;
+      }
+    });
   });
 
   // ── organizeTasks with groups.compoundTasks.enabled ──────────────────────
@@ -2192,6 +2260,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
               if (key === 'groups.enabled') { return true; }
               if (key === 'groups.useParentFolder') { return false; }
               if (key === 'groups.taskSeparator') { return '-'; }
+              if (key === 'groups.taskSeparatorIsRegex') { return false; }
               if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
               return defaultValue;
             },
@@ -2274,6 +2343,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
               if (key === 'groups.useParentFolder') { return false; }
               if (key === 'groups.recentTasks.enabled') { return false; }
               if (key === 'groups.taskSeparator') { return ''; }
+              if (key === 'groups.taskSeparatorIsRegex') { return false; }
               if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
               return defaultValue;
             },
@@ -2317,6 +2387,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
               if (key === 'groups.enabled') { return true; }
               if (key === 'groups.recentTasks.enabled') { return false; }
               if (key === 'groups.taskSeparator') { return '-'; }
+              if (key === 'groups.taskSeparatorIsRegex') { return false; }
               if (key === 'groups.expanded') { return { favorites: true, compoundTask: true, recent: true }; }
               return defaultValue;
             },
@@ -2773,6 +2844,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
               if (key === 'groups.recentTasks.enabled') { return false as unknown as T; }
               if (key === 'compoundTasks.includeVsCodeCompoundTasks') { return true as unknown as T; }
               if (key === 'groups.taskSeparator') { return '-' as unknown as T; }
+              if (key === 'groups.taskSeparatorIsRegex') { return false as unknown as T; }
               if (key === 'groups.expanded') {
                 return { favorites: true, compoundTask: true, recent: true } as unknown as T;
               }

@@ -222,7 +222,11 @@
 
   "config.workspaceTasks.groups.taskSeparator": "Task Separator",
   "config.workspaceTasks.groups.taskSeparator.description": "Separator used to split task name into groups.",
-  "config.workspaceTasks.groups.taskSeparator.markdown": "Separator used to split task name into groups. For example, a task named `build:frontend` with a separator of `:` would be grouped under `build`. An empty string means no grouping will be applied. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-grouping.html#workspacetasksgroupstaskseparator)",
+  "config.workspaceTasks.groups.taskSeparator.markdown": "Separator used to split task name into groups. For example, a task named `build:frontend` with a separator of `:` would be grouped under `build`. An empty string means no grouping will be applied. To use a regular expression as the separator, enable `workspaceTasks.groups.taskSeparatorIsRegex`. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-grouping.html#workspacetasksgroupstaskseparator)",
+
+  "config.workspaceTasks.groups.taskSeparatorIsRegex": "Task Separator Is Regex",
+  "config.workspaceTasks.groups.taskSeparatorIsRegex.description": "When enabled, the Task Separator value is treated as a JavaScript regular expression pattern.",
+  "config.workspaceTasks.groups.taskSeparatorIsRegex.markdown": "When enabled, the `workspaceTasks.groups.taskSeparator` value is compiled as a JavaScript regular-expression pattern instead of a plain string. Only the first match per grouping level is consumed (the algorithm is recursive). Regex flags (e.g. case-insensitive `i`) are not supported in this iteration. If the pattern is invalid, the extension falls back to plain-string matching and shows a warning. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-grouping.html#workspacetasksgroupstaskseparatorisregex)",
 
   "config.workspaceTasks.exclude": "Exclude Patterns",
   "config.workspaceTasks.exclude.description": "Glob patterns to exclude from tasks.",
