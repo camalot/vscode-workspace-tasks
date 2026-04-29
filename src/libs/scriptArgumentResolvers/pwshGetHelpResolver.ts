@@ -258,8 +258,18 @@ export class PwshGetHelpResolver implements ScriptArgumentResolver {
     }
 
     // Optional outer brackets: `[...]` means the whole parameter group is optional.
-    const outerOptional = token.startsWith('[') && token.endsWith(']');
-    const inner = outerOptional ? token.slice(1, -1) : token;
+    // Some syntax lines report the type outside the optional wrapper, e.g.
+    // `[-Name] <string>`.
+    const outerOptional = token.startsWith('[') && (token.endsWith(']') || /\]\s*<\w+>$/.test(token));
+    let inner = token;
+    if (outerOptional) {
+      if (token.endsWith(']')) {
+        inner = token.slice(1, -1);
+      } else {
+        const closingIndex = token.lastIndexOf(']');
+        inner = token.slice(1, closingIndex) + token.slice(closingIndex + 1);
+      }
+    }
 
     // Check for an inner -Name flag component.
     // Patterns inside the (possibly unwrapped) token:

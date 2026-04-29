@@ -92,3 +92,97 @@ console.log(result.values);
     assert.strictEqual(logLevel?.defaultValue, 'info');
   });
 });
+
+suite('NodeParseArgsResolver — private helpers and edge cases', () => {
+  const anyResolver = resolver as any;
+
+  test('resolve ignores parseArgs call when config object reference cannot be resolved', async () => {
+    const content = `
+const { parseArgs } = require('node:util');
+
+parseArgs(unknownConfig);
+`;
+    const result = await resolver.resolve('/x/script.js', content);
+    assert.strictEqual(result.supported, true);
+    assert.strictEqual(result.parameters.length, 0);
+  });
+
+  test('resolve ignores parseArgs call when config object has no options', async () => {
+    const content = `
+const { parseArgs } = require('node:util');
+
+parseArgs({ allowPositionals: true });
+`;
+    const result = await resolver.resolve('/x/script.js', content);
+    assert.strictEqual(result.supported, true);
+    assert.strictEqual(result.parameters.length, 0);
+  });
+
+  test('resolve ignores parseArgs call when options refers to unknown identifier', async () => {
+    const content = `
+const { parseArgs } = require('@pkgjs/parseargs');
+
+parseArgs({ options: missingOptions });
+`;
+    const result = await resolver.resolve('/x/script.js', content);
+    assert.strictEqual(result.supported, true);
+    assert.strictEqual(result.parameters.length, 0);
+  });
+
+  test('collectNamedObjectLiterals skips invalid object literal definitions', () => {
+    const content = `
+const options = { foo: { type: 'string' };
+`;
+    const map = anyResolver.collectNamedObjectLiterals(content);
+    assert.strictEqual(map.size, 0);
+  });
+
+  test('extractParseArgsCalls ignores unbalanced parseArgs calls', () => {
+    const content = `
+const { parseArgs } = require('node:util');
+parseArgs({ options: {};
+`;
+    const calls = anyResolver.extractParseArgsCalls(content);
+    assert.deepStrictEqual(calls, []);
+  });
+
+  test('extractOptionsExpression returns undefined for non-object config', () => {
+    assert.strictEqual(anyResolver.extractOptionsExpression('options'), undefined);
+    assert.strictEqual(anyResolver.extractOptionsExpression('foo'), undefined);
+  });
+
+  test('parseOptionsObject returns [] for invalid object values or entries', () => {
+    assert.deepStrictEqual(anyResolver.parseOptionsObject('invalid'), []);
+    assert.deepStrictEqual(anyResolver.parseOptionsObject('{ foo }'), []);
+    assert.deepStrictEqual(anyResolver.parseOptionsObject(`{ foo: bar }`), []);
+  });
+
+  test('parseOptionsObject returns unknown type for unsupported type values', () => {
+    const result = anyResolver.parseOptionsObject(`{ foo: { type: 'number' } }`);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0].type, 'unknown');
+  });
+
+  test('resolveObjectExpression returns undefined for non-identifier expressions', () => {
+    assert.strictEqual(anyResolver.resolveObjectExpression('foo()', new Map()), undefined);
+  });
+
+  test('trimOuterBraces returns undefined for invalid object strings', () => {
+    assert.strictEqual(anyResolver.trimOuterBraces('notAnObject'), undefined);
+  });
+
+  test('parseDefaultValue handles boolean and numeric defaults', () => {
+    assert.strictEqual(anyResolver.parseDefaultValue(`{ default: true }`), 'true');
+    assert.strictEqual(anyResolver.parseDefaultValue(`{ default: false }`), 'false');
+    assert.strictEqual(anyResolver.parseDefaultValue(`{ default: -42 }`), '-42');
+  });
+
+  test('extractBalanced returns undefined when open position is invalid', () => {
+    assert.strictEqual(anyResolver.extractBalanced('abc', 0, '(', ')'), undefined);
+  });
+
+  test('splitTopLevel preserves nested separators in parentheses, braces, and brackets', () => {
+    const result = anyResolver.splitTopLevel(`a,(b,c),[d,e],{f,g},h`, ',');
+    assert.deepStrictEqual(result, ['a', '(b,c)', '[d,e]', '{f,g}', 'h']);
+  });
+});

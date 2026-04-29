@@ -369,6 +369,34 @@ suite('PwshGetHelpResolver — detailed unit tests', () => {
     );
   });
 
+  test('findPwsh resolves undefined when the which command emits an error', async () => {
+    const resolver = new PwshGetHelpResolver();
+    Object.defineProperty(cp, 'spawn', {
+      value: () => {
+        const child = new EventEmitter() as any;
+        child.stdout = new EventEmitter();
+        process.nextTick(() => {
+          child.emit('error', new Error('which failed'));
+        });
+        return child;
+      },
+      configurable: true,
+    });
+
+    const path = await (resolver as any).findPwsh();
+    assert.strictEqual(path, undefined);
+  });
+
+  test('resolve returns unsupported when Get-Help output contains no syntax section', async () => {
+    const resolver = new PwshGetHelpResolver();
+    (resolver as any).findPwsh = async () => '/usr/bin/pwsh';
+    (resolver as any).runGetHelp = async () => 'HEADER\nNo syntax here';
+
+    const result = await resolver.resolve('/script.ps1', '');
+    assert.strictEqual(result.supported, false);
+    assert.deepStrictEqual(result.parameters, []);
+  });
+
   test('runGetHelp rejects on timeout and kills the child process', async () => {
     const resolver = new PwshGetHelpResolver();
     let killed = false;
@@ -504,6 +532,67 @@ suite('PwshGetHelpResolver — detailed unit tests', () => {
     assert.strictEqual((resolver as any).mapPwshType('boolean'), 'bool');
     assert.strictEqual((resolver as any).mapPwshType('switchparameter'), 'switch');
     assert.strictEqual((resolver as any).mapPwshType('hashtable'), 'unknown');
+    assert.strictEqual((resolver as any).mapPwshType('float'), 'float');
+    assert.strictEqual((resolver as any).mapPwshType('bool'), 'bool');
+  });
+
+  test('parseSyntaxLine extracts parameters from a syntax block and ignores comments', () => {
+    const resolver = new PwshGetHelpResolver();
+    const syntax = `SYNTAX\n` +
+      `    /path/script.ps1 [-Environment] <string> [-DryRun]\n` +
+      `    # comment line that should be ignored\n` +
+      `    [-Level] <int>\n`;
+
+    const params = (resolver as any).parseSyntaxLine(syntax);
+    assert.strictEqual(params.length, 3);
+    assert.strictEqual(params[0].name, 'Environment');
+    assert.strictEqual(params[0].type, 'string');
+    assert.strictEqual(params[0].required, false);
+    assert.strictEqual(params[1].name, 'DryRun');
+    assert.strictEqual(params[2].name, 'Level');
+    assert.strictEqual(params[2].type, 'int');
+  });
+
+  test('tokenizeSyntaxLine handles bare arguments and optional groups', () => {
+    const resolver = new PwshGetHelpResolver();
+    const tokens = (resolver as any).tokenizeSyntaxLine('-Name <string> [-Flag] [<CommonParameters>]');
+    assert.deepStrictEqual(tokens, ['-Name', '<string>', '[-Flag]', '[<CommonParameters>]']);
+  });
+
+  test('parseSyntaxToken handles bare name-only tokens and optional types', () => {
+    const resolver = new PwshGetHelpResolver();
+    const bare = (resolver as any).parseSyntaxToken('-Force');
+    assert.deepStrictEqual(bare, { name: 'Force', type: 'switch', required: false });
+
+    const optional = (resolver as any).parseSyntaxToken('[-Verbose]');
+    assert.deepStrictEqual(optional, { name: 'Verbose', type: 'switch', required: false });
+  });
+
+  test('parseGetHelpOutput keeps syntax parameters when no PARAMETERS section exists', () => {
+    const resolver = new PwshGetHelpResolver();
+    const output = `SYNTAX\n` +
+      `    /path/script.ps1 [-Environment] <string>\n`;
+
+    const params = (resolver as any).parseGetHelpOutput(output);
+    assert.strictEqual(params.length, 1);
+    assert.strictEqual(params[0].name, 'Environment');
+    assert.strictEqual(params[0].type, 'string');
+    assert.strictEqual(params[0].required, false);
+  });
+
+  test('parseGetHelpOutput preserves parameters when PARAMETERS section has no matching syntax entry', () => {
+    const resolver = new PwshGetHelpResolver();
+    const output = `SYNTAX\n` +
+      `    /path/script.ps1 [-Environment] <string>\n` +
+      `PARAMETERS\n` +
+      `    -Unknown <string>\n` +
+      `        Required? false\n`;
+
+    const params = (resolver as any).parseGetHelpOutput(output);
+    assert.strictEqual(params.length, 1);
+    assert.strictEqual(params[0].name, 'Environment');
+    assert.strictEqual(params[0].description, undefined);
+    assert.strictEqual(params[0].required, false);
   });
 
   test('resolve returns unsupported when pwsh is not available', async () => {
