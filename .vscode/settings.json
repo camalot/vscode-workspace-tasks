@@ -8,6 +8,7 @@
     "**/node_modules": true
   },
   "cSpell.words": [
+    "actrc",
     "Adoptium",
     "akefile",
     "ansicon",
@@ -26,7 +27,9 @@
     "buymeacoffee",
     "camalot",
     "ccat",
+    "changie",
     "chartjs",
+    "chglog",
     "CODESPELL",
     "coverlens",
     "ctest",
@@ -50,6 +53,7 @@
     "endraw",
     "ensurepath",
     "esbenp",
+    "esbuild",
     "Extensionless",
     "Extname",
     "favorited",
@@ -61,6 +65,7 @@
     "GOTASK",
     "gradlew",
     "gulpfile",
+    "htmlhint",
     "igorsbitnev",
     "iliazeus",
     "iltered",
@@ -106,6 +111,7 @@
     "mkhl",
     "mktemp",
     "moby",
+    "mocharc",
     "msbuild",
     "myapp",
     "myproject",
@@ -160,6 +166,7 @@
     "striptags",
     "subparsers",
     "subtable",
+    "switchparameter",
     "tamasfe",
     "taskexplorer",
     "Taskfile",
@@ -189,13 +196,15 @@
     "versionlens",
     "vscmarketplace",
     "vscodeignore",
+    "wdio",
     "winget",
     "workspacetaskscodelensactionbarproperties",
     "workspacetasksenvvarswarnifgittracked",
     "wrongfile",
     "xauth",
     "xlib",
-    "yarnkey"
+    "yarnkey",
+    "yarnrc"
   ],
   "workspaceTasks.shellEnabledTaskTypes": {
     "bash": true,
@@ -245,13 +254,14 @@
     "bitbucket": false,
     "gitlab-ci": false
   },
+  "workspaceTasks.groups.justfile.enabled": true,
   "workspaceTasks.groups.recentTasks.enabled": false,
   "workspaceTasks.secrets.showEmptyGroup": true,
+
   "coverlens.overviewRuler": true,
   "coverlens.runOnSave": "off",
   "coverlens.testRunner.mode": "custom",
   "coverlens.testRunner.customCommand": "npm run test:coverage",
-  "workspaceTasks.groups.justfile.enabled": true,
   "coverlens.excludePatterns": [
     "**/node_modules/**",
     "**/.venv/**",

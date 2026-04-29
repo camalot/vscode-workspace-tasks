@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=../schemas/workspace-tasks.schema.json
+# starting to think if i would like to support yaml for this config file.
+# this is just for some brainstorming.
+---
+$schema: ../schemas/workspace-tasks.schema.json
+ruby:
+  version: 2.0
+  globs:
+    include:
+      - '**/[gG]em[Ff]ile'
+  iconUri: '$(rake)'
+  inputs: []
+  tasks: []

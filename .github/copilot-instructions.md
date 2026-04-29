@@ -41,7 +41,9 @@ When writing tests for VSCode extensions, consider the following guidelines:
 - Structure your tests to cover various scenarios, including edge cases, to ensure robustness.
 - Utilize the `beforeEach` and `afterEach` hooks to set up and tear down test environments properly.
 - Refer to the [VSCode Extension Testing Guide](https://code.visualstudio.com/api/working-with-extensions/testing-extension) for detailed instructions and best practices.
-- Goal for 95% or greater code coverage for a file. New code should have 100% coverage. Use `npm run vscode:test:coverage` to check the coverage report.
+- Goal for 95% or greater code coverage for a file. New code should have 100% coverage.
+  - Use `npm run vscode:test:coverage` to check the full coverage report.
+  - Use `npm run vscode:test:coverage -- --run=out/test/suite/testFile1.ts --run=out/test/suite/testFile2.ts` to check the coverage for a specific files.
 
 
 ## Code Style Guidelines
