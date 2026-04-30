@@ -1467,7 +1467,7 @@ suite('TaskTreeDataProvider Test Suite', () => {
         const wsItem = roots.find((r) => r.taskType === 'workspace');
         assert.ok(wsItem, 'Should have workspace item');
         // Navigate down to find the task leaf — it should be ungrouped (no folder between type and task)
-        const typeItem = wsItem!.children.find((c) => c.taskType === 'npm');
+        const typeItem = wsItem!.children.find((c) => c.label === 'npm');
         assert.ok(typeItem, 'Should have npm type item');
         const leaf = typeItem!.children.find((c) => c.originalLabel === 'build' || c.label === 'build');
         assert.ok(leaf, 'Task should be present as a leaf (not grouped)');
