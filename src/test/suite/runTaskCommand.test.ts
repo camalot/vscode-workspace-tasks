@@ -9,6 +9,8 @@ import { FilteredTaskService } from '../../services/filteredTaskService';
 import { TaskCacheService } from '../../services/taskCacheService';
 import { TaskRunner } from '../../taskRunner';
 import { TaskRunGuardService } from '../../services/taskRunGuardService';
+import { configuration } from '../../libs/configuration';
+import * as guidedArgInput from '../../libs/guidedArgInput';
 import { LoggerService } from '../../services/loggerService';
 
 // ---------------------------------------------------------------------------
@@ -362,6 +364,86 @@ suite('RunTaskCommand Test Suite', () => {
       assert.strictEqual(runTaskCalls.length, 0, 'Task should not run when input box is dismissed');
     } finally {
       (vscode.window as any).showInputBox = originalInputBox;
+    }
+  });
+
+  test('RunTaskWithArgsCommand: guided input cancelled — does not run task', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+    (TaskCacheService as any).instance = { getTask: () => undefined };
+
+    const originalTryGuided = (guidedArgInput as any).tryGuidedInputWithStatus;
+    (guidedArgInput as any).tryGuidedInputWithStatus = async () => ({ status: 'cancelled' });
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      const item = makeTaskItem('build');
+      item.contextValue = 'task';
+      await cmd.run(item);
+
+      assert.strictEqual(runTaskCalls.length, 0, 'Task should not run when guided input is cancelled');
+    } finally {
+      (guidedArgInput as any).tryGuidedInputWithStatus = originalTryGuided;
+    }
+  });
+
+  test('RunTaskWithArgsCommand: guided input collected and additional args provided — runs merged args', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+    (TaskCacheService as any).instance = { getTask: () => undefined };
+
+    const originalTryGuided = (guidedArgInput as any).tryGuidedInputWithStatus;
+    const originalCollectAdditional = (guidedArgInput as any).collectAdditionalArgs;
+    (guidedArgInput as any).tryGuidedInputWithStatus = async () => ({ status: 'collected', args: ['--foo'] });
+    (guidedArgInput as any).collectAdditionalArgs = async () => ['--bar'];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      const item = makeTaskItem('build');
+      item.contextValue = 'task';
+      await cmd.run(item);
+
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].args, '--foo --bar');
+      assert.strictEqual(runTaskCalls[0].skipGuard, true);
+    } finally {
+      (guidedArgInput as any).tryGuidedInputWithStatus = originalTryGuided;
+      (guidedArgInput as any).collectAdditionalArgs = originalCollectAdditional;
+    }
+  });
+
+  test('RunTaskWithArgsCommand: guidedArgInput disabled falls back to free-form args', async () => {
+    const originalConfig = configuration.get.bind(configuration);
+    configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.guidedArgInput') {
+        return false;
+      }
+      return defaultValue;
+    };
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+    (TaskCacheService as any).instance = { getTask: () => undefined };
+
+    const originalCollectAdditional = (guidedArgInput as any).collectAdditionalArgs;
+    (guidedArgInput as any).collectAdditionalArgs = async () => ['--fallback'];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      const item = makeTaskItem('build');
+      item.contextValue = 'task';
+      await cmd.run(item);
+
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].args, '--fallback');
+    } finally {
+      configuration.get = originalConfig;
+      (guidedArgInput as any).collectAdditionalArgs = originalCollectAdditional;
     }
   });
 });
