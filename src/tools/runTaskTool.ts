@@ -178,7 +178,7 @@ export class RunTaskTool implements vscode.LanguageModelTool<IRunTaskParameters>
   private _resolveTaskWithError(
     input: IRunTaskParameters,
   ): { item: TaskItem } | { error: string; candidates?: TaskSummary[] } {
-    if (!input || (!input.id && !input.label)) {
+    if (!input) {
       return { error: 'No task specified. Provide either an \'id\' (from #wTasks) or a \'label\'.' };
     }
 

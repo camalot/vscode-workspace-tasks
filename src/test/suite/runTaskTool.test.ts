@@ -187,6 +187,17 @@ suite('RunTaskTool Test Suite', () => {
     assert.ok(result.message);
   });
 
+  test('invoke with undefined input — started:false, no task specified', async () => {
+    const tool = new RunTaskTool();
+    const result = await tool.invoke(
+      { input: undefined } as unknown as vscode.LanguageModelToolInvocationOptions<{ id?: string; label?: string; taskType?: string }>,
+      makeCancellationToken(),
+    );
+    const parsed = JSON.parse((result.content[0] as vscode.LanguageModelTextPart).value);
+    assert.strictEqual(parsed.started, false);
+    assert.ok(parsed.message.includes('No task specified'));
+  });
+
   // ── TaskRunner results ────────────────────────────────────────────────────
 
   test('TaskRunner.runTask() returns false — started:false, blocked message', async () => {
@@ -203,6 +214,31 @@ suite('RunTaskTool Test Suite', () => {
     const result = await invokeRunTask({ id: 'npm:build' });
     assert.strictEqual(result.started, false);
     assert.ok(result.message.includes('runner error'));
+  });
+
+  test('TaskRunner.runTask() throws a non-Error value — error result with string message', async () => {
+    TaskCacheService.getInstance().getTask = (id) => id === 'npm:build' ? buildItem : undefined;
+    TaskRunner.getInstance().runTask = async () => { throw 'boom'; };
+    const result = await invokeRunTask({ id: 'npm:build' });
+    assert.strictEqual(result.started, false);
+    assert.ok(result.message.includes('boom'));
+  });
+
+  test('label no match with taskType returns no-match message including type', async () => {
+    TaskCacheService.getInstance().getTask = () => undefined;
+    TaskCacheService.getInstance().getAllTasks = () => [makeLeaf('compile', 'npm:compile', 'npm'), makeLeaf('build', 'shell:build', 'shell')];
+    const result = await invokeRunTask({ label: 'deploy', taskType: 'npm' });
+    assert.strictEqual(result.started, false);
+    assert.ok(result.message.includes("with type 'npm'"));
+  });
+
+  test('substring match honors taskType filtering and returns candidates', async () => {
+    TaskCacheService.getInstance().getTask = () => undefined;
+    TaskCacheService.getInstance().getAllTasks = () => [makeLeaf('build-app', 'npm:build-app', 'npm'), makeLeaf('build-util', 'shell:build-util', 'shell')];
+    const result = await invokeRunTask({ label: 'build', taskType: 'npm' });
+    assert.strictEqual(result.started, false);
+    assert.ok(Array.isArray(result.candidates));
+    assert.strictEqual(result.candidates.length, 1);
   });
 
   // ── Cancellation ──────────────────────────────────────────────────────────
@@ -228,6 +264,48 @@ suite('RunTaskTool Test Suite', () => {
     assert.ok(prepared.confirmationMessages);
     assert.ok((prepared.confirmationMessages as any).title.includes('build'));
     assert.strictEqual((tool as any)._pendingTaskId, 'npm:build');
+  });
+
+  test('prepareInvocation — task found by label exact match — confirmation and pending ID stored', () => {
+    TaskCacheService.getInstance().getTask = () => undefined;
+    TaskCacheService.getInstance().getAllTasks = () => [buildItem];
+    TaskRunGuardService.getInstance().isGuarded = () => false;
+
+    const tool = new RunTaskTool();
+    const prepared = tool.prepareInvocation(
+      { input: { label: 'build' } } as vscode.LanguageModelToolInvocationPrepareOptions<{ id?: string; label?: string; taskType?: string }>,
+      makeCancellationToken(),
+    ) as vscode.PreparedToolInvocation;
+
+    assert.ok(prepared.confirmationMessages);
+    assert.ok((prepared.confirmationMessages as any).title.includes('build'));
+    assert.strictEqual((tool as any)._pendingTaskId, 'npm:build');
+  });
+
+  test('prepareInvocation — task found with taskFileUri includes source path', () => {
+    const itemWithUri = makeLeaf('build', 'npm:build', 'npm', vscode.Uri.file('/workspace/package.json'));
+    TaskCacheService.getInstance().getTask = (id) => id === 'npm:build' ? itemWithUri : undefined;
+    TaskRunGuardService.getInstance().isGuarded = () => false;
+
+    const tool = new RunTaskTool();
+    const prepared = tool.prepareInvocation(
+      { input: { id: 'npm:build' } } as vscode.LanguageModelToolInvocationPrepareOptions<{ id?: string; label?: string; taskType?: string }>,
+      makeCancellationToken(),
+    ) as vscode.PreparedToolInvocation;
+
+    const msg = (prepared.confirmationMessages as any).message as vscode.MarkdownString;
+    assert.ok(msg.value.includes('Source:'), `expected source details, got: ${msg.value}`);
+  });
+
+  test('prepareInvocation — input undefined returns generic fallback', () => {
+    const tool = new RunTaskTool();
+    const prepared = tool.prepareInvocation(
+      { input: undefined } as unknown as vscode.LanguageModelToolInvocationPrepareOptions<{ id?: string; label?: string; taskType?: string }>,
+      makeCancellationToken(),
+    ) as vscode.PreparedToolInvocation;
+
+    assert.strictEqual((tool as any)._pendingTaskId, undefined);
+    assert.ok(String(prepared.invocationMessage).includes('Running workspace task'));
   });
 
   test('prepareInvocation — task found, guarded — message includes guard warning, _pendingTaskId stored', () => {
