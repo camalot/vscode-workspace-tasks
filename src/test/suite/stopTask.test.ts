@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { StopTaskCommand, findTerminalForTask, getCompoundDependencyLabels } from '../../commands/stopTask';
 import { TaskItem } from '../../taskItem';
 import { TaskStateManager } from '../../taskStateManager';
+import { TaskCacheService } from '../../services/taskCacheService';
 import { LoggerService } from '../../services/loggerService';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -333,6 +334,25 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(labels.length, 1);
   });
 
+  test('getCompoundDependencyLabels returns empty array when tasks array is missing', () => {
+    const labels = getCompoundDependencyLabels(JSON.stringify({ version: '2.0.0' }), 'build');
+    assert.deepStrictEqual(labels, []);
+  });
+
+  test('getCompoundDependencyLabels ignores tasks without a label and invalid dependency objects', () => {
+    const tasksJson = JSON.stringify({
+      version: '2.0.0',
+      tasks: [
+        { dependsOn: 'prepare' },
+        { label: 'build', dependsOn: [{ foo: 'bar' }, { task: 'prepare' }] },
+        { label: 'prepare' },
+      ],
+    });
+
+    const labels = getCompoundDependencyLabels(tasksJson, 'build');
+    assert.deepStrictEqual(new Set(labels), new Set(['prepare']));
+  });
+
   test('getCompoundDependencyLabels parses JSON with comments (catch block with regex fixes)', () => {
     const tasksJsonWithComments = `{
       /* this is a block comment */
@@ -395,6 +415,30 @@ suite('StopTaskCommand Test Suite', () => {
     await cmd.run(item);
 
     assert.strictEqual(terminateCalls.length, 1, 'terminate should be called immediately when no terminal exists');
+  });
+
+  test('run uses cached task when item.id is present', async () => {
+    const staleItem = makeTaskItem('stale-task');
+    staleItem.id = 'cached-task-id';
+
+    const cachedItem = makeTaskItem('cached-task');
+    cachedItem.id = 'cached-task-id';
+    cachedItem.originalLabel = 'cached-task';
+
+    const originalGetTask = TaskCacheService.getInstance().getTask.bind(TaskCacheService.getInstance());
+    TaskCacheService.getInstance().getTask = (id: string) => (id === 'cached-task-id' ? cachedItem : undefined);
+
+    try {
+      const terminateCalls: number[] = [];
+      const execution = makeExecution(() => terminateCalls.push(1));
+      (fakeStateManager as any).getExecution = (id: string) => (id === 'cached-task' ? execution : undefined);
+      (fakeStateManager as any).getTerminal = () => undefined;
+
+      await cmd.run(staleItem);
+      assert.strictEqual(terminateCalls.length, 1, 'cached task should be used for execution lookup');
+    } finally {
+      TaskCacheService.getInstance().getTask = originalGetTask;
+    }
   });
 
   test('run marks task as terminated when falling back to hard kill', async () => {
@@ -519,6 +563,59 @@ suite('StopTaskCommand Test Suite', () => {
     assert.ok(fakeStateManager.isTerminated('dependency-task-graceful'), 'dependency should be marked as terminated when SIGINT is sent');
 
     fakeStateManager.clearStopTimer('dependency-task-graceful');
+  });
+
+  test('stopCompoundDependencies returns immediately when dependency stopping is disabled', async () => {
+    const item = makeTaskItem('disabled-deps-root');
+    const blockedIds: string[] = [];
+    (fakeStateManager as any).blockTask = (id: string) => { blockedIds.push(id); };
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopCompoundDependencies') {
+        return false;
+      }
+      return defaultValue;
+    };
+
+    await (cmd as any).stopCompoundDependencies(item, 'disabled-deps-root', 'disabled');
+    assert.strictEqual(blockedIds.length, 0, 'no dependencies should be blocked when stopping is disabled');
+  });
+
+  test('stopCompoundDependencies skips self dependencies and does not block them', async () => {
+    const item = makeTaskItem('self-skip-root');
+    const blockedIds: string[] = [];
+    (fakeStateManager as any).getExecution = () => undefined;
+    (fakeStateManager as any).blockTask = (id: string) => { blockedIds.push(id); };
+
+    await (cmd as any).stopCompoundDependencies(item, 'self-skip-root', 'self-skip', ['self-skip-root']);
+    assert.strictEqual(blockedIds.length, 0, 'self dependency should be skipped');
+  });
+
+  test('stopCompoundDependencies force kills a dependency when a stop timer already exists', async () => {
+    const item = makeTaskItem('timer-forced-root');
+    const terminateCalls: number[] = [];
+    const dependencyExecution = makeExecution(() => terminateCalls.push(1));
+
+    (fakeStateManager as any).getExecution = (id: string) => (id === 'dependency-with-timer' ? dependencyExecution : undefined);
+    let clearedTimerId: string | undefined;
+    (fakeStateManager as any).getStopTimer = (id: string) => (id === 'dependency-with-timer' ? setTimeout(() => {}, 60000) : undefined);
+    (fakeStateManager as any).clearStopTimer = (id: string) => { clearedTimerId = id; };
+
+    await (cmd as any).stopCompoundDependencies(item, 'timer-forced-root', 'force-timer', ['dependency-with-timer']);
+
+    assert.strictEqual(terminateCalls.length, 1, 'dependency should be terminated immediately when a stop timer already exists');
+    assert.strictEqual(clearedTimerId, 'dependency-with-timer');
+  });
+
+  test('stopCompoundDependencies blocks dependencies that are not currently running', async () => {
+    const item = makeTaskItem('no-running-deps-root');
+    const blockedIds: string[] = [];
+    (fakeStateManager as any).getExecution = () => undefined;
+    (fakeStateManager as any).blockTask = (id: string) => { blockedIds.push(id); };
+
+    await (cmd as any).stopCompoundDependencies(item, 'no-running-deps-root', 'none-running', ['dep-a', 'dep-b']);
+
+    assert.deepStrictEqual(blockedIds.sort(), ['dep-a', 'dep-b']);
   });
 
   // -------------------------------------------------------------------------
@@ -673,6 +770,96 @@ suite('StopTaskCommand Test Suite', () => {
 
     // Clean up the graceful-stop timer that was set for dep-running
     fakeStateManager.clearStopTimer('dep-running');
+  });
+
+  test('getCompoundDependencyTaskIds returns an empty array when no task file URI can be resolved', async () => {
+    const item = makeTaskItem('missing-file-uri');
+    const ids = await (cmd as any).getCompoundDependencyTaskIds(item);
+    assert.deepStrictEqual(ids, []);
+  });
+
+  test('getCompoundDependencyTaskIds returns an empty array for non-file URIs', async () => {
+    const item = makeTaskItem('non-file-uri');
+    item.taskFileUri = vscode.Uri.parse('untitled:tasks.json');
+    const ids = await (cmd as any).getCompoundDependencyTaskIds(item);
+    assert.deepStrictEqual(ids, []);
+  });
+
+  test('getCompoundDependencyTaskIds returns an empty array when the task file cannot be opened', async () => {
+    const item = makeTaskItem('cannot-open-file');
+    item.taskFileUri = vscode.Uri.file('/tmp/tasks.json');
+    const originalOpen = vscode.workspace.openTextDocument;
+    (vscode.workspace as any).openTextDocument = async () => { throw new Error('read error'); };
+
+    try {
+      const ids = await (cmd as any).getCompoundDependencyTaskIds(item);
+      assert.deepStrictEqual(ids, []);
+    } finally {
+      (vscode.workspace as any).openTextDocument = originalOpen;
+    }
+  });
+
+  test('getCompoundDependencyTaskIds returns an empty array when task dependencies cannot be parsed', async () => {
+    const item = makeTaskItem('parse-error');
+    item.taskFileUri = vscode.Uri.file('/tmp/invalid-tasks.json');
+    const originalOpen = vscode.workspace.openTextDocument;
+    (vscode.workspace as any).openTextDocument = async () => ({ getText: () => 'not-a-valid-json' } as any);
+
+    try {
+      const ids = await (cmd as any).getCompoundDependencyTaskIds(item);
+      assert.deepStrictEqual(ids, []);
+    } finally {
+      (vscode.workspace as any).openTextDocument = originalOpen;
+    }
+  });
+
+  test('getCompoundDependencyTaskIds returns an empty array when there are no resolved dependency labels', async () => {
+    const item = makeTaskItem('no-dependency-labels');
+    item.taskFileUri = vscode.Uri.file('/tmp/empty-tasks.json');
+    const originalOpen = vscode.workspace.openTextDocument;
+    (vscode.workspace as any).openTextDocument = async () => ({ getText: () => JSON.stringify({ version: '2.0.0', tasks: [{ label: 'root' }] }) } as any);
+
+    try {
+      const ids = await (cmd as any).getCompoundDependencyTaskIds(item);
+      assert.deepStrictEqual(ids, []);
+    } finally {
+      (vscode.workspace as any).openTextDocument = originalOpen;
+    }
+  });
+
+  test('getCompoundDependencyTaskIds includes duplicate fallback IDs when the task cache has deconflicted IDs', async () => {
+    const item = makeTaskItem('build-root');
+    item.taskFileUri = vscode.Uri.file('/tmp/build-tasks.json');
+    const originalOpen = vscode.workspace.openTextDocument;
+    const originalGetAllTasks = TaskCacheService.getInstance().getAllTasks.bind(TaskCacheService.getInstance());
+    const originalGetTaskId = fakeStateManager.getTaskId.bind(fakeStateManager);
+
+    (vscode.workspace as any).openTextDocument = async () => ({ getText: () => JSON.stringify({
+      version: '2.0.0',
+      tasks: [
+        { label: 'build-root', dependsOn: ['build'] },
+        { label: 'build' },
+      ],
+    }) } as any);
+
+    TaskCacheService.getInstance().getAllTasks = () => [
+      Object.assign(makeTaskItem('build'), {
+        taskType: 'vscode',
+        taskFileUri: vscode.Uri.file('/tmp/build-tasks.json'),
+        id: 'build|1',
+      }),
+    ];
+    fakeStateManager.getTaskId = (taskItem: TaskItem) => taskItem.id ?? taskItem.originalLabel ?? taskItem.label;
+
+    try {
+      const ids = await (cmd as any).getCompoundDependencyTaskIds(item);
+      assert.ok(ids.includes('build|1'), 'canonical deconflicted ID should be included');
+      assert.ok(ids.includes('build'), 'base ID fallback should be included');
+    } finally {
+      (vscode.workspace as any).openTextDocument = originalOpen;
+      TaskCacheService.getInstance().getAllTasks = originalGetAllTasks;
+      fakeStateManager.getTaskId = originalGetTaskId;
+    }
   });
 
   // -------------------------------------------------------------------------
