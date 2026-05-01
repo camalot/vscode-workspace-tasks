@@ -180,6 +180,26 @@ You can also send `Ctrl+C` directly in the integrated terminal to interrupt the 
 
 ---
 
+## Taskfile-Specific Features
+
+### Wildcard Tasks
+
+Taskfile supports task names containing `*` wildcards (e.g. `build:*`). When you
+run a wildcard task the extension prompts you to fill in each wildcard segment
+before execution — no manual editing required.
+
+See [Wildcard Tasks](../task-types/task-runners/task#wildcard-tasks) for full details.
+
+### CLI_ARGS Forwarding
+
+When a Taskfile task uses the `{{.CLI_ARGS}}` template variable, the extension
+automatically inserts `--` before any extra arguments you supply via **Run with
+Args**. This ensures the arguments reach the task correctly.
+
+See [CLI_ARGS Forwarding](../task-types/task-runners/task#cli_args-forwarding) for full details.
+
+---
+
 ## Opening the Source File
 
 Every task has an associated source file (e.g., `package.json`, `Makefile`, `Taskfile.yml`). You can navigate directly to where the task is defined:

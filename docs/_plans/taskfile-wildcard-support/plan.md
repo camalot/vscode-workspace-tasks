@@ -558,8 +558,8 @@ Add test group `"wildcard and CLI_ARGS detection"`:
 
 **`docs/features/running-tasks.md`** — Add section "CLI_ARGS Forwarding":
 
-- Explain `{{.CLI_ARGS}}` and `--` separator Taskfile behaviour
-- Describe extension behaviour with Run with Args vs Run Task
+- Explain `{{.CLI_ARGS}}` and `--` separator Taskfile behavior
+- Describe extension behavior with Run with Args vs Run Task
 - Note limitation: tasks in included Taskfiles are not scanned for `{{.CLI_ARGS}}`
 
 **`README.md`** — Brief mention under "Taskfile support" section.

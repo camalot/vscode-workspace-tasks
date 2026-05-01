@@ -4,6 +4,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import * as yaml from 'yaml';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
@@ -37,6 +38,10 @@ interface TaskJsonOutput {
 export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvider {
   private globalTaskfileWatchers: vscode.FileSystemWatcher[] = [];
   private globalWatcherDebounce?: NodeJS.Timeout;
+  /** Cache: taskfile path → set of task names that reference {{.CLI_ARGS}} */
+  private cliArgsTaskCache = new Map<string, Set<string>>();
+
+  private readonly cliArgsTaskPattern = /\{\{\.CLI_ARGS\}\}/;
 
   constructor() {
     super('taskfile', constants.GLOB_TASKFILE);
@@ -74,7 +79,10 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     for (const filePath of watchTargets) {
       const pattern = new vscode.RelativePattern(path.dirname(filePath), path.basename(filePath));
       const watcher = vscode.workspace.createFileSystemWatcher(pattern);
-      const onEvent = () => this.scheduleGlobalRefresh();
+      const onEvent = () => {
+        this.invalidateCLIArgsCache(filePath);
+        this.scheduleGlobalRefresh();
+      };
       watcher.onDidCreate(onEvent);
       watcher.onDidChange(onEvent);
       watcher.onDidDelete(onEvent);
@@ -132,6 +140,162 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     return results.flat();
   }
 
+  /**
+   * Invalidates the CLI_ARGS cache entry for a given taskfile path.
+   * Called from file-watcher events so the next parse picks up any changes.
+   */
+  public invalidateCLIArgsCache(filePath: string): void {
+    this.cliArgsTaskCache.delete(filePath);
+  }
+
+  /**
+   * Parses the YAML content of a Taskfile and returns the set of task names
+   * whose commands reference the `{{.CLI_ARGS}}` template variable.
+   *
+   * Results are cached by file path and invalidated by `invalidateCLIArgsCache`.
+   */
+  public detectCLIArgsTasks(filePath: string, content: string): Set<string> {
+    const cached = this.cliArgsTaskCache.get(filePath);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const result = new Set<string>();
+
+    // Go template expressions such as `{{.CLI_ARGS}}` or `{{index .MATCH 0}}` are not valid
+    // YAML syntax when they appear inline after a double-quoted scalar
+    // (e.g.  - echo "msg: {{.CLI_ARGS}}" ).  Pre-process the raw content by replacing
+    // `{{.CLI_ARGS}}` with a unique marker and all other `{{...}}` patterns with a harmless
+    // placeholder so that yaml.parse() always succeeds on well-formed Taskfiles.
+    const CLI_ARGS_MARKER = '__WORKSPACE_TASKS_CLI_ARGS__';
+    const sanitized = content
+      .replace(/\{\{\.CLI_ARGS\}\}/g, CLI_ARGS_MARKER)
+      .replace(/\{\{[^}]*\}\}/g, '__WORKSPACE_TASKS_TPL__');
+
+    try {
+      const parsed = yaml.parse(sanitized) as Record<string, unknown> | null;
+      if (!parsed || typeof parsed !== 'object') {
+        this.cliArgsTaskCache.set(filePath, result);
+        return result;
+      }
+
+      if ('includes' in parsed) {
+        LoggerService.getInstance().debug(
+          `[taskfile] '${filePath}' uses 'includes:' — tasks in included files are not scanned for {{.CLI_ARGS}}.`,
+        );
+      }
+
+      const tasks = parsed['tasks'] as Record<string, unknown> | undefined;
+      if (tasks && typeof tasks === 'object') {
+        for (const [taskName, taskDef] of Object.entries(tasks)) {
+          if (!taskDef || typeof taskDef !== 'object') {
+            continue;
+          }
+          const def = taskDef as Record<string, unknown>;
+          const cmds = def['cmds'];
+          if (!Array.isArray(cmds)) {
+            continue;
+          }
+          const hasCLIArgs = cmds.some((cmd) => {
+            if (typeof cmd === 'string') {
+              return cmd.includes(CLI_ARGS_MARKER);
+            }
+            if (cmd && typeof cmd === 'object') {
+              const cmdStr = (cmd as Record<string, unknown>)['cmd'];
+              return typeof cmdStr === 'string' && cmdStr.includes(CLI_ARGS_MARKER);
+            }
+            return false;
+          });
+          if (hasCLIArgs) {
+            result.add(taskName);
+          }
+        }
+      }
+    } catch (err: unknown) {
+      LoggerService.getInstance().debug(
+        `[taskfile] Failed to parse YAML for CLI_ARGS detection in '${filePath}': ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+
+    this.detectCLIArgsTasksFromRawYaml(content, result);
+
+    this.cliArgsTaskCache.set(filePath, result);
+    return result;
+  }
+
+  private detectCLIArgsTasksFromRawYaml(content: string, result: Set<string>): void {
+    const lines = content.split(/\r?\n/);
+    let inTasks = false;
+
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) {
+        continue;
+      }
+
+      const indent = line.length - line.trimStart().length;
+
+      if (!inTasks) {
+        if (/^tasks\s*:\s*$/.test(trimmed)) {
+          inTasks = true;
+        }
+        continue;
+      }
+
+      if (indent === 0 && !/^tasks\s*:\s*$/.test(trimmed)) {
+        break;
+      }
+
+      const taskMatch = line.match(/^(\s+)([^:#][^:]*)\s*:\s*$/);
+      if (!taskMatch) {
+        continue;
+      }
+
+      const taskIndent = taskMatch[1].length;
+      const taskName = taskMatch[2].trim();
+      let inCmds = false;
+      let cmdsIndent = -1;
+
+      for (index += 1; index < lines.length; index++) {
+        const taskLine = lines[index];
+        const taskTrimmed = taskLine.trim();
+        if (!taskTrimmed || taskTrimmed.startsWith('#')) {
+          continue;
+        }
+
+        const taskLineIndent = taskLine.length - taskLine.trimStart().length;
+        if (taskLineIndent <= taskIndent) {
+          index -= 1;
+          break;
+        }
+
+        if (!inCmds) {
+          if (taskLineIndent > taskIndent && /^cmds\s*:\s*$/.test(taskTrimmed)) {
+            inCmds = true;
+            cmdsIndent = taskLineIndent;
+          }
+          continue;
+        }
+
+        if (taskLineIndent <= cmdsIndent) {
+          inCmds = false;
+          cmdsIndent = -1;
+          if (taskLineIndent > taskIndent && /^cmds\s*:\s*$/.test(taskTrimmed)) {
+            inCmds = true;
+            cmdsIndent = taskLineIndent;
+          }
+          continue;
+        }
+
+        if (this.cliArgsTaskPattern.test(taskTrimmed)) {
+          result.add(taskName);
+          break;
+        }
+      }
+    }
+  }
+
   private async _loadTasksFromDirectory(
     dir: string,
     representativeFile: vscode.Uri,
@@ -140,9 +304,15 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     const { command, args } = this.getCommand(representativeFile);
     const cmdArgs = [...(args ?? []), '--taskfile', representativeFile.fsPath, '--list-all', '--no-status', '--json'];
 
+    let yamlContent: string | undefined;
+    try {
+      const bytes = await vscode.workspace.fs.readFile(representativeFile);
+      yamlContent = new TextDecoder().decode(bytes);
+    } catch { /* non-fatal */ }
+
     try {
       const { stdout } = await execFileAsync(command, cmdArgs, { cwd: dir, timeout: 10000 });
-      return this.parseOutput(stdout, dir, iconService);
+      return this.parseOutput(stdout, dir, iconService, representativeFile.fsPath, yamlContent);
     } catch (err: unknown) {
       LoggerService.getInstance().warn(
         `[taskfile] Failed to list tasks in ${dir}: ${err instanceof Error ? err.message : String(err)}`,
@@ -154,8 +324,17 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
   /**
    * Parses the JSON output from `taskfile --list-all --no-status --json` into `TaskItem` instances.
    * Extracted as a public method to enable direct unit-testing without spawning a process.
+   *
+   * @param taskfilePath  Optional path to the Taskfile on disk. Used to detect `{{.CLI_ARGS}}`.
+   * @param yamlContent   Optional raw YAML content of the Taskfile. Used to detect `{{.CLI_ARGS}}`.
    */
-  public parseOutput(stdout: string, dir: string, iconService?: TaskIconService): TaskItem[] {
+  public parseOutput(
+    stdout: string,
+    dir: string,
+    iconService?: TaskIconService,
+    taskfilePath?: string,
+    yamlContent?: string,
+  ): TaskItem[] {
     let output: TaskJsonOutput;
     try {
       output = JSON.parse(stdout) as TaskJsonOutput;
@@ -171,6 +350,11 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     const fallbackUri = vscode.Uri.file(path.join(dir, 'Taskfile.yml'));
     const iconPath = svc.getTaskIcon('taskfile', fallbackUri);
     const showAliases = vscode.workspace.getConfiguration('workspaceTasks').get<boolean>('taskfile.showAliases', true);
+
+    // Detect {{.CLI_ARGS}} tasks from YAML when content is available
+    const cliArgsSet: Set<string> = taskfilePath && yamlContent
+      ? this.detectCLIArgsTasks(taskfilePath, yamlContent)
+      : new Set<string>();
 
     for (const entry of output.tasks ?? []) {
       const taskFileUri = entry.location?.taskfile
@@ -190,12 +374,27 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       item.taskFileUri = taskFileUri;
       // description: relative path shown in tree view (consistent with other file-based providers)
       item.description = vscode.workspace.asRelativePath(taskFileUri);
-      // tooltip: the human-readable task description from the Taskfile
-      item.tooltip = entry.desc || entry.name;
       item.startLine = entry.location?.line ? entry.location.line - 1 : 0;
+
+      // Wildcard detection
+      const wildcardCount = (entry.name.match(/\*/g) ?? []).length;
+      const isWildcardTask = wildcardCount > 0;
+
+      // CLI_ARGS detection
+      const hasCLIArgs = cliArgsSet.has(entry.name);
+
+      // tooltip: the human-readable task description from the Taskfile
+      if (isWildcardTask) {
+        item.tooltip = `${entry.desc || entry.name}\n\nWildcard task — you will be prompted for each * when running.`;
+      } else {
+        item.tooltip = entry.desc || entry.name;
+      }
+
       item.metadata = {
         aliases,
         summary: entry.summary ?? '',
+        ...(isWildcardTask ? { isWildcardTask: true, wildcardCount } : {}),
+        ...(hasCLIArgs ? { hasCLIArgs: true } : {}),
       };
       item.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
@@ -217,9 +416,14 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
           aliasItem.description = vscode.workspace.asRelativePath(taskFileUri);
           aliasItem.tooltip = `Alias for: ${entry.name}`;
           aliasItem.startLine = item.startLine;
+          // Wildcard detection for alias
+          const aliasWildcardCount = (alias.match(/\*/g) ?? []).length;
+          const isAliasWildcardTask = aliasWildcardCount > 0;
           aliasItem.metadata = {
             isAlias: true,
             primaryTask: entry.name,
+            ...(isAliasWildcardTask ? { isWildcardTask: true, wildcardCount: aliasWildcardCount } : {}),
+            ...(hasCLIArgs ? { hasCLIArgs: true } : {}),
           };
           aliasItem.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
@@ -269,9 +473,15 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     const { command, args } = this.getCommand(vscode.Uri.file(globalTaskfilePath));
     const cmdArgs = [...(args ?? []), '--taskfile', globalTaskfilePath, '--list-all', '--no-status', '--json'];
 
+    let globalYamlContent: string | undefined;
+    try {
+      const bytes = await vscode.workspace.fs.readFile(vscode.Uri.file(globalTaskfilePath));
+      globalYamlContent = new TextDecoder().decode(bytes);
+    } catch { /* non-fatal */ }
+
     try {
       const { stdout } = await execFileAsync(command, cmdArgs, { cwd: homeDir, timeout: 10000 });
-      const items = this.parseOutput(stdout, homeDir, iconService);
+      const items = this.parseOutput(stdout, homeDir, iconService, globalTaskfilePath, globalYamlContent);
 
       for (const item of items) {
         item.metadata = {
@@ -290,9 +500,9 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     }
   }
 
-  async createTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+  async createTask(item: TaskItem, args?: string, resolvedLabel?: string): Promise<CreatedTask | undefined> {
     const { resourceUri, workspaceFolder } = resolveTaskContext(item);
-    const taskLabel = item.originalLabel || item.label;
+    const taskLabel = resolvedLabel ?? (item.originalLabel || item.label as string);
     const { command: taskCmd, args: taskInitialArgs, cwd: taskCwd } = this.getCommand(workspaceFolder?.uri);
 
     const taskArgs = taskInitialArgs ? [...taskInitialArgs] : [];
@@ -306,7 +516,12 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       taskArgs.push('--taskfile', item.taskFileUri.fsPath);
     }
 
-    taskArgs.push(taskLabel, ...splitArgs(args));
+    const hasArgs = args !== undefined && args.trim().length > 0;
+    if (hasArgs && item.metadata?.hasCLIArgs === true) {
+      taskArgs.push(taskLabel, '--', ...splitArgs(args!));
+    } else {
+      taskArgs.push(taskLabel, ...splitArgs(args));
+    }
 
     const full = `${taskCmd} ${taskArgs.join(' ')}`;
     const taskFileCwd = item.taskFileUri ? path.dirname(item.taskFileUri.fsPath) : taskCwd;

@@ -48,7 +48,7 @@ export abstract class BaseTaskProvider implements TaskProvider {
    * @returns A CreatedTask on success, or undefined when the task cannot be built
    *          (e.g. missing required file URI, untrusted workspace). Never throws.
    */
-  createTask(_item: TaskItem, _args?: string): Promise<CreatedTask | undefined> {
+  createTask(_item: TaskItem, _args?: string, _resolvedLabel?: string): Promise<CreatedTask | undefined> {
     return Promise.resolve(undefined);
   }
 }

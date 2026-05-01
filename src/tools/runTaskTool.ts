@@ -104,6 +104,16 @@ export class RunTaskTool implements vscode.LanguageModelTool<IRunTaskParameters>
       const item = resolution.item;
       const itemLabel = typeof item.label === 'string' ? item.label : item.originalLabel ?? '';
 
+      // Wildcard tasks cannot be run in the non-interactive LM tool context.
+      if (item.metadata?.isWildcardTask === true) {
+        const result: RunTaskResult = {
+          started: false,
+          message: `This task requires wildcard values but none were provided. Please specify the wildcard values to run "${itemLabel}".`,
+          task: toSummary(item),
+        };
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(JSON.stringify(result))]);
+      }
+
       // Determine whether to skip the guard modal.
       // If prepareInvocation resolved this exact task (IDs match), the confirmation
       // message already surfaced any guard warning → skip the guard.

@@ -147,6 +147,7 @@
     "pytest",
     "PYTHONPATH",
     "Rakefile",
+    "recents",
     "reflog",
     "relwithdebinfo",
     "rgba",

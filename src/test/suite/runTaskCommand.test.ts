@@ -12,6 +12,7 @@ import { TaskRunGuardService } from '../../services/taskRunGuardService';
 import { configuration } from '../../libs/configuration';
 import * as guidedArgInput from '../../libs/guidedArgInput';
 import { LoggerService } from '../../services/loggerService';
+import * as taskfileWildcardUtils from '../../libs/taskfileWildcardUtils';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -56,7 +57,7 @@ suite('RunTaskCommand Test Suite', () => {
   let context: vscode.ExtensionContext;
 
   // Captured calls
-  let runTaskCalls: Array<{ item: TaskItem; args?: string; skipGuard?: boolean }>;
+  let runTaskCalls: Array<{ item: TaskItem; args?: string; skipGuard?: boolean; resolvedLabel?: string }>;
   let runCompoundCalls: Array<{ name: string; item: TaskItem }>;
   let originalRegisterCommand: typeof vscode.commands.registerCommand;
 
@@ -91,8 +92,8 @@ suite('RunTaskCommand Test Suite', () => {
 
     // Stub TaskRunner so no real execution happens
     (TaskRunner as any).instance = {
-      runTask: async (item: TaskItem, args?: string, skipGuard?: boolean) => {
-        runTaskCalls.push({ item, args, skipGuard });
+      runTask: async (item: TaskItem, args?: string, skipGuard?: boolean, resolvedLabel?: string) => {
+        runTaskCalls.push({ item, args, skipGuard, resolvedLabel });
         return true;
       },
       runCompoundTask: async (name: string, item: TaskItem) => {
@@ -444,6 +445,232 @@ suite('RunTaskCommand Test Suite', () => {
     } finally {
       configuration.get = originalConfig;
       (guidedArgInput as any).collectAdditionalArgs = originalCollectAdditional;
+    }
+  });
+
+  // ── Wildcard task tests (RunTaskCommand) ──────────────────────────────────
+
+  test('T-R1: RunTaskCommand calls promptAndResolveWildcards after cache resolution when isWildcardTask', async () => {
+    const real = makeTaskItem('start:*');
+    real.contextValue = 'task';
+    real.metadata = { isWildcardTask: true, wildcardCount: 1 };
+
+    (TaskCacheService as any).instance = {
+      getTask: (id: string) => (id === 'start:*' ? real : undefined),
+    };
+
+    const originalPrompt = taskfileWildcardUtils.promptAndResolveWildcards;
+    let promptCalled = false;
+    (taskfileWildcardUtils as any).promptAndResolveWildcards = async (name: string, count: number) => {
+      promptCalled = true;
+      assert.strictEqual(name, 'start:*');
+      assert.strictEqual(count, 1);
+      return 'start:foo';
+    };
+
+    try {
+      const cmd = new RunTaskCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(promptCalled, true);
+      assert.strictEqual(runTaskCalls.length, 1);
+    } finally {
+      (taskfileWildcardUtils as any).promptAndResolveWildcards = originalPrompt;
+    }
+  });
+
+  test('T-R2: RunTaskCommand passes resolvedLabel to runTask', async () => {
+    const real = makeTaskItem('start:*');
+    real.contextValue = 'task';
+    real.metadata = { isWildcardTask: true, wildcardCount: 1 };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPrompt = taskfileWildcardUtils.promptAndResolveWildcards;
+    (taskfileWildcardUtils as any).promptAndResolveWildcards = async () => 'start:bar';
+
+    try {
+      const cmd = new RunTaskCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].resolvedLabel, 'start:bar');
+    } finally {
+      (taskfileWildcardUtils as any).promptAndResolveWildcards = originalPrompt;
+    }
+  });
+
+  test('T-R3: RunTaskCommand aborts when wildcard prompt is cancelled', async () => {
+    const real = makeTaskItem('start:*');
+    real.contextValue = 'task';
+    real.metadata = { isWildcardTask: true, wildcardCount: 1 };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPrompt = taskfileWildcardUtils.promptAndResolveWildcards;
+    (taskfileWildcardUtils as any).promptAndResolveWildcards = async () => undefined;
+
+    try {
+      const cmd = new RunTaskCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 0, 'runTask must not be called when wildcard prompt is cancelled');
+    } finally {
+      (taskfileWildcardUtils as any).promptAndResolveWildcards = originalPrompt;
+    }
+  });
+
+  test('T-R4: RunTaskCommand skips wildcard prompt for non-wildcard tasks', async () => {
+    const real = makeTaskItem('build');
+    real.contextValue = 'task';
+    real.metadata = {};
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPrompt = taskfileWildcardUtils.promptAndResolveWildcards;
+    let promptCalled = false;
+    (taskfileWildcardUtils as any).promptAndResolveWildcards = async () => {
+      promptCalled = true;
+      return 'should-not-be-called';
+    };
+
+    try {
+      const cmd = new RunTaskCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(promptCalled, false);
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].resolvedLabel, undefined);
+    } finally {
+      (taskfileWildcardUtils as any).promptAndResolveWildcards = originalPrompt;
+    }
+  });
+
+  // ── Wildcard task tests (RunTaskWithArgsCommand) ──────────────────────────
+
+  test('T-A1: RunTaskWithArgsCommand shows wildcard prompt (after cache resolution) before guided input', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+
+    const real = makeTaskItem('deploy:*');
+    real.contextValue = 'task';
+    real.metadata = { isWildcardTask: true, wildcardCount: 1 };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const callOrder: string[] = [];
+    const originalPrompt = taskfileWildcardUtils.promptAndResolveWildcards;
+    (taskfileWildcardUtils as any).promptAndResolveWildcards = async () => {
+      callOrder.push('wildcard');
+      return 'deploy:prod';
+    };
+
+    const originalTryGuided = (guidedArgInput as any).tryGuidedInputWithStatus;
+    (guidedArgInput as any).tryGuidedInputWithStatus = async () => {
+      callOrder.push('guided');
+      return { status: 'unavailable' };
+    };
+
+    const originalCollect = (guidedArgInput as any).collectAdditionalArgs;
+    (guidedArgInput as any).collectAdditionalArgs = async () => {
+      callOrder.push('collect');
+      return [];
+    };
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      await cmd.run(real);
+      assert.ok(callOrder.indexOf('wildcard') < callOrder.indexOf('guided'),
+        'wildcard prompt should come before guided input');
+    } finally {
+      (taskfileWildcardUtils as any).promptAndResolveWildcards = originalPrompt;
+      (guidedArgInput as any).tryGuidedInputWithStatus = originalTryGuided;
+      (guidedArgInput as any).collectAdditionalArgs = originalCollect;
+    }
+  });
+
+  test('T-A2: RunTaskWithArgsCommand aborts without calling runTask when wildcard prompt cancelled', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+
+    const real = makeTaskItem('deploy:*');
+    real.contextValue = 'task';
+    real.metadata = { isWildcardTask: true, wildcardCount: 1 };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPrompt = taskfileWildcardUtils.promptAndResolveWildcards;
+    (taskfileWildcardUtils as any).promptAndResolveWildcards = async () => undefined;
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 0, 'runTask must not be called when wildcard cancelled');
+    } finally {
+      (taskfileWildcardUtils as any).promptAndResolveWildcards = originalPrompt;
+    }
+  });
+
+  test('T-A3: RunTaskWithArgsCommand passes resolvedLabel to runTask when wildcards provided', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+
+    const real = makeTaskItem('deploy:*');
+    real.contextValue = 'task';
+    real.metadata = { isWildcardTask: true, wildcardCount: 1 };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPrompt = taskfileWildcardUtils.promptAndResolveWildcards;
+    (taskfileWildcardUtils as any).promptAndResolveWildcards = async () => 'deploy:staging';
+
+    const originalTryGuided = (guidedArgInput as any).tryGuidedInputWithStatus;
+    (guidedArgInput as any).tryGuidedInputWithStatus = async () => ({ status: 'unavailable' });
+
+    const originalCollect = (guidedArgInput as any).collectAdditionalArgs;
+    (guidedArgInput as any).collectAdditionalArgs = async () => [];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].resolvedLabel, 'deploy:staging');
+    } finally {
+      (taskfileWildcardUtils as any).promptAndResolveWildcards = originalPrompt;
+      (guidedArgInput as any).tryGuidedInputWithStatus = originalTryGuided;
+      (guidedArgInput as any).collectAdditionalArgs = originalCollect;
+    }
+  });
+
+  test('T-A4: RunTaskWithArgsCommand passes args correctly for hasCLIArgs task', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+
+    const real = makeTaskItem('yarn');
+    real.contextValue = 'task';
+    real.metadata = { hasCLIArgs: true };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalTryGuided = (guidedArgInput as any).tryGuidedInputWithStatus;
+    (guidedArgInput as any).tryGuidedInputWithStatus = async () => ({ status: 'unavailable' });
+
+    const originalCollect = (guidedArgInput as any).collectAdditionalArgs;
+    (guidedArgInput as any).collectAdditionalArgs = async () => ['install'];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].args, 'install');
+      assert.strictEqual(runTaskCalls[0].skipGuard, true);
+    } finally {
+      (guidedArgInput as any).tryGuidedInputWithStatus = originalTryGuided;
+      (guidedArgInput as any).collectAdditionalArgs = originalCollect;
     }
   });
 });

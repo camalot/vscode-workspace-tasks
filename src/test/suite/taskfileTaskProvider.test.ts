@@ -632,4 +632,280 @@ suite('TaskfileTaskProvider Test Suite', () => {
       assert.deepStrictEqual(tasks, []);
     });
   });
+
+  // ── Wildcard & CLI_ARGS detection ────────────────────────────────────────
+
+  suite('wildcard and CLI_ARGS detection', () => {
+    const dir = '/workspace';
+
+    function makeWildcardJson(name: string, aliases?: string[]): string {
+      return JSON.stringify({
+        tasks: [
+          {
+            name,
+            task: name,
+            desc: '',
+            aliases: aliases ?? [],
+            location: { line: 1, column: 1, taskfile: path.join(dir, 'Taskfile.yml') },
+          },
+        ],
+        location: dir,
+      });
+    }
+
+    // ── T-W1 ──────────────────────────────────────────────────────────────
+    test('T-W1: parseOutput sets isWildcardTask=true and wildcardCount=1 for start:*', () => {
+      const stdout = makeWildcardJson('start:*');
+      const tasks = provider.parseOutput(stdout, dir);
+      assert.strictEqual(tasks[0].metadata?.isWildcardTask, true);
+      assert.strictEqual(tasks[0].metadata?.wildcardCount, 1);
+    });
+
+    // ── T-W2 ──────────────────────────────────────────────────────────────
+    test('T-W2: parseOutput sets wildcardCount=2 for start:*:*', () => {
+      const stdout = makeWildcardJson('start:*:*');
+      const tasks = provider.parseOutput(stdout, dir);
+      assert.strictEqual(tasks[0].metadata?.isWildcardTask, true);
+      assert.strictEqual(tasks[0].metadata?.wildcardCount, 2);
+    });
+
+    // ── T-W3 ──────────────────────────────────────────────────────────────
+    test('T-W3: parseOutput leaves isWildcardTask unset for non-wildcard tasks', () => {
+      const stdout = makeWildcardJson('build');
+      const tasks = provider.parseOutput(stdout, dir);
+      assert.strictEqual(tasks[0].metadata?.isWildcardTask, undefined);
+    });
+
+    // ── T-W4 ──────────────────────────────────────────────────────────────
+    test('T-W4: parseOutput sets isWildcardTask on alias items when alias contains *', () => {
+      const previous = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'taskfile.showAliases') { return true as T; }
+              return def as T;
+            },
+          };
+        }
+        return previous(section);
+      };
+      try {
+        const stdout = makeWildcardJson('start:*', ['run:*']);
+        const tasks = provider.parseOutput(stdout, dir);
+        assert.strictEqual(tasks[0].children.length, 1);
+        const alias = tasks[0].children[0];
+        assert.strictEqual(alias.metadata?.isWildcardTask, true);
+        assert.strictEqual(alias.metadata?.wildcardCount, 1);
+      } finally {
+        (vscode.workspace as any).getConfiguration = previous;
+      }
+    });
+
+    // Wildcard tooltip
+    test('parseOutput sets wildcard tooltip when task name contains *', () => {
+      const stdout = makeWildcardJson('start:*');
+      const tasks = provider.parseOutput(stdout, dir);
+      assert.ok((tasks[0].tooltip as string).includes('Wildcard task'));
+    });
+
+    // ── T-C1 ──────────────────────────────────────────────────────────────
+    test('T-C1: detectCLIArgsTasks returns task name when cmds has string cmd with {{.CLI_ARGS}}', () => {
+      const yaml = [
+        'version: "3"',
+        'tasks:',
+        '  yarn:',
+        '    cmds:',
+        '      - yarn {{.CLI_ARGS}}',
+      ].join('\n');
+      const result = provider.detectCLIArgsTasks('/some/Taskfile.yml', yaml);
+      assert.ok(result.has('yarn'));
+    });
+
+    // ── T-C2 ──────────────────────────────────────────────────────────────
+    test('T-C2: detectCLIArgsTasks returns task name when cmds has {cmd:...} object with {{.CLI_ARGS}}', () => {
+      const yaml = [
+        'version: "3"',
+        'tasks:',
+        '  serve:',
+        '    cmds:',
+        '      - cmd: node server.js {{.CLI_ARGS}}',
+      ].join('\n');
+      const result = provider.detectCLIArgsTasks('/some/Taskfile2.yml', yaml);
+      assert.ok(result.has('serve'));
+    });
+
+    // ── T-C3 ──────────────────────────────────────────────────────────────
+    test('T-C3: detectCLIArgsTasks does not return task name when {{.CLI_ARGS}} absent', () => {
+      const yaml = [
+        'version: "3"',
+        'tasks:',
+        '  build:',
+        '    cmds:',
+        '      - go build ./...',
+      ].join('\n');
+      const result = provider.detectCLIArgsTasks('/other/Taskfile.yml', yaml);
+      assert.strictEqual(result.has('build'), false);
+    });
+
+    // ── T-C4 ──────────────────────────────────────────────────────────────
+    test('T-C4: detectCLIArgsTasks caches result (second call returns cached set)', () => {
+      const filePath = '/cached/Taskfile.yml';
+      const yaml = [
+        'version: "3"',
+        'tasks:',
+        '  run:',
+        '    cmds:',
+        '      - ./run.sh {{.CLI_ARGS}}',
+      ].join('\n');
+      const first = provider.detectCLIArgsTasks(filePath, yaml);
+      // Change the yaml — the cache should still return the original set
+      const differentYaml = 'version: "3"\ntasks:\n  other:\n    cmds:\n      - echo hi\n';
+      const second = provider.detectCLIArgsTasks(filePath, differentYaml);
+      assert.strictEqual(first, second, 'second call must return the same cached Set instance');
+    });
+
+    // ── T-C5 ──────────────────────────────────────────────────────────────
+    test('T-C5: parseOutput sets hasCLIArgs=true on item when task is in cliArgs set', () => {
+      const filePath = path.join(dir, 'Taskfile.yml');
+      const yamlContent = [
+        'version: "3"',
+        'tasks:',
+        '  yarn:',
+        '    cmds:',
+        '      - yarn {{.CLI_ARGS}}',
+      ].join('\n');
+      const stdout = makeWildcardJson('yarn');
+      const tasks = provider.parseOutput(stdout, dir, undefined, filePath, yamlContent);
+      assert.strictEqual(tasks[0].metadata?.hasCLIArgs, true);
+    });
+
+    // ── T-C6 ──────────────────────────────────────────────────────────────
+    test('T-C6: invalidateCLIArgsCache removes the cached entry', () => {
+      const filePath = '/invalidate/Taskfile.yml';
+      const yaml = 'version: "3"\ntasks:\n  run:\n    cmds:\n      - echo {{.CLI_ARGS}}\n';
+      provider.detectCLIArgsTasks(filePath, yaml);
+      provider.invalidateCLIArgsCache(filePath);
+      // After invalidation, new content should be parsed (different result)
+      const newYaml = 'version: "3"\ntasks:\n  other:\n    cmds:\n      - echo hi\n';
+      const result = provider.detectCLIArgsTasks(filePath, newYaml);
+      assert.strictEqual(result.has('run'), false, 'Cache should be invalidated');
+      assert.strictEqual(result.has('other'), false, 'other has no CLI_ARGS');
+    });
+
+    // ── T-C7 ──────────────────────────────────────────────────────────────
+    test('T-C7: detectCLIArgsTasks returns empty Set (not throw) when YAML is malformed', () => {
+      const filePath = '/bad/Taskfile.yml';
+      let result: Set<string>;
+      assert.doesNotThrow(() => {
+        result = provider.detectCLIArgsTasks(filePath, '{ not: valid: yaml: [}');
+      });
+      assert.ok(result! instanceof Set);
+      assert.strictEqual(result!.size, 0);
+    });
+
+    // ── T-C8 ──────────────────────────────────────────────────────────────
+    test('T-C8: parseOutput does not set hasCLIArgs when task is not in cliArgs set', () => {
+      const filePath = path.join(dir, 'Taskfile.yml');
+      const yamlContent = [
+        'version: "3"',
+        'tasks:',
+        '  build:',
+        '    cmds:',
+        '      - go build ./...',
+      ].join('\n');
+      const stdout = makeWildcardJson('build');
+      const tasks = provider.parseOutput(stdout, dir, undefined, filePath, yamlContent);
+      assert.strictEqual(tasks[0].metadata?.hasCLIArgs, undefined);
+    });
+
+    // ── T-C8b ─────────────────────────────────────────────────────────────
+    test('T-C8b: detectCLIArgsTasks detects {{.CLI_ARGS}} inside double-quoted string with embedded quotes', () => {
+      // This Taskfile syntax causes yaml.parse to fail without pre-processing:
+      //   - echo "Running with arguments: {{.CLI_ARGS}}"
+      const filePath = path.join(dir, 'Taskfile-C8b.yml');
+      const yamlContent = [
+        'version: "3"',
+        'tasks:',
+        '  withArgs:',
+        '    desc: Run a command with arguments',
+        '    cmds:',
+        '      - echo "Running with arguments: {{.CLI_ARGS}}"',
+      ].join('\n');
+      const result = provider.detectCLIArgsTasks(filePath, yamlContent);
+      assert.ok(result.has('withArgs'), 'should detect CLI_ARGS even when cmd contains embedded double-quotes');
+    });
+
+    // ── T-C8c ─────────────────────────────────────────────────────────────
+    test('T-C8c: parseOutput sets hasCLIArgs for task using double-quoted CLI_ARGS cmd', () => {
+      const filePath = path.join(dir, 'Taskfile-C8c.yml');
+      const yamlContent = [
+        'version: "3"',
+        'tasks:',
+        '  withArgs:',
+        '    desc: Run a command with arguments',
+        '    cmds:',
+        '      - echo "Running with arguments: {{.CLI_ARGS}}"',
+      ].join('\n');
+      const stdout = JSON.stringify({ tasks: [{ name: 'withArgs', desc: 'Run a command with arguments', location: { taskfile: filePath, line: 3 } }] });
+      const tasks = provider.parseOutput(stdout, dir, undefined, filePath, yamlContent);
+      assert.strictEqual(tasks[0].metadata?.hasCLIArgs, true, 'hasCLIArgs should be true for double-quoted CLI_ARGS cmd');
+    });
+
+    // ── T-C9 ──────────────────────────────────────────────────────────────
+    test('T-C9: watcher onDidDelete event triggers cache invalidation', async () => {
+      const fakeHome = os.tmpdir();
+      const globalTaskfilePath = path.join(fakeHome, 'Taskfile.yml');
+
+      // Pre-seed the cache
+      const yaml = 'version: "3"\ntasks:\n  run:\n    cmds:\n      - echo {{.CLI_ARGS}}\n';
+      provider.detectCLIArgsTasks(globalTaskfilePath, yaml);
+
+      const onDeleteCallbacks: Array<() => void> = [];
+      const originalCreateWatcher = vscode.workspace.createFileSystemWatcher;
+      (vscode.workspace as any).createFileSystemWatcher = () => ({
+        onDidCreate: () => undefined,
+        onDidChange: () => undefined,
+        onDidDelete: (cb: () => void) => { onDeleteCallbacks.push(cb); return undefined; },
+        dispose: () => undefined,
+      });
+
+      const originalExistsSync = fs.existsSync;
+      (fs as any).existsSync = (p: string) => p === globalTaskfilePath;
+      const originalHomeDir = os.homedir;
+      (os as any).homedir = () => fakeHome;
+      const originalGetConfig = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'taskfile.discoverGlobalTaskfile') { return true as T; }
+              return def as T;
+            },
+          };
+        }
+        return originalGetConfig(section);
+      };
+
+      try {
+        // This registers the watchers (one per variant path)
+        (provider as any).getCommand = () => ({ command: 'definitely-not-a-real-command-xyz', args: [] });
+        await provider.getSystemTasks().catch(() => { /* expected CLI failure */ });
+
+        assert.ok(onDeleteCallbacks.length > 0, 'onDidDelete handlers should be registered');
+        // Fire all delete callbacks (each invalidates its respective path, including globalTaskfilePath)
+        for (const cb of onDeleteCallbacks) { cb(); }
+
+        // Cache should be cleared — re-parsing with different content should work
+        const newYaml = 'version: "3"\ntasks:\n  other:\n    cmds:\n      - echo hi\n';
+        const result = provider.detectCLIArgsTasks(globalTaskfilePath, newYaml);
+        assert.strictEqual(result.has('run'), false, 'old entry should be gone after delete invalidation');
+      } finally {
+        (vscode.workspace as any).createFileSystemWatcher = originalCreateWatcher;
+        (fs as any).existsSync = originalExistsSync;
+        (os as any).homedir = originalHomeDir;
+        (vscode.workspace as any).getConfiguration = originalGetConfig;
+      }
+    });
+  });
 });
