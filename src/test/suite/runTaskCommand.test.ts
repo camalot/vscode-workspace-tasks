@@ -748,4 +748,46 @@ suite('RunTaskCommand Test Suite', () => {
       (taskfileVarPromptUtils as any).promptAndResolveRequiredVars = originalPromptVars;
     }
   });
+
+  test('RunTaskWithArgsCommand: guidedArgInput false skips required-var prompt', async () => {
+    const originalConfig = configuration.get.bind(configuration);
+    configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.guidedArgInput') {
+        return false;
+      }
+      return defaultValue;
+    };
+
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+
+    const real = makeTaskItem('deploy');
+    real.contextValue = 'task';
+    real.metadata = {
+      requiredVars: [{ name: 'ENVIRONMENT' }],
+    };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPromptVars = taskfileVarPromptUtils.promptAndResolveRequiredVars;
+    (taskfileVarPromptUtils as any).promptAndResolveRequiredVars = async () => {
+      throw new Error('should not prompt when guidedArgInput is false');
+    };
+
+    const originalCollect = (guidedArgInput as any).collectAdditionalArgs;
+    (guidedArgInput as any).collectAdditionalArgs = async () => [];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.strictEqual(runTaskCalls[0].varAssignments, undefined);
+    } finally {
+      configuration.get = originalConfig;
+      (taskfileVarPromptUtils as any).promptAndResolveRequiredVars = originalPromptVars;
+      (guidedArgInput as any).collectAdditionalArgs = originalCollect;
+    }
+  });
 });

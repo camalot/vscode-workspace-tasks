@@ -198,19 +198,30 @@ Args**. This ensures the arguments reach the task correctly.
 
 See [CLI_ARGS Forwarding](../task-types/task-runners/task#cli_args-forwarding) for full details.
 
-### Required Variables Prompting
+### Required Variables Guided Arguments
 
-When a Taskfile task declares `requires.vars`, the extension can collect those
-values before execution:
+When a Taskfile task declares `requires.vars`, Workspace Tasks provides a
+Taskfile-specific guided argument flow that collects those values before
+execution.
 
 - **Run Task** prompts only for required variables that do not already have a
-   predefined value in task-level or file-level `vars`.
+  predefined value in task-level or file-level `vars`.
 - **Run with Args** always prompts for all required variables. If a variable is
-   already predefined in `vars`, that value is used as the default in the prompt.
+  already predefined in `vars`, that value is used as the default in the prompt.
 
-Enum variables are shown as a pick list; plain variables are collected with an
-input box. Collected values are passed to `task` as `VAR='value'` assignments
-before any `--` separator used for `{{.CLI_ARGS}}` forwarding.
+Prompt behavior by variable type:
+
+- Variables with `enum` use a pick list.
+- Variables without `enum` use an input box.
+
+Collected values are passed to `task` as `VAR='value'` assignments before any
+`--` separator used for `{{.CLI_ARGS}}` forwarding.
+
+{: .note }
+>This Taskfile guided argument flow is controlled by the `workspaceTasks.task.guidedArgInput`
+>setting (default: `true`). If the setting is `false`, the required-variables prompt is skipped
+>and the task runs without collecting variable values. The same setting also controls guided
+>parameter input for Python and PowerShell script tasks.
 
 ---
 

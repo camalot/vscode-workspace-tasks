@@ -282,7 +282,7 @@ Without `{{.CLI_ARGS}}`, arguments are appended directly (no `--` separator).
 
 Taskfile supports required variables via `requires.vars`.
 
-When you run a task in Workspace Tasks:
+Workspace Tasks treats these as a Taskfile-specific guided argument flow:
 
 - **Run Task** prompts only for required variables that are not already
   predefined in Taskfile `vars`.
@@ -292,6 +292,32 @@ When you run a task in Workspace Tasks:
 For enum-based required variables, the extension shows a pick list. For plain
 variables, it shows an input box. Values are passed to `task` as
 `VAR='value'` assignments and are inserted before any `--` separator.
+
+Example:
+
+```yaml
+tasks:
+  prompt:
+    vars:
+      APP_NAME: my-app
+    requires:
+      vars:
+        - name: APP_NAME
+        - name: ENVIRONMENT
+          enum: [dev, staging, prod]
+```
+
+In this example:
+
+- **Run Task** prompts only for `ENVIRONMENT` (because `APP_NAME` is already
+  defined).
+- **Run with Args** prompts for both `APP_NAME` and `ENVIRONMENT`, with
+  `APP_NAME` pre-filled to `my-app`.
+
+{: .note }
+>This guided flow is controlled by the `workspaceTasks.task.guidedArgInput` setting (default: `true`).
+>If the setting is `false`, the required-variables prompt is skipped and the task runs without
+>collecting variable values.
 
 ---
 

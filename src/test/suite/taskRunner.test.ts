@@ -303,6 +303,28 @@ suite('TaskRunner Test Suite', () => {
     assert.strictEqual(executedTasks.length, 1);
   });
 
+  test('runTask skips required-var prompt when guidedArgInput is false', async () => {
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.guidedArgInput') {
+        return false;
+      }
+      return defaultValue;
+    };
+
+    taskfileVarPromptModule.promptAndResolveRequiredVars = async () => {
+      throw new Error('should not prompt when guidedArgInput is false');
+    };
+
+    const item = makeTaskItem('deploy', 'taskfile');
+    item.metadata = {
+      requiredVars: [{ name: 'ENV' }],
+    };
+
+    const started = await runner.runTask(item);
+    assert.strictEqual(started, true);
+    assert.strictEqual(executedTasks.length, 1);
+  });
+
   // -------------------------------------------------------------------------
   // runTask – native path (isNative = true)
   // -------------------------------------------------------------------------

@@ -45,7 +45,7 @@ export class RunTaskWithArgsCommand extends BaseCommand {
 
     let varAssignments: string[] | undefined;
     const requiredVars = item.metadata?.requiredVars as TaskfileRequiredVar[] | undefined;
-    if (Array.isArray(requiredVars) && requiredVars.length > 0) {
+    if (Array.isArray(requiredVars) && requiredVars.length > 0 && configuration.get<boolean>('task.guidedArgInput', true)) {
       varAssignments = await promptAndResolveRequiredVars(requiredVars, item.label as string, {
         mode: 'runWithArgs',
         defaultsByName: item.metadata?.predefinedVarValues as Record<string, string | undefined> | undefined,

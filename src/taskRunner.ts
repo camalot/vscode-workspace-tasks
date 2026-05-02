@@ -71,7 +71,7 @@ export class TaskRunner {
     // Required-vars prompting is only for direct runs, not queued compound items.
     if (!effectiveVarAssignments && item.contextValue !== 'queuedTask') {
       const requiredVars = item.metadata?.requiredVars as TaskfileRequiredVar[] | undefined;
-      if (Array.isArray(requiredVars) && requiredVars.length > 0) {
+      if (Array.isArray(requiredVars) && requiredVars.length > 0 && configuration.get<boolean>('task.guidedArgInput', true)) {
         effectiveVarAssignments = await promptAndResolveRequiredVars(
           requiredVars,
           resolvedLabel ?? taskLabel as string,
