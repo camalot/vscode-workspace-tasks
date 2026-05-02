@@ -53,7 +53,7 @@ class TestableRunActiveEditorTaskWithArgsCommand extends RunActiveEditorTaskWith
 
 suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
   let context: vscode.ExtensionContext;
-  let runTaskCalls: Array<{ item: TaskItem; args?: string; skipGuard?: boolean }>;
+  let runTaskCalls: Array<{ item: TaskItem; args?: string; skipGuard?: boolean; varAssignments?: string[] }>;
   let confirmCalls: TaskItem[];
   let showInputBoxResponses: Array<string | undefined>;
   let showInputBoxCalls: number;
@@ -86,8 +86,14 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     };
 
     (TaskRunner as any).instance = {
-      runTask: async (item: TaskItem, args?: string, skipGuard?: boolean) => {
-        runTaskCalls.push({ item, args, skipGuard });
+      runTask: async (
+        item: TaskItem,
+        args?: string,
+        skipGuard?: boolean,
+        _resolvedLabel?: string,
+        varAssignments?: string[],
+      ) => {
+        runTaskCalls.push({ item, args, skipGuard, varAssignments });
         return true;
       },
     };
@@ -335,6 +341,35 @@ suite('RunActiveEditorTaskWithArgsCommand Test Suite', () => {
     assert.strictEqual(runTaskCalls[0].item, taskItem);
     assert.strictEqual(runTaskCalls[0].args, '--env prod');
     assert.strictEqual(runTaskCalls[0].skipGuard, true);
+  });
+
+  test('run — collects required vars before additional args and forwards assignments', async () => {
+    const uri = makeFileUri('/workspace/deploy.sh');
+    const taskItem = makeTaskItem('deploy', 'taskfile');
+    taskItem.metadata = { requiredVars: [{ name: 'ENV', enum: ['dev', 'prod'] }] };
+    Object.defineProperty(vscode.window, 'activeTextEditor', {
+      get: () => ({ document: { uri } } as unknown as vscode.TextEditor),
+      configurable: true,
+    });
+    (TaskCacheService as any).instance = {
+      getTasksForFile: () => [taskItem],
+    };
+
+    const originalQuickPick = vscode.window.showQuickPick;
+    (vscode.window as any).showQuickPick = async () => 'prod';
+    showInputBoxResponses = ['--verbose', ''];
+
+    try {
+      const cmd = new TestableRunActiveEditorTaskWithArgsCommand(context);
+      (cmd as TestableRunActiveEditorTaskWithArgsCommand).pickTaskResult = taskItem;
+      await cmd.run();
+
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.deepStrictEqual(runTaskCalls[0].varAssignments, ["ENV='prod'"]);
+      assert.strictEqual(runTaskCalls[0].args, '--verbose');
+    } finally {
+      (vscode.window as any).showQuickPick = originalQuickPick;
+    }
   });
 
   test('run — escape after one entered argument cancels execution', async () => {

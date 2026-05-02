@@ -278,6 +278,23 @@ Without `{{.CLI_ARGS}}`, arguments are appended directly (no `--` separator).
 
 ---
 
+## Required Variables (`requires.vars`)
+
+Taskfile supports required variables via `requires.vars`.
+
+When you run a task in Workspace Tasks:
+
+- **Run Task** prompts only for required variables that are not already
+  predefined in Taskfile `vars`.
+- **Run with Args** always prompts for all required variables, and uses
+  predefined values as defaults when available.
+
+For enum-based required variables, the extension shows a pick list. For plain
+variables, it shows an input box. Values are passed to `task` as
+`VAR='value'` assignments and are inserted before any `--` separator.
+
+---
+
 ## Watch Mode
 
 Task supports a watch mode (`task --watch`) that re-runs a task whenever its source files change.

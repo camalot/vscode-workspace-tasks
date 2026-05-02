@@ -185,4 +185,52 @@ suite('Task Factory Taskfile Test Suite', () => {
     assert.ok(!args.includes('--'), `'--' should NOT appear when hasCLIArgs is unset`);
     assert.ok(args.includes('--force'));
   });
+
+  test('createTask places varAssignments after task name and before extra args', async () => {
+    const taskfilePath = path.join(rootPath, 'Taskfile.yml');
+    const uri = vscode.Uri.file(taskfilePath);
+
+    const item = new TaskItem('deploy', vscode.TreeItemCollapsibleState.None, 'taskfile', uri);
+    item.taskFileUri = uri;
+
+    const provider = new TaskfileTaskProvider();
+    const created = await provider.createTask(item, '--verbose', undefined, ["ENV='prod'", "VERSION='1.2.3'"]);
+
+    assert.ok(created, 'Should create a task');
+    const exec = created!.task.execution as vscode.ShellExecution;
+    const args = exec.args as string[];
+    const taskIdx = args.indexOf('deploy');
+    const envIdx = args.indexOf("ENV='prod'");
+    const versionIdx = args.indexOf("VERSION='1.2.3'");
+    const verboseIdx = args.indexOf('--verbose');
+
+    assert.ok(taskIdx !== -1);
+    assert.ok(envIdx > taskIdx);
+    assert.ok(versionIdx > envIdx);
+    assert.ok(verboseIdx > versionIdx);
+  });
+
+  test('createTask with hasCLIArgs keeps varAssignments before -- separator', async () => {
+    const taskfilePath = path.join(rootPath, 'Taskfile.yml');
+    const uri = vscode.Uri.file(taskfilePath);
+
+    const item = new TaskItem('deploy', vscode.TreeItemCollapsibleState.None, 'taskfile', uri);
+    item.taskFileUri = uri;
+    item.metadata = { hasCLIArgs: true };
+
+    const provider = new TaskfileTaskProvider();
+    const created = await provider.createTask(item, 'install', undefined, ["ENV='prod'"]);
+
+    assert.ok(created, 'Should create a task');
+    const exec = created!.task.execution as vscode.ShellExecution;
+    const args = exec.args as string[];
+    const envIdx = args.indexOf("ENV='prod'");
+    const dashDashIdx = args.indexOf('--');
+    const installIdx = args.indexOf('install');
+
+    assert.ok(envIdx !== -1);
+    assert.ok(dashDashIdx !== -1);
+    assert.ok(envIdx < dashDashIdx);
+    assert.ok(installIdx > dashDashIdx);
+  });
 });

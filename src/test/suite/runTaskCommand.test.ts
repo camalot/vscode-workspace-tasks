@@ -13,6 +13,7 @@ import { configuration } from '../../libs/configuration';
 import * as guidedArgInput from '../../libs/guidedArgInput';
 import { LoggerService } from '../../services/loggerService';
 import * as taskfileWildcardUtils from '../../libs/taskfileWildcardUtils';
+import * as taskfileVarPromptUtils from '../../libs/taskfileVarPromptUtils';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -57,7 +58,13 @@ suite('RunTaskCommand Test Suite', () => {
   let context: vscode.ExtensionContext;
 
   // Captured calls
-  let runTaskCalls: Array<{ item: TaskItem; args?: string; skipGuard?: boolean; resolvedLabel?: string }>;
+  let runTaskCalls: Array<{
+    item: TaskItem;
+    args?: string;
+    skipGuard?: boolean;
+    resolvedLabel?: string;
+    varAssignments?: string[];
+  }>;
   let runCompoundCalls: Array<{ name: string; item: TaskItem }>;
   let originalRegisterCommand: typeof vscode.commands.registerCommand;
 
@@ -92,8 +99,14 @@ suite('RunTaskCommand Test Suite', () => {
 
     // Stub TaskRunner so no real execution happens
     (TaskRunner as any).instance = {
-      runTask: async (item: TaskItem, args?: string, skipGuard?: boolean, resolvedLabel?: string) => {
-        runTaskCalls.push({ item, args, skipGuard, resolvedLabel });
+      runTask: async (
+        item: TaskItem,
+        args?: string,
+        skipGuard?: boolean,
+        resolvedLabel?: string,
+        varAssignments?: string[],
+      ) => {
+        runTaskCalls.push({ item, args, skipGuard, resolvedLabel, varAssignments });
         return true;
       },
       runCompoundTask: async (name: string, item: TaskItem) => {
@@ -671,6 +684,68 @@ suite('RunTaskCommand Test Suite', () => {
     } finally {
       (guidedArgInput as any).tryGuidedInputWithStatus = originalTryGuided;
       (guidedArgInput as any).collectAdditionalArgs = originalCollect;
+    }
+  });
+
+  test('RunTaskWithArgsCommand: prompts required vars and forwards varAssignments', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+
+    const real = makeTaskItem('deploy');
+    real.contextValue = 'task';
+    real.metadata = {
+      requiredVars: [{ name: 'ENVIRONMENT', enum: ['dev', 'prod'] }],
+    };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPromptVars = taskfileVarPromptUtils.promptAndResolveRequiredVars;
+    (taskfileVarPromptUtils as any).promptAndResolveRequiredVars = async () => ["ENVIRONMENT='prod'"];
+
+    const originalTryGuided = (guidedArgInput as any).tryGuidedInputWithStatus;
+    (guidedArgInput as any).tryGuidedInputWithStatus = async () => ({ status: 'unavailable' });
+
+    const originalCollect = (guidedArgInput as any).collectAdditionalArgs;
+    (guidedArgInput as any).collectAdditionalArgs = async () => ['--verbose'];
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 1);
+      assert.deepStrictEqual(runTaskCalls[0].varAssignments, ["ENVIRONMENT='prod'"]);
+      assert.strictEqual(runTaskCalls[0].args, '--verbose');
+    } finally {
+      (taskfileVarPromptUtils as any).promptAndResolveRequiredVars = originalPromptVars;
+      (guidedArgInput as any).tryGuidedInputWithStatus = originalTryGuided;
+      (guidedArgInput as any).collectAdditionalArgs = originalCollect;
+    }
+  });
+
+  test('RunTaskWithArgsCommand: cancelling required-var prompt aborts task execution', async () => {
+    (TaskRunGuardService as any)._instance = {
+      confirmIfNeeded: async () => true,
+      isGuarded: () => false,
+    };
+
+    const real = makeTaskItem('deploy');
+    real.contextValue = 'task';
+    real.metadata = {
+      requiredVars: [{ name: 'ENVIRONMENT' }],
+    };
+
+    (TaskCacheService as any).instance = { getTask: () => real };
+
+    const originalPromptVars = taskfileVarPromptUtils.promptAndResolveRequiredVars;
+    (taskfileVarPromptUtils as any).promptAndResolveRequiredVars = async () => undefined;
+
+    try {
+      const cmd = new RunTaskWithArgsCommand(context);
+      await cmd.run(real);
+      assert.strictEqual(runTaskCalls.length, 0);
+    } finally {
+      (taskfileVarPromptUtils as any).promptAndResolveRequiredVars = originalPromptVars;
     }
   });
 });

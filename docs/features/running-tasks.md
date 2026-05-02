@@ -198,6 +198,20 @@ Args**. This ensures the arguments reach the task correctly.
 
 See [CLI_ARGS Forwarding](../task-types/task-runners/task#cli_args-forwarding) for full details.
 
+### Required Variables Prompting
+
+When a Taskfile task declares `requires.vars`, the extension can collect those
+values before execution:
+
+- **Run Task** prompts only for required variables that do not already have a
+   predefined value in task-level or file-level `vars`.
+- **Run with Args** always prompts for all required variables. If a variable is
+   already predefined in `vars`, that value is used as the default in the prompt.
+
+Enum variables are shown as a pick list; plain variables are collected with an
+input box. Collected values are passed to `task` as `VAR='value'` assignments
+before any `--` separator used for `{{.CLI_ARGS}}` forwarding.
+
 ---
 
 ## Opening the Source File

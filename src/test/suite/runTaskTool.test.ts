@@ -102,6 +102,17 @@ suite('RunTaskTool Test Suite', () => {
     assert.strictEqual(result.task.label, 'build');
   });
 
+  test('task with required vars — started:false with guidance message', async () => {
+    const deploy = makeLeaf('deploy', 'taskfile:deploy', 'taskfile');
+    deploy.metadata = { requiredVars: [{ name: 'ENV' }, { name: 'VERSION' }] };
+    TaskCacheService.getInstance().getTask = (id) => id === 'taskfile:deploy' ? deploy : undefined;
+
+    const result = await invokeRunTask({ id: 'taskfile:deploy' });
+    assert.strictEqual(result.started, false);
+    assert.ok(result.message.includes('requires variables'));
+    assert.ok(result.message.includes('Run with Args'));
+  });
+
   test('id not found, no label — started:false, specific ID-not-found message', async () => {
     TaskCacheService.getInstance().getTask = () => undefined;
     TaskCacheService.getInstance().getAllTasks = () => [];

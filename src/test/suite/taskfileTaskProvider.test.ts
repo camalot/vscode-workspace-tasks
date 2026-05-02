@@ -908,4 +908,132 @@ suite('TaskfileTaskProvider Test Suite', () => {
       }
     });
   });
+
+  suite('required vars detection', () => {
+    const dir = '/workspace';
+
+    function makeTaskJson(name: string, aliases?: string[]): string {
+      return JSON.stringify({
+        tasks: [
+          {
+            name,
+            task: name,
+            desc: '',
+            aliases: aliases ?? [],
+            location: { line: 1, column: 1, taskfile: path.join(dir, 'Taskfile.yml') },
+          },
+        ],
+        location: dir,
+      });
+    }
+
+    test('detectRequiredVars parses requires.vars and predefined var defaults', () => {
+      const filePath = path.join(dir, 'Taskfile.yml');
+      const yaml = [
+        'version: "3"',
+        'vars:',
+        '  VERSION: 1.2.3',
+        'tasks:',
+        '  deploy:',
+        '    vars:',
+        '      ENV: prod',
+        '    requires:',
+        '      vars:',
+        '        - VERSION',
+        '        - name: ENV',
+        '          enum: [dev, staging, prod]',
+      ].join('\n');
+
+      const info = provider.detectRequiredVars(filePath, yaml);
+      assert.ok(info.tasks.has('deploy'));
+      assert.deepStrictEqual(info.tasks.get('deploy'), [
+        { name: 'VERSION' },
+        { name: 'ENV', enum: ['dev', 'staging', 'prod'] },
+      ]);
+      assert.deepStrictEqual(info.taskVarDefaults.get('deploy'), {
+        VERSION: '1.2.3',
+        ENV: 'prod',
+      });
+    });
+
+    test('detectRequiredVars returns cached result for same file path', () => {
+      const filePath = path.join(dir, 'Taskfile-cache.yml');
+      const yaml = [
+        'version: "3"',
+        'tasks:',
+        '  deploy:',
+        '    requires:',
+        '      vars:',
+        '        - VERSION',
+      ].join('\n');
+
+      const first = provider.detectRequiredVars(filePath, yaml);
+      const second = provider.detectRequiredVars(filePath, yaml.replace('VERSION', 'OTHER'));
+      assert.strictEqual(first, second);
+      assert.deepStrictEqual(second.tasks.get('deploy'), [{ name: 'VERSION' }]);
+    });
+
+    test('invalidateTaskfileCache clears required vars cache', () => {
+      const filePath = path.join(dir, 'Taskfile-invalidate.yml');
+      const yaml = [
+        'version: "3"',
+        'tasks:',
+        '  deploy:',
+        '    requires:',
+        '      vars:',
+        '        - VERSION',
+      ].join('\n');
+
+      provider.detectRequiredVars(filePath, yaml);
+      provider.invalidateTaskfileCache(filePath);
+
+      const after = provider.detectRequiredVars(filePath, yaml.replace('VERSION', 'OTHER'));
+      assert.deepStrictEqual(after.tasks.get('deploy'), [{ name: 'OTHER' }]);
+    });
+
+    test('parseOutput sets requiredVars and predefinedVarValues metadata on task and aliases', () => {
+      const previous = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'taskfile.showAliases') {
+                return true as T;
+              }
+              return def as T;
+            },
+          };
+        }
+        return previous(section);
+      };
+
+      const filePath = path.join(dir, 'Taskfile.yml');
+      const yaml = [
+        'version: "3"',
+        'vars:',
+        '  VERSION: 1.2.3',
+        'tasks:',
+        '  deploy:',
+        '    vars:',
+        '      ENV: prod',
+        '    requires:',
+        '      vars:',
+        '        - VERSION',
+      ].join('\n');
+
+      try {
+        const tasks = provider.parseOutput(makeTaskJson('deploy', ['ship']), dir, undefined, filePath, yaml);
+        assert.strictEqual(tasks.length, 1);
+        assert.deepStrictEqual(tasks[0].metadata?.requiredVars, [{ name: 'VERSION' }]);
+        assert.deepStrictEqual(tasks[0].metadata?.predefinedVarValues, { VERSION: '1.2.3', ENV: 'prod' });
+        assert.ok((tasks[0].tooltip as string).includes('Requires variables: VERSION'));
+
+        assert.strictEqual(tasks[0].children.length, 1);
+        assert.deepStrictEqual(tasks[0].children[0].metadata?.requiredVars, [{ name: 'VERSION' }]);
+        assert.deepStrictEqual(tasks[0].children[0].metadata?.predefinedVarValues, { VERSION: '1.2.3', ENV: 'prod' });
+      } finally {
+        (vscode.workspace as any).getConfiguration = previous;
+      }
+    });
+  });
 });

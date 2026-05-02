@@ -114,6 +114,19 @@ export class RunTaskTool implements vscode.LanguageModelTool<IRunTaskParameters>
         return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(JSON.stringify(result))]);
       }
 
+      if (Array.isArray(item.metadata?.requiredVars) && item.metadata.requiredVars.length > 0) {
+        const names = item.metadata.requiredVars
+          .map((v: { name?: string }) => v?.name)
+          .filter((v: string | undefined): v is string => typeof v === 'string' && v.trim().length > 0)
+          .join(', ');
+        const result: RunTaskResult = {
+          started: false,
+          message: `Task "${itemLabel}" requires variables${names ? `: ${names}` : ''}. Use the Run with Args command in VS Code to provide these values interactively.`,
+          task: toSummary(item),
+        };
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(JSON.stringify(result))]);
+      }
+
       // Determine whether to skip the guard modal.
       // If prepareInvocation resolved this exact task (IDs match), the confirmation
       // message already surfaced any guard warning → skip the guard.

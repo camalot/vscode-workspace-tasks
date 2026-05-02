@@ -7,6 +7,7 @@ import { TaskCacheService } from '../services/taskCacheService';
 import { configuration } from '../libs/configuration';
 import { collectAdditionalArgs, tryGuidedInputWithStatus } from '../libs/guidedArgInput';
 import { promptAndResolveWildcards } from '../libs/taskfileWildcardUtils';
+import { promptAndResolveRequiredVars, TaskfileRequiredVar } from '../libs/taskfileVarPromptUtils';
 
 export class RunTaskWithArgsCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -42,6 +43,18 @@ export class RunTaskWithArgsCommand extends BaseCommand {
       }
     }
 
+    let varAssignments: string[] | undefined;
+    const requiredVars = item.metadata?.requiredVars as TaskfileRequiredVar[] | undefined;
+    if (Array.isArray(requiredVars) && requiredVars.length > 0) {
+      varAssignments = await promptAndResolveRequiredVars(requiredVars, item.label as string, {
+        mode: 'runWithArgs',
+        defaultsByName: item.metadata?.predefinedVarValues as Record<string, string | undefined> | undefined,
+      });
+      if (varAssignments === undefined) {
+        return;
+      }
+    }
+
     if (configuration.get<boolean>('task.guidedArgInput', true)) {
       const guidedResult = await tryGuidedInputWithStatus(item);
       if (guidedResult.status === 'cancelled') {
@@ -55,7 +68,7 @@ export class RunTaskWithArgsCommand extends BaseCommand {
         }
 
         const mergedArgs = [...guidedResult.args, ...extraArgs];
-        await TaskRunner.getInstance().runTask(item, mergedArgs.join(' '), true, resolvedLabel);
+        await TaskRunner.getInstance().runTask(item, mergedArgs.join(' '), true, resolvedLabel, varAssignments);
         return;
       }
       // Fall through to free-form if guided input was unavailable.
@@ -63,7 +76,7 @@ export class RunTaskWithArgsCommand extends BaseCommand {
 
     const extraArgs = await collectAdditionalArgs(item.label as string);
     if (extraArgs !== undefined) {
-      await TaskRunner.getInstance().runTask(item, extraArgs.join(' '), true, resolvedLabel);
+      await TaskRunner.getInstance().runTask(item, extraArgs.join(' '), true, resolvedLabel, varAssignments);
     }
   }
 }

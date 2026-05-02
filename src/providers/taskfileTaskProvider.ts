@@ -14,6 +14,7 @@ import { ExecutableService, ExecutableResult } from '../services/executableServi
 import { LoggerService } from '../services/loggerService';
 import { TaskCacheService } from '../services/taskCacheService';
 import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
+import { TaskfileRequiredVar } from '../libs/taskfileVarPromptUtils';
 
 const execFileAsync = promisify(execFile);
 
@@ -35,11 +36,19 @@ interface TaskJsonOutput {
   location: string;
 }
 
+interface RequiredVarsInfo {
+  tasks: Map<string, TaskfileRequiredVar[]>;
+  taskVarDefaults: Map<string, Record<string, string>>;
+}
+
 export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvider {
   private globalTaskfileWatchers: vscode.FileSystemWatcher[] = [];
+  private workspaceTaskfileWatchers = new Map<string, vscode.FileSystemWatcher>();
   private globalWatcherDebounce?: NodeJS.Timeout;
   /** Cache: taskfile path → set of task names that reference {{.CLI_ARGS}} */
   private cliArgsTaskCache = new Map<string, Set<string>>();
+  /** Cache: taskfile path → required vars and predefined var defaults metadata */
+  private requiredVarsCache = new Map<string, RequiredVarsInfo>();
 
   private readonly cliArgsTaskPattern = /\{\{\.CLI_ARGS\}\}/;
 
@@ -55,6 +64,41 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     if (this.globalWatcherDebounce) {
       clearTimeout(this.globalWatcherDebounce);
       this.globalWatcherDebounce = undefined;
+    }
+  }
+
+  private disposeWorkspaceTaskfileWatchers(): void {
+    for (const watcher of this.workspaceTaskfileWatchers.values()) {
+      watcher.dispose();
+    }
+    this.workspaceTaskfileWatchers.clear();
+  }
+
+  private reconcileWorkspaceTaskfileWatchers(taskfilePaths: string[]): void {
+    const target = new Set(taskfilePaths);
+
+    for (const [watchedPath, watcher] of this.workspaceTaskfileWatchers.entries()) {
+      if (!target.has(watchedPath)) {
+        watcher.dispose();
+        this.workspaceTaskfileWatchers.delete(watchedPath);
+      }
+    }
+
+    for (const filePath of target) {
+      if (this.workspaceTaskfileWatchers.has(filePath)) {
+        continue;
+      }
+
+      const pattern = new vscode.RelativePattern(path.dirname(filePath), path.basename(filePath));
+      const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+      const onEvent = () => {
+        this.invalidateTaskfileCache(filePath);
+        this.scheduleGlobalRefresh();
+      };
+      watcher.onDidCreate(onEvent);
+      watcher.onDidChange(onEvent);
+      watcher.onDidDelete(onEvent);
+      this.workspaceTaskfileWatchers.set(filePath, watcher);
     }
   }
 
@@ -80,7 +124,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       const pattern = new vscode.RelativePattern(path.dirname(filePath), path.basename(filePath));
       const watcher = vscode.workspace.createFileSystemWatcher(pattern);
       const onEvent = () => {
-        this.invalidateCLIArgsCache(filePath);
+        this.invalidateTaskfileCache(filePath);
         this.scheduleGlobalRefresh();
       };
       watcher.onDidCreate(onEvent);
@@ -107,6 +151,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
   public async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
+      this.disposeWorkspaceTaskfileWatchers();
       return [];
     }
 
@@ -131,6 +176,8 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       }
     }
 
+    this.reconcileWorkspaceTaskfileWatchers(Array.from(taskfileMap.keys()));
+
     const results = await Promise.all(
       Array.from(taskfileMap.values()).map((uri) =>
         this._loadTasksFromDirectory(path.dirname(uri.fsPath), uri, iconService),
@@ -144,8 +191,16 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
    * Invalidates the CLI_ARGS cache entry for a given taskfile path.
    * Called from file-watcher events so the next parse picks up any changes.
    */
-  public invalidateCLIArgsCache(filePath: string): void {
+  public invalidateTaskfileCache(filePath: string): void {
     this.cliArgsTaskCache.delete(filePath);
+    this.requiredVarsCache.delete(filePath);
+  }
+
+  /**
+   * Backward-compatible wrapper for tests and older callers.
+   */
+  public invalidateCLIArgsCache(filePath: string): void {
+    this.invalidateTaskfileCache(filePath);
   }
 
   /**
@@ -221,6 +276,149 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
     this.cliArgsTaskCache.set(filePath, result);
     return result;
+  }
+
+  private toScalarString(value: unknown): string | undefined {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+    return undefined;
+  }
+
+  private extractVarDefaults(varsNode: unknown): Record<string, string> {
+    if (!varsNode || typeof varsNode !== 'object' || Array.isArray(varsNode)) {
+      return {};
+    }
+
+    const defaults: Record<string, string> = {};
+    for (const [key, rawValue] of Object.entries(varsNode as Record<string, unknown>)) {
+      const scalar = this.toScalarString(rawValue);
+      if (scalar !== undefined) {
+        defaults[key] = scalar;
+        continue;
+      }
+
+      if (!rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) {
+        continue;
+      }
+
+      const objectDefault = this.toScalarString((rawValue as Record<string, unknown>)['default']);
+      if (objectDefault !== undefined) {
+        defaults[key] = objectDefault;
+      }
+    }
+
+    return defaults;
+  }
+
+  /**
+   * Detects Taskfile required variables per task (`requires.vars`) and predefined
+   * variable values from file-level `vars` + task-level `vars`.
+   */
+  public detectRequiredVars(filePath: string, content: string): RequiredVarsInfo {
+    const cached = this.requiredVarsCache.get(filePath);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const info: RequiredVarsInfo = {
+      tasks: new Map<string, TaskfileRequiredVar[]>(),
+      taskVarDefaults: new Map<string, Record<string, string>>(),
+    };
+
+    const TEMPLATE_PLACEHOLDER = '__WORKSPACE_TASKS_TPL__';
+    const sanitized = content
+      .replace(/\{\{\.CLI_ARGS\}\}/g, '__WORKSPACE_TASKS_CLI_ARGS__')
+      .replace(/\{\{[^}]*\}\}/g, TEMPLATE_PLACEHOLDER);
+
+    try {
+      const parsed = yaml.parse(sanitized) as Record<string, unknown> | null;
+      if (!parsed || typeof parsed !== 'object') {
+        this.requiredVarsCache.set(filePath, info);
+        return info;
+      }
+
+      const fileLevelVarDefaults = this.extractVarDefaults(parsed['vars']);
+
+      const tasks = parsed['tasks'] as Record<string, unknown> | undefined;
+      if (tasks && typeof tasks === 'object') {
+        for (const [taskName, taskDef] of Object.entries(tasks)) {
+          if (!taskDef || typeof taskDef !== 'object') {
+            continue;
+          }
+          const taskVarDefaults = {
+            ...fileLevelVarDefaults,
+            ...this.extractVarDefaults((taskDef as Record<string, unknown>)['vars']),
+          };
+          if (Object.keys(taskVarDefaults).length > 0) {
+            info.taskVarDefaults.set(taskName, taskVarDefaults);
+          }
+
+          const requires = (taskDef as Record<string, unknown>)['requires'];
+          if (!requires || typeof requires !== 'object') {
+            continue;
+          }
+          const vars = (requires as Record<string, unknown>)['vars'];
+          if (!Array.isArray(vars)) {
+            continue;
+          }
+
+          const requiredVars: TaskfileRequiredVar[] = [];
+          for (const varEntry of vars) {
+            if (typeof varEntry === 'string') {
+              const name = varEntry.trim();
+              if (!name || name === TEMPLATE_PLACEHOLDER) {
+                continue;
+              }
+              requiredVars.push({ name });
+              continue;
+            }
+
+            if (!varEntry || typeof varEntry !== 'object' || Array.isArray(varEntry)) {
+              continue;
+            }
+
+            const obj = varEntry as Record<string, unknown>;
+            const rawName = obj['name'];
+            if (typeof rawName !== 'string' || rawName.trim().length === 0) {
+              continue;
+            }
+            const name = rawName.trim();
+            if (name === TEMPLATE_PLACEHOLDER) {
+              continue;
+            }
+
+            const rawEnum = obj['enum'];
+            const enumValues = Array.isArray(rawEnum)
+              ? rawEnum
+                .filter((v): v is string => typeof v === 'string')
+                .map((v) => v.trim())
+                .filter((v) => v.length > 0 && v !== TEMPLATE_PLACEHOLDER)
+              : undefined;
+
+            requiredVars.push({
+              name,
+              ...(enumValues && enumValues.length > 0 ? { enum: enumValues } : {}),
+            });
+          }
+
+          if (requiredVars.length > 0) {
+            info.tasks.set(taskName, requiredVars);
+          }
+        }
+      }
+    } catch (err: unknown) {
+      LoggerService.getInstance().debug(
+        `[taskfile] Failed to parse YAML for required vars detection in '${filePath}': ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+
+    this.requiredVarsCache.set(filePath, info);
+    return info;
   }
 
   private detectCLIArgsTasksFromRawYaml(content: string, result: Set<string>): void {
@@ -355,6 +553,9 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     const cliArgsSet: Set<string> = taskfilePath && yamlContent
       ? this.detectCLIArgsTasks(taskfilePath, yamlContent)
       : new Set<string>();
+    const requiredVarsInfo: RequiredVarsInfo = taskfilePath && yamlContent
+      ? this.detectRequiredVars(taskfilePath, yamlContent)
+      : { tasks: new Map<string, TaskfileRequiredVar[]>(), taskVarDefaults: new Map<string, Record<string, string>>() };
 
     for (const entry of output.tasks ?? []) {
       const taskFileUri = entry.location?.taskfile
@@ -382,6 +583,8 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
       // CLI_ARGS detection
       const hasCLIArgs = cliArgsSet.has(entry.name);
+      const requiredVars = requiredVarsInfo.tasks.get(entry.name) ?? [];
+      const predefinedVarValues = requiredVarsInfo.taskVarDefaults.get(entry.name);
 
       // tooltip: the human-readable task description from the Taskfile
       if (isWildcardTask) {
@@ -389,12 +592,18 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       } else {
         item.tooltip = entry.desc || entry.name;
       }
+      if (requiredVars.length > 0 && typeof item.tooltip === 'string') {
+        const varNames = requiredVars.map((v) => v.name).join(', ');
+        item.tooltip += `\n\nRequires variables: ${varNames}`;
+      }
 
       item.metadata = {
         aliases,
         summary: entry.summary ?? '',
         ...(isWildcardTask ? { isWildcardTask: true, wildcardCount } : {}),
         ...(hasCLIArgs ? { hasCLIArgs: true } : {}),
+        ...(requiredVars.length > 0 ? { requiredVars } : {}),
+        ...(predefinedVarValues ? { predefinedVarValues } : {}),
       };
       item.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
@@ -424,6 +633,8 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
             primaryTask: entry.name,
             ...(isAliasWildcardTask ? { isWildcardTask: true, wildcardCount: aliasWildcardCount } : {}),
             ...(hasCLIArgs ? { hasCLIArgs: true } : {}),
+            ...(requiredVars.length > 0 ? { requiredVars } : {}),
+            ...(predefinedVarValues ? { predefinedVarValues } : {}),
           };
           aliasItem.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
@@ -500,7 +711,12 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     }
   }
 
-  async createTask(item: TaskItem, args?: string, resolvedLabel?: string): Promise<CreatedTask | undefined> {
+  async createTask(
+    item: TaskItem,
+    args?: string,
+    resolvedLabel?: string,
+    varAssignments?: string[],
+  ): Promise<CreatedTask | undefined> {
     const { resourceUri, workspaceFolder } = resolveTaskContext(item);
     const taskLabel = resolvedLabel ?? (item.originalLabel || item.label as string);
     const { command: taskCmd, args: taskInitialArgs, cwd: taskCwd } = this.getCommand(workspaceFolder?.uri);
@@ -516,11 +732,17 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       taskArgs.push('--taskfile', item.taskFileUri.fsPath);
     }
 
+    taskArgs.push(taskLabel);
+
+    if (Array.isArray(varAssignments) && varAssignments.length > 0) {
+      taskArgs.push(...varAssignments);
+    }
+
     const hasArgs = args !== undefined && args.trim().length > 0;
     if (hasArgs && item.metadata?.hasCLIArgs === true) {
-      taskArgs.push(taskLabel, '--', ...splitArgs(args!));
+      taskArgs.push('--', ...splitArgs(args!));
     } else {
-      taskArgs.push(taskLabel, ...splitArgs(args));
+      taskArgs.push(...splitArgs(args));
     }
 
     const full = `${taskCmd} ${taskArgs.join(' ')}`;
