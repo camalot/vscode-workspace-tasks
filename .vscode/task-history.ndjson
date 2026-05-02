@@ -152,3 +152,4 @@
 {"id":"1777731498588946","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1777731498588,"status":"Success","endTime":1777731592611,"exitCode":0,"duration":94023}
 {"id":"1777738023112213","taskName":"changelog:build","taskSource":"npm","scope":"workspace","definitionType":"npm","startTime":1777738023112,"status":"Success","endTime":1777738043877,"exitCode":0,"duration":20765}
 {"id":"1777738140635137","taskName":"test:coverage","taskSource":"npm","scope":"workspace","definitionType":"npm","startTime":1777738140635,"status":"Success","endTime":1777738599455,"exitCode":0,"duration":458820}
+{"id":"1777749886122662","taskName":"compile:tests","taskSource":"npm","scope":"workspace","definitionType":"npm","startTime":1777749886122,"status":"Success","endTime":1777749916282,"exitCode":0,"duration":30160}
