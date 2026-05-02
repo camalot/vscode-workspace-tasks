@@ -168,8 +168,8 @@ export class PwshGetHelpResolver implements ScriptArgumentResolver {
     syntaxLine = syntaxLine.replace(/^\S+\s*/, '');
 
     const parameters: ScriptParameter[] = [];
-    // Tokenise the syntax line character by character to handle nested brackets.
-    const tokens = this.tokeniseSyntaxLine(syntaxLine);
+    // Tokenize the syntax line character by character to handle nested brackets.
+    const tokens = this.tokenizeSyntaxLine(syntaxLine);
 
     for (const token of tokens) {
       const param = this.parseSyntaxToken(token);
@@ -186,33 +186,64 @@ export class PwshGetHelpResolver implements ScriptArgumentResolver {
    * E.g. `[-Env] <string> [[-Cfg] <string>] [-DryRun] [<CommonParameters>]`
    * → [`[-Env] <string>`, `[[-Cfg] <string>]`, `[-DryRun]`, `[<CommonParameters>]`]
    */
-  private tokeniseSyntaxLine(line: string): string[] {
+  private tokenizeSyntaxLine(line: string): string[] {
     const tokens: string[] = [];
-    let depth = 0;
-    let current = '';
+    let pos = 0;
 
-    for (const ch of line) {
-      if (ch === '[') {
-        if (depth === 0 && current.trim()) {
-          tokens.push(current.trim());
-          current = '';
+    const consumeWhitespace = () => {
+      while (pos < line.length && /\s/.test(line[pos])) {
+        pos++;
+      }
+    };
+
+    while (pos < line.length) {
+      consumeWhitespace();
+      if (pos >= line.length) {
+        break;
+      }
+
+      if (line[pos] === '[') {
+        const start = pos;
+        let depth = 0;
+        while (pos < line.length) {
+          if (line[pos] === '[') {
+            depth++;
+          } else if (line[pos] === ']') {
+            depth--;
+            if (depth === 0) {
+              pos++;
+              break;
+            }
+          }
+          pos++;
         }
-        depth++;
-        current += ch;
-      } else if (ch === ']') {
-        depth--;
-        current += ch;
-        if (depth === 0) {
-          tokens.push(current.trim());
-          current = '';
+
+        consumeWhitespace();
+        if (line[pos] === '<') {
+          while (pos < line.length && line[pos] !== '>') {
+            pos++;
+          }
+          if (pos < line.length && line[pos] === '>') {
+            pos++;
+          }
+        }
+
+        const token = line.slice(start, pos).trim();
+        if (token) {
+          tokens.push(token);
         }
       } else {
-        current += ch;
+        const start = pos;
+        while (pos < line.length && !/\s/.test(line[pos]) && line[pos] !== '[') {
+          pos++;
+        }
+        const token = line.slice(start, pos).trim();
+        if (token) {
+          tokens.push(token);
+        }
       }
     }
-    if (current.trim()) {
-      tokens.push(current.trim());
-    }
+
     return tokens;
   }
 
@@ -227,8 +258,18 @@ export class PwshGetHelpResolver implements ScriptArgumentResolver {
     }
 
     // Optional outer brackets: `[...]` means the whole parameter group is optional.
-    const outerOptional = token.startsWith('[') && token.endsWith(']');
-    const inner = outerOptional ? token.slice(1, -1) : token;
+    // Some syntax lines report the type outside the optional wrapper, e.g.
+    // `[-Name] <string>`.
+    const outerOptional = token.startsWith('[') && (token.endsWith(']') || /\]\s*<\w+>$/.test(token));
+    let inner = token;
+    if (outerOptional) {
+      if (token.endsWith(']')) {
+        inner = token.slice(1, -1);
+      } else {
+        const closingIndex = token.lastIndexOf(']');
+        inner = token.slice(1, closingIndex) + token.slice(closingIndex + 1);
+      }
+    }
 
     // Check for an inner -Name flag component.
     // Patterns inside the (possibly unwrapped) token:

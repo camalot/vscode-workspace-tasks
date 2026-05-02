@@ -10,6 +10,7 @@ import { RecentTasksService } from './services/recentTasksService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { TaskRunGuardService } from './services/taskRunGuardService';
 import { getCircleCiWorkflowRunId } from './libs/circleCiWorkflowRunId';
+import { promptAndResolveRequiredVars, TaskfileRequiredVar } from './libs/taskfileVarPromptUtils';
 
 export class TaskRunner {
   private static instance: TaskRunner;
@@ -31,7 +32,13 @@ export class TaskRunner {
     return TaskRunner.instance;
   }
 
-  public async runTask(item: TaskItem, args?: string, skipGuard = false): Promise<boolean> {
+  public async runTask(
+    item: TaskItem,
+    args?: string,
+    skipGuard = false,
+    resolvedLabel?: string,
+    varAssignments?: string[],
+  ): Promise<boolean> {
     // Guard check (must be before any state mutations)
     if (!skipGuard) {
       const confirmed = await TaskRunGuardService.getInstance().confirmIfNeeded(item);
@@ -60,8 +67,27 @@ export class TaskRunner {
     // Use originalLabel if available (for grouped tasks), otherwise label
     const taskLabel = item.originalLabel || item.label;
 
+    let effectiveVarAssignments = varAssignments;
+    // Required-vars prompting is only for direct runs, not queued compound items.
+    if (!effectiveVarAssignments && item.contextValue !== 'queuedTask') {
+      const requiredVars = item.metadata?.requiredVars as TaskfileRequiredVar[] | undefined;
+      if (Array.isArray(requiredVars) && requiredVars.length > 0 && configuration.get<boolean>('task.guidedArgInput', true)) {
+        effectiveVarAssignments = await promptAndResolveRequiredVars(
+          requiredVars,
+          resolvedLabel ?? taskLabel as string,
+          {
+            mode: 'runTask',
+            defaultsByName: item.metadata?.predefinedVarValues as Record<string, string | undefined> | undefined,
+          },
+        );
+        if (effectiveVarAssignments === undefined) {
+          return false;
+        }
+      }
+    }
+
     // Delegate task creation to the Task Factory to centralize logic and make it testable
-    const created = await createTaskForItem(item, args);
+    const created = await createTaskForItem(item, args, resolvedLabel, effectiveVarAssignments);
     if (!created || !created.task) {
       const itemUri = (item.taskFileUri || item.resourceUri)?.toString() ?? '(none)';
       this.logger.debug(`[TaskRunner] Could not create runnable task for '${taskLabel}': taskType='${item.taskType}', id='${item.id ?? '(none)'}', uri='${itemUri}', contextValue='${item.contextValue ?? '(none)'}'`);
@@ -135,6 +161,10 @@ export class TaskRunner {
       TaskDurationEstimateService.getInstance().startTracking(item, task);
       const execution = await vscode.tasks.executeTask(task);
       TaskStateManager.getInstance().setExecution(id, execution);
+      // Persist the resolved wildcard label so restart can reuse it
+      if (resolvedLabel && item.metadata?.isWildcardTask) {
+        item.metadata = { ...item.metadata, lastResolvedLabel: resolvedLabel };
+      }
     } catch (e) {
       this.logger.error('[TaskRunner] executeTask failed:', e);
       TaskStateManager.getInstance().setStatus(id, 'failure');

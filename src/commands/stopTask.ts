@@ -34,11 +34,11 @@ export function findTerminalForTask(
   const name = task.name;
   const source = task.source;
 
-  return terminals.find((t) =>
-    t.name === name ||
-    t.name === `${source}: ${name}` ||
-    t.name === `Task - ${name}`,
-  );
+  return terminals.find((t) => {
+    if (t.name === name) { return true; }
+    if (t.name === `${source}: ${name}`) { return true; }
+    return t.name === `Task - ${name}`;
+  });
 }
 
 export function getCompoundDependencyLabels(tasksJsonText: string, taskLabel: string): string[] {
@@ -89,7 +89,7 @@ export function getCompoundDependencyLabels(tasksJsonText: string, taskLabel: st
   const visited = new Set<string>();
   const result = new Set<string>();
 
-  const visit = (label: string) => {
+  function visit(label: string): void {
     if (visited.has(label)) {
       return;
     }
@@ -103,7 +103,7 @@ export function getCompoundDependencyLabels(tasksJsonText: string, taskLabel: st
       result.add(dependency);
       visit(dependency);
     }
-  };
+  }
 
   visit(taskLabel);
   return Array.from(result);

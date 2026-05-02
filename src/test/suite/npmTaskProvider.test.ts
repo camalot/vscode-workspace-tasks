@@ -154,6 +154,67 @@ suite('NpmTaskProvider Test Suite', () => {
       const expectedPath = vscode.Uri.joinPath(workspaceFolder.uri, 'apps/frontend', 'package.json').fsPath;
       assert.strictEqual(task!.taskFileUri?.fsPath, expectedPath, 'taskFileUri should point to the correct package.json');
     });
+
+    // ──────────────────────────────────────────────────────────────
+    // N01-N03: startLine sentinel fix — await parseContent so that
+    // json is the actual parsed object, not a Promise, enabling
+    // correct line-number detection for CodeLens.
+    // ──────────────────────────────────────────────────────────────
+
+    test('N01 - Npm task has startLine set when script is found in package.json', async () => {
+      const mockTask = {
+        name: 'build',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'npm' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockTask];
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => JSON.stringify({ scripts: { build: 'tsc' } }),
+      });
+
+      const tasks = await provider.getSystemTasks();
+      const task = tasks.find(t => t.label === 'build');
+      assert.ok(task, 'Should find task');
+      assert.notStrictEqual(task!.startLine, undefined, 'startLine should be set when script found in package.json');
+    });
+
+    test('N02 - Npm task has undefined startLine when package.json content cannot be fetched', async () => {
+      const mockTask = {
+        name: 'build',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'npm' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockTask];
+      (vscode.workspace as any).openTextDocument = async () => { throw new Error('no file'); };
+
+      const tasks = await provider.getSystemTasks();
+      const task = tasks.find(t => t.label === 'build');
+      assert.ok(task, 'Should still create a task item even if file read fails');
+      assert.strictEqual(task!.startLine, undefined, 'startLine should be undefined when file cannot be read');
+    });
+
+    test('N03 - Npm task has undefined startLine when script not in package.json scripts block', async () => {
+      const mockTask = {
+        name: 'lint',
+        source: 'Workspace',
+        scope: workspaceFolder,
+        definition: { type: 'npm' },
+      } as unknown as vscode.Task;
+
+      (vscode.tasks as any).fetchTasks = async () => [mockTask];
+      (vscode.workspace as any).openTextDocument = async () => ({
+        getText: () => JSON.stringify({ scripts: { build: 'tsc' } }),
+      });
+
+      const tasks = await provider.getSystemTasks();
+      const task = tasks.find(t => t.label === 'lint');
+      assert.ok(task, 'Should create task item even when script is not in JSON scripts');
+      assert.strictEqual(task!.startLine, undefined, 'startLine should be undefined when script not found in scripts block');
+    });
   });
 });
 

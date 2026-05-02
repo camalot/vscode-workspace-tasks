@@ -70,7 +70,12 @@ export function isMatchingVscodeTask(
 /**
  * Builds the raw task without env injection. Used internally by `createTaskForItem`.
  */
-async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
+async function _buildTask(
+  item: TaskItem,
+  args?: string,
+  resolvedLabel?: string,
+  varAssignments?: string[],
+): Promise<CreatedTask | undefined> {
   if (!item) {
     return undefined;
   }
@@ -118,7 +123,7 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
   const registryProvider = registry.get(item.taskType);
   if (registryProvider) {
     try {
-      const registryResult = await registryProvider.createTask(item, args);
+      const registryResult = await registryProvider.createTask(item, args, resolvedLabel, varAssignments);
       if (registryResult !== undefined) {
         return registryResult;
       }
@@ -247,11 +252,17 @@ async function _buildTask(item: TaskItem, args?: string): Promise<CreatedTask | 
  * Creates a `vscode.Task` for the given `TaskItem`, injecting resolved environment
  * variables (from `TaskEnvService`) into the task's `ShellExecution` options.
  *
- * @param item  The task item to build a task for.
- * @param args  Optional extra CLI arguments to append to the command.
+ * @param item           The task item to build a task for.
+ * @param args           Optional extra CLI arguments to append to the command.
+ * @param resolvedLabel  Optional resolved task name (used for wildcard tasks).
  */
-export async function createTaskForItem(item: TaskItem, args?: string): Promise<CreatedTask | undefined> {
-  const result = await _buildTask(item, args);
+export async function createTaskForItem(
+  item: TaskItem,
+  args?: string,
+  resolvedLabel?: string,
+  varAssignments?: string[],
+): Promise<CreatedTask | undefined> {
+  const result = await _buildTask(item, args, resolvedLabel, varAssignments);
 
   if (result && !result.native && result.task.execution instanceof vscode.ShellExecution) {
     const envService = TaskEnvService.getInstance();

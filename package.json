@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "engines": {
     "vscode": "^1.105.1"
   },
@@ -102,8 +102,8 @@
     "vscode:prepublish": "npm run compile:prod && npm run package:webpack",
     "vscode:headless:test": "xvfb-run -a vscode-test",
     "vscode:headless:test:coverage": "xvfb-run -a vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
-    "vscode:test": "vscode-test",
-    "vscode:test:coverage": "vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
+    "vscode:test": "npm run pretest && vscode-test",
+    "vscode:test:coverage": "npm run pretest &&vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
     "package": "npm run package:vsix",
     "package:prerelease": "npm run package:webpack && npm run package:vsix:prerelease",
     "package:webpack": "webpack --mode production --devtool hidden-source-map",
@@ -145,7 +145,7 @@
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "fast-xml-parser": "^5.6.0",
+    "fast-xml-parser": "^5.7.2",
     "ignore": "^7.0.5",
     "micromatch": "^4.0.8",
     "smol-toml": "^1.6.1",
@@ -1092,6 +1092,13 @@
             "default": "",
             "description": "%config.workspaceTasks.groups.taskSeparator.description%",
             "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%"
+          },
+          "workspaceTasks.groups.taskSeparatorIsRegex": {
+            "title": "%config.workspaceTasks.groups.taskSeparatorIsRegex%",
+            "type": "boolean",
+            "default": false,
+            "description": "%config.workspaceTasks.groups.taskSeparatorIsRegex.description%",
+            "markdownDescription": "%config.workspaceTasks.groups.taskSeparatorIsRegex.markdown%"
           },
           "workspaceTasks.task.actionBar": {
             "type": "object",

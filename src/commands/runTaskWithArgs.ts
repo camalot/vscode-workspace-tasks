@@ -6,6 +6,8 @@ import { TaskRunGuardService } from '../services/taskRunGuardService';
 import { TaskCacheService } from '../services/taskCacheService';
 import { configuration } from '../libs/configuration';
 import { collectAdditionalArgs, tryGuidedInputWithStatus } from '../libs/guidedArgInput';
+import { promptAndResolveWildcards } from '../libs/taskfileWildcardUtils';
+import { promptAndResolveRequiredVars, TaskfileRequiredVar } from '../libs/taskfileVarPromptUtils';
 
 export class RunTaskWithArgsCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -29,6 +31,30 @@ export class RunTaskWithArgsCommand extends BaseCommand {
     const confirmed = await TaskRunGuardService.getInstance().confirmIfNeeded(item);
     if (!confirmed) { return; }
 
+    // Resolve wildcards BEFORE prompting for additional args
+    let resolvedLabel: string | undefined;
+    if (item.metadata?.isWildcardTask === true) {
+      resolvedLabel = await promptAndResolveWildcards(
+        item.label as string,
+        item.metadata.wildcardCount as number,
+      );
+      if (resolvedLabel === undefined) {
+        return; // user cancelled
+      }
+    }
+
+    let varAssignments: string[] | undefined;
+    const requiredVars = item.metadata?.requiredVars as TaskfileRequiredVar[] | undefined;
+    if (Array.isArray(requiredVars) && requiredVars.length > 0 && configuration.get<boolean>('task.guidedArgInput', true)) {
+      varAssignments = await promptAndResolveRequiredVars(requiredVars, item.label as string, {
+        mode: 'runWithArgs',
+        defaultsByName: item.metadata?.predefinedVarValues as Record<string, string | undefined> | undefined,
+      });
+      if (varAssignments === undefined) {
+        return;
+      }
+    }
+
     if (configuration.get<boolean>('task.guidedArgInput', true)) {
       const guidedResult = await tryGuidedInputWithStatus(item);
       if (guidedResult.status === 'cancelled') {
@@ -42,7 +68,7 @@ export class RunTaskWithArgsCommand extends BaseCommand {
         }
 
         const mergedArgs = [...guidedResult.args, ...extraArgs];
-        await TaskRunner.getInstance().runTask(item, mergedArgs.join(' '), true);
+        await TaskRunner.getInstance().runTask(item, mergedArgs.join(' '), true, resolvedLabel, varAssignments);
         return;
       }
       // Fall through to free-form if guided input was unavailable.
@@ -50,7 +76,7 @@ export class RunTaskWithArgsCommand extends BaseCommand {
 
     const extraArgs = await collectAdditionalArgs(item.label as string);
     if (extraArgs !== undefined) {
-      await TaskRunner.getInstance().runTask(item, extraArgs.join(' '), true);
+      await TaskRunner.getInstance().runTask(item, extraArgs.join(' '), true, resolvedLabel, varAssignments);
     }
   }
 }

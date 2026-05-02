@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { TaskItem } from '../taskItem';
 import { TaskRunner } from '../taskRunner';
 import { TaskCacheService } from '../services/taskCacheService';
+import { promptAndResolveWildcards } from '../libs/taskfileWildcardUtils';
 
 export class RunTaskCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -32,7 +33,17 @@ export class RunTaskCommand extends BaseCommand {
       const compoundTaskName = item.parent?.label as string;
       await TaskRunner.getInstance().runCompoundTask(compoundTaskName, item);
     } else {
-      await TaskRunner.getInstance().runTask(item);
+      let resolvedLabel: string | undefined;
+      if (item.metadata?.isWildcardTask === true) {
+        resolvedLabel = await promptAndResolveWildcards(
+          item.label as string,
+          item.metadata.wildcardCount as number,
+        );
+        if (resolvedLabel === undefined) {
+          return; // user cancelled
+        }
+      }
+      await TaskRunner.getInstance().runTask(item, undefined, false, resolvedLabel);
     }
   }
 }

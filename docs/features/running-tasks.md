@@ -180,6 +180,51 @@ You can also send `Ctrl+C` directly in the integrated terminal to interrupt the 
 
 ---
 
+## Taskfile-Specific Features
+
+### Wildcard Tasks
+
+Taskfile supports task names containing `*` wildcards (e.g. `build:*`). When you
+run a wildcard task the extension prompts you to fill in each wildcard segment
+before execution — no manual editing required.
+
+See [Wildcard Tasks](../task-types/task-runners/task#wildcard-tasks) for full details.
+
+### CLI_ARGS Forwarding
+
+When a Taskfile task uses the `{{.CLI_ARGS}}` template variable, the extension
+automatically inserts `--` before any extra arguments you supply via **Run with
+Args**. This ensures the arguments reach the task correctly.
+
+See [CLI_ARGS Forwarding](../task-types/task-runners/task#cli_args-forwarding) for full details.
+
+### Required Variables Guided Arguments
+
+When a Taskfile task declares `requires.vars`, Workspace Tasks provides a
+Taskfile-specific guided argument flow that collects those values before
+execution.
+
+- **Run Task** prompts only for required variables that do not already have a
+  predefined value in task-level or file-level `vars`.
+- **Run with Args** always prompts for all required variables. If a variable is
+  already predefined in `vars`, that value is used as the default in the prompt.
+
+Prompt behavior by variable type:
+
+- Variables with `enum` use a pick list.
+- Variables without `enum` use an input box.
+
+Collected values are passed to `task` as `VAR='value'` assignments before any
+`--` separator used for `{{.CLI_ARGS}}` forwarding.
+
+{: .note }
+>This Taskfile guided argument flow is controlled by the `workspaceTasks.task.guidedArgInput`
+>setting (default: `true`). If the setting is `false`, the required-variables prompt is skipped
+>and the task runs without collecting variable values. The same setting also controls guided
+>parameter input for Python and PowerShell script tasks.
+
+---
+
 ## Opening the Source File
 
 Every task has an associated source file (e.g., `package.json`, `Makefile`, `Taskfile.yml`). You can navigate directly to where the task is defined:

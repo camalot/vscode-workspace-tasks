@@ -15,6 +15,8 @@ import { TaskRunGuardService } from '../../services/taskRunGuardService';
 const taskFactoryModule = require('../../taskFactory');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const configModule = require('../../libs/configuration');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const taskfileVarPromptModule = require('../../libs/taskfileVarPromptUtils');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -53,6 +55,7 @@ suite('TaskRunner Test Suite', () => {
   let originalShowError: typeof vscode.window.showErrorMessage;
   let originalShowInfo: typeof vscode.window.showInformationMessage;
   let originalConfigGet: (...args: any[]) => any;
+  let originalPromptAndResolveRequiredVars: typeof taskfileVarPromptModule.promptAndResolveRequiredVars;
 
   let stateMap: Map<string, TaskStatus>;
   let executionMap: Map<string, vscode.TaskExecution>;
@@ -122,6 +125,8 @@ suite('TaskRunner Test Suite', () => {
     // Stub configuration.get
     originalConfigGet = configModule.configuration.get.bind(configModule.configuration);
     configModule.configuration.get = (_key: string, defaultValue: any) => defaultValue ?? {};
+    originalPromptAndResolveRequiredVars = taskfileVarPromptModule.promptAndResolveRequiredVars;
+    taskfileVarPromptModule.promptAndResolveRequiredVars = async () => undefined;
 
     // Stub dependent services
     (TaskStateManager as any).instance = buildFakeStateManager();
@@ -148,6 +153,7 @@ suite('TaskRunner Test Suite', () => {
     (vscode.window as any).showInformationMessage = originalShowInfo;
     (vscode.tasks as any).executeTask = originalExecuteTask;
     configModule.configuration.get = originalConfigGet;
+    taskfileVarPromptModule.promptAndResolveRequiredVars = originalPromptAndResolveRequiredVars;
 
     stateChangeEmitter.dispose();
 
@@ -211,6 +217,112 @@ suite('TaskRunner Test Suite', () => {
     (item as any).originalLabel = ''; // Force falsy to exercise || branch
     await runner.runTask(item);
     assert.ok(warnings[0].includes('fallback-label'));
+  });
+
+  test('runTask prompts required vars and forwards varAssignments', async () => {
+    const captured: { varAssignments?: string[] } = {};
+    taskFactoryModule.createTaskForItem = async (
+      _item: TaskItem,
+      _args?: string,
+      _resolvedLabel?: string,
+      varAssignments?: string[],
+    ) => {
+      captured.varAssignments = varAssignments;
+      return makeCreatedTask(true);
+    };
+
+    taskfileVarPromptModule.promptAndResolveRequiredVars = async () => ["ENV='prod'"];
+
+    const item = makeTaskItem('deploy', 'taskfile');
+    item.metadata = {
+      requiredVars: [{ name: 'ENV' }],
+    };
+
+    const started = await runner.runTask(item);
+    assert.strictEqual(started, true);
+    assert.deepStrictEqual(captured.varAssignments, ["ENV='prod'"]);
+  });
+
+  test('runTask aborts when required-var prompt is cancelled', async () => {
+    let createCalled = false;
+    taskFactoryModule.createTaskForItem = async () => {
+      createCalled = true;
+      return makeCreatedTask(true);
+    };
+
+    taskfileVarPromptModule.promptAndResolveRequiredVars = async () => undefined;
+
+    const item = makeTaskItem('deploy', 'taskfile');
+    item.metadata = {
+      requiredVars: [{ name: 'ENV' }],
+    };
+
+    const started = await runner.runTask(item);
+    assert.strictEqual(started, false);
+    assert.strictEqual(createCalled, false);
+    assert.strictEqual(executedTasks.length, 0);
+  });
+
+  test('runTask passes runTask mode and predefined defaults to prompt helper', async () => {
+    let capturedOptions: { mode?: string; defaultsByName?: Record<string, string | undefined> } | undefined;
+    taskfileVarPromptModule.promptAndResolveRequiredVars = async (
+      _vars: unknown,
+      _taskName: string,
+      options?: { mode?: string; defaultsByName?: Record<string, string | undefined> },
+    ) => {
+      capturedOptions = options;
+      return [];
+    };
+
+    const item = makeTaskItem('deploy', 'taskfile');
+    item.metadata = {
+      requiredVars: [{ name: 'ENV' }],
+      predefinedVarValues: { ENV: 'prod' },
+    };
+
+    const started = await runner.runTask(item);
+    assert.strictEqual(started, true);
+    assert.strictEqual(capturedOptions?.mode, 'runTask');
+    assert.deepStrictEqual(capturedOptions?.defaultsByName, { ENV: 'prod' });
+    assert.strictEqual(executedTasks.length, 1);
+  });
+
+  test('runTask does not prompt required vars for queuedTask context', async () => {
+    taskfileVarPromptModule.promptAndResolveRequiredVars = async () => {
+      throw new Error('should not prompt queued tasks');
+    };
+
+    const item = makeTaskItem('deploy', 'taskfile');
+    item.contextValue = 'queuedTask';
+    item.metadata = {
+      requiredVars: [{ name: 'ENV' }],
+    };
+
+    const started = await runner.runTask(item);
+    assert.strictEqual(started, true);
+    assert.strictEqual(executedTasks.length, 1);
+  });
+
+  test('runTask skips required-var prompt when guidedArgInput is false', async () => {
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.guidedArgInput') {
+        return false;
+      }
+      return defaultValue;
+    };
+
+    taskfileVarPromptModule.promptAndResolveRequiredVars = async () => {
+      throw new Error('should not prompt when guidedArgInput is false');
+    };
+
+    const item = makeTaskItem('deploy', 'taskfile');
+    item.metadata = {
+      requiredVars: [{ name: 'ENV' }],
+    };
+
+    const started = await runner.runTask(item);
+    assert.strictEqual(started, true);
+    assert.strictEqual(executedTasks.length, 1);
   });
 
   // -------------------------------------------------------------------------

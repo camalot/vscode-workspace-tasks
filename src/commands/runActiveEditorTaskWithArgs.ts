@@ -7,6 +7,7 @@ import { TaskRunGuardService } from '../services/taskRunGuardService';
 import { getRunnableTasksForFile, pickTaskFromList } from '../libs/taskQuickPick';
 import { configuration } from '../libs/configuration';
 import { collectAdditionalArgs, tryGuidedInputWithStatus } from '../libs/guidedArgInput';
+import { promptAndResolveRequiredVars, TaskfileRequiredVar } from '../libs/taskfileVarPromptUtils';
 
 export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
   constructor(context: vscode.ExtensionContext) {
@@ -41,6 +42,18 @@ export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
       return;
     }
 
+    let varAssignments: string[] | undefined;
+    const requiredVars = item.metadata?.requiredVars as TaskfileRequiredVar[] | undefined;
+    if (Array.isArray(requiredVars) && requiredVars.length > 0 && configuration.get<boolean>('task.guidedArgInput', true)) {
+      varAssignments = await promptAndResolveRequiredVars(requiredVars, item.label as string, {
+        mode: 'runWithArgs',
+        defaultsByName: item.metadata?.predefinedVarValues as Record<string, string | undefined> | undefined,
+      });
+      if (varAssignments === undefined) {
+        return;
+      }
+    }
+
     if (configuration.get<boolean>('task.guidedArgInput', true)) {
       const guidedResult = await tryGuidedInputWithStatus(item);
       if (guidedResult.status === 'cancelled') {
@@ -54,7 +67,7 @@ export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
         }
 
         const mergedArgs = [...guidedResult.args, ...extraArgs];
-        await TaskRunner.getInstance().runTask(item, mergedArgs.join(' '), true);
+        await TaskRunner.getInstance().runTask(item, mergedArgs.join(' '), true, undefined, varAssignments);
         return;
       }
       // Fall through to free-form if guided input was unavailable.
@@ -62,7 +75,7 @@ export class RunActiveEditorTaskWithArgsCommand extends BaseCommand {
 
     const extraArgs = await collectAdditionalArgs(item.label as string);
     if (extraArgs !== undefined) {
-      await TaskRunner.getInstance().runTask(item, extraArgs.join(' '), true);
+      await TaskRunner.getInstance().runTask(item, extraArgs.join(' '), true, undefined, varAssignments);
     }
   }
 

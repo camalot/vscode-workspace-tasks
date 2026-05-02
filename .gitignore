@@ -23,6 +23,7 @@ docs/vendor/
 
 codecov
 codecov.*
+!codecov.yml
 super-linter-output/
 
 *.sln

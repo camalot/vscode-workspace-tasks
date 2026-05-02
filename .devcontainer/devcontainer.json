@@ -20,6 +20,7 @@
         "terminal.integrated.defaultProfile.linux": "zsh"
       },
       "extensions": [
+        "anthropic.claude-code",
         "shopify.ruby-lsp",
         "shopify.theme-check-vscode",
         "dbaeumer.vscode-eslint",
@@ -48,11 +49,12 @@
       ]
     }
   },
-  "postCreateCommand": "chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
+  "postCreateCommand": "[ -f .devcontainer/install-tools.sh ] && chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
   "remoteUser": "vscode",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
   "mounts": [
+    // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/_ssh,type=bind,consistency=cached",
     // if this doesn't exist locally, it creates it as a folder...
     // to combat this, a default is loaded into the container

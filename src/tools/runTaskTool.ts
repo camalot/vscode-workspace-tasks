@@ -104,6 +104,29 @@ export class RunTaskTool implements vscode.LanguageModelTool<IRunTaskParameters>
       const item = resolution.item;
       const itemLabel = typeof item.label === 'string' ? item.label : item.originalLabel ?? '';
 
+      // Wildcard tasks cannot be run in the non-interactive LM tool context.
+      if (item.metadata?.isWildcardTask === true) {
+        const result: RunTaskResult = {
+          started: false,
+          message: `This task requires wildcard values but none were provided. Please specify the wildcard values to run "${itemLabel}".`,
+          task: toSummary(item),
+        };
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(JSON.stringify(result))]);
+      }
+
+      if (Array.isArray(item.metadata?.requiredVars) && item.metadata.requiredVars.length > 0) {
+        const names = item.metadata.requiredVars
+          .map((v: { name?: string }) => v?.name)
+          .filter((v: string | undefined): v is string => typeof v === 'string' && v.trim().length > 0)
+          .join(', ');
+        const result: RunTaskResult = {
+          started: false,
+          message: `Task "${itemLabel}" requires variables${names ? `: ${names}` : ''}. Use the Run with Args command in VS Code to provide these values interactively.`,
+          task: toSummary(item),
+        };
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(JSON.stringify(result))]);
+      }
+
       // Determine whether to skip the guard modal.
       // If prepareInvocation resolved this exact task (IDs match), the confirmation
       // message already surfaced any guard warning → skip the guard.
@@ -178,7 +201,7 @@ export class RunTaskTool implements vscode.LanguageModelTool<IRunTaskParameters>
   private _resolveTaskWithError(
     input: IRunTaskParameters,
   ): { item: TaskItem } | { error: string; candidates?: TaskSummary[] } {
-    if (!input || (!input.id && !input.label)) {
+    if (!input) {
       return { error: 'No task specified. Provide either an \'id\' (from #wTasks) or a \'label\'.' };
     }
 

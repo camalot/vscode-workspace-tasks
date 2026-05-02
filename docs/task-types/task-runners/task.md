@@ -213,6 +213,114 @@ Disable alias child items in the tree with:
 
 ---
 
+## Wildcard Tasks
+
+Task supports task names that contain `*` as a wildcard — for example:
+
+```yaml
+tasks:
+  build:*:
+    desc: Build a component
+    cmds:
+      - echo "Building {{index .MATCH 0}}"
+```
+
+When you run a wildcard task from the tree view (or via a command), the extension
+detects the `*` in the task name and prompts you to supply a value for each
+wildcard segment before executing.
+
+For example, running `build:*` opens an input box:
+
+```
+Enter value for wildcard 1 of 1 in "build:*"
+```
+
+Type the value (e.g. `frontend`) and press **Enter**. The extension then runs:
+
+```shell
+task build:frontend
+```
+
+If the task name contains multiple wildcards (e.g. `deploy:*:*`), you are
+prompted once for each `*` in sequence. Pressing **Escape** at any prompt
+cancels the operation.
+
+{: .note }
+> Wildcard tasks are indicated in the tree view with a `[*]` suffix on their
+> tooltip to help you identify them at a glance.
+
+---
+
+## CLI_ARGS Forwarding
+
+Task's `{{.CLI_ARGS}}` template variable forwards any command-line arguments
+that follow `--` directly to the task. The extension detects this pattern at
+discovery time and automatically inserts `--` before any arguments you supply
+when running such a task with **Run with Args**.
+
+For example, given:
+
+```yaml
+tasks:
+  test:
+    desc: Run tests
+    cmds:
+      - go test ./... {{.CLI_ARGS}}
+```
+
+Running this task with args `-v -run TestFoo` produces:
+
+```shell
+task test -- -v -run TestFoo
+```
+
+Without `{{.CLI_ARGS}}`, arguments are appended directly (no `--` separator).
+
+---
+
+## Required Variables (`requires.vars`)
+
+Taskfile supports required variables via `requires.vars`.
+
+Workspace Tasks treats these as a Taskfile-specific guided argument flow:
+
+- **Run Task** prompts only for required variables that are not already
+  predefined in Taskfile `vars`.
+- **Run with Args** always prompts for all required variables, and uses
+  predefined values as defaults when available.
+
+For enum-based required variables, the extension shows a pick list. For plain
+variables, it shows an input box. Values are passed to `task` as
+`VAR='value'` assignments and are inserted before any `--` separator.
+
+Example:
+
+```yaml
+tasks:
+  prompt:
+    vars:
+      APP_NAME: my-app
+    requires:
+      vars:
+        - name: APP_NAME
+        - name: ENVIRONMENT
+          enum: [dev, staging, prod]
+```
+
+In this example:
+
+- **Run Task** prompts only for `ENVIRONMENT` (because `APP_NAME` is already
+  defined).
+- **Run with Args** prompts for both `APP_NAME` and `ENVIRONMENT`, with
+  `APP_NAME` pre-filled to `my-app`.
+
+{: .note }
+>This guided flow is controlled by the `workspaceTasks.task.guidedArgInput` setting (default: `true`).
+>If the setting is `false`, the required-variables prompt is skipped and the task runs without
+>collecting variable values.
+
+---
+
 ## Watch Mode
 
 Task supports a watch mode (`task --watch`) that re-runs a task whenever its source files change.

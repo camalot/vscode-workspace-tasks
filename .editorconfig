@@ -11,6 +11,10 @@ indent_size = 2
 [*.ps1]
 charset = unset
 
+[devcontainer{-lock,}.json]
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+
 [*.md]
 indent_size = unset
 

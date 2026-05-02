@@ -1,3 +1,8 @@
+
+interface TimeValueUnit {
+  value: number;
+  unit: 'd' | 'h' | 'm' | 's';
+}
 /**
  * Formats a millisecond duration into a human-readable short string.
  *
@@ -6,17 +11,33 @@
  * - ≥ 1 h    → "XhYm"
  */
 export function formatSeconds(ms: number): string {
-  if (ms < 60_000) {
-    return `${Math.round(ms / 1000)}s`;
+
+  const totalSeconds = Math.round(ms / 1000);
+  const isNegative = totalSeconds < 0;
+  const absSeconds = Math.abs(totalSeconds);
+  // get days, hours, minutes, seconds components
+  const days = Math.floor(absSeconds / 86_400);
+  const hours = Math.floor((absSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((absSeconds % 3_600) / 60);
+  const seconds = absSeconds % 60;
+  const timeResult = formatOutput(
+    { value: days, unit: 'd' },
+    { value: hours, unit: 'h' },
+    { value: minutes, unit: 'm' },
+    { value: seconds, unit: 's' }
+  ).trim();
+
+  // Handle the case where all components are zero
+  if (timeResult === '') {
+    return '0s';
   }
-  if (ms < 3_600_000) {
-    const totalSeconds = Math.round(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}m ${seconds}s`;
+
+  if (isNegative) {
+    return '-' + timeResult;
   }
-  const totalMinutes = Math.round(ms / 60_000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${hours}h${minutes}m`;
+  return timeResult;
+}
+
+export function formatOutput(...units: TimeValueUnit[]): string {
+  return units.map(({ value, unit }) => (value === 0 ? '' : `${value}${unit} `)).join('');
 }
