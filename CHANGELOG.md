@@ -1,3 +1,45 @@
+## [1.12.0] - 2026-05-02
+
+### 🚀 Features
+
+- Support for Taskfile wildcard task names #214
+
+- Guided arguments for taskfile that have required variables
+
+- Guided arguments for taskfile config setting
+
+
+### 🐛 Bug Fixes
+
+- CodeLens items not consistently showing for all npm scripts #213
+
+- Npm do not show up until manual refresh #212
+
+- Npm failing test for loading fix
+
+
+### 🧪 Testing
+
+- 100% coverage on pwshGetHelpResolver
+
+- 100% coverage on pwshGetHelpResolver
+
+- 100% coverage on nodeParseArgsResolver
+
+- Coverage for nodeArgparseResolver
+
+- Add coverage for stopTaskCommand
+
+- Coverage for runTaskTool
+
+- Coverage for stopTask command
+
+- Coverage for runTaskWithArgs
+
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.11.0...v1.12.0
+
 ## [1.11.0] - 2026-04-28
 
 ### 🚀 Features
