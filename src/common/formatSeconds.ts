@@ -27,12 +27,12 @@ export function formatSeconds(ms: number): string {
     { value: seconds, unit: 's' }
   ).trim();
 
-   // Handle the case where all components are zero
-   if (timeResult === '') {
+  // Handle the case where all components are zero
+  if (timeResult === '') {
     return '0s';
   }
 
-   if (isNegative) {
+  if (isNegative) {
     return '-' + timeResult;
   }
   return timeResult;
