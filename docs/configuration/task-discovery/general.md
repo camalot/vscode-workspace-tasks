@@ -41,7 +41,7 @@ Glob patterns for files and directories to exclude from task discovery. Any file
 }
 ```
 
-![Screenshot - Exclude Patterns](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/exclude-patterns.png)
+![Screenshot - Exclude Patterns]({{ site.github_image_docs_url }}
 
 ### workspaceTasks.taskDiscovery.fetchDepth
 
@@ -68,7 +68,7 @@ Controls how deep (in folder levels) the extension will search for tasks below t
 }
 ```
 
-![Screenshot - Fetch Depth](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/fetch-depth.png)
+![Screenshot - Fetch Depth]({{ site.github_image_docs_url }}/configuration/fetch-depth.png)
 
 ---
 

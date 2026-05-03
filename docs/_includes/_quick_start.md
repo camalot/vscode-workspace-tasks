@@ -11,7 +11,7 @@ You can view your tasks in two places:
 - **Sidebar (Activity Bar):** Click the Workspace Tasks icon in the Activity Bar on the left
 - **Explorer Panel:** Find "Workspace Tasks" in the Explorer panel; you can drag it to your preferred location
 
-![Workspace-Tasks Sidebar](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png)
+![Workspace-Tasks Sidebar]({{ site.github_images_url }}/sidebar-collapsed.png)
 
 ### 3. Browse and Run Tasks
 

@@ -23,6 +23,8 @@
     ".test-storage",
     ".test-extensions",
     "vendor/bundle",
-    "sample"
+    "sample",
+    "playwright",
+    "playwright.config.ts"
   ]
 }

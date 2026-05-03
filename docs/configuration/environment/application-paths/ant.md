@@ -37,7 +37,7 @@ Path to the Ant executable. On Windows, `.bat` is appended automatically when th
 }
 ```
 
-![Screenshot - Ant Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ant-path.png)
+![Screenshot - Ant Path]({{ site.github_image_docs_url }}
 
 ---
 
@@ -59,7 +59,7 @@ When `true`, ANSICON is used to provide colored output for Ant tasks in the Wind
 }
 ```
 
-![Screenshot - Ansicon Enabled](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ansicon-enabled.png)
+![Screenshot - Ansicon Enabled]({{ site.github_image_docs_url }}/configuration/ansicon-enabled.png)
 
 ---
 
