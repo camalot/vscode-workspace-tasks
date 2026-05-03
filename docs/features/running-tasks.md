@@ -45,7 +45,9 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Workspace Ta
 When a file with one or more registered tasks is open in the editor, **Run** (`▶`) and
 **Run with Arguments** (`▷`) buttons appear in the editor title bar. This works for **all
 discovered task file types** — shell scripts, GitHub Actions workflows, `package.json`,
-`Makefile`, `Taskfile.yml`, and any other file type the extension recognises.
+`Makefile`, `Taskfile.yml`, and any other file type the extension recognizes.
+
+![Editor title bar buttons example]({{ site.github_image_docs_url }}/features/editor-title-run-buttons.png)
 
 - **Single task** — the task runs immediately without a prompt.
 - **Multiple tasks** — a QuickPick appears listing all runnable, non-hidden tasks for
