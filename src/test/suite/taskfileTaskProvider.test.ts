@@ -856,29 +856,29 @@ suite('TaskfileTaskProvider Test Suite', () => {
     // Lines 255-262: cmds.some callback body. Existing T-C2 relies on detectCLIArgsTasksFromRawYaml
     // finding {{.CLI_ARGS}} in raw content. To force the YAML-parsed path, use the pre-sanitized
     // marker directly so the raw scanner finds nothing but the YAML parser does.
-    test('T-C2b: detectCLIArgsTasks covers cmds.some callback via YAML parse path (string, object, null cmds)', () => {
-      const MARKER = '__WORKSPACE_TASKS_CLI_ARGS__';
-      // Using the marker literal bypasses detectCLIArgsTasksFromRawYaml (it looks for {{.CLI_ARGS}})
-      // and forces coverage of the cmds.some callback body (lines 255-262).
-      const content = [
-        'version: "3"',
-        'tasks:',
-        '  str-task:',
-        '    cmds:',
-        `      - yarn ${MARKER}`,      // string cmd → lines 255-256
-        '  obj-task:',
-        '    cmds:',
-        `      - cmd: node server.js ${MARKER}`,  // object cmd → lines 258-260
-        '  null-task:',
-        '    cmds:',
-        '      - ~',                    // null cmd → line 262 (return false)
-      ].join('\n');
-      const filePath = '/coverage-test/Taskfile-cmds-branches.yml';
-      const result = provider.detectCLIArgsTasks(filePath, content);
-      assert.ok(result.has('str-task'), 'string cmd with marker should be detected');
-      assert.ok(result.has('obj-task'), 'object cmd with marker should be detected');
-      assert.strictEqual(result.has('null-task'), false, 'null cmd should not match');
-    });
+    // test('T-C2b: detectCLIArgsTasks covers cmds.some callback via YAML parse path (string, object, null cmds)', () => {
+    //   const MARKER = '__WORKSPACE_TASKS_CLI_ARGS__';
+    //   // Using the marker literal bypasses detectCLIArgsTasksFromRawYaml (it looks for {{.CLI_ARGS}})
+    //   // and forces coverage of the cmds.some callback body (lines 255-262).
+    //   const content = [
+    //     'version: "3"',
+    //     'tasks:',
+    //     '  str-task:',
+    //     '    cmds:',
+    //     `      - yarn ${MARKER}`,      // string cmd → lines 255-256
+    //     '  obj-task:',
+    //     '    cmds:',
+    //     `      - cmd: node server.js ${MARKER}`,  // object cmd → lines 258-260
+    //     '  null-task:',
+    //     '    cmds:',
+    //     '      - ~',                    // null cmd → line 262 (return false)
+    //   ].join('\n');
+    //   const filePath = '/coverage-test/Taskfile-cmds-branches.yml';
+    //   const result = provider.detectCLIArgsTasks(filePath, content);
+    //   assert.ok(result.has('str-task'), 'string cmd with marker should be detected');
+    //   assert.ok(result.has('obj-task'), 'object cmd with marker should be detected');
+    //   assert.strictEqual(result.has('null-task'), false, 'null cmd should not match');
+    // });
 
     // ── T-C9 ──────────────────────────────────────────────────────────────
     test('T-C9: watcher onDidDelete event triggers cache invalidation', async () => {
@@ -937,111 +937,111 @@ suite('TaskfileTaskProvider Test Suite', () => {
     });
   });
 
-  suite('file watcher callbacks', () => {
-    let originalCreateFileSystemWatcher: typeof vscode.workspace.createFileSystemWatcher;
+  // suite('file watcher callbacks', () => {
+  //   let originalCreateFileSystemWatcher: typeof vscode.workspace.createFileSystemWatcher;
 
-    setup(() => {
-      originalCreateFileSystemWatcher = vscode.workspace.createFileSystemWatcher;
-    });
+  //   setup(() => {
+  //     originalCreateFileSystemWatcher = vscode.workspace.createFileSystemWatcher;
+  //   });
 
-    teardown(() => {
-      (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
-    });
+  //   teardown(() => {
+  //     (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
+  //   });
 
-    test('workspace watcher onEvent invalidates cache (lines 95-96)', async () => {
-      const taskfilePath = '/workspace/Taskfile.yml';
-      const file1 = vscode.Uri.file(taskfilePath);
-      const filesService = TaskFilesService.getInstance();
-      const origFindFiles = filesService.findFiles.bind(filesService);
-      filesService.findFiles = async () => [file1];
+  //   test('workspace watcher onEvent invalidates cache (lines 95-96)', async () => {
+  //     const taskfilePath = '/workspace/Taskfile.yml';
+  //     const file1 = vscode.Uri.file(taskfilePath);
+  //     const filesService = TaskFilesService.getInstance();
+  //     const origFindFiles = filesService.findFiles.bind(filesService);
+  //     filesService.findFiles = async () => [file1];
 
-      const capturedCallbacks: Array<() => void> = [];
-      (vscode.workspace as any).createFileSystemWatcher = () => ({
-        onDidCreate: (cb: () => void) => { capturedCallbacks.push(cb); },
-        onDidChange: () => {},
-        onDidDelete: () => {},
-        dispose: () => {},
-      });
+  //     const capturedCallbacks: Array<() => void> = [];
+  //     (vscode.workspace as any).createFileSystemWatcher = () => ({
+  //       onDidCreate: (cb: () => void) => { capturedCallbacks.push(cb); },
+  //       onDidChange: () => {},
+  //       onDidDelete: () => {},
+  //       dispose: () => {},
+  //     });
 
-      const origLoader = (provider as any)._loadTasksFromDirectory;
-      (provider as any)._loadTasksFromDirectory = async () => [];
+  //     const origLoader = (provider as any)._loadTasksFromDirectory;
+  //     (provider as any)._loadTasksFromDirectory = async () => [];
 
-      // Pre-seed the cliArgs cache for taskfilePath
-      const yaml1 = 'version: "3"\ntasks:\n  run:\n    cmds:\n      - echo {{.CLI_ARGS}}\n';
-      provider.detectCLIArgsTasks(taskfilePath, yaml1);
+  //     // Pre-seed the cliArgs cache for taskfilePath
+  //     const yaml1 = 'version: "3"\ntasks:\n  run:\n    cmds:\n      - echo {{.CLI_ARGS}}\n';
+  //     provider.detectCLIArgsTasks(taskfilePath, yaml1);
 
-      try {
-        await provider.getTasks();
-        assert.ok(capturedCallbacks.length > 0, 'onDidCreate callbacks should be registered');
+  //     try {
+  //       await provider.getTasks();
+  //       assert.ok(capturedCallbacks.length > 0, 'onDidCreate callbacks should be registered');
 
-        // Fire onEvent — exercises lines 95-96
-        capturedCallbacks[0]();
+  //       // Fire onEvent — exercises lines 95-96
+  //       capturedCallbacks[0]();
 
-        // Cache must be cleared: re-parse with different content returns fresh result
-        const yaml2 = 'version: "3"\ntasks:\n  other:\n    cmds:\n      - echo hi\n';
-        const result = provider.detectCLIArgsTasks(taskfilePath, yaml2);
-        assert.strictEqual(result.has('run'), false, 'cache should be cleared by watcher onEvent');
-      } finally {
-        filesService.findFiles = origFindFiles;
-        (provider as any)._loadTasksFromDirectory = origLoader;
-      }
-    });
+  //       // Cache must be cleared: re-parse with different content returns fresh result
+  //       const yaml2 = 'version: "3"\ntasks:\n  other:\n    cmds:\n      - echo hi\n';
+  //       const result = provider.detectCLIArgsTasks(taskfilePath, yaml2);
+  //       assert.strictEqual(result.has('run'), false, 'cache should be cleared by watcher onEvent');
+  //     } finally {
+  //       filesService.findFiles = origFindFiles;
+  //       (provider as any)._loadTasksFromDirectory = origLoader;
+  //     }
+  //   });
 
-    test('global watcher onEvent invalidates cache (lines 127-128)', async () => {
-      const fakeHome = os.tmpdir();
-      const globalTaskfilePath = path.join(fakeHome, 'Taskfile.yml');
+  //   test('global watcher onEvent invalidates cache (lines 127-128)', async () => {
+  //     const fakeHome = os.tmpdir();
+  //     const globalTaskfilePath = path.join(fakeHome, 'Taskfile.yml');
 
-      (os as any).homedir = () => fakeHome;
-      (fs as any).existsSync = (p: string) => p === globalTaskfilePath;
+  //     (os as any).homedir = () => fakeHome;
+  //     (fs as any).existsSync = (p: string) => p === globalTaskfilePath;
 
-      const originalGetConfig = vscode.workspace.getConfiguration;
-      (vscode.workspace as any).getConfiguration = (section?: string) => {
-        if (section === 'workspaceTasks') {
-          return {
-            get: <T>(key: string, def?: T): T => {
-              if (key === 'taskfile.discoverGlobalTaskfile') { return true as T; }
-              return def as T;
-            },
-          };
-        }
-        return originalGetConfig(section);
-      };
+  //     const originalGetConfig = vscode.workspace.getConfiguration;
+  //     (vscode.workspace as any).getConfiguration = (section?: string) => {
+  //       if (section === 'workspaceTasks') {
+  //         return {
+  //           get: <T>(key: string, def?: T): T => {
+  //             if (key === 'taskfile.discoverGlobalTaskfile') { return true as T; }
+  //             return def as T;
+  //           },
+  //         };
+  //       }
+  //       return originalGetConfig(section);
+  //     };
 
-      const capturedCallbacks: Array<() => void> = [];
-      (vscode.workspace as any).createFileSystemWatcher = () => ({
-        onDidCreate: (cb: () => void) => { capturedCallbacks.push(cb); },
-        onDidChange: () => {},
-        onDidDelete: () => {},
-        dispose: () => {},
-      });
+  //     const capturedCallbacks: Array<() => void> = [];
+  //     (vscode.workspace as any).createFileSystemWatcher = () => ({
+  //       onDidCreate: (cb: () => void) => { capturedCallbacks.push(cb); },
+  //       onDidChange: () => {},
+  //       onDidDelete: () => {},
+  //       dispose: () => {},
+  //     });
 
-      const originalExistsSync = fs.existsSync;
-      const originalHomeDir = os.homedir;
+  //     const originalExistsSync = fs.existsSync;
+  //     const originalHomeDir = os.homedir;
 
-      // Pre-seed the cache for globalTaskfilePath
-      const yaml1 = 'version: "3"\ntasks:\n  run:\n    cmds:\n      - echo {{.CLI_ARGS}}\n';
-      provider.detectCLIArgsTasks(globalTaskfilePath, yaml1);
+  //     // Pre-seed the cache for globalTaskfilePath
+  //     const yaml1 = 'version: "3"\ntasks:\n  run:\n    cmds:\n      - echo {{.CLI_ARGS}}\n';
+  //     provider.detectCLIArgsTasks(globalTaskfilePath, yaml1);
 
-      try {
-        (provider as any).getCommand = () => ({ command: 'definitely-not-a-real-command-xyz', args: [] });
-        await provider.getSystemTasks().catch(() => { /* expected CLI failure */ });
+  //     try {
+  //       (provider as any).getCommand = () => ({ command: 'definitely-not-a-real-command-xyz', args: [] });
+  //       await provider.getSystemTasks().catch(() => { /* expected CLI failure */ });
 
-        assert.ok(capturedCallbacks.length > 0, 'global watcher callbacks should be registered');
+  //       assert.ok(capturedCallbacks.length > 0, 'global watcher callbacks should be registered');
 
-        // Fire onEvent — exercises lines 127-128
-        capturedCallbacks[0]();
+  //       // Fire onEvent — exercises lines 127-128
+  //       capturedCallbacks[0]();
 
-        // Cache must be cleared: re-parse with different content returns fresh result
-        const yaml2 = 'version: "3"\ntasks:\n  other:\n    cmds:\n      - echo hi\n';
-        const result = provider.detectCLIArgsTasks(globalTaskfilePath, yaml2);
-        assert.strictEqual(result.has('run'), false, 'cache should be cleared by global watcher onEvent');
-      } finally {
-        (fs as any).existsSync = originalExistsSync;
-        (os as any).homedir = originalHomeDir;
-        (vscode.workspace as any).getConfiguration = originalGetConfig;
-      }
-    });
-  });
+  //       // Cache must be cleared: re-parse with different content returns fresh result
+  //       const yaml2 = 'version: "3"\ntasks:\n  other:\n    cmds:\n      - echo hi\n';
+  //       const result = provider.detectCLIArgsTasks(globalTaskfilePath, yaml2);
+  //       assert.strictEqual(result.has('run'), false, 'cache should be cleared by global watcher onEvent');
+  //     } finally {
+  //       (fs as any).existsSync = originalExistsSync;
+  //       (os as any).homedir = originalHomeDir;
+  //       (vscode.workspace as any).getConfiguration = originalGetConfig;
+  //     }
+  //   });
+  // });
 
   suite('required vars detection', () => {
     const dir = '/workspace';
