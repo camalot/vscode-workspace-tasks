@@ -1,5 +1,11 @@
 # VSCode Extension Development Guidelines
 
+## IMPORTANT
+
+Code only, no explanations.
+
+---
+
 Ensure to keep the readme and other documentation up to date with the latest changes in the extension. This helps users understand how to use the extension effectively and provides them with the necessary information about its features and capabilities.
 
 With every update, review the documentation to ensure it reflects the current state of the extension, including any new features, bug fixes, or changes in functionality. This practice not only enhances user experience but also contributes to the overall success and adoption of the extension. You can also review the changelog before making changes to ensure that the documentation is consistent with the changes being made.

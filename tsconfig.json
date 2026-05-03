@@ -24,6 +24,7 @@
     ".test-extensions",
     "vendor/bundle",
     "sample",
-    "playwright"
+    "playwright",
+    "playwright.config.ts"
   ]
 }
