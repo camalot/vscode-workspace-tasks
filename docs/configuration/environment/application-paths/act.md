@@ -40,7 +40,7 @@ Path to the `act` executable. On Windows, `.exe` is appended automatically when 
 }
 ```
 
-![Screenshot - Act Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-path.png)
+![Screenshot - Act Path]({{ site.github_image_docs_url }}/configuration/act-path.png)
 
 ---
 
@@ -62,7 +62,7 @@ Path to a `.env` file that provides environment variables when running workflows
 }
 ```
 
-![Screenshot - Act Env File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-env.png)
+![Screenshot - Act Env File]({{ site.github_image_docs_url }}/configuration/act-env.png)
 
 ---
 
@@ -84,7 +84,7 @@ Path to a variables file for `act`. The file uses the same key=value format as `
 }
 ```
 
-![Screenshot - Act Variables File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-vars-file.png)
+![Screenshot - Act Variables File]({{ site.github_image_docs_url }}/configuration/act-vars-file.png)
 
 ---
 
@@ -109,7 +109,7 @@ Inline key-value variables passed to `act` at runtime. These supplement or overr
 }
 ```
 
-![Screenshot - Act Variables](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-vars.png)
+![Screenshot - Act Variables]({{ site.github_image_docs_url }}/configuration/act-vars.png)
 
 ---
 
@@ -131,7 +131,7 @@ Path to a `.env`-format file containing secrets for `act`. This file should be a
 }
 ```
 
-![Screenshot - Act Secrets File](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/act-secrets.png)
+![Screenshot - Act Secrets File]({{ site.github_image_docs_url }}/configuration/act-secrets.png)
 
 ---
 

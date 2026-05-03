@@ -36,7 +36,7 @@ When enabled, tasks in the tree view are grouped by task type (e.g. npm, shell, 
 }
 ```
 
-![Screenshot - Groups Enabled](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/groups-enabled.png)
+![Screenshot - Groups Enabled]({{ site.github_image_docs_url }}/configuration/groups-enabled.png)
 
 ---
 
@@ -57,7 +57,7 @@ When enabled, tasks are additionally sub-grouped by the folder that contains the
 }
 ```
 
-![Screenshot - Use Parent Folder](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/use-parent-folder.png)
+![Screenshot - Use Parent Folder]({{ site.github_image_docs_url }}/configuration/use-parent-folder.png)
 
 ---
 
@@ -78,7 +78,7 @@ A string that is inserted between the task-type group label and the task name wh
 }
 ```
 
-![Screenshot - Task Separator](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/task-separator.png)
+![Screenshot - Task Separator]({{ site.github_image_docs_url }}/configuration/task-separator.png)
 
 ---
 
@@ -132,7 +132,7 @@ When enabled, a **Recent Tasks** group is shown at the top of the task tree, sur
 }
 ```
 
-![Screenshot - Recent Groups](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/recent-groups.png)
+![Screenshot - Recent Groups]({{ site.github_image_docs_url }}/configuration/recent-groups.png)
 
 ---
 

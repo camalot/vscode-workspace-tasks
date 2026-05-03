@@ -43,7 +43,7 @@ A minimum of **3 completed runs** is required before any estimate is shown. Task
 While a task is executing, its description in the task tree updates every second to show the time remaining based on the EMA estimate at the moment the task started.
 
 <!-- screenshot placeholder -->
-![Running task ETA description](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-duration-running-eta.png)
+![Running task ETA description]({{ site.github_image_docs_url }}/features/task-duration-running-eta.png)
 
 ### Display states
 
@@ -64,7 +64,7 @@ When the task finishes, the description reverts automatically to the original fi
 Hovering over an idle task that has at least 3 completed runs shows a tooltip with the EMA estimate and a variability indicator.
 
 <!-- screenshot placeholder -->
-![Pre-run tooltip with duration estimate](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-duration-tooltip.png)
+![Pre-run tooltip with duration estimate]({{ site.github_image_docs_url }}/features/task-duration-tooltip.png)
 
 ### Tooltip format
 
@@ -87,7 +87,7 @@ The **variability** label describes how consistent the task's run times are:
 The **Statistics** tab in the Task History panel includes a **Typical Duration** row in every per-task metrics card. This row shows the EMA alongside the variability bucket, making it easy to compare estimated vs. average duration.
 
 <!-- screenshot placeholder -->
-![Typical Duration stat cell in the Statistics tab](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/task-duration-stats-cell.png)
+![Typical Duration stat cell in the Statistics tab]({{ site.github_image_docs_url }}/features/task-duration-stats-cell.png)
 
 When fewer than 3 runs have been recorded the cell displays `—`.
 

@@ -22,7 +22,7 @@ nav_order: 9
 
 Workspace Tasks adds **inline CodeLens action buttons** directly above each task definition in its source file. You can run, favorite, add to a compound task, or hide a task without ever leaving the editor.
 
-![CodeLens Actions](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/codelens-actions.png)
+![CodeLens Actions]({{ site.github_image_docs_url }}/features/codelens-actions.png)
 
 ---
 

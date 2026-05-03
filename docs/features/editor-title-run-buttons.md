@@ -28,6 +28,8 @@ nav_order: 11
 
 When you open a **shell script** or **GitHub Actions workflow** file in the editor, Workspace Tasks adds **Run** (`▶`) and **Run with Arguments** (`▷`) buttons to the editor title bar (top-right corner of the editor pane). These buttons let you execute the task associated with the open file without switching to the task tree.
 
+![Editor title bar buttons example]({{ site.github_image_docs_url }}/features/editor-title-run-buttons.png)
+
 Buttons only appear when:
 
 - The active file corresponds to at least one discovered task of a supported type (`shell` or `github-actions`)

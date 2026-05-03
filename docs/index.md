@@ -32,10 +32,10 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ## Screenshots
 
-![Workspace-Tasks Sidebar Collapsed](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-collapsed.png){: .vat }
-![Workspace-Tasks Sidebar Queues & Favorites](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/sidebar-queues-favorites.png){: .vat }
-![Workspace-Tasks / TaskExplorer Side By Side](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-te-compare.gif){: .vat }
-![Workspace-Tasks Load v1.6.0](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/wst-load-v1.6.0.gif){: .vat }  ![CodeLens](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/features/codelens-actions.png){: .vat }
+![Workspace-Tasks Sidebar Collapsed]({{ site.github_images_url }}/sidebar-collapsed.png){: .vat }
+![Workspace-Tasks Sidebar Queues & Favorites]({{ site.github_images_url }}/sidebar-queues-favorites.png){: .vat }
+![Workspace-Tasks / TaskExplorer Side By Side]({{ site.github_images_url }}/wst-te-compare.gif){: .vat }
+![Workspace-Tasks Load v1.6.0]({{ site.github_images_url }}/wst-load-v1.6.0.gif){: .vat }  ![CodeLens]({{ site.github_images_url }}/docs/features/codelens-actions.png){: .vat }
 
 ---
 

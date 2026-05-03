@@ -26,7 +26,7 @@ There are several ways to run a task from the Workspace Tasks view.
 
 Each task row displays an action bar when hovered. Click the **Run** button (▶️) to execute the task immediately.
 
-![Action Bar](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/action-bar.png)
+![Action Bar]({{ site.github_images_url }}/action-bar.png)
 
 ### Double-Click
 

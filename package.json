@@ -112,6 +112,11 @@
     "test": "npm run vscode:test",
     "test:coverage": "npm run pretest && npm run vscode:test:coverage",
     "test:ui": "npm run compile:tests && node .vscode-uitest.mjs",
+    "test:playwright:pretest": "npm run docs:build",
+    "test:playwright": "npm run test:playwright:pretest && playwright test",
+    "test:playwright:ui": "npm run test:playwright:pretest && playwright test --ui",
+    "test:playwright:headed": "npm run test:playwright:pretest && playwright test --headed",
+    "playwright:install": "playwright install --with-deps chromium",
     "format": "prettier --write .",
     "check": "npm run check:types && npm run check:format",
     "check:types": "tsc --noEmit",
@@ -119,6 +124,7 @@
     "changelog:build": "npx git-cliff --bump --unreleased --prepend CHANGELOG.md"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
     "@types/node": "25.x",

@@ -154,7 +154,7 @@ Controls which terminal panel is used for the task.
 }
 ```
 
-![Screenshot - Presentation Options](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/presentation.png)
+![Screenshot - Presentation Options]({{ site.github_image_docs_url }}/configuration/presentation.png)
 
 ---
 
@@ -176,7 +176,7 @@ The time in milliseconds to wait after sending a termination signal before forci
 }
 ```
 
-![Screenshot - Stop Graceful Delay](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/stop-graceful-delay.png)
+![Screenshot - Stop Graceful Delay]({{ site.github_image_docs_url }}/configuration/stop-graceful-delay.png)
 
 ---
 

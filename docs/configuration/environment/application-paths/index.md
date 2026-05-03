@@ -49,7 +49,7 @@ Path to the ANSICON executable used to provide colored output for Ant tasks in t
 }
 ```
 
-![Screenshot - Ansicon Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/ansicon-path.png)
+![Screenshot - Ansicon Path]({{ site.github_image_docs_url }}
 
 ---
 
@@ -111,7 +111,7 @@ Path to the [Composer](https://getcomposer.org/) PHP package manager executable.
 }
 ```
 
-![Screenshot - Composer Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/composer-path.png)
+![Screenshot - Composer Path]({{ site.github_image_docs_url }}
 
 ---
 
@@ -133,7 +133,7 @@ Path to the [Deno](https://deno.land/) runtime executable. On Windows, `.exe` is
 }
 ```
 
-![Screenshot - Deno Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/deno-path.png)
+![Screenshot - Deno Path]({{ site.github_image_docs_url }}/configuration/deno-path.png)
 
 ---
 
@@ -155,7 +155,7 @@ Path to the [Gradle](https://gradle.org/) wrapper or executable. On Windows, `.b
 }
 ```
 
-![Screenshot - Gradle Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/gradle-path.png)
+![Screenshot - Gradle Path]({{ site.github_image_docs_url }}/configuration/gradle-path.png)
 
 ---
 
@@ -177,7 +177,7 @@ Path to the [Just](https://just.systems/) command runner. On Windows, `.exe` is 
 }
 ```
 
-![Screenshot - Just Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/just-path.png)
+![Screenshot - Just Path]({{ site.github_image_docs_url }}/configuration/just-path.png)
 
 ---
 
@@ -199,7 +199,7 @@ Path to the Make executable. On Windows, `.exe` is appended automatically when t
 }
 ```
 
-![Screenshot - Make Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/make-path.png)
+![Screenshot - Make Path]({{ site.github_image_docs_url }}/configuration/make-path.png)
 
 ---
 
@@ -221,7 +221,7 @@ Path to the [Maven](https://maven.apache.org/) executable. On Windows, `.cmd` is
 }
 ```
 
-![Screenshot - Maven Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/maven-path.png)
+![Screenshot - Maven Path]({{ site.github_image_docs_url }}/configuration/maven-path.png)
 
 ---
 
@@ -243,7 +243,7 @@ Path to the MSBuild executable. On Windows, `.exe` is appended automatically whe
 }
 ```
 
-![Screenshot - MSBuild Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/msbuild-path.png)
+![Screenshot - MSBuild Path]({{ site.github_image_docs_url }}/configuration/msbuild-path.png)
 
 ---
 
@@ -265,7 +265,7 @@ Path to the [Pipenv](https://pipenv.pypa.io/) Python environment manager. On Win
 }
 ```
 
-![Screenshot - Pipenv Path](https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs/configuration/pipenv-path.png)
+![Screenshot - Pipenv Path]({{ site.github_image_docs_url }}/configuration/pipenv-path.png)
 
 ---
 

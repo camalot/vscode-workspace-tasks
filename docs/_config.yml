@@ -10,6 +10,11 @@ logo: /assets/images/icon.svg
 github_username: camalot
 github_repo: vscode-workspace-tasks
 
+github_image_docs_url: https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images/docs
+
+github_images_url: https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/assets/images
+
+
 # Build settings
 plugins:
   - jekyll-remote-theme
