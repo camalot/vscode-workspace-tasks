@@ -104,7 +104,8 @@ RUN PWSH_TAG=$(curl -s "https://api.github.com/repos/PowerShell/PowerShell/relea
   && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/powershell \
   && rm /tmp/powershell.tar.gz \
   && curl -fsSL https://gh.io/copilot-install | bash \
-  && curl -fsSL https://mise.run | MISE_INSTALL_PATH=/usr/local/bin/mise sh
+  && curl -fsSL https://mise.run | MISE_INSTALL_PATH=/usr/local/bin/mise sh \
+  && curl -fsSL https://claude.ai/install.sh | bash
 
 # Install dotnet - used for supporting Cake build scripts
 RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -o /tmp/packages-microsoft-prod.deb \
