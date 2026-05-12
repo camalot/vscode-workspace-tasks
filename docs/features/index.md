@@ -39,7 +39,7 @@ Workspace Tasks supports flexible view placement:
 - **Dedicated Sidebar** — Access tasks from the Activity Bar for a dedicated panel
 - **Explorer Integration** — View tasks alongside your files in the Explorer panel
 
-  ![Explorer View]({{ site.github_images_url }}/explorer-view.png)
+  ![Explorer View]({{ '/explorer-view.png' | prepend: site.github_images_url }})
 
 - **Dockable Window** — Drag the Explorer view to any location (left, right, bottom panel, or floating)
 - **Synchronized State** — Both views share the same state; actions in one view reflect in the other

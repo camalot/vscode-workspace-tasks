@@ -49,7 +49,7 @@ Path to the ANSICON executable used to provide colored output for Ant tasks in t
 }
 ```
 
-![Screenshot - Ansicon Path]({{ site.github_image_docs_url }}
+![Screenshot - Ansicon Path]({{ '/configuration/ansicon-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -111,7 +111,7 @@ Path to the [Composer](https://getcomposer.org/) PHP package manager executable.
 }
 ```
 
-![Screenshot - Composer Path]({{ site.github_image_docs_url }}
+![Screenshot - Composer Path]({{ '/configuration/composer-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -133,7 +133,7 @@ Path to the [Deno](https://deno.land/) runtime executable. On Windows, `.exe` is
 }
 ```
 
-![Screenshot - Deno Path]({{ site.github_image_docs_url }}/configuration/deno-path.png)
+![Screenshot - Deno Path]({{ '/configuration/deno-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -155,7 +155,7 @@ Path to the [Gradle](https://gradle.org/) wrapper or executable. On Windows, `.b
 }
 ```
 
-![Screenshot - Gradle Path]({{ site.github_image_docs_url }}/configuration/gradle-path.png)
+![Screenshot - Gradle Path]({{ '/configuration/gradle-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -177,7 +177,7 @@ Path to the [Just](https://just.systems/) command runner. On Windows, `.exe` is 
 }
 ```
 
-![Screenshot - Just Path]({{ site.github_image_docs_url }}/configuration/just-path.png)
+![Screenshot - Just Path]({{ '/configuration/just-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -199,7 +199,7 @@ Path to the Make executable. On Windows, `.exe` is appended automatically when t
 }
 ```
 
-![Screenshot - Make Path]({{ site.github_image_docs_url }}/configuration/make-path.png)
+![Screenshot - Make Path]({{ '/configuration/make-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -221,7 +221,7 @@ Path to the [Maven](https://maven.apache.org/) executable. On Windows, `.cmd` is
 }
 ```
 
-![Screenshot - Maven Path]({{ site.github_image_docs_url }}/configuration/maven-path.png)
+![Screenshot - Maven Path]({{ '/configuration/maven-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -243,7 +243,7 @@ Path to the MSBuild executable. On Windows, `.exe` is appended automatically whe
 }
 ```
 
-![Screenshot - MSBuild Path]({{ site.github_image_docs_url }}/configuration/msbuild-path.png)
+![Screenshot - MSBuild Path]({{ '/configuration/msbuild-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -265,7 +265,7 @@ Path to the [Pipenv](https://pipenv.pypa.io/) Python environment manager. On Win
 }
 ```
 
-![Screenshot - Pipenv Path]({{ site.github_image_docs_url }}/configuration/pipenv-path.png)
+![Screenshot - Pipenv Path]({{ '/configuration/pipenv-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 

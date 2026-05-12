@@ -40,7 +40,7 @@ Path to the `act` executable. On Windows, `.exe` is appended automatically when 
 }
 ```
 
-![Screenshot - Act Path]({{ site.github_image_docs_url }}/configuration/act-path.png)
+![Screenshot - Act Path]({{ '/configuration/act-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -62,7 +62,7 @@ Path to a `.env` file that provides environment variables when running workflows
 }
 ```
 
-![Screenshot - Act Env File]({{ site.github_image_docs_url }}/configuration/act-env.png)
+![Screenshot - Act Env File]({{ '/configuration/act-env.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -84,7 +84,7 @@ Path to a variables file for `act`. The file uses the same key=value format as `
 }
 ```
 
-![Screenshot - Act Variables File]({{ site.github_image_docs_url }}/configuration/act-vars-file.png)
+![Screenshot - Act Variables File]({{ '/configuration/act-vars-file.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -109,7 +109,7 @@ Inline key-value variables passed to `act` at runtime. These supplement or overr
 }
 ```
 
-![Screenshot - Act Variables]({{ site.github_image_docs_url }}/configuration/act-vars.png)
+![Screenshot - Act Variables]({{ '/configuration/act-vars.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -131,7 +131,7 @@ Path to a `.env`-format file containing secrets for `act`. This file should be a
 }
 ```
 
-![Screenshot - Act Secrets File]({{ site.github_image_docs_url }}/configuration/act-secrets.png)
+![Screenshot - Act Secrets File]({{ '/configuration/act-secrets.png' | prepend: site.github_image_docs_url }})
 
 ---
 

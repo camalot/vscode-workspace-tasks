@@ -36,7 +36,7 @@ When enabled, tasks in the tree view are grouped by task type (e.g. npm, shell, 
 }
 ```
 
-![Screenshot - Groups Enabled]({{ site.github_image_docs_url }}/configuration/groups-enabled.png)
+![Screenshot - Groups Enabled]({{ '/configuration/groups-enabled.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -57,7 +57,7 @@ When enabled, tasks are additionally sub-grouped by the folder that contains the
 }
 ```
 
-![Screenshot - Use Parent Folder]({{ site.github_image_docs_url }}/configuration/use-parent-folder.png)
+![Screenshot - Use Parent Folder]({{ '/configuration/use-parent-folder.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -78,7 +78,7 @@ A string that is inserted between the task-type group label and the task name wh
 }
 ```
 
-![Screenshot - Task Separator]({{ site.github_image_docs_url }}/configuration/task-separator.png)
+![Screenshot - Task Separator]({{ '/configuration/task-separator.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -132,7 +132,7 @@ When enabled, a **Recent Tasks** group is shown at the top of the task tree, sur
 }
 ```
 
-![Screenshot - Recent Groups]({{ site.github_image_docs_url }}/configuration/recent-groups.png)
+![Screenshot - Recent Groups]({{ '/configuration/recent-groups.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -169,7 +169,7 @@ a group attribute are always shown at the top level, regardless of this setting.
 {: .note }
 > `[group()]` attribute support was added in just 1.13.0 (August 2023). On older versions
 > of `just`, the `attributes` array is empty and all recipes are shown ungrouped, which
-> is the correct and safe behaviour for those versions.
+> is the correct and safe behavior for those versions.
 
 Group nodes are non-runnable — they have no action-bar buttons and cannot be executed
 directly. They use the justfile icon and start collapsed.

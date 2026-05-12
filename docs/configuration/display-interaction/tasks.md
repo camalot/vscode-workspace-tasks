@@ -77,7 +77,7 @@ The action performed when a task item in the tree is single-clicked.
 }
 ```
 
-![Screenshot - Single Click Action]({{ site.github_image_docs_url }}/configuration/single-click.png)
+![Screenshot - Single Click Action]({{ '/configuration/single-click.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -104,7 +104,7 @@ The action performed when a task item in the tree is double-clicked.
 }
 ```
 
-![Screenshot - Double Click Action]({{ site.github_image_docs_url }}/configuration/double-click.png)
+![Screenshot - Double Click Action]({{ '/configuration/double-click.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -125,7 +125,7 @@ The time in milliseconds to display a task's completion status indicator (✔ or
 }
 ```
 
-![Screenshot - Status Reset Delay]({{ site.github_image_docs_url }}/configuration/status-reset-delay.png)
+![Screenshot - Status Reset Delay]({{ '/configuration/status-reset-delay.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -153,7 +153,7 @@ The icon style to display next to each task in the tree view.
 }
 ```
 
-![Screenshot - Icon Type]({{ site.github_image_docs_url }}/configuration/icon-type.png)
+![Screenshot - Icon Type]({{ '/configuration/icon-type.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -178,7 +178,7 @@ A custom icon to display for tasks when `workspaceTasks.task.iconType` is set to
 }
 ```
 
-![Screenshot - Custom Icon Built-In]({{ site.github_image_docs_url }}/configuration/icon-custom-builtin.png)
+![Screenshot - Custom Icon Built-In]({{ '/configuration/icon-custom-builtin.png' | prepend: site.github_image_docs_url }})
 
 **Example — workspace file path:**
 
@@ -189,7 +189,7 @@ A custom icon to display for tasks when `workspaceTasks.task.iconType` is set to
 }
 ```
 
-![Screenshot - Custom Icon Path]({{ site.github_image_docs_url }}/configuration/icon-custom-path.png)
+![Screenshot - Custom Icon Path]({{ '/configuration/icon-custom-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -243,7 +243,7 @@ Controls which buttons are shown in the inline action bar for each task in the t
 }
 ```
 
-![Screenshot - Task Action Bar]({{ site.github_image_docs_url }}/configuration/action-bar.png)
+![Screenshot - Task Action Bar]({{ '/configuration/action-bar.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -265,7 +265,7 @@ The maximum number of recently executed tasks to track and display in the Recent
 }
 ```
 
-![Screenshot - Max Recent Tasks]({{ site.github_image_docs_url }}/configuration/max-recent.png)
+![Screenshot - Max Recent Tasks]({{ '/configuration/max-recent.png' | prepend: site.github_image_docs_url }})
 
 ---
 

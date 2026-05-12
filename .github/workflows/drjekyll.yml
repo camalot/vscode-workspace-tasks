@@ -7,6 +7,9 @@ on: # yamllint disable-line rule:truthy
     branches:
       - "develop"
       - "v*"
+    paths:
+      - "docs/**"
+      - ".github/workflows/drjekyll.yml"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -38,24 +41,22 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v6
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-          working-directory: ./docs
-      - name: Build with Jekyll
-        run: bundle exec jekyll build --destination ../_site
-        working-directory: ./docs
+
+      - name: Dr. Jekyll Build
+        uses: camalot/drjekyll-action@v1
         env:
           JEKYLL_ENV: production
-
+        with:
+          input_dir: ./docs
+          output_dir: ./_site
+          url: ${{ steps.pages.outputs.origin }}
+          baseurl: "${{ steps.pages.outputs.base_path }}"
       - name: Upload artifact
         if: "${{ !env.ACT }}"
         uses: actions/upload-pages-artifact@v5
 
-  # Deployment job
   deploy:
     permissions:
       pages: write # to deploy to GitHub Pages

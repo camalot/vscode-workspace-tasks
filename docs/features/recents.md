@@ -38,7 +38,7 @@ The maximum number of task items to track in the Recent Tasks group. Once the li
 }
 ```
 
-![Recent Tasks - Max Items]({{ site.github_images_url }}/settings-recenttasks-maxitems.png)
+![Recent Tasks - Max Items]({{ '/settings-recenttasks-maxitems.png' | prepend: site.github_images_url }})
 
 #### workspaceTasks.groups.recentTasks.enabled
 
@@ -55,7 +55,7 @@ When enabled, recent tasks will be grouped by task type in the same way as the m
 }
 ```
 
-![Recent Tasks - Grouping]({{ site.github_images_url }}/settings-groups-recenttasks-enabled.png)
+![Recent Tasks - Grouping]({{ '/settings-groups-recenttasks-enabled.png' | prepend: site.github_images_url }})
 
 ---
 
