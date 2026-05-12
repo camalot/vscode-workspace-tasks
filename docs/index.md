@@ -32,10 +32,10 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 
 ## Screenshots
 
-![Workspace-Tasks Sidebar Collapsed]({{ site.github_images_url }}/sidebar-collapsed.png){: .vat }
-![Workspace-Tasks Sidebar Queues & Favorites]({{ site.github_images_url }}/sidebar-queues-favorites.png){: .vat }
-![Workspace-Tasks / TaskExplorer Side By Side]({{ site.github_images_url }}/wst-te-compare.gif){: .vat }
-![Workspace-Tasks Load v1.6.0]({{ site.github_images_url }}/wst-load-v1.6.0.gif){: .vat }  ![CodeLens]({{ site.github_images_url }}/docs/features/codelens-actions.png){: .vat }
+![Workspace-Tasks Sidebar Collapsed]({{ '/sidebar-collapsed.png' | prepend: site.github_images_url }}){: .vat }
+![Workspace-Tasks Sidebar Queues & Favorites]({{ '/sidebar-queues-favorites.png' | prepend: site.github_images_url }}){: .vat }
+![Workspace-Tasks / TaskExplorer Side By Side]({{ '/wst-te-compare.gif' | prepend: site.github_images_url }}){: .vat }
+![Workspace-Tasks Load v1.6.0]({{ '/wst-load-v1.6.0.gif' | prepend: site.github_images_url }}){: .vat }  ![CodeLens]({{ '/docs/features/codelens-actions.png' | prepend: site.github_images_url }}){: .vat }
 
 ---
 

@@ -21,6 +21,7 @@
       },
       "extensions": [
         "anthropic.claude-code",
+        "ms-playwright.playwright",
         "shopify.ruby-lsp",
         "shopify.theme-check-vscode",
         "dbaeumer.vscode-eslint",
