@@ -37,7 +37,7 @@ Path to the Ant executable. On Windows, `.bat` is appended automatically when th
 }
 ```
 
-![Screenshot - Ant Path]({{ site.github_image_docs_url }}
+![Screenshot - Ant Path]({{ '/configuration/ant-path.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -59,7 +59,7 @@ When `true`, ANSICON is used to provide colored output for Ant tasks in the Wind
 }
 ```
 
-![Screenshot - Ansicon Enabled]({{ site.github_image_docs_url }}/configuration/ansicon-enabled.png)
+![Screenshot - Ansicon Enabled]({{ '/configuration/ansicon-enabled.png' | prepend: site.github_image_docs_url }})
 
 ---
 

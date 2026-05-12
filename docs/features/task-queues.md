@@ -24,7 +24,7 @@ nav_order: 2
 
 Create and manage multiple named compound tasks to run tasks either **sequentially** (one after another) or **in parallel** (all at once). Compound Tasks are perfect for complex workflows like CI/CD pipelines, multi-step builds, or deployment sequences.
 
-![Workspace-Tasks Sidebar Queues & Favorites]({{ site.github_images_url }}/sidebar-queues-favorites.png)
+![Workspace-Tasks Sidebar Queues & Favorites]({{ '/sidebar-queues-favorites.png' | prepend: site.github_images_url }})
 
 ---
 
@@ -126,7 +126,7 @@ When the **Compound Tasks group** is enabled (`workspaceTasks.groups.compoundTas
 
 Each VSCode compound task entry is expandable, showing all of its `dependsOn` dependency tasks as sub-items directly in the tree. This makes it easy to see your entire compound-task landscape — both native VSCode compound tasks and user-defined queues — in one place.
 
-![VSCode Compound Tasks in the Compound Tasks Group]({{ site.github_image_docs_url }}/features/compound-tasks-vscode.png)
+![VSCode Compound Tasks in the Compound Tasks Group]({{ '/features/compound-tasks-vscode.png' | prepend: site.github_image_docs_url }})
 
 {: .note }
 VSCode compound tasks still appear in the normal task tree (under their `group` and `label`) regardless of this setting. Enabling `includeVsCodeCompoundTasks` only adds them to the Compound Tasks group as an additional entry — it does not remove them from their original location.

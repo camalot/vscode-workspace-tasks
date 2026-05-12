@@ -254,7 +254,7 @@ whenever those settings change.
 A file tracked by git means its contents — including any tokens, passwords, or other sensitive
 values — could be committed to version control and exposed in your repository history.
 
-![Git-tracked file warning in Problems panel]({{ site.github_image_docs_url }}
+![Git-tracked file warning in Problems panel]({{ '/features/git-tracked-envfile-warning.png' | prepend: site.github_image_docs_url }})
 
 **Remediation options:**
 

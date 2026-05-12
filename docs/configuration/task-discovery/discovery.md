@@ -125,7 +125,7 @@ Select which task-type providers are active. Disabling a provider prevents the e
 }
 ```
 
-![Screenshot - Enabled Task Types]({{ site.github_image_docs_url }}
+![Screenshot - Enabled Task Types]({{ '/configuration/task-types.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -349,7 +349,7 @@ Enable or disable individual shell-script sub-types. This allows fine-grained co
 }
 ```
 
-![Screenshot - Shell Enabled Task Types]({{ site.github_image_docs_url }}/configuration/shell-types.png)
+![Screenshot - Shell Enabled Task Types]({{ '/configuration/shell-types.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -390,7 +390,7 @@ Specify custom interpreter paths for shell script types. Each key is a shell typ
 }
 ```
 
-![Screenshot - Shell Paths]({{ site.github_image_docs_url }}/configuration/shell-paths.png)
+![Screenshot - Shell Paths]({{ '/configuration/shell-paths.png' | prepend: site.github_image_docs_url }})
 
 ---
 
@@ -415,7 +415,7 @@ Register extra file extensions (beyond the built-in defaults) that should be tre
 }
 ```
 
-![Screenshot - Shell Additional Extensions]({{ site.github_image_docs_url }}/configuration/shell-extensions.png)
+![Screenshot - Shell Additional Extensions]({{ '/configuration/shell-extensions.png' | prepend: site.github_image_docs_url }})
 
 ---
 
