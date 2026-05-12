@@ -2,7 +2,8 @@
 title: Workspace Tasks
 description: A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace.
 
-logo: /assets/images/icon.svg
+logo: /assets/images/logo.png
+logo_svg: /assets/images/logo.svg
 
 github_username: camalot
 github_repo: vscode-workspace-tasks
