@@ -20,7 +20,7 @@ nav_order: 1
 
 Pin your most frequently used tasks for instant access. Favorites appear in a dedicated section at the top of the task tree, making your common operations just one click away.
 
-![Workspace-Tasks Sidebar Compound Tasks & Favorites]({{ site.github_images_url }}/sidebar-queues-favorites.png)
+![Workspace-Tasks Sidebar Compound Tasks & Favorites]({{ '/sidebar-queues-favorites.png' | prepend: site.github_images_url }})
 
 ### How to Favorite a Task
 
@@ -73,7 +73,7 @@ The maximum number of task items to track in the Recent Tasks group. Once the li
 }
 ```
 
-![Recent Tasks - Max Items]({{ site.github_images_url }}/settings-recenttasks-maxitems.png)
+![Recent Tasks - Max Items]({{ '/settings-recenttasks-maxitems.png' | prepend: site.github_images_url }})
 
 #### workspaceTasks.groups.recentTasks.enabled
 
@@ -90,7 +90,7 @@ When enabled, recent tasks will be grouped by task type in the same way as the m
 }
 ```
 
-![Recent Tasks - Grouping]({{ site.github_images_url }}/settings-groups-recenttasks-enabled.png)
+![Recent Tasks - Grouping]({{ '/settings-groups-recenttasks-enabled.png' | prepend: site.github_images_url }})
 
 ---
 

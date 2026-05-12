@@ -26,7 +26,7 @@ There are several ways to run a task from the Workspace Tasks view.
 
 Each task row displays an action bar when hovered. Click the **Run** button (▶️) to execute the task immediately.
 
-![Action Bar]({{ site.github_images_url }}/action-bar.png)
+![Action Bar]({{ '/action-bar.png' | prepend: site.github_images_url }})
 
 ### Double-Click
 
@@ -47,7 +47,7 @@ When a file with one or more registered tasks is open in the editor, **Run** (`�
 discovered task file types** — shell scripts, GitHub Actions workflows, `package.json`,
 `Makefile`, `Taskfile.yml`, and any other file type the extension recognizes.
 
-![Editor title bar buttons example]({{ site.github_image_docs_url }}/features/editor-title-run-buttons.png)
+![Editor title bar buttons example]({{ '/features/editor-title-run-buttons.png' | prepend: site.github_image_docs_url }})
 
 - **Single task** — the task runs immediately without a prompt.
 - **Multiple tasks** — a QuickPick appears listing all runnable, non-hidden tasks for
