@@ -21,7 +21,7 @@ nav_order: 1
 
 [![Codecov](https://img.shields.io/codecov/c/github/camalot/vscode-workspace-tasks?style=for-the-badge&label=COVERAGE&logo=codecov&logoColor=white)](https://app.codecov.io/gh/camalot/vscode-workspace-tasks/tree/develop)
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fci.yml?style=for-the-badge&logo=github&label=BUILD)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/ci.yml)
-[![Documentation](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fjekyll-gh-pages.yml?style=for-the-badge&logo=github&label=DOCS)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/jekyll-gh-pages.yml)
+[![Documentation](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fdrjekyll.yml?style=for-the-badge&logo=github&label=DOCS)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/drjekyll.yml)
 [![Issues](https://img.shields.io/github/issues/camalot/vscode-workspace-tasks?style=for-the-badge&logo=github&color=%2313773d)](https://github.com/camalot/vscode-workspace-tasks/issues)
 
 ---
