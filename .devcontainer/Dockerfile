@@ -31,8 +31,8 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends apt-utils xauth apt-transport-https 2>&1 \
   && apt-get install -y --no-install-recommends git iproute2 procps lsb-release sudo gnupg 2>&1 \
   && apt-get install -y --no-install-recommends curl wget zip unzip dnsutils jq bat fzf zoxide 2>&1 \
-  && apt-get install -y --no-install-recommends nano vim zsh ripgrep cmake imagemagick 2>&1 \
-  && apt-get install -y --no-install-recommends python3-full python3-pip python3-venv 2>&1 \
+  && apt-get install -y --no-install-recommends nano vim zsh ripgrep cmake imagemagick direnv 2>&1 \
+  && apt-get install -y --no-install-recommends python3-full python3-pip python3-venv python3-virtualenv 2>&1 \
   && apt-get install -y --no-install-recommends \
     xvfb libnspr4 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
