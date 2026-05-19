@@ -5,9 +5,7 @@ rules:
       policies:
         '*': any
   excessive-permissions:
-    config:
-      policies:
-        '*': deny
+    disable: false
   # secrets-outside-env:
   #   config:
   #     allow:

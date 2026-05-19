@@ -4,6 +4,9 @@
 # $HOME/.devcontainer/.env/*
 # $HOME/.devcontainer/.env
 # in that order, with later files taking precedence over earlier ones. This allows for flexible environment variable management, including support for multiple .env files and directories.
+
+# if there are no matches for the globs, we need to prevent the loop from running with the literal glob pattern as the filename, so we use nullglob
+setopt nullglob
 for env_file in \
     "$HOME/.devcontainer"/.env.* \
     "$HOME/.devcontainer"/*.env.* \
@@ -32,9 +35,9 @@ SAVEHIST=10000
 setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE
 
 # PATH additions
-export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-[[ -d "$HOME/.krew/bin" ]] && export PATH="$HOME/.krew/bin:$PATH"
-[[ -d "$HOME/.cargo/bin" ]] && export PATH="$HOME/.cargo/bin:$PATH"
+if [[ -d "$HOME/.krew/bin" ]] && [[ ":$PATH:" != *":$HOME/.krew/bin:"* ]]; then
+  export PATH="$HOME/.krew/bin:$PATH"
+fi
 
 # Powerlevel10k config
 [[ -f "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
@@ -168,4 +171,10 @@ fi
 [[ ":$PATH:" != *":$HOME/bin:"* ]] && export PATH="$HOME/bin:$PATH"
 # END ANSIBLE MANAGED — paths
 
-. "$HOME/.cargo/env"
+if [[ -d "$HOME/.cargo/bin" ]] && [[ ":$PATH:" != *":$HOME/.cargo/bin:"* ]]; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
+[[ -d "$HOME/.cargo/bin" ]] && export PATH="$HOME/.cargo/bin:$PATH"
+if [[ -f "$HOME/.cargo/env" ]]; then
+  . "$HOME/.cargo/env"
+fi
