@@ -53,7 +53,7 @@ RUN curl -fsSL "https://deb.nodesource.com/setup_25.x" | bash - \
   && apt-get install -y nodejs \
   && apt-get remove -y yarn \
   && node -v \
-  && npm install -g npm pnpm yarn \
+  && npm install -g npm pnpm yarn git-cliff @anthropic-ai/claude-cod \
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
   && export NVM_DIR="/home/${USERNAME}/.nvm" \
   && for i in 1 2 3 4 5; do \
@@ -74,7 +74,6 @@ RUN mkdir -p -m 755 /etc/apt/keyrings \
   && apt-get install -y --no-install-recommends gh \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
-
 
 # Make sure bundler is available globally (should be by default, but safe to
 # reinstall/update).
@@ -116,7 +115,6 @@ RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsof
   && rm -rf /var/lib/apt/lists/* \
   && dotnet tool install Cake.Tool --version 6.1.0
 
-
 # install task (https://taskfile.dev/), a modern alternative to Make written in Go
 # install gitlab-ci-local (https://gitlab-ci-local.dev/), a tool to run GitLab CI pipelines locally
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash - && \
@@ -156,6 +154,10 @@ COPY files/home/vscode/ /home/${USERNAME}/
 RUN git clone --depth=1 'https://github.com/romkatv/powerlevel10k.git' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" \
   && mkdir -p "/home/${USERNAME}/.antigen" "/home/${USERNAME}/.zsh/custom/aliases" "/home/${USERNAME}/.devcontainer" "/home/${USERNAME}/bin" \
   && curl -fsSL https://raw.githubusercontent.com/zsh-users/antigen/master/bin/antigen.zsh > "/home/${USERNAME}/.antigen/antigen.zsh"
+
+# make sure that pnpm is available in the PATH for the vscode user and that the pnpm is up to date.
+RUN export PATH="$HOME/.local/bin:$HOME/.local/share/pnpm/bin:$PATH" \
+  && pnpm self-update
 
 # Reset SHELL to prevent pipefail from breaking devcontainer features installation
 SHELL ["/bin/sh", "-c"]

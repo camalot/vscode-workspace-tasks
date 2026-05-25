@@ -1,18 +1,18 @@
 {
-  "name": "Workspace Tasks Dev",
+  "name": "camalot/vscode-workspace-tasks",
   "build": {
     "dockerfile": "Dockerfile",
     "context": "."
   },
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "moby": false,
-      "dockerDashCompose": "v2"
-    }
-    // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+    // "ghcr.io/devcontainers/features/docker-in-docker:2": {
     //   "moby": false,
-    //   "installDockerBuildx": true
+    //   "dockerDashCompose": "v2"
     // }
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false,
+      "installDockerBuildx": true
+    }
   },
   "customizations": {
     "vscode": {
@@ -20,7 +20,8 @@
         "terminal.integrated.defaultProfile.linux": "zsh"
       },
       "extensions": [
-        "shopify.ruby-lsp",
+        "shopify.ruby-extensions-pack",
+        "misogi.ruby-rubocop",
         "42crunch.vscode-openapi",
         "anthropic.claude-code",
         "bradlc.vscode-tailwindcss",
@@ -96,21 +97,25 @@
         "usernamehw.errorlens",
         "vscode-icons-team.vscode-icons",
         "vue.volar",
-        "wholroyd.jinja"      ]
+        "wholroyd.jinja"
+      ]
     }
   },
-  "postCreateCommand": "[ -f .devcontainer/install-tools.sh ] && chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
+  "postCreateCommand": "[ -f .devcontainer/events/post-create-command.sh ] && chmod +x .devcontainer/events/post-create-command.sh && .devcontainer/events/post-create-command.sh",
+  "postAttachCommand": "[ -f .devcontainer/events/post-attach-command.sh ] && chmod +x .devcontainer/events/post-attach-command.sh && .devcontainer/events/post-attach-command.sh",
   "remoteUser": "vscode",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
   "mounts": [
-    // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/_ssh,type=bind,consistency=cached",
     // if this doesn't exist locally, it creates it as a folder...
     // to combat this, a default is loaded into the container
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
     "source=${localWorkspaceFolder}/.devcontainer/mount,target=/home/vscode/.devcontainer,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
     // Named volume so shell history (zsh + bash) persists across container rebuilds.
-    "source=vscode-workspace-tasks-zsh-history,target=/home/vscode/.zsh-history,type=volume"
+    "source=vscode-workspace-tasks-zsh-history,target=/home/vscode/.zsh_history,type=volume",
+    "source=vscode-workspace-tasks-claude-persist,target=/home/vscode/.claude-persist,type=volume"
   ]
 }
