@@ -29,7 +29,7 @@ Track and review all task executions with comprehensive history and statistics. 
 
 The Task History Table View provides a tabular, sortable view of all task executions with detailed information.
 
-![Task History Table]({{ site.github_image_docs_url }}
+![Task History Table]({{ '/features/task-history-webview.png' | prepend: site.github_image_docs_url }})
 
 ### Features
 
@@ -62,7 +62,7 @@ The Task History Table View provides a tabular, sortable view of all task execut
 
 The Statistics View provides aggregated per-task execution metrics, giving you a quick overview of how each task is performing over time.
 
-![Task Statistics View]({{ site.github_image_docs_url }}/features/task-statistics-webview.png)
+![Task Statistics View]({{ '/features/task-statistics-webview.png' | prepend: site.github_image_docs_url }})
 
 ### Features
 
@@ -114,11 +114,11 @@ See the [Metrics Configuration](../configuration/metrics) page for all available
 
 The Dashboard tab provides an at-a-glance, workspace-wide view of task execution health using interactive charts powered by [Chart.js](https://www.chartjs.org/). All charts automatically adapt to your active VS Code color theme.
 
-![Task Dashboard 1]({{ site.github_image_docs_url }}/features/task-dashboard-1.png)
+![Task Dashboard 1]({{ '/features/task-dashboard-1.png' | prepend: site.github_image_docs_url }})
 
-![Task Dashboard 2]({{ site.github_image_docs_url }}/features/task-dashboard-2.png)
+![Task Dashboard 2]({{ '/features/task-dashboard-2.png' | prepend: site.github_image_docs_url }})
 
-![Task Dashboard 3]({{ site.github_image_docs_url }}/features/task-dashboard-3.png)
+![Task Dashboard 3]({{ '/features/task-dashboard-3.png' | prepend: site.github_image_docs_url }})
 
 ### Charts
 

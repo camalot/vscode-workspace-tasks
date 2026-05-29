@@ -1,5 +1,5 @@
 {
-  "name": "camalot/vscode-workspace-tasks",
+  "name": "camalot/cliff-notes",
   "build": {
     "dockerfile": "Dockerfile",
     "context": "."
@@ -20,8 +20,6 @@
         "terminal.integrated.defaultProfile.linux": "zsh"
       },
       "extensions": [
-        "shopify.ruby-extensions-pack",
-        "misogi.ruby-rubocop",
         "42crunch.vscode-openapi",
         "anthropic.claude-code",
         "bradlc.vscode-tailwindcss",
@@ -115,7 +113,12 @@
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
     // Named volume so shell history (zsh + bash) persists across container rebuilds.
-    "source=vscode-workspace-tasks-zsh-history,target=/home/vscode/.zsh_history,type=volume",
-    "source=vscode-workspace-tasks-claude-persist,target=/home/vscode/.claude-persist,type=volume"
+    "source=cliffnotes-zsh-history,target=/home/vscode/.zsh_history,type=volume",
+    // Bind-mount the persist volume directly at ~/.claude so OAuth credentials, settings, and
+    // session history live on a Docker volume and survive container rebuilds. The sibling file
+    // ~/.claude.json is symlinked into this directory by post-create — its writer in the CLI
+    // passes allowSymlink:true (verified in /usr/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe),
+    // so writes follow the symlink and land in the volume instead of clobbering it.
+    "source=cliffnotes-claude-code-persist,target=/home/vscode/.claude,type=volume"
   ]
 }

@@ -12,19 +12,8 @@ echo -e "${COLOR_GREEN}Installing additional tools...${COLOR_RESET}"
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
 echo ""
 
-# Best-effort snapshot live -> persist on every attach. This now actually works
-# because post-create chowned the persist volume to vscode. The Stop hook in
-# ~/.claude/settings.json keeps the snapshot current within a session; this
-# extra copy covers the case where the Stop hook never fired (extension-only
-# auth flows, hook misconfigured, etc.).
-if [ -d /home/vscode/.claude-persist ]; then
-  [ -f /home/vscode/.claude/.credentials.json ] && \
-    cp -p /home/vscode/.claude/.credentials.json /home/vscode/.claude-persist/.credentials.json || true
-  [ -f /home/vscode/.claude.json ] && \
-    cp -p /home/vscode/.claude.json /home/vscode/.claude-persist/.claude.json || true
-  [ -f /home/vscode/.claude/settings.json ] && \
-    cp -p /home/vscode/.claude/settings.json /home/vscode/.claude-persist/settings.json || true
-fi
+# ~/.claude is now a Docker volume bind-mount, so credentials, settings, and session
+# history persist automatically — no copy-back sync needed here.
 
 # Sweep stale IDE locks left over from previous container/IDE sessions.
 if [ -d /home/vscode/.claude/ide ]; then

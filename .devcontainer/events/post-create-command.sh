@@ -10,46 +10,54 @@ set -euo pipefail
 source "$(dirname "$0")/helpers.sh"
 
 function claude_init() {
-  # The claude-code-persist Docker volume is created as root-owned. Without this
-  # chown, the snapshot copies in post-attach (and the Stop hook in ~/.claude/settings.json)
-  # silently fail because the vscode user can't write into it, so nothing ever persists.
-  sudo chown -R vscode:vscode /home/vscode/.claude-persist || true
+  # The Docker volume bind-mounted at ~/.claude comes up root-owned the first time;
+  # without this chown, the vscode user can't write into it.
+  sudo chown -R vscode:vscode /home/vscode/.claude || true
 
-  mkdir -p /home/vscode/.claude
-  if [ -f /home/vscode/.claude-persist/.credentials.json ]; then
-    cp -p /home/vscode/.claude-persist/.credentials.json /home/vscode/.claude/.credentials.json
-    chmod 600 /home/vscode/.claude/.credentials.json || true
-  fi
-  if [ -f /home/vscode/.claude-persist/.claude.json ]; then
-    cp -p /home/vscode/.claude-persist/.claude.json /home/vscode/.claude.json
-  else
-    echo '{"hasCompletedOnboarding":true}' > /home/vscode/.claude.json
-  fi
-  if [ -f /home/vscode/.claude-persist/settings.json ]; then
-    cp -p /home/vscode/.claude-persist/settings.json /home/vscode/.claude/settings.json
+  # Symlink ~/.claude.json (sibling of ~/.claude/) into the persisted directory so
+  # the file survives rebuilds. The CLI writes .claude.json via an atomic temp+rename
+  # that explicitly passes allowSymlink:true — it readlink()s the symlink, writes the
+  # temp next to the real target, and renames within the persisted directory. So the
+  # symlink itself is never touched by writes.
+  local persisted=/home/vscode/.claude/.claude.json
+  local home_link=/home/vscode/.claude.json
+
+  if ! { [ -L "$home_link" ] && [ "$(readlink "$home_link")" = "$persisted" ]; }; then
+    # If a real file is sitting at the home path (e.g. from the prior copy-based
+    # setup, or a stub written before this code shipped), migrate it.
+    if [ -f "$home_link" ] && [ ! -L "$home_link" ]; then
+      if [ ! -f "$persisted" ]; then
+        command mv -f "$home_link" "$persisted"
+      else
+        command rm -f "$home_link"
+      fi
+    elif [ -L "$home_link" ]; then
+      command rm -f "$home_link"
+    fi
+    # Seed the persisted file if absolutely nothing exists yet.
+    [ -f "$persisted" ] || echo '{"hasCompletedOnboarding":true}' > "$persisted"
+    command ln -sfn "$persisted" "$home_link"
   fi
 
-  # Ensure the Stop hook is present in ~/.claude/settings.json. The hook copies
-  # live auth state to the persist volume after each agent response so OAuth
-  # refreshes survive a container rebuild without needing a detach/reattach cycle.
-  # shellcheck disable=SC2016
-  local hook_cmd='if [ -d "$HOME/.claude-persist" ]; then [ -f "$HOME/.claude/.credentials.json" ] && cp -p "$HOME/.claude/.credentials.json" "$HOME/.claude-persist/.credentials.json" 2>/dev/null; [ -f "$HOME/.claude.json" ] && cp -p "$HOME/.claude.json" "$HOME/.claude-persist/.claude.json" 2>/dev/null; [ -f "$HOME/.claude/settings.json" ] && cp -p "$HOME/.claude/settings.json" "$HOME/.claude-persist/settings.json" 2>/dev/null; fi; exit 0'
+  # Strip the legacy copy-to-.claude-persist Stop hook from settings.json if a
+  # previous container shipped one. Leaves any unrelated hooks alone.
   local settings=/home/vscode/.claude/settings.json
-  [ -f "$settings" ] || echo '{}' > "$settings"
-  local tmp
-  tmp=$(mktemp)
-  # shellcheck disable=SC2015
-  jq --arg cmd "$hook_cmd" '
-    .hooks //= {} |
-    .hooks.Stop //= [] |
-    .hooks.Stop |= (
-      (map(select(
-        (.hooks // []) | any(.command == $cmd)
-      )) as $existing |
-       if ($existing | length) > 0 then .
-       else . + [{matcher: "*", hooks: [{type: "command", command: $cmd}]}] end)
-    )
-  ' "$settings" > "$tmp" && mv "$tmp" "$settings" || rm -f "$tmp"
+  if [ -f "$settings" ] && jq -e '.hooks.Stop // empty' "$settings" >/dev/null 2>&1; then
+    local tmp
+    tmp=$(mktemp)
+    if jq '
+      .hooks.Stop |= (
+        map(.hooks |= map(select((.command // "") | test("\\.claude-persist") | not)))
+        | map(select((.hooks // []) | length > 0))
+      )
+      | if (.hooks.Stop // []) == [] then del(.hooks.Stop) else . end
+      | if (.hooks // {}) == {} then del(.hooks) else . end
+    ' "$settings" > "$tmp"; then
+      command mv -f "$tmp" "$settings"
+    else
+      command rm -f "$tmp"
+    fi
+  fi
 
   # Drop ~/.claude/ide/*.lock entries whose pid is no longer alive so the
   # extension doesn't try to hand a fresh CLI session to a dead websocket.

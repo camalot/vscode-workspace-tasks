@@ -22,7 +22,7 @@ nav_order: 1
 
 This investigation diagnosed and resolved a series of performance bottlenecks in the `getTasks()` pipeline — the code path that runs every time the task tree is loaded or refreshed. On the [test dataset](#test-dataset), the cold load time dropped from **~52,000 ms** to **~795 ms** (~98.5% reduction) across seven targeted fixes.
 
-![Workspace-Tasks Load v1.6.0]({{ site.github_images_url }}/wst-load-v1.6.0.gif){: .vat }
+![Workspace-Tasks Load v1.6.0]({{ '/wst-load-v1.6.0.gif' | prepend: site.github_images_url }}{: .vat }
 
 ---
 
