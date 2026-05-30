@@ -113,7 +113,8 @@
     // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
     // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
     // Named volume so shell history (zsh + bash) persists across container rebuilds.
-    "source=workspace-tasks-zsh-history,target=/home/vscode/.zsh_history,type=volume",
+    // Must target a directory — Docker volumes cannot mount as a single file.
+    "source=workspace-tasks-zsh-history,target=/home/vscode/.zsh-history,type=volume",
     // Bind-mount the persist volume directly at ~/.claude so OAuth credentials, settings, and
     // session history live on a Docker volume and survive container rebuilds. The sibling file
     // ~/.claude.json is symlinked into this directory by post-create — its writer in the CLI

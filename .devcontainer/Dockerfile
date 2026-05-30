@@ -144,17 +144,20 @@ USER ${USERNAME}
 # install user tools
 # hadolint ignore=DL3013
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-  && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
-  && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin" \
   && curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
   && chmod +x "/home/${USERNAME}/bin/codecov" \
   && pip install --no-cache-dir --user pipx --break-system-packages && /home/${USERNAME}/.local/bin/pipx ensurepath && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner rust-just
 
 COPY files/home/vscode/ /home/${USERNAME}/
 
-RUN git clone --depth=1 'https://github.com/romkatv/powerlevel10k.git' "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" \
-  && mkdir -p "/home/${USERNAME}/.antigen" "/home/${USERNAME}/.zsh/custom/aliases" "/home/${USERNAME}/.devcontainer" "/home/${USERNAME}/bin" \
-  && curl -fsSL https://raw.githubusercontent.com/zsh-users/antigen/master/bin/antigen.zsh > "/home/${USERNAME}/.antigen/antigen.zsh"
+RUN mkdir -p "/home/${USERNAME}/.antigen" "/home/${USERNAME}/.zsh/custom/aliases" "/home/${USERNAME}/.devcontainer" "/home/${USERNAME}/bin" "/home/${USERNAME}/.act" \
+  && curl -L git.io/antigen > "/home/${USERNAME}/antigen.zsh" \
+  && ZSH_CUSTOM="/home/${USERNAME}/.oh-my-zsh/custom" \
+  && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
+  && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin" \
+  && chmod +x "/home/${USERNAME}/bin/act" \
+  && ln -s "/home/${USERNAME}/bin/act" "/home/${USERNAME}/.act/act" \
+  && curl -sSL https://install.python-poetry.org | python3 -
 
 # make sure that pnpm is available in the PATH for the vscode user and that the pnpm is up to date.
 RUN export PATH="$HOME/.local/bin:$HOME/.local/share/pnpm/bin:$PATH" \

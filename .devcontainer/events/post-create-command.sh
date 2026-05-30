@@ -115,7 +115,7 @@ claude_init
 source "$(dirname "$0")/install-tools.sh"
 
 jekyll_bundle_prep
-install_antigen_bundles
+# install_antigen_bundles
 install_ohmyposh
 install_sample_tasks
 
