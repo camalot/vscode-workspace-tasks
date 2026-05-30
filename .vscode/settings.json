@@ -230,7 +230,7 @@
   "workspaceTasks.applicationPath.act": "/home/vscode/bin/act",
   "workspaceTasks.enabledTaskTypes": {
     "ant": false,
-    "ruby": false,
+    "ruby": true,
     "cake": false,
     "composer": false,
     "cargo-make": false,
@@ -277,5 +277,9 @@
     "**/.devcontainer/**",
     "**/docs/**"
   ],
-  "coverlens.diffBase": "origin/develop"
+  "coverlens.diffBase": "origin/develop",
+  "workspaceTasks.groups.taskSeparatorIsRegex": true,
+  "workspaceTasks.groups.taskSeparator": "[:\\/]",
+  "workspaceTasks.groups.useParentFolder": true,
+  "npm.packageManager": "pnpm"
 }
