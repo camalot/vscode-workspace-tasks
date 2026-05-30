@@ -53,7 +53,7 @@ RUN curl -fsSL "https://deb.nodesource.com/setup_25.x" | bash - \
   && apt-get install -y nodejs \
   && apt-get remove -y yarn \
   && node -v \
-  && npm install -g npm pnpm yarn \
+  && npm install -g npm pnpm yarn git-cliff @anthropic-ai/claude-code \
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
   && export NVM_DIR="/home/${USERNAME}/.nvm" \
   && for i in 1 2 3 4 5; do \
@@ -104,8 +104,8 @@ RUN PWSH_TAG=$(curl -s "https://api.github.com/repos/PowerShell/PowerShell/relea
   && ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/powershell \
   && rm /tmp/powershell.tar.gz \
   && curl -fsSL https://gh.io/copilot-install | bash \
-  && curl -fsSL https://mise.run | MISE_INSTALL_PATH=/usr/local/bin/mise sh \
-  && curl -fsSL https://claude.ai/install.sh | bash
+  && curl -fsSL https://mise.run | MISE_INSTALL_PATH=/usr/local/bin/mise sh
+  # && curl -fsSL https://claude.ai/install.sh | bash
 
 # Install dotnet - used for supporting Cake build scripts
 RUN curl -fsSL https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -o /tmp/packages-microsoft-prod.deb \

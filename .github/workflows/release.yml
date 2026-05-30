@@ -26,14 +26,19 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '25.x'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Get Current Version
         id: current_version
@@ -49,7 +54,7 @@ jobs:
       - name: Get Next Version
         id: next_version
         run: |
-          NEXT_VERSION="$(npx git-cliff --bumped-version)"
+          NEXT_VERSION="$(pnpm exec git-cliff --bumped-version)"
           # if $NEXT_VERSION starts with v do not add
           if [[ "$NEXT_VERSION" == v* ]]; then
             NEXT_VERSION="${NEXT_VERSION:1}"
@@ -76,15 +81,15 @@ jobs:
           CURRENT_VERSION: ${{ steps.current_version.outputs.current_version }}
 
       - name: Run Tests
-        run: npm run test
+        run: pnpm run test
 
       - name: Build
-        run: npm run compile
+        run: pnpm run compile
 
       - name: Generate Changelog
         run: |
-          npm version "${VERSION}" --no-git-tag-version
-          npx git-cliff --tag "${TAG}" --output "CHANGELOG.md"
+          pnpm version "${VERSION}" --no-git-tag-version
+          pnpm exec git-cliff --tag "${TAG}" --output "CHANGELOG.md"
           cat "CHANGELOG.md" >> "$GITHUB_STEP_SUMMARY"
         env:
           VERSION: ${{ steps.tag.outputs.version }}
@@ -93,7 +98,7 @@ jobs:
       - name: Package VSIX
         run: |
           mkdir -p dist
-          npm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+          pnpm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
         env:
           VERSION: ${{ steps.tag.outputs.version }}
 
@@ -102,7 +107,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "CHANGELOG.md" "package.json" "package-lock.json"
+          git add "CHANGELOG.md" "package.json" "pnpm-lock.yaml"
           git commit -m "chore(release): ${VERSION} 🚀" || echo "No changes to commit"
           git tag "${TAG}" || echo "Tag already exists"
           git push origin HEAD --tags
@@ -133,7 +138,7 @@ jobs:
             exit 1
           fi
           echo -e "\e[32mVSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))\e[0m"
-          npx vsce ls --tree
+          pnpm exec vsce ls --tree
         env:
           VERSION: ${{ steps.tag.outputs.version }}
 

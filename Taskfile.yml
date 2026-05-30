@@ -10,5 +10,5 @@ tasks:
   test:
     desc: run tests
     cmds:
-      - npm test
+      - pnpm test
     silent: true

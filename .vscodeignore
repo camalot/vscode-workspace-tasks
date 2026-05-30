@@ -16,7 +16,7 @@ super-linter-output/
 Taskfile.yml
 playwright/**
 playwright.config.{ts,mjs,cjs}
-
+.pnpm-store/
 
 # IGNORE THIS FOR NOW
 res/config/workspace-tasks.yaml
@@ -54,6 +54,7 @@ DEVELOPMENT.md
 CONTRIBUTING.md
 docs/
 node_modules/
+.pnpm-store/
 ROADMAP.md
 src/
 out/

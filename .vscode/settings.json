@@ -128,6 +128,7 @@
     "noview",
     "NSIS",
     "nvmrc",
+    "ohmyposh",
     "ompound",
     "openvsx",
     "pantera",
@@ -255,7 +256,9 @@
     "typescript": false,
     "vscode": false,
     "bitbucket": false,
-    "gitlab-ci": false
+    "gitlab-ci": false,
+    "npm": false,
+    "pnpm": true
   },
   "workspaceTasks.groups.justfile.enabled": true,
   "workspaceTasks.groups.recentTasks.enabled": false,

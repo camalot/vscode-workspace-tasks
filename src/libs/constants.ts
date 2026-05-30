@@ -15,8 +15,8 @@ const constants: Record<string, any> = {
 
   DEFAULT_TASK_GROUP_SEPARATOR: '',
 
-  GLOB_GLOBAL_EXCLUDE: '**/node_modules/**,**/.git/**,**/__pycache__/**,**/vendor/bundle/**',
-  GLOB_EXTENSIONLESS_EXCLUDE: '**/node_modules/**,**/.git/**,**/.venv/**,**/dist/**,**/out/**,**/build/**,**/coverage/**,**/.vscode/**,**/.vscode-test/**,**/vendor/bundle/**',
+  GLOB_GLOBAL_EXCLUDE: '**/node_modules/**,**/.git/**,**/__pycache__/**,**/vendor/bundle/**,.pnpm-store/**',
+  GLOB_EXTENSIONLESS_EXCLUDE: '**/node_modules/**,**/.git/**,**/.venv/**,**/dist/**,**/out/**,**/build/**,**/coverage/**,**/.vscode/**,**/.vscode-test/**,**/vendor/bundle/**,.pnpm-store/**',
   GLOB_SHELL_EXCLUDE: '**/.venv/**',
 
   // should match:

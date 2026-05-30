@@ -1,18 +1,18 @@
 {
-  "name": "Workspace Tasks Dev",
+  "name": "camalot/cliff-notes",
   "build": {
     "dockerfile": "Dockerfile",
     "context": "."
   },
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "moby": false,
-      "dockerDashCompose": "v2"
-    }
-    // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+    // "ghcr.io/devcontainers/features/docker-in-docker:2": {
     //   "moby": false,
-    //   "installDockerBuildx": true
+    //   "dockerDashCompose": "v2"
     // }
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false,
+      "installDockerBuildx": true
+    }
   },
   "customizations": {
     "vscode": {
@@ -20,48 +20,105 @@
         "terminal.integrated.defaultProfile.linux": "zsh"
       },
       "extensions": [
+        "42crunch.vscode-openapi",
         "anthropic.claude-code",
-        "ms-playwright.playwright",
-        "shopify.ruby-lsp",
-        "shopify.theme-check-vscode",
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "iliazeus.vscode-ansi",
-        "samuelcolvin.jinjahtml",
-        "streetsidesoftware.code-spell-checker",
-        "jasonnutter.vscode-codeowners",
-        "mikestead.dotenv",
-        "ms-vscode.powershell",
-        "dotenv.dotenv-vscode",
-        "darthminos.workspace-tasks",
-        "DavidAnson.vscode-markdownlint",
-        "GitHub.vscode-github-actions",
-        "github.copilot-chat",
-        "mads-hartmann.bash-ide-vscode",
-        "mkhl.shfmt",
-        "ms-azuretools.vscode-docker",
-        "ms-vscode.makefile-tools",
+        "bradlc.vscode-tailwindcss",
+        "arjun.swagger-viewer",
         "bierner.github-markdown-preview",
+        "bierner.markdown-checkbox",
+        "bierner.markdown-emoji",
+        "bierner.emojisense",
+        "bierner.markdown-footnotes",
+        "bierner.markdown-mermaid",
+        "bierner.markdown-preview-github-styles",
+        "bierner.markdown-yaml-preamble",
+        "yahyabatulu.vscode-markdown-alert",
+        // https://marketplace.visualstudio.com/publishers/bierner
+        "casualjim.gotemplate",
+        "christian-kohler.path-intellisense",
+        "cssho.vscode-svgviewer",
+        "dandric.vscode-jq",
+        "darthminos.musicbee-remote",
+        "darthminos.workspace-tasks",
+        "davidanson.vscode-markdownlint",
+        "davidnussio.vscode-jq-playground",
+        "dbaeumer.vscode-eslint",
+        "docker.docker",
+        "donjayamanne.githistory",
+        "dotenv.dotenv-vscode",
+        "eamodio.gitlens",
+        "ecmel.vscode-html-css",
         "editorconfig.editorconfig",
+        "esbenp.prettier-vscode",
+        "exiasr.hadolint",
+        "fogio.coverlens",
+        "golang.go",
+        "iciclesoft.workspacesort",
         "igorsbitnev.error-gutters",
-        "timonwong.shellcheck",
+        "iliazeus.vscode-ansi",
+        "jasonnutter.vscode-codeowners",
+        "jeff-hykin.polacode-2019",
+        "johnpapa.vscode-peacock",
+        "jq-syntax-highlighting.jq-syntax-highlighting",
+        "miguelsolorio.fluent-icons",
+        "mikestead.dotenv",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-playwright.playwright",
+        "ms-python.black-formatter",
+        "ms-python.debugpy",
+        "ms-python.flake8",
+        "ms-python.isort",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.remote-ssh",
+        "ms-vscode-remote.remote-ssh-edit",
+        "ms-vscode-remote.remote-wsl",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "ms-vscode.atom-keybindings",
+        "ms-vscode.powershell",
+        "ms-vscode.remote-explorer",
+        "ms-vscode.remote-server",
+        "ms-vscode.vs-keybindings",
+        "pamaron.pytest-runner",
+        "pkief.material-icon-theme",
+        "redhat.vscode-yaml",
+        "ronnidc.nunjucks",
+        "samuelcolvin.jinjahtml",
+        "spywhere.guides",
+        "streetsidesoftware.code-spell-checker",
+        "stylelint.vscode-stylelint",
         "tamasfe.even-better-toml",
-        "fogio.coverlens"
+        "tim-koehler.helm-intellisense",
+        "timonwong.shellcheck",
+        "usernamehw.errorlens",
+        "vscode-icons-team.vscode-icons",
+        "vue.volar",
+        "wholroyd.jinja"
       ]
     }
   },
-  "postCreateCommand": "[ -f .devcontainer/install-tools.sh ] && chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
+  "postCreateCommand": "[ -f .devcontainer/events/post-create-command.sh ] && chmod +x .devcontainer/events/post-create-command.sh && .devcontainer/events/post-create-command.sh",
+  "postAttachCommand": "[ -f .devcontainer/events/post-attach-command.sh ] && chmod +x .devcontainer/events/post-attach-command.sh && .devcontainer/events/post-attach-command.sh",
   "remoteUser": "vscode",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
   "mounts": [
-    // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/_ssh,type=bind,consistency=cached",
     // if this doesn't exist locally, it creates it as a folder...
     // to combat this, a default is loaded into the container
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
     "source=${localWorkspaceFolder}/.devcontainer/mount,target=/home/vscode/.devcontainer,type=bind,consistency=cached",
+    // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
+    // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
     // Named volume so shell history (zsh + bash) persists across container rebuilds.
-    "source=vscode-workspace-tasks-zsh-history,target=/home/vscode/.zsh-history,type=volume"
+    "source=workspace-tasks-zsh-history,target=/home/vscode/.zsh_history,type=volume",
+    // Bind-mount the persist volume directly at ~/.claude so OAuth credentials, settings, and
+    // session history live on a Docker volume and survive container rebuilds. The sibling file
+    // ~/.claude.json is symlinked into this directory by post-create — its writer in the CLI
+    // passes allowSymlink:true (verified in /usr/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe),
+    // so writes follow the symlink and land in the volume instead of clobbering it.
+    "source=workspace-tasks-claude-code-persist,target=/home/vscode/.claude,type=volume"
   ]
 }
