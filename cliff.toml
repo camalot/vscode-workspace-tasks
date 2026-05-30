@@ -188,9 +188,9 @@ body = """
 
 {%- macro print_commit(commit) -%}
   {{ self::unquote(input=commit.message) | upper_first | trim }}
-  {%- if commit.links -%} {% for link in commit.links %}[{{ link.text }}]({{ link.href }}) {% endfor -%}{%- endif -%}
+  {%- if commit.links -%} {% for link in commit.links %} [{{ link.text }}]({{ link.href }}) {% endfor -%}{%- endif -%}
   {%- if commit.remote -%}
-    {%- if commit.remote.pr_number %}{{ "[!#!" ~ commit.remote.pr_number ~ "](<REPO>/issues/" ~ commit.remote.pr_number ~ ")"}}{% endif %}
+    {%- if commit.remote.pr_number %}{{ " [!#!" ~ commit.remote.pr_number ~ "](<REPO>/issues/" ~ commit.remote.pr_number ~ ") "}}{% endif %}
     {%- if commit.remote.username %} -
         {%- if commit.remote.is_first_time %} ❤️{%- endif -%}
         {{ self::user_url(name=commit.remote.username) }}
@@ -352,3 +352,5 @@ topo_order_commits = true
 sort_commits = "oldest"
 # Process submodules commits
 recurse_submodules = false
+
+tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+$"
