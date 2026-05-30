@@ -17,16 +17,6 @@ alias .7='cd -7'
 alias .8='cd -8'
 alias .9='cd -9'
 
-# function expand-dots() {
-#   if [[ $LBUFFER =~ '\.\.\.+$' ]]; then
-#     LBUFFER+='/..'
-#   else
-#     LBUFFER+='.'
-#   fi
-# }
-# zle -N expand-dots
-# bindkey '.' expand-dots
-
 alias dev='cd /workspace'
 alias ws='cd /workspace'
 

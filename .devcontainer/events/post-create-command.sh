@@ -4,7 +4,7 @@
 # the dev container that can't be installed during the image build (because the
 # workspace isn't mounted yet).
 
-set -xeuo pipefail
+set -euo pipefail
 
 # shellcheck disable=SC1091
 source "$(dirname "$0")/helpers.sh"
@@ -118,7 +118,6 @@ jekyll_bundle_prep
 install_antigen_bundles
 install_ohmyposh
 install_sample_tasks
-
 
 echo ""
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
