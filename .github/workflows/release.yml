@@ -15,9 +15,49 @@ env:
   PACKAGE_OWNER: 'darthminos'
   PACKAGE_NAME: 'workspace-tasks'
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    outputs:
+      ver_major_minor_patch: ${{ steps.get.outputs.major_minor_patch }}
+      ver_major_minor: ${{ steps.get.outputs.major_minor }}
+      ver_major: ${{ steps.get.outputs.major }}
+      tag: ${{ steps.get.outputs.tag_major_minor_patch }}
+      tag_major: ${{ steps.get.outputs.tag_major }}
+      tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
+      tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Determine next version
+        id: get
+        uses: camalot/actions/version/get@v1
+        with:
+          default_version: v1.0.0
+          fail_on_default: true
+          enable_pr_comment: true
+          token: ${{ github.token }}
+      - run: |
+          echo "next version: ${TAG}"
+        env:
+          TAG: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VERSION: ${{ steps.get.outputs.major_minor_patch }}
+          TAG_MAJOR: ${{ steps.get.outputs.tag_major }}
+          TAG_MAJOR_MINOR: ${{ steps.get.outputs.tag_major_minor }}
+          TAG_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VER_MAJOR: ${{ steps.get.outputs.major }}
+          VER_MAJOR_MINOR: ${{ steps.get.outputs.major_minor }}
+          VER_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.major_minor_patch }}
+
   publish-vscode-marketplace:
     runs-on: ubuntu-latest
     environment: production
+    needs:
+      - version
     permissions:
       contents: write
     steps:
@@ -40,46 +80,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Get Current Version
-        id: current_version
-        run: |
-          CURRENT_VERSION="$(node -p "require('./package.json').version")"
-          # if $CURRENT_VERSION starts with v do not add
-          if [[ "$CURRENT_VERSION" == v* ]]; then
-            CURRENT_VERSION="${CURRENT_VERSION:1}"
-          fi
-
-          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Get Next Version
-        id: next_version
-        run: |
-          NEXT_VERSION="$(pnpm exec git-cliff --bumped-version)"
-          # if $NEXT_VERSION starts with v do not add
-          if [[ "$NEXT_VERSION" == v* ]]; then
-            NEXT_VERSION="${NEXT_VERSION:1}"
-          fi
-
-          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Clean Version and Tag
-        id: tag
-        run: |
-          if [[ -z "$VERSION" ]]; then
-            echo "VERSION is empty, using current version"
-            VERSION="${CURRENT_VERSION}"
-          fi
-          if [[ "$VERSION" == v* ]]; then
-            VERSION="${VERSION:1}"
-          fi
-
-          TAG="v${VERSION}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-        env:
-          VERSION: ${{ steps.next_version.outputs.next_version }}
-          CURRENT_VERSION: ${{ steps.current_version.outputs.current_version }}
-
       - name: Run Tests
         run: pnpm run test
 
@@ -92,15 +92,15 @@ jobs:
           pnpm exec git-cliff --tag "${TAG}" --output "CHANGELOG.md"
           cat "CHANGELOG.md" >> "$GITHUB_STEP_SUMMARY"
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
+          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
 
       - name: Package VSIX
         run: |
           mkdir -p dist
           pnpm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
       # COMMIT VERSION AND CHANGELOG
       - name: Commit Version and Changelog
@@ -112,8 +112,8 @@ jobs:
           git tag "${TAG}" || echo "Tag already exists"
           git push origin HEAD --tags
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
+          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
 
       - name: Create GitHub Release
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -125,8 +125,8 @@ jobs:
             echo -e "\e[33mRelease $TAG already exists.\e[0m"
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.tag.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
 
       - name: Verify VSIX file exists
         run: |
@@ -140,7 +140,7 @@ jobs:
           echo -e "\e[32mVSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))\e[0m"
           pnpm exec vsce ls --tree
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
       - name: Publish to Open VSX Registry
         uses: HaaLeo/publish-vscode-extension@v2
@@ -150,7 +150,7 @@ jobs:
           skipDuplicate: true
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
           OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
       - name: Publish to Visual Studio Marketplace
@@ -161,7 +161,7 @@ jobs:
           skipDuplicate: true
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
           VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Upload VSIX to release
@@ -174,9 +174,9 @@ jobs:
           gh release upload "${TAG}" "$VSIX" --repo "${{ github.repository }}" --clobber
           echo -e "\e[32mVSIX uploaded to release $TAG\e[0m"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.tag.outputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
+          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7

@@ -1,5 +1,5 @@
 {
-  "name": "camalot/cliff-notes",
+  "name": "camalot/vscode-workspace-tasks",
   "build": {
     "dockerfile": "Dockerfile",
     "context": "."

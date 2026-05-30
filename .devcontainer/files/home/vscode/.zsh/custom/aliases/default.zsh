@@ -71,20 +71,20 @@ alias whatsmyip="dig +short myip.opendns.com @resolver1.opendns.com"
 alias ifconfigme="curl -s ifconfig.me"
 alias ips="ip addr show | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 # Canonical hex dump; some systems have this symlinked
-command -v hd > /dev/null || alias hd="hexdump -C"
+command -v hd >/dev/null || alias hd="hexdump -C"
 
 # macOS has no `md5sum`, so use `md5` as a fallback
-command -v md5sum > /dev/null || alias md5sum="md5"
+command -v md5sum >/dev/null || alias md5sum="md5"
 
 # macOS has no `sha1sum`, so use `shasum` as a fallback
-command -v sha1sum > /dev/null || alias sha1sum="shasum"
+command -v sha1sum >/dev/null || alias sha1sum="shasum"
 
-command -v sha256sum > /dev/null || alias sha256sum="shasum -a 256"
+command -v sha256sum >/dev/null || alias sha256sum="shasum -a 256"
 
-command -v bat   >/dev/null && alias cat='bat --paging=never'
-command -v btop  >/dev/null && alias top='btop'
+command -v bat >/dev/null && alias cat='bat --paging=never'
+command -v btop >/dev/null && alias top='btop'
 
 # Intuitive map function
 # For example, to list all directories that contain a certain file:
 # find . -name .gitattributes | map dirname
-alias map="xargs -n1";
+alias map="xargs -n1"

@@ -4,6 +4,8 @@ extends: default
 ignore:
   # ignore helm templates
   - '/github/workspace/templates/*.yaml'
+  - pnpm-lock.yaml
+  - pnpm-workspace.yaml
 
 yaml-files:
   - '*.yaml'
