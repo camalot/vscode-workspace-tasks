@@ -11,6 +11,8 @@ env:
   ACT: ""
   VS_MARKETPLACE_TOKEN: ""
   OPEN_VSX_TOKEN: ""
+  GIT_USER_NAME: 'github-actions[bot]'
+  GIT_USER_EMAIL: '41898282+github-actions[bot]@users.noreply.github.com'
 jobs:
   version:
     runs-on: ubuntu-latest
@@ -256,6 +258,17 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
+      - name: Configure git
+        shell: bash
+        run: |
+          echo "::group::Configure git user"
+          git config user.name  "${GIT_USER_NAME}"
+          git config user.email "${GIT_USER_EMAIL}"
+          gh auth setup-git
+          echo "::endgroup::"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -276,6 +289,18 @@ jobs:
           pnpm run compile
           echo "::endgroup::"
 
+      - name: Prepare package.json file
+        # we do not commit here. The release call does a commit.
+        # if it fails, then we don't commit this change
+        run: |
+          echo "::group::Prepare package.json"
+          yq eval --inplace ".version = \"${VERSION}\"" package.json
+          git add package.json
+          git commit -m "chore(release): update package version to ${VERSION}"
+          echo "::endgroup::"
+        env:
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
+
       - name: Package VSIX
         run: |
           echo "::group::Packaging VSIX"
@@ -294,8 +319,9 @@ jobs:
           token: ${{ github.token }}
         env:
           UPDATE_FILE_CHANGELOG: "CHANGELOG.md"
-          PACKAGE_JSON_FILE: "package.json"
-          UPDATE_FILE_JEKYLL_CONFIG : "docs/_config.yml"
+          # we update in this so fake file name here
+          UPDATE_FILE_PACKAGE_JSON: "fake-ignore-package.json"
+          UPDATE_FILE_JEKYLL_CONFIG: "docs/_config.yml"
 
       - name: Verify VSIX file exists
         run: |
