@@ -64,7 +64,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: ./.github/workflows/lint@${{ github.ref_name }}
+      - uses: ./.github/workflows/lint
 
   test:
 
@@ -78,4 +78,4 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: ./.github/workflows/test@${{ github.ref_name }}
+      - uses: ./.github/workflows/test
