@@ -104,7 +104,7 @@
     "vscode:headless:test": "xvfb-run -a vscode-test",
     "vscode:headless:test:coverage": "xvfb-run -a vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
     "vscode:test": "pnpm run pretest && vscode-test",
-    "vscode:test:coverage": "pnpm run pretest && vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --coverage-reporter junit --verbose",
+    "vscode:test:coverage": "pnpm run pretest && vscode-test --coverage --coverage-output ./coverage --coverage-reporter lcov --verbose",
     "package": "pnpm run package:vsix",
     "package:prerelease": "pnpm run package:webpack && pnpm run package:vsix:prerelease",
     "package:webpack": "webpack --mode production --devtool hidden-source-map",

@@ -72,6 +72,7 @@ jobs:
       - uses: ./.github/workflows/lint
         with:
           github-token: ${{ github.token }}
+          enable_pr_comment: ${{ github.event_name == 'pull_request' }}
 
   test:
 

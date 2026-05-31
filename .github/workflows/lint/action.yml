@@ -6,6 +6,10 @@ inputs:
     description: 'GitHub Token'
     required: true
     default: ${{ github.token }}
+  enable_pr_comment:
+    description: 'Enable PR comment'
+    required: false
+    default: 'true'
 runs:
   using: "composite"
   steps:
@@ -20,6 +24,5 @@ runs:
         super_linter_env_file: .github/linters/super-linter.env
         validate_all_codebase: true
         delete_previous_comment: true
-        default_branch: ${{ github.ref_name }}
       env:
-        ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: true
+        ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: ${{ inputs.enable_pr_comment }}
