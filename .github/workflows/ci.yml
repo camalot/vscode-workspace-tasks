@@ -98,4 +98,4 @@ jobs:
         run: pnpm run package:vsix
 
       - name: VSIX Information
-        run: pnpm exec vsce ls --tree
+        run: pnpm exec vsce ls --tree --no-dependencies
