@@ -252,6 +252,10 @@ jobs:
       statuses: write
       issues: write
       pull-requests: write
+      deployments: write
+      artifact-metadata: write
+      checks: write
+      packages: write
     steps:
       - uses: actions/checkout@v6
         with:
