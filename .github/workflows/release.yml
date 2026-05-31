@@ -280,7 +280,7 @@ jobs:
         run: |
           echo "::group::Packaging VSIX"
           mkdir -p dist
-          pnpm run package:vsix --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+          pnpm exec vsce package --no-dependencies --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
           echo "::endgroup::"
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
