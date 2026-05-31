@@ -43,7 +43,7 @@ runs:
       run: xvfb-run -a pnpm run test:coverage
 
     - name: Coverage Report
-      uses: camalot/actions/coverage@v1
+      uses: camalot/actions/smells/test/coverage@v1
       with:
         coverage_file: coverage/lcov.info
         junit_file: coverage/junit.xml

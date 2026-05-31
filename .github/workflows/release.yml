@@ -15,8 +15,6 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     environment: production
-    needs:
-      - version
     permissions:
       contents: read
       statuses: write
