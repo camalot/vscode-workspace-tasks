@@ -317,9 +317,11 @@ jobs:
         run: |
           set -euo pipefail
           echo "::group::Capture pre-release state (for rollback)"
-          echo "head_sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
-          echo "tag_major_sha=$(git ls-remote origin "refs/tags/${TAG_MAJOR}" | awk 'NR==1{print $1}')" >> "${GITHUB_OUTPUT}"
-          echo "tag_major_minor_sha=$(git ls-remote origin "refs/tags/${TAG_MAJOR_MINOR}" | awk 'NR==1{print $1}')" >> "${GITHUB_OUTPUT}"
+          {
+            echo "head_sha=$(git rev-parse HEAD)"
+            echo "tag_major_sha=$(git ls-remote origin "refs/tags/${TAG_MAJOR}" | awk 'NR==1{print $1}')"
+            echo "tag_major_minor_sha=$(git ls-remote origin "refs/tags/${TAG_MAJOR_MINOR}" | awk 'NR==1{print $1}')"
+          } >> "${GITHUB_OUTPUT}"
           echo "::endgroup::"
         env:
           TAG_MAJOR: ${{ needs.version.outputs.tag_major }}
