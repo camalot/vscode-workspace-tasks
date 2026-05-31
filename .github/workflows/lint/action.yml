@@ -4,11 +4,6 @@ description: Lint the codebase using Super-Linter
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-        persist-credentials: false
-
     - name: Prepare Super-Linter log directory
       shell: bash
       run: mkdir -p reports/super-linter

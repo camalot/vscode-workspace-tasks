@@ -152,6 +152,11 @@ jobs:
       issues: write
       pull-requests: write
     steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
       - uses: ./.github/workflows/lint
 
   test:
@@ -165,6 +170,11 @@ jobs:
       issues: write
       pull-requests: write
     steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
       - uses: ./.github/workflows/test
 
   publish-vscode-marketplace:

@@ -4,11 +4,6 @@ description: Run the test suite with coverage
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-        persist-credentials: false
-
     - uses: pnpm/action-setup@v6
       with:
         run_install: false
