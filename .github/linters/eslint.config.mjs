@@ -23,6 +23,7 @@ export default defineConfig([
   globalIgnores([
     '!**/.*',
     '**/node_modules/.*',
+    '**/.pnpm-store/.*',
     '**/sample.devcontainer.json',
     '**/devcontainer.json',
     '**/.vscode/tasks.json',

@@ -23,16 +23,20 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run compile && npm run pretest
+        run: pnpm run compile && pnpm run pretest
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
@@ -42,7 +46,7 @@ jobs:
           libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
 
       - name: Test
-        run: xvfb-run -a npx vscode-test #-- \
+        run: xvfb-run -a pnpm exec vscode-test #-- \
         # --run ./out/test/suite/taskFilesService.test.js \
         # --run ./out/test/suite/poetry.test.js \
         # --run ./out/test/suite/taskTreeDataProvider.test.js

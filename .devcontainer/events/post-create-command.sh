@@ -111,6 +111,14 @@ echo ""
 fix_ssh_permissions
 claude_init
 
+# shellcheck disable=SC1091
+source "$(dirname "$0")/install-tools.sh"
+
+jekyll_bundle_prep
+# install_antigen_bundles
+install_ohmyposh
+install_sample_tasks
+
 echo ""
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
 echo -e "${COLOR_GREEN}Post-create setup script completed successfully!${COLOR_RESET}"

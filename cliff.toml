@@ -1,75 +1,291 @@
 # git-cliff ~ configuration file
 # https://git-cliff.org/docs/configuration
 
+#####################################################################
+#
+# Works for any remote.
+#
+# Change the [remote.*] section to match your remote information
+# Update REMOTE_URL and <REPO> in the postprocessors section
+#
+#####################################################################
+
+[remote.github]
+owner = "camalot"
+repo = "vscode-workspace-tasks"
 
 [changelog]
+footer = """
+  <!-- https://cliff-notes.dev#new=true&template=cliff-notes-remote.toml -->
+  _💙 [cliff.toml](https://git-cliff.org) designed in [cliff-notes](https://cliff-notes.dev)_
+"""
 # A Tera template to be rendered for each release in the changelog.
 # See https://keats.github.io/tera/docs/#introduction
 body = """
-{% if version %}\
-    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
-{% else %}\
-    ## [unreleased]
-{% endif %}\
-{% for group, commits in commits | group_by(attribute="group") %}
-    ### {{ group | striptags | trim | upper_first }}
-    {% for commit in commits %}
-        - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
-            {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first }}\
-            {% if commit.remote.username %} by @{{ commit.remote.username }}{%- endif -%}
-            {% if commit.remote.pr_number %} in \
-              [#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }}) \
-            {%- endif %}
-    {% endfor %}
-{% endfor %}
-{%- if github -%}
-{% if github.contributors | filter(attribute="is_first_time", value=true) | length != 0 %}
-  {% raw %}\n{% endraw -%}
-  ### New Contributors
-{%- endif %}\
-{% for contributor in github.contributors | filter(attribute="is_first_time", value=true) %}
-  * @{{ contributor.username }} made their first contribution
-    {%- if contributor.pr_number %} in \
-      [#{{ contributor.pr_number }}]({{ self::remote_url() }}/pull/{{ contributor.pr_number }}) \
-    {%- endif %}
-{%- endfor -%}
-{%- endif -%}
-{% if version %}
-    {% if previous.version %}
-      **Full Changelog**: {{ self::remote_url() }}/compare/{{ previous.version }}...{{ version }}
-    {% endif %}
-{% else -%}
-  {% raw %}\n{% endraw %}
-{% endif %}
+{#- HEADERS -#}
+{%- set HEADER_NEW_CONTRIBUTORS = "❤️ New Contributors" -%}
+{%- set HEADER_CONTRIBUTORS = "💛 Contributors" -%}
+{%- set HEADER_STATISTICS = "📈 Commit Statistics"-%}
+{%- set HEADER_NO_SCOPE = "General" -%}
+{#- HEADERS END -#}
+
+{#- VARIABLES -#}
+{%- set CONTRIBUTOR_COUNT = 0 -%}
+{%- set SHOW_STATISTICS = true -%}
+{%- set SHOW_CHART = true -%}
+{%- set SHOW_CONTRIBUTORS = true -%}
+{%- set GROUP_BY_SCOPE = true -%}
+{#- VARIABLES END -#}
+
+{#- MACROS -#}
+{%- macro unquote(input) -%}
+  {{ input | trim_start_matches(pat='"') | trim_end_matches(pat='"') | trim_start_matches(pat="'") | trim_end_matches(pat="'")}}
+{%- endmacro -%}
 
 {%- macro remote_url() -%}
   {% if remote.github.owner and remote.github.repo -%}
-    https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+    {{ "<REMOTE_URL>/" ~ remote.github.owner ~ "/" ~ remote.github.repo -}}
+  {% elif remote.azure_devops.owner and remote.azure_devops.repo -%}
+    {{ "<REMOTE_URL>/" ~ remote.azure_devops.owner ~ "/" ~ remote.azure_devops.repo -}}
+  {% elif remote.bitbucket.owner and remote.bitbucket.repo -%}
+    {{ "<REMOTE_URL>/" ~ remote.bitbucket.owner ~ "/" ~ remote.bitbucket.repo -}}
+  {% elif remote.gitlab.owner and remote.gitlab.repo -%}
+    {{ "<REMOTE_URL>/" ~ remote.gitlab.owner ~ "/" ~ remote.gitlab.repo -}}
+  {% elif remote.gitea.owner and remote.gitea.repo -%}
+    {{ "<REMOTE_URL>/" ~ remote.gitea.owner ~ "/" ~ remote.gitea.repo -}}
   {%- else -%}
-    https://github.com/camalot/vscode-workspace-tasks
+    {%- raw -%}<REPO>{%- endraw -%}
   {%- endif -%}
 {%- endmacro -%}
+
+{%- macro user_url(name) -%}
+  [@{{name | lower }}](<REMOTE_URL>/{{name | lower }})
+{%- endmacro -%}
+
+{%- macro get_remote_header() -%}
+  {% if remote.github.owner and remote.github.repo %}
+    ## GitHub
+  {% elif remote.bitbucket.owner and remote.bitbucket.repo %}
+    ## BitBucket
+  {% elif remote.gitlab.owner and remote.gitlab.repo %}
+    ## GitLab
+  {% elif remote.azure_devops.owner and remote.azure_devops.repo %}
+    ## Azure DevOps
+  {% elif remote.gitea.owner and remote.gitea.repo %}
+    ## Gitea
+  {% endif %}
+{%- endmacro -%}
+
+{%- macro full_changelog_url() -%}
+  {%- if remote.github.owner and remote.github.repo %}
+    \n---\n
+    \n**Full Changelog**: {{ self::remote_url() }}/compare/{{ previous.version }}...{{version}}
+  {%- elif remote.bitbucket.owner and remote.bitbucket.repo %}
+    {{ " " }}
+  {%- elif remote.gitlab.owner and remote.gitlab.repo %}
+    {{ " " }}
+  {%- elif remote.azure_devops.owner and remote.azure_devops.repo %}
+    {{ " " }}
+  {%- elif remote.gitea.owner and remote.gitea.repo %}
+    {{ " " }}
+  {%- endif %}
+{%- endmacro -%}
+
+{%- macro print_remote(new_contrib_header, contrib_header) %}
+  {{ self::get_remote_header() }}
+  {%- if remote.github.repo and remote.github.owner %}{%- set r = github -%}{%- endif -%}
+  {%- if remote.bitbucket.repo and remote.bitbucket.owner %}{%- set r = bitbucket -%}{%- endif -%}
+  {%- if remote.gitea.repo and remote.gitea.owner %}{%- set r = gitea -%}{%- endif -%}
+  {%- if remote.azure_devops.repo and remote.azure_devops.owner %}{%- set r = azure_devops -%}{%- endif -%}
+  {%- if remote.gitlab.repo and remote.gitlab.owner %}{%- set r = gitlab -%}{%- endif -%}
+  {%- if r and r.contributors -%}
+    {%- set new_contributors = r.contributors | filter(attribute="is_first_time", value=true) -%}
+    {%- set contributors = r.contributors | filter(attribute="is_first_time", value=false) -%}
+    {%- if new_contributors | length > 0 %}
+      ### {{ new_contrib_header }}
+      {{ self::print_contributors(contributors=new_contributors) }}\n\n
+    {%- endif %}
+    {%- if contributors | length > 0 %}
+      ### {{ contrib_header }}\n
+      {{ self::print_contributors(contributors=contributors) }}\n\n
+    {%- endif %}
+  {%- endif %}
+{%- endmacro -%}
+
+{%- macro count_contributors() -%}
+  {%- set contrib_count = 0 -%}
+  {%- if remote.github.repo and remote.github.owner %}{%- set r = github -%}{%- endif -%}
+  {%- if remote.bitbucket.repo and remote.bitbucket.owner %}{%- set r = bitbucket -%}{%- endif -%}
+  {%- if remote.gitea.repo and remote.gitea.owner %}{%- set r = gitea -%}{%- endif -%}
+  {%- if remote.azure_devops.repo and remote.azure_devops.owner %}{%- set r = azure_devops -%}{%- endif -%}
+  {%- set contribs = r.contributors | default(value=[ ])-%}
+  {%- for c in contribs -%}{%- set_global contrib_count = contrib_count + 1 -%}{%- endfor -%}
+  {{- contrib_count -}}
+{%- endmacro -%}
+
+{%- macro print_contributors(contributors) -%}
+  {%- for contrib in contributors %}
+    - {{ self::user_url(name=contrib.username) }}
+    {%- if contrib.pr_number %} in \
+      {#- defined with !#!\\d+ to get processed by the post processor after #\\d+ -#}
+      [!#!{{ contrib.pr_number }}]({{ self::remote_url() }}/pull/{{ contrib.pr_number }})
+    {% endif %}
+  {%- endfor -%}
+{%- endmacro -%}
+
+{%- macro clean_version(version, unreleased="unreleased") -%}
+  {%- if version -%}
+    {{ version | trim_start_matches(pat="v") }}
+  {%- else -%}
+    {{ HEADER_UNRELEASED | upper }}
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro plural(count, singular, plural) -%}
+  {%- if count == 1 or count == -1 -%}
+    {{ singular }}
+  {%- else -%}
+    {{ plural }}
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro print_statistics(statistics, header, contributor_count=0, show_chart=true) %}
+  ## {{ header }}
+  {% set s_commit_count = statistics.commit_count -%}
+  {%- set s_timespan = statistics.commits_timespan | default(value=0) -%}
+  {%- set s_conv_count = statistics.conventional_commit_count -%}
+  {%- set s_links_count = statistics.links | length -%}
+  {%- set s_links = statistics.links -%}
+  {%- set s_days_since = statistics.days_passed_since_last_release | default(value=0) -%}
+  {%- set s_contrib_count = contributor_count %}
+
+  - `{{ s_commit_count }}` {{ self::plural(count=s_commit_count, singular="commit", plural="commits") }} contributed to the release.
+  - `{{ s_timespan }}` {{ self::plural(count=s_timespan, singular="day", plural="days")}} {{ self::plural(count=s_timespan, singular="has", plural="have")}} passed between the first and last commit.
+  - `{{ s_conv_count }}` {{ self::plural(count=s_commit_count, singular="commit", plural="commits") }} parsed as conventional.
+  - `{{ s_links_count }}` linked {{ self::plural(count=s_links_count, singular="issue", plural="issues") }} detected in commits.
+
+  {%- if s_links_count > 0 -%}
+    {%- for link in statistics.links %}
+      {{ "  " }}- [{{ link.text }}]({{ link.href }}) (referenced {{ link.count }} {{ self::plural(count=link.count, singular="time", plural="times") }})
+    {%- endfor %}
+  {%- endif %}
+  {%- if s_days_since > 0 %}
+    - `{{ s_days_since }}` {{ self::plural(count=s_days_since, singular="day", plural="days") }}  {{ self::plural(count=s_days_since, singular="has", plural="have")}} passed between releases.
+  {%- endif %}\n
+
+  {% if show_chart | default(value=true) -%}
+    ![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[{{s_commit_count}},{{s_contrib_count}},{{s_timespan}},{{s_conv_count}},{{s_links_count}},{{s_days_since}}]}]}})
+  {%- endif %}
+{%- endmacro -%}
+
+{%- macro alert(message, type="note") -%}
+  {%- if remote.github.repo and remote.github.owner %}
+    {{ "\n>[!" }}{{ type | upper }}{{ "]\n>" }}{{ message }}
+  {%- else %}
+    {{ "\n> **" }}{{ type | upper }}{{ "**:\n  > " }}{{ message }}
+  {% endif -%}
+{%- endmacro -%}
+
+{%- macro print_commit(commit) -%}
+  {{ self::unquote(input=commit.message) | upper_first | trim }}
+  {%- if commit.links -%} {% for link in commit.links %} [{{ link.text }}]({{ link.href }}) {% endfor -%}{%- endif -%}
+  {%- if commit.remote -%}
+    {%- if commit.remote.pr_number %}{{ " [!#!" ~ commit.remote.pr_number ~ "](<REPO>/issues/" ~ commit.remote.pr_number ~ ") "}}{% endif %}
+    {%- if commit.remote.username %} -
+        {%- if commit.remote.is_first_time %} ❤️{%- endif -%}
+        {{ self::user_url(name=commit.remote.username) }}
+    {% endif -%}
+  {%- endif %}
+  {%- if commit.breaking_description -%}{{ self::alert(message="**BREAKING**\n>" ~ commit.breaking_description, type="caution") }}{%- endif -%}
+{%- endmacro -%}
+{#- MACROS END -#}
+
+{#- VERSION HEADER -#}
+{%- set c_version = self::clean_version(version=version, unreleased="unreleased") -%}
+  {%- if github %}
+    ## [v{{ c_version }}]({{ self::remote_url()}}/releases/tag/v{{ c_version }})
+  {%- else %}
+    ## v{{ c_version }}
+  {%- endif %} \
+
+  - {{ timestamp | date(format="%Y-%m-%d") }}
+{#- VERSION HEADER END -#}
+
+{#- LOOP GROUPS -#}
+{%- for group, commits in commits | group_by(attribute="group") %}
+  \n### {{ group | striptags | trim | upper }}
+  {# LOOP COMMITS -#}
+  {%- if GROUP_BY_SCOPE %}
+    {%- for scope, commits in commits | group_by(attribute="scope") %}
+        \n#### _{{scope | upper }}_
+        {%- for commit in commits | filter(attribute="scope") | sort(attribute="scope") %}
+        - {{ self::print_commit(commit=commit) }}
+        {%- endfor %}
+    {%- endfor %}
+    {#- UNCATEGORIZED #}
+    #### _{{ HEADER_NO_SCOPE | striptags | trim | upper }}_
+    {% for commit in commits %}
+        {%- if commit.scope %}
+        {%- else %}
+        - {{ self::print_commit(commit=commit) }}
+        {%- endif %}
+    {%- endfor -%}\n\n
+  {%- else %}
+    {%- for commit in commits %}
+    - {% if commit.scope -%}_({{ commit.scope }})_ {% endif -%}
+      {{- self::print_commit(commit=commit) }}
+    {%- endfor %}
+  {% endif -%}
+{%- endfor %}
+{#- LOOP GROUPS END -#}
+
+{#- REMOTE INFO -#}
+{%- if SHOW_CONTRIBUTORS -%}
+    {{ self::print_remote(new_contrib_header=HEADER_NEW_CONTRIBUTORS, contrib_header=HEADER_CONTRIBUTORS) }}
+{%- endif %}
+{#- REMOTE INFO END -#}
+
+{#- STATISTICS -#}
+{%- if SHOW_STATISTICS | default(value=true) -%}
+    {%- set CONTRIBUTOR_COUNT = self::count_contributors() -%}
+    {{ self::print_statistics(statistics=statistics, header=HEADER_STATISTICS, contributor_count=CONTRIBUTOR_COUNT, show_chart=SHOW_CHART)}}
+{% endif -%}
+{#- STATISTICS END -#}
+
+{%- if version %}
+  {{ self::full_changelog_url() }}
+{% endif -%}
+
 """
+
 # Remove leading and trailing whitespaces from the changelog's body.
 trim = true
 # Render body even when there are no releases to process.
 render_always = true
 # An array of regex based postprocessors to modify the changelog.
 postprocessors = [
-    # Replace the placeholder <REPO> with a URL.
-    #{ pattern = '<REPO>', replace = "https://github.com/orhun/git-cliff" },
+  { pattern = '<REMOTE_URL>', replace = "https://github.com" },
+  # Replace the placeholder <REPO> with a URL.
+  { pattern = '<REPO>', replace = "https://github.com/camalot/vscode-workspace-tasks" },
+  { pattern = '#\d+', replace = ''},
+  # we take the reformatted issue link and display it correctly
+  { pattern = '!#!(\d+)', replace = '#$1'},
+  { pattern = 'RFC\(?\d+\)?', replace = ''}
+
 ]
 # render body even when there are no releases to process
 # render_always = true
 # output file path
 # output = "test.md"
 
-[bump]
-features_always_bump_minor = true
-breaking_always_bump_major = true
-
 [git]
+processing_order = [
+  "commit_preprocessors",
+  "split_commits",
+  "conventional_commits",
+  "commit_parsers",
+  "link_parsers",
+]
 # Parse commits according to the conventional commits specification.
 # See https://www.conventionalcommits.org
 conventional_commits = true
@@ -82,15 +298,14 @@ require_conventional = false
 split_commits = true
 # An array of regex based parsers to modify commit messages prior to further processing.
 commit_preprocessors = [
-    # Strip the body from GitHub PR squash-merge summary commits (e.g. "v1.3.0 (#136)\n...").
-    # When split_commits = true, the body lines would otherwise be treated as separate commits,
-    # which causes duplicate or misattributed changelog entries across release branches.
-    { pattern = '(?s)^v\d+\.\d+\.\d+\s+\(#\d+\)\n.*', replace = "chore(release): pr squash merge summary" },
-    # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
-    #{ pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
-    # Check spelling of the commit message using https://github.com/crate-ci/typos.
-    # If the spelling is incorrect, it will be fixed automatically.
-    #{ pattern = '.*', replace_command = 'typos --write-changes -' },
+  { pattern = '(?m)^\s*[\*-]\s*', replace = "" },
+  { pattern = '(?m)^-{3,}\s*$', replace = "" },
+
+  # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
+  #{ pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
+  # Check spelling of the commit message using https://github.com/crate-ci/typos.
+  # If the spelling is incorrect, it will be fixed automatically.
+  # { pattern = '.*', replace_command = 'typos --write-changes -' },
 ]
 # Prevent commits that are breaking from being excluded by commit parsers.
 protect_breaking_commits = false
@@ -98,23 +313,24 @@ protect_breaking_commits = false
 # Assigns commits to groups.
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
-    { message = "^feat", group = "<!-- 0 -->🚀 Features" },
-    { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
-    { message = "^docs?", group = "<!-- 3 -->📚 Documentation" },
-    { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
-    { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
-    { message = "^style", group = "<!-- 5 -->🎨 Styling" },
-    { message = "^test", group = "<!-- 6 -->🧪 Testing" },
-    { message = "^chore\\(release\\):", skip = true },
-    { message = "^chore\\(deps.*\\)", skip = true },
-    { message = "^chore\\(pr\\)", skip = true },
-    { message = "^chore\\(pull\\)", skip = true },
-    { message = "^chore\\(changelog\\)", skip = true },
-    { message = "^chore\\(ignore\\)", skip = true },
-    { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
-    { body = ".*security", group = "<!-- 8 -->🛡️ Security" },
-    { message = "^revert", group = "<!-- 9 -->◀️ Revert" },
-    { message = ".*", group = "<!-- 10 -->💼 Other" },
+  { message = '(?i)^.*!:', group = "<!-- -1 -->💥 Breaking Change" },
+  { message = '(?i)^feat', group = "<!-- 0 -->🚀 Features" },
+  { message = '(?i)^fix', group = "<!-- 1 -->🐛 Bug Fixes" },
+  { message = '(?i)^docs?', group = "<!-- 3 -->📚 Documentation" },
+  { message = '(?i)^perf', group = "<!-- 4 -->⚡ Performance" },
+  { message = '(?i)^refactor', group = "<!-- 2 -->🚜 Refactor" },
+  { message = '(?i)^style', group = "<!-- 5 -->🎨 Styling" },
+  { message = '(?i)^tests?', group = "<!-- 6 -->🧪 Testing" },
+  { message = '(?i)^chore\(release\): prepare for', skip = true },
+  { message = '(?i)^(chore|build)\(deps.*\)', skip = true },
+  { message = '(?i)^chore\(pr\)', skip = true },
+  { message = '(?i)^chore\(pull\)', skip = true },
+  { message = '(?i)^chore\(ignore\)', skip = true },
+  { message = '(?i)^chore|^ci', group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+  { message = '(?i)^.*revert', group = "<!-- 9 -->◀️ Revert" },
+  { body = '(?i).*security', group = "<!-- 8 -->🛡️ Security" },
+  { message = '(?i)^co-authored-by:', skip = true },
+  { message = '.*', group = "<!-- 10 -->💼 Other" },
 ]
 # Exclude commits that are not matched by any commit parser.
 filter_commits = false
@@ -122,7 +338,8 @@ filter_commits = false
 fail_on_unmatched_commit = false
 # An array of link parsers for extracting external references, and turning them into URLs, using regex.
 link_parsers = [
-  { pattern = "#(\\d+)", href = "https://github.com/camalot/vscode-workspace-tasks/issues/$1"},
+  { pattern = '#(\d+)', text = '!#!$1', href = "<REPO>/issues/$1"},
+  { pattern = 'RFC\(?(\d+)\)?', text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"},
 ]
 # Include only the tags that belong to the current branch.
 use_branch_tags = false
@@ -136,4 +353,4 @@ sort_commits = "oldest"
 # Process submodules commits
 recurse_submodules = false
 
-tag_pattern = "v[0-9].*"
+tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+$"

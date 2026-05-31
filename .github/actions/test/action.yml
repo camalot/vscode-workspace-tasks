@@ -1,0 +1,74 @@
+---
+name: Run Tests
+description: Run the test suite with coverage
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+    default: ${{ github.token }}
+  codecov-token:
+    description: 'Codecov Token'
+    required: true
+    default: ''
+runs:
+  using: "composite"
+  steps:
+    - uses: pnpm/action-setup@v6
+      with:
+        run_install: false
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: ".nvmrc"
+        cache: pnpm
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Build
+      shell: bash
+      run: pnpm run compile
+
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libnspr4 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 \
+        libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
+
+    - name: Run Tests With Coverage
+      shell: bash
+      run: xvfb-run -a pnpm run test:coverage
+
+    - name: Coverage Report
+      uses: camalot/actions/smells/test/coverage@v1
+      with:
+        lcov-file: coverage/lcov.info
+        junit-file: coverage/junit.xml
+
+    - name: Upload coverage reports to Codecov
+      if: ${{ !env.ACT }} && ${{ inputs.codecov-token != '' }}
+      uses: codecov/codecov-action@v6
+      with:
+        fail_ci_if_error: true # optional (default = false)
+        files: coverage/lcov.info
+        token: ${{ env.CODECOV_TOKEN }}
+        verbose: true # optional (default = false)
+      env:
+        CODECOV_TOKEN: ${{ inputs.codecov-token }}
+
+    - name: Package VSIX (dry run)
+      shell: bash
+      run: pnpm run package:vsix
+
+    - name: VSIX Information
+      shell: bash
+      run: |
+        TREE=$(pnpm exec vsce ls --tree --no-dependencies)
+        echo "## VSIX Tree" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "``` tree" >> "$GITHUB_STEP_SUMMARY"
+        echo "$TREE" >> "$GITHUB_STEP_SUMMARY"
+        echo "```" >> "$GITHUB_STEP_SUMMARY"

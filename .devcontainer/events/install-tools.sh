@@ -28,56 +28,6 @@ function draw_logo() {
   echo ""
 }
 
-function fix_ssh_permissions() {
-  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
-  echo -e "${COLOR_BLUE}Fixing SSH key permissions...${COLOR_RESET}"
-
-  if [ -d "$HOME/_ssh" ]; then
-    echo -e "${COLOR_BLUE}Copying SSH files from $HOME/_ssh to $HOME/.ssh...${COLOR_RESET}"
-    mkdir -p "$HOME/.ssh"
-    cp -rp "$HOME/_ssh"/. "$HOME/.ssh/" 2>/dev/null || true
-  elif [ -L "$HOME/.ssh" ]; then
-    echo -e "${COLOR_BLUE}SSH directory is a symlink. Converting to a native directory...${COLOR_RESET}"
-    SYMLINK_TARGET=$(readlink "$HOME/.ssh")
-    rm "$HOME/.ssh"
-    mkdir -p "$HOME/.ssh"
-    cp -rp "$SYMLINK_TARGET"/. "$HOME/.ssh/" 2>/dev/null || true
-  fi
-
-  if [ -d "$HOME/.ssh" ]; then
-    # Attempt to fix permissions for SSH keys, config, and known_hosts.
-    # Ignore errors (e.g., if files are mounted read-only from Windows).
-    chmod 700 "$HOME/.ssh" || true
-    find "$HOME/.ssh" -type f -exec chmod 600 {} \; || true
-    find "$HOME/.ssh" -type f -name "*.pub" -exec chmod 644 {} \; || true
-    echo -e "${COLOR_GREEN}SSH key permissions fixed.${COLOR_RESET}"
-  else
-    echo -e "${COLOR_BLUE}No $HOME/.ssh directory found.${COLOR_RESET}"
-  fi
-  echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
-  echo ""
-}
-
-# shellcheck disable=SC2329
-function install_act() {
-  # --- act CLI ---------------------------------------------------------------
-  # Download a pre-built binary if it doesn't already exist in the repository.
-  # The extension's settings.json points to "tools/act/act", so we need to
-  # populate that path.
-  ACT_VERSION="${ACT_VERSION:-0.2.84}" # bump as needed; use a known working release
-  ACT_PATH="tools/act/act"
-
-  if [ ! -f "$ACT_PATH" ]; then
-    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
-    echo -e "${COLOR_BLUE}Installing nektos/act v${ACT_VERSION} CLI for running GitHub Actions locally...${COLOR_RESET}"
-    mkdir -p "$(dirname "$ACT_PATH")"
-    curl -fsSL "https://github.com/nektos/act/releases/download/v${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "$(dirname "$ACT_PATH")"
-    chmod +x "$ACT_PATH"
-    echo -e "${COLOR_GREEN}nektos/act v${ACT_VERSION} CLI installed successfully.${COLOR_RESET}"
-    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
-    echo ""
-  fi
-}
 
 function install_sample_tasks() {
   # clone https://github.com/camalot/sample-workspace-tasks.git to use when running project for testing.
@@ -127,24 +77,6 @@ function jekyll_bundle_prep() {
 
 }
 
-function npm_install() {
-  local current_dir
-  current_dir=$(pwd)
-
-  if [ -f "package.json" ]; then
-    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
-    echo -e "${COLOR_BLUE}Installing npm dependencies...${COLOR_RESET}"
-    npm install
-    echo -e "${COLOR_GREEN}npm dependencies installed successfully.${COLOR_RESET}"
-    echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
-    echo ""
-  else
-    echo -e "${COLOR_BLUE}No package.json found in $current_dir. Skipping npm install.${COLOR_RESET}"
-  fi
-
-  cd "$current_dir"
-}
-
 function install_antigen_bundles() {
   # --- antigen / oh-my-zsh --------------------------------------------------
   # Pre-warm the antigen bundle cache so that the first zsh session is fully
@@ -153,7 +85,7 @@ function install_antigen_bundles() {
   echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
   echo -e "${COLOR_BLUE}Pre-warming antigen bundle cache (oh-my-zsh + plugins)...${COLOR_RESET}"
 
-  if [ -f "$HOME/.antigen/antigen.zsh" ]; then
+  if [ -f "$HOME/antigen.zsh" ]; then
     # Run zsh non-interactively but source .zshrc to trigger antigen downloads.
     # TERM must be set for some plugins; redirect stderr to suppress p10k noise.
     # ANTIGEN_CACHE=false prevents generating a broken zcache (which stores
@@ -214,8 +146,8 @@ echo -e "${COLOR_GREEN}Installing additional tools...${COLOR_RESET}"
 echo -e "${COLOR_GREEN}=================================================================${COLOR_RESET}"
 echo ""
 
-fix_ssh_permissions
-npm_install
+# fix_ssh_permissions
+# npm_install
 # install_act
 jekyll_bundle_prep
 install_antigen_bundles

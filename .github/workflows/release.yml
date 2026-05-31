@@ -2,126 +2,255 @@
 name: Release
 
 on:  # yamllint disable-line rule:truthy
-  # push:
-  #   tags:
-  #     - "v*"
-  # release:
-  #   types:
-  #     - published
   workflow_dispatch:
 
 permissions: {}
 env:
   PACKAGE_OWNER: 'darthminos'
   PACKAGE_NAME: 'workspace-tasks'
+  ACT: ""
+  VS_MARKETPLACE_TOKEN: ""
+  OPEN_VSX_TOKEN: ""
 jobs:
-  publish-vscode-marketplace:
+  verify:
     runs-on: ubuntu-latest
     environment: production
     permissions:
-      contents: write
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - run: |
+          {
+            echo "## Verify Release Initialization"
+            echo ""
+            echo "**ACTOR**: $ACTOR"
+            echo "**BRANCH**: $BRANCH"
+            echo "**OWNER**: $OWNER"
+            echo "**REPO_NAME**: $REPO_NAME"
+            echo "**PACKAGE_OWNER**: $PACKAGE_OWNER"
+            echo "**PACKAGE_NAME**: $PACKAGE_NAME"
+            echo "**ACT**: $ACT"
+            echo ""
+            echo "---"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ ! -z "$ACT" ]; then
+            {
+              echo "❌ **ACT** is set to $ACT"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **ACT** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$REPO_NAME" != "vscode-workspace-tasks" ]; then
+            {
+              echo "❌ **REPO_NAME** is not vscode-workspace-tasks"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **REPO_NAME** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if ACTOR is REPOSITORY Owner
+          if [ "$ACTOR" != "$OWNER" ]; then
+            {
+              echo "❌ **ACTOR** is not the repository owner"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **ACTOR** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if BRANCH is main
+          if [ "$BRANCH" != "refs/heads/main" ]; then
+              {
+                echo "❌ **BRANCH** is not main"
+                echo "❌ Release Will **NOT** Proceed"
+              } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **BRANCH** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if PACKAGE_OWNER is darthminos
+          if [ "$PACKAGE_OWNER" != "darthminos" ]; then
+            {
+              echo "❌ **PACKAGE_OWNER** is not darthminos"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **PACKAGE_OWNER** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if PACKAGE_NAME is workspace-tasks
+          if [ "$PACKAGE_NAME" != "workspace-tasks" ]; then
+            {
+              echo "❌ **PACKAGE_NAME** is not workspace-tasks"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **PACKAGE_NAME** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "✅ All Initial Checks Passed" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+    env:
+      ACTOR: ${{ github.actor }}
+      BRANCH: ${{ github.ref }}
+      OWNER: ${{ github.repository_owner }}
+      REPO_NAME: ${{ github.event.repository.name }}
+
+  version:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - verify
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    outputs:
+      ver_major_minor_patch: ${{ steps.get.outputs.major_minor_patch }}
+      ver_major_minor: ${{ steps.get.outputs.major_minor }}
+      ver_major: ${{ steps.get.outputs.major }}
+      tag: ${{ steps.get.outputs.tag_major_minor_patch }}
+      tag_major: ${{ steps.get.outputs.tag_major }}
+      tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
+      tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Determine next version
+        id: get
+        uses: camalot/actions/version/get@v1
+        with:
+          default_version: v1.0.0
+          fail_on_default: true
+          enable_pr_comment: true
+          token: ${{ github.token }}
+      - run: |
+          echo "next version: ${TAG}"
+        env:
+          TAG: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VERSION: ${{ steps.get.outputs.major_minor_patch }}
+          TAG_MAJOR: ${{ steps.get.outputs.tag_major }}
+          TAG_MAJOR_MINOR: ${{ steps.get.outputs.tag_major_minor }}
+          TAG_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VER_MAJOR: ${{ steps.get.outputs.major }}
+          VER_MAJOR_MINOR: ${{ steps.get.outputs.major_minor }}
+          VER_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.major_minor_patch }}
+
+  lint:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - verify
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: true
           fetch-depth: 0
 
+      - uses: ./.github/actions/lint
+        with:
+          github-token: ${{ github.token }}
+
+  test:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - verify
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - uses: ./.github/actions/test
+        with:
+          github-token: ${{ github.token }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+
+  publish-vscode-marketplace:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - version
+      - verify
+      - lint
+      - test
+    permissions:
+      contents: write
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '25.x'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Get Current Version
-        id: current_version
-        run: |
-          CURRENT_VERSION="$(node -p "require('./package.json').version")"
-          # if $CURRENT_VERSION starts with v do not add
-          if [[ "$CURRENT_VERSION" == v* ]]; then
-            CURRENT_VERSION="${CURRENT_VERSION:1}"
-          fi
-
-          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Get Next Version
-        id: next_version
-        run: |
-          NEXT_VERSION="$(npx git-cliff --bumped-version)"
-          # if $NEXT_VERSION starts with v do not add
-          if [[ "$NEXT_VERSION" == v* ]]; then
-            NEXT_VERSION="${NEXT_VERSION:1}"
-          fi
-
-          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Clean Version and Tag
-        id: tag
-        run: |
-          if [[ -z "$VERSION" ]]; then
-            echo "VERSION is empty, using current version"
-            VERSION="${CURRENT_VERSION}"
-          fi
-          if [[ "$VERSION" == v* ]]; then
-            VERSION="${VERSION:1}"
-          fi
-
-          TAG="v${VERSION}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-        env:
-          VERSION: ${{ steps.next_version.outputs.next_version }}
-          CURRENT_VERSION: ${{ steps.current_version.outputs.current_version }}
+        run: pnpm install --frozen-lockfile
 
       - name: Run Tests
-        run: npm run test
+        run: pnpm run test
 
       - name: Build
-        run: npm run compile
-
-      - name: Generate Changelog
-        run: |
-          npm version "${VERSION}" --no-git-tag-version
-          npx git-cliff --tag "${TAG}" --output "CHANGELOG.md"
-          cat "CHANGELOG.md" >> "$GITHUB_STEP_SUMMARY"
-        env:
-          VERSION: ${{ steps.tag.outputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
+        run: pnpm run compile
 
       - name: Package VSIX
         run: |
           mkdir -p dist
-          npm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+          pnpm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
-      # COMMIT VERSION AND CHANGELOG
-      - name: Commit Version and Changelog
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "CHANGELOG.md" "package.json" "package-lock.json"
-          git commit -m "chore(release): ${VERSION} 🚀" || echo "No changes to commit"
-          git tag "${TAG}" || echo "Tag already exists"
-          git push origin HEAD --tags
+      - name: Create Release
+        uses: camalot/actions/release@v1
+        with:
+          tag_major: ${{ needs.version.outputs.tag_major }}
+          tag_major_minor: ${{ needs.version.outputs.tag_major_minor }}
+          tag_major_minor_patch: ${{ needs.version.outputs.tag_major_minor_patch }}
+          token: ${{ github.token }}
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
-
-      - name: Create GitHub Release
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        run: |
-          if ! gh release view "$TAG" --repo "${{ github.repository }}" 2>/dev/null; then
-            gh release create "$TAG" --title "$TAG" --generate-notes --repo "${{ github.repository }}"
-            echo -e "\e[32mRelease $TAG created.\e[0m"
-          else
-            echo -e "\e[33mRelease $TAG already exists.\e[0m"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.tag.outputs.tag }}
+          UPDATE_FILE_CHANGELOG: "CHANGELOG.md"
+          PACKAGE_JSON_FILE: "package.json"
+          UPDATE_FILE_JEKYLL_CONFIG : "docs/_config.yml"
 
       - name: Verify VSIX file exists
         run: |
@@ -133,11 +262,12 @@ jobs:
             exit 1
           fi
           echo -e "\e[32mVSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))\e[0m"
-          npx vsce ls --tree
+          pnpm exec vsce ls --tree --no-dependencies
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
       - name: Publish to Open VSX Registry
+        if: ${{ env.OPEN_VSX_TOKEN != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.OPEN_VSX_TOKEN }}
@@ -145,10 +275,11 @@ jobs:
           skipDuplicate: true
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
           OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
       - name: Publish to Visual Studio Marketplace
+        if: ${{ env.VS_MARKETPLACE_TOKEN != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.VS_MARKETPLACE_TOKEN }}
@@ -156,7 +287,7 @@ jobs:
           skipDuplicate: true
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
           VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Upload VSIX to release
@@ -169,12 +300,36 @@ jobs:
           gh release upload "${TAG}" "$VSIX" --repo "${{ github.repository }}" --clobber
           echo -e "\e[32mVSIX uploaded to release $TAG\e[0m"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.tag.outputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
+          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7
         with:
           name: vsix
           path: dist/*.vsix
+
+  publish-docs:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - publish-vscode-marketplace
+
+    permissions:
+      contents: read # for actions/checkout
+      pages: write # to deploy to GitHub Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Publish Docs to GitHub Pages
+        uses: camalot/actions/docs/drjekyll@v1
+        env:
+          JEKYLL_ENV: production
+        with:
+          input_dir: ./docs
+          output_dir: ./_site

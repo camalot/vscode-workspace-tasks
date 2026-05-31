@@ -12,110 +12,86 @@ permissions: {}
 env:
   ACT: ""
 jobs:
-  build-and-test:
+  version:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
+      statuses: write
       issues: write
       pull-requests: write
-      statuses: write
-      id-token: write
-    environment: production
+    outputs:
+      ver_major_minor_patch: ${{ steps.get.outputs.major_minor_patch }}
+      ver_major_minor: ${{ steps.get.outputs.major_minor }}
+      ver_major: ${{ steps.get.outputs.major }}
+      tag: ${{ steps.get.outputs.tag_major_minor_patch }}
+      tag_major: ${{ steps.get.outputs.tag_major }}
+      tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
+      tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      - uses: actions/setup-node@v6
+      - name: Determine next version
+        id: get
+        uses: camalot/actions/version/get@v1
         with:
-          node-version-file: ".nvmrc"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Prepare Super-Linter log directory
-        run: mkdir -p reports/super-linter
-
-      - name: Super-Linter
-        uses: super-linter/super-linter@v8
+          default_version: v1.0.0
+          fail_on_default: true
+          enable_pr_comment: true
+          token: ${{ github.token }}
+      - run: |
+          echo "next version: ${TAG}"
         env:
-          GITHUB_TOKEN: "${{ github.token }}"
-          # DEFAULT_BRANCH: "${{ env.ACT && github.ref_name || github.event.repository.default_branch }}"
-          DEFAULT_BRANCH: "develop"
-          CREATE_LOG_FILE: true
-          LOG_FILE: reports/super-linter/super-linter-summary.ansi.log
-          FILTER_REGEX_EXCLUDE: '(test|node_modules|docs)/|(CHANGELOG|CONFIGURATION|SUPPORT|README|CONTRIBUTING|copilot-instructions)\.md$'
-          VALIDATE_ALL_CODEBASE: true
-          VALIDATE_BASH_EXEC: false
-          VALIDATE_BIOME_FORMAT: false
-          VALIDATE_BIOME_LINT: false
-          VALIDATE_CHECKOV: false
-          VALIDATE_CSS: false
-          VALIDATE_CSS_PRETTIER: false
-          VALIDATE_HTML_PRETTIER: false
-          VALIDATE_JAVASCRIPT_ES: false # DISABLED
-          VALIDATE_JSON: false
-          VALIDATE_JAVASCRIPT_PRETTIER: false
-          VALIDATE_JSON_PRETTIER: false
-          VALIDATE_JSCPD: false
-          VALIDATE_MARKDOWN_PRETTIER: false
-          VALIDATE_NATURAL_LANGUAGE: false
-          VALIDATE_PRETTIER: false
-          VALIDATE_SPELL_CODESPELL: false
-          VALIDATE_TRIVY: false
-          VALIDATE_TYPESCRIPT_ES: false # TEMPORARY DISABLE
-          VALIDATE_TYPESCRIPT_PRETTIER: false
-          VALIDATE_YAML_PRETTIER: false
-          FIX_BIOME_FORMAT: false
-          FIX_JSON_PRETTIER: false
-          FIX_MARKDOWN_PRETTIER: false
-          FIX_YAML_PRETTIER: false
+          TAG: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VERSION: ${{ steps.get.outputs.major_minor_patch }}
+          TAG_MAJOR: ${{ steps.get.outputs.tag_major }}
+          TAG_MAJOR_MINOR: ${{ steps.get.outputs.tag_major_minor }}
+          TAG_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VER_MAJOR: ${{ steps.get.outputs.major }}
+          VER_MAJOR_MINOR: ${{ steps.get.outputs.major_minor }}
+          VER_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.major_minor_patch }}
 
-      - name: Build
-        run: npm run compile
-
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libnspr4 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 \
-          libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
-
-
-      - name: Test
-        run: xvfb-run -a npm run test:coverage
-
-      - name: Upload coverage reports to Codecov
-        if: ${{ !env.ACT }}
-        uses: codecov/codecov-action@v6
+  lint:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - version
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
         with:
-          fail_ci_if_error: true # optional (default = false)
-          files: coverage/lcov.info
-          token: ${{ env.CODECOV_TOKEN }}
-          verbose: true # optional (default = false)
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
 
-      - name: Upload test results to Codecov
-        if: ${{ !env.ACT }}
-        uses: codecov/codecov-action@v6
+      - uses: ./.github/actions/lint
         with:
-          fail_ci_if_error: true
-          files: coverage/junit.xml
-          report_type: test_results
-          disable_search: true
-          token: ${{ env.CODECOV_TOKEN }}
-          verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          github-token: ${{ github.token }}
+          enable_pr_comment: ${{ github.event_name == 'pull_request' }}
 
-      - name: Package VSIX (dry run)
-        run: npm run package:vsix
+  test:
 
-      - name: VSIX Information
-        run: npx vsce ls --tree
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - version
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - uses: ./.github/actions/test
+        with:
+          github-token: ${{ github.token }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}

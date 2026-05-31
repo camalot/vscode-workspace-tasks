@@ -1,53 +1,19 @@
 ---
-name: Run tests
+name: Run Tests
 
 on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - develop
-  #     - pre-release
-  #   paths-ignore:
-  #     - 'syntaxes/**'
-  #     - 'tests/**'
-  #     - '**.md'
-  # pull_request:
-  #   branches:
-  #     - develop
-  #     - pre-release
-  #   paths-ignore:
-  #     - 'syntaxes/**'
-  #     - 'tests/**'
-  #     - '**.md'
+
 permissions: {}
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-      - name: npm install
-        run: npm ci
-      - name: check types
-        run: npm run check:types
-      - name: format
-        run: npm run check:format
-      - name: lint
-        run: npm run lint
+
 
   test:
     permissions:
       contents: read
-      packages: write
+      statuses: write
+      issues: write
+      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
@@ -68,26 +34,29 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: npm
+          cache: pnpm
       - name: Clean Install Dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Allow unprivileged user namespace (ubuntu)
         if: runner.os == 'Linux'
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Run Tests
-        run: xvfb-run -a npm test
+        run: xvfb-run -a pnpm test
         if: runner.os == 'Linux'
       - name: Run Tests
-        run: npm test
+        run: pnpm test
         if: runner.os != 'Linux'
       - name: Run UI Tests
-        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npm run test:ui
+        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' pnpm run test:ui
         if: runner.os == 'Linux'
       - name: Run UI Tests
-        run: npm run test:ui
+        run: pnpm run test:ui
         if: runner.os != 'Linux'
       # - name: Archive test artifacts
       #   uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

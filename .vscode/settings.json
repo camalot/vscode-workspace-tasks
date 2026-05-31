@@ -128,6 +128,7 @@
     "noview",
     "NSIS",
     "nvmrc",
+    "ohmyposh",
     "ompound",
     "openvsx",
     "pantera",
@@ -229,7 +230,7 @@
   "workspaceTasks.applicationPath.act": "/home/vscode/bin/act",
   "workspaceTasks.enabledTaskTypes": {
     "ant": false,
-    "ruby": false,
+    "ruby": true,
     "cake": false,
     "composer": false,
     "cargo-make": false,
@@ -255,7 +256,9 @@
     "typescript": false,
     "vscode": false,
     "bitbucket": false,
-    "gitlab-ci": false
+    "gitlab-ci": false,
+    "npm": false,
+    "pnpm": true
   },
   "workspaceTasks.groups.justfile.enabled": true,
   "workspaceTasks.groups.recentTasks.enabled": false,
@@ -274,5 +277,9 @@
     "**/.devcontainer/**",
     "**/docs/**"
   ],
-  "coverlens.diffBase": "origin/develop"
+  "coverlens.diffBase": "origin/develop",
+  "workspaceTasks.groups.taskSeparatorIsRegex": true,
+  "workspaceTasks.groups.taskSeparator": "[:\\/]",
+  "workspaceTasks.groups.useParentFolder": true,
+  "npm.packageManager": "pnpm"
 }
