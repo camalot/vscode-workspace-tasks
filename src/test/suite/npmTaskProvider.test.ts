@@ -66,7 +66,7 @@ suite('NpmTaskProvider Test Suite', () => {
       (vscode.tasks as any).fetchTasks = async () => [mockTask];
 
       const tasks = await provider.getSystemTasks();
-      assert.ok(tasks.some(t => t.label === 'build'), 'Should include the npm task');
+      assert.deepStrictEqual(tasks, [], 'Should return empty array (system tasks disabled for npm via #212)');
     });
 
     test('returns empty array when no npm tasks are found', async () => {
@@ -78,7 +78,6 @@ suite('NpmTaskProvider Test Suite', () => {
 
     test('filters out tasks from files excluded by .tasksignore', async () => {
       const ignoredPackageJson = vscode.Uri.joinPath(workspaceFolder.uri, 'sample', 'package.json');
-      const allowedPackageJson = vscode.Uri.joinPath(workspaceFolder.uri, 'package.json');
 
       const ignoredTask = {
         name: 'test - sample',
@@ -102,8 +101,7 @@ suite('NpmTaskProvider Test Suite', () => {
       };
 
       const tasks = await provider.getSystemTasks();
-      assert.ok(!tasks.some(t => t.label === 'test'), 'Should NOT include task from ignored file');
-      assert.ok(tasks.some(t => t.label === 'build'), 'Should include task from allowed file');
+      assert.deepStrictEqual(tasks, [], 'Should return empty array (system tasks disabled for npm via #212)');
     });
 
     test('filters out all tasks when entire directory is in .tasksignore', async () => {
@@ -150,10 +148,7 @@ suite('NpmTaskProvider Test Suite', () => {
       (vscode.tasks as any).fetchTasks = async () => [mockTask];
 
       const tasks = await provider.getSystemTasks();
-      const task = tasks.find(t => t.label === 'start');
-      assert.ok(task, 'Should find the task');
-      const expectedPath = vscode.Uri.joinPath(workspaceFolder.uri, 'apps/frontend', 'package.json').fsPath;
-      assert.strictEqual(task!.taskFileUri?.fsPath, expectedPath, 'taskFileUri should point to the correct package.json');
+      assert.deepStrictEqual(tasks, [], 'Should return empty array (system tasks disabled for npm via #212)');
     });
 
     // ──────────────────────────────────────────────────────────────
@@ -176,9 +171,7 @@ suite('NpmTaskProvider Test Suite', () => {
       });
 
       const tasks = await provider.getSystemTasks();
-      const task = tasks.find(t => t.label === 'build');
-      assert.ok(task, 'Should find task');
-      assert.notStrictEqual(task!.startLine, undefined, 'startLine should be set when script found in package.json');
+      assert.deepStrictEqual(tasks, [], 'Should return empty array (system tasks disabled for npm via #212)');
     });
 
     test('N02 - Npm task has undefined startLine when package.json content cannot be fetched', async () => {
@@ -193,9 +186,7 @@ suite('NpmTaskProvider Test Suite', () => {
       (vscode.workspace as any).openTextDocument = async () => { throw new Error('no file'); };
 
       const tasks = await provider.getSystemTasks();
-      const task = tasks.find(t => t.label === 'build');
-      assert.ok(task, 'Should still create a task item even if file read fails');
-      assert.strictEqual(task!.startLine, undefined, 'startLine should be undefined when file cannot be read');
+      assert.deepStrictEqual(tasks, [], 'Should return empty array (system tasks disabled for npm via #212)');
     });
 
     test('N03 - Npm task has undefined startLine when script not in package.json scripts block', async () => {
@@ -212,9 +203,7 @@ suite('NpmTaskProvider Test Suite', () => {
       });
 
       const tasks = await provider.getSystemTasks();
-      const task = tasks.find(t => t.label === 'lint');
-      assert.ok(task, 'Should create task item even when script is not in JSON scripts');
-      assert.strictEqual(task!.startLine, undefined, 'startLine should be undefined when script not found in scripts block');
+      assert.deepStrictEqual(tasks, [], 'Should return empty array (system tasks disabled for npm via #212)');
     });
   });
 });

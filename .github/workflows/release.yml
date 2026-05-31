@@ -2,12 +2,6 @@
 name: Release
 
 on:  # yamllint disable-line rule:truthy
-  # push:
-  #   tags:
-  #     - "v*"
-  # release:
-  #   types:
-  #     - published
   workflow_dispatch:
 
 permissions: {}
@@ -17,9 +11,12 @@ env:
 jobs:
   version:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
       statuses: write
+      issues: write
+      pull-requests: write
     outputs:
       ver_major_minor_patch: ${{ steps.get.outputs.major_minor_patch }}
       ver_major_minor: ${{ steps.get.outputs.major_minor }}
@@ -60,6 +57,9 @@ jobs:
       - version
     permissions:
       contents: write
+      statuses: write
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -86,15 +86,6 @@ jobs:
       - name: Build
         run: pnpm run compile
 
-      - name: Generate Changelog
-        run: |
-          pnpm version "${VERSION}" --no-git-tag-version
-          pnpm exec git-cliff --tag "${TAG}" --output "CHANGELOG.md"
-          cat "CHANGELOG.md" >> "$GITHUB_STEP_SUMMARY"
-        env:
-          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
-          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
-
       - name: Package VSIX
         run: |
           mkdir -p dist
@@ -102,31 +93,17 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
-      # COMMIT VERSION AND CHANGELOG
-      - name: Commit Version and Changelog
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "CHANGELOG.md" "package.json" "pnpm-lock.yaml"
-          git commit -m "chore(release): ${VERSION} 🚀" || echo "No changes to commit"
-          git tag "${TAG}" || echo "Tag already exists"
-          git push origin HEAD --tags
+      - name: Create Release
+        uses: camalot/actions/release@v1
+        with:
+          tag_major: ${{ needs.version.outputs.tag_major }}
+          tag_major_minor: ${{ needs.version.outputs.tag_major_minor }}
+          tag_major_minor_patch: ${{ needs.version.outputs.tag_major_minor_patch }}
+          token: ${{ github.token }}
         env:
-          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
-          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
-
-      - name: Create GitHub Release
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        run: |
-          if ! gh release view "$TAG" --repo "${{ github.repository }}" 2>/dev/null; then
-            gh release create "$TAG" --title "$TAG" --generate-notes --repo "${{ github.repository }}"
-            echo -e "\e[32mRelease $TAG created.\e[0m"
-          else
-            echo -e "\e[33mRelease $TAG already exists.\e[0m"
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
+          UPDATE_FILE_CHANGELOG: "CHANGELOG.md"
+          PACKAGE_JSON_FILE: "package.json"
+          UPDATE_FILE_JEKYLL_CONFIG : "docs/_config.yml"
 
       - name: Verify VSIX file exists
         run: |
@@ -138,7 +115,7 @@ jobs:
             exit 1
           fi
           echo -e "\e[32mVSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))\e[0m"
-          pnpm exec vsce ls --tree
+          pnpm exec vsce ls --tree --no-dependencies
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
@@ -183,3 +160,29 @@ jobs:
         with:
           name: vsix
           path: dist/*.vsix
+
+  publish-docs:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - publish-vscode-marketplace
+
+    permissions:
+      contents: read # for actions/checkout
+      pages: write # to deploy to GitHub Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Publish Docs to GitHub Pages
+        uses: camalot/actions/docs/drjekyll@v1
+        env:
+          JEKYLL_ENV: production
+        with:
+          input_dir: ./docs
+          output_dir: ./_site
+          url: ${{ steps.pages.outputs.origin }}
+          baseurl: "${{ steps.pages.outputs.base_path }}"
