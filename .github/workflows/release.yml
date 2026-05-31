@@ -155,7 +155,7 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - uses: ./.github/workflows/lint
+      - uses: .github/actions/lint
         with:
           github-token: ${{ github.token }}
 
@@ -175,7 +175,7 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - uses: ./.github/workflows/test
+      - uses: .github/actions/test
         with:
           github-token: ${{ github.token }}
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
@@ -319,5 +319,3 @@ jobs:
         with:
           input_dir: ./docs
           output_dir: ./_site
-          url: ${{ steps.pages.outputs.origin }}
-          baseurl: "${{ steps.pages.outputs.base_path }}"

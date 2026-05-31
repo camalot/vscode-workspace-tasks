@@ -45,8 +45,8 @@ runs:
     - name: Coverage Report
       uses: camalot/actions/smells/test/coverage@v1
       with:
-        coverage_file: coverage/lcov.info
-        junit_file: coverage/junit.xml
+        lcov-file: coverage/lcov.info
+        junit-file: coverage/junit.xml
 
     - name: Upload coverage reports to Codecov
       if: ${{ !env.ACT }} && ${{ inputs.codecov-token != '' }}

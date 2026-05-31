@@ -69,7 +69,7 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - uses: ./.github/workflows/lint
+      - uses: .github/actions/lint
         with:
           github-token: ${{ github.token }}
           enable_pr_comment: ${{ github.event_name == 'pull_request' }}
@@ -91,7 +91,7 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - uses: ./.github/workflows/test
+      - uses: .github/actions/test
         with:
           github-token: ${{ github.token }}
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
