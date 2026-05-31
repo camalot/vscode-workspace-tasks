@@ -296,7 +296,6 @@ jobs:
           echo "::group::Prepare package.json"
           yq eval --inplace ".version = \"${VERSION}\"" package.json
           git add package.json
-          git commit -m "chore(release): update package version to ${VERSION}"
           echo "::endgroup::"
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
@@ -310,7 +309,24 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
+      - name: Capture pre-release state
+        id: rollback_state
+        # Record HEAD and the floating tags' prior targets BEFORE the release
+        # moves them, so the rollback step can restore them if a later step
+        # (publish/upload) fails after a successful release.
+        run: |
+          set -euo pipefail
+          echo "::group::Capture pre-release state (for rollback)"
+          echo "head_sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+          echo "tag_major_sha=$(git ls-remote origin "refs/tags/${TAG_MAJOR}" | awk 'NR==1{print $1}')" >> "${GITHUB_OUTPUT}"
+          echo "tag_major_minor_sha=$(git ls-remote origin "refs/tags/${TAG_MAJOR_MINOR}" | awk 'NR==1{print $1}')" >> "${GITHUB_OUTPUT}"
+          echo "::endgroup::"
+        env:
+          TAG_MAJOR: ${{ needs.version.outputs.tag_major }}
+          TAG_MAJOR_MINOR: ${{ needs.version.outputs.tag_major_minor }}
+
       - name: Create Release
+        id: create_release
         uses: camalot/actions/version/release@v1
         with:
           tag_major: ${{ needs.version.outputs.tag_major }}
@@ -340,7 +356,8 @@ jobs:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
       - name: Publish to Open VSX Registry
-        if: ${{ env.OPEN_VSX_TOKEN != '' }}
+        # only publish if everything before (incl. Create Release) succeeded
+        if: ${{ success() && env.OPEN_VSX_TOKEN != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.OPEN_VSX_TOKEN }}
@@ -352,7 +369,8 @@ jobs:
           OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
       - name: Publish to Visual Studio Marketplace
-        if: ${{ env.VS_MARKETPLACE_TOKEN != '' }}
+        # only publish if everything before (incl. Create Release) succeeded
+        if: ${{ success() && env.VS_MARKETPLACE_TOKEN != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.VS_MARKETPLACE_TOKEN }}
@@ -384,6 +402,51 @@ jobs:
         with:
           name: vsix
           path: dist/*.vsix
+
+      - name: Rollback release on later failure
+        # Fires only when the release itself SUCCEEDED but a later step
+        # (publish/upload) failed. If Create Release failed, the action has
+        # already rolled itself back, so this is gated to avoid double-undo.
+        if: ${{ failure() && steps.create_release.outcome == 'success' }}
+        run: |
+          set -uo pipefail
+          echo "::warning::A step after the release failed — rolling back the release"
+          echo "::group::Rollback"
+
+          # 1) Delete the GitHub Release.
+          gh release delete "${NEXT_TAG}" --yes 2>/dev/null || true
+
+          # 2) Delete the new patch tag; restore the floating tags to their
+          #    prior targets (or delete them if they did not exist before).
+          git push origin ":refs/tags/${NEXT_TAG}" 2>/dev/null || true
+          for pair in "${TAG_MAJOR}=${ORIG_TAG_MAJOR_SHA}" "${TAG_MAJOR_MINOR}=${ORIG_TAG_MAJOR_MINOR_SHA}"; do
+            tag="${pair%%=*}"
+            sha="${pair#*=}"
+            if [[ -n "${sha}" ]]; then
+              echo "Restoring ${tag} -> ${sha}"
+              git push origin --force "${sha}:refs/tags/${tag}" 2>/dev/null || true
+            else
+              echo "Deleting ${tag} (did not exist before release)"
+              git push origin ":refs/tags/${tag}" 2>/dev/null || true
+            fi
+          done
+
+          # 3) Revert the release commit via a new commit (no force-push), but
+          #    only if a commit was actually made (HEAD moved since capture).
+          if [[ "$(git rev-parse HEAD)" != "${ORIG_HEAD_SHA}" ]]; then
+            echo "Reverting release commit on ${GITHUB_REF_NAME}"
+            git revert --no-edit HEAD
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          echo "::endgroup::"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEXT_TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
+          TAG_MAJOR: ${{ needs.version.outputs.tag_major }}
+          TAG_MAJOR_MINOR: ${{ needs.version.outputs.tag_major_minor }}
+          ORIG_HEAD_SHA: ${{ steps.rollback_state.outputs.head_sha }}
+          ORIG_TAG_MAJOR_SHA: ${{ steps.rollback_state.outputs.tag_major_sha }}
+          ORIG_TAG_MAJOR_MINOR_SHA: ${{ steps.rollback_state.outputs.tag_major_minor_sha }}
 
   publish-docs:
     runs-on: ubuntu-latest
