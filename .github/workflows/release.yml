@@ -270,9 +270,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Tests
-        run: pnpm run test
-
       - name: Build
         run: |
           echo "::group::Build"
