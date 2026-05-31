@@ -1,0 +1,25 @@
+---
+name: Lint
+description: Lint the codebase using Super-Linter
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Prepare Super-Linter log directory
+      shell: bash
+      run: mkdir -p reports/super-linter
+
+    - name: Lint Codebase
+      uses: camalot/actions/smells/lint@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        super_linter_env_file: .github/linters/super-linter.env
+        validate_all_codebase: true
+        delete_previous_comment: true
+        default_branch: ${{ github.ref_name }}
+      env:
+        ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: true

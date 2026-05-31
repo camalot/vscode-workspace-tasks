@@ -64,10 +64,10 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: ./.github/workflows/lint.yml
+      - uses: ./.github/workflows/lint@${{ github.ref_name }}
 
   test:
-    
+
     runs-on: ubuntu-latest
     environment: production
     needs:
@@ -78,4 +78,4 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: ./.github/workflows/test.yml
+      - uses: ./.github/workflows/test@${{ github.ref_name }}
