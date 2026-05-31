@@ -1,104 +1,73 @@
 ---
-name: Run tests
-
-on:  # yamllint disable-line rule:truthy
+name: Run Tests
+on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - develop
-  #     - pre-release
-  #   paths-ignore:
-  #     - 'syntaxes/**'
-  #     - 'tests/**'
-  #     - '**.md'
-  # pull_request:
-  #   branches:
-  #     - develop
-  #     - pre-release
-  #   paths-ignore:
-  #     - 'syntaxes/**'
-  #     - 'tests/**'
-  #     - '**.md'
 permissions: {}
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Check Types
-        run: pnpm run check:types
-      - name: Format
-        run: pnpm run check:format
-      - name: Lint
-        run: pnpm run lint
-
   test:
+    runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
-      packages: write
-    strategy:
-      fail-fast: false
-      matrix:
-        vscode:
-          - '1.105.1'
-          - 'insiders'
-          - 'stable'
-        os:
-          # - windows-latest
-          # - macos-latest
-          - ubuntu-latest
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    env:
-      VSCODE_VERSION: ${{ matrix.vscode }}
+      statuses: write
+      issues: write
+      pull-requests: write
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: pnpm/action-setup@v4
+
+      - uses: pnpm/action-setup@v6
         with:
           run_install: false
+
       - uses: actions/setup-node@v6
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           cache: pnpm
-      - name: Clean Install Dependencies
+
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Allow unprivileged user namespace (ubuntu)
+
+      - name: Build
+        run: pnpm run compile
+
+      - name: Install Linux dependencies
         if: runner.os == 'Linux'
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      - name: Run Tests
-        run: xvfb-run -a pnpm test
-        if: runner.os == 'Linux'
-      - name: Run Tests
-        run: pnpm test
-        if: runner.os != 'Linux'
-      - name: Run UI Tests
-        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' pnpm run test:ui
-        if: runner.os == 'Linux'
-      - name: Run UI Tests
-        run: pnpm run test:ui
-        if: runner.os != 'Linux'
-      # - name: Archive test artifacts
-      #   uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      #   if: failure()
-      #   with:
-      #     name: test-screenshots-${{ matrix.os }}-${{ matrix.vscode }}
-      #     path: .test-storage/screenshots
-      #     retention-days: 1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnspr4 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 \
+          libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
+
+      - name: Run Tests With Coverage
+        run: xvfb-run -a pnpm run test:coverage
+
+      - name: Coverage Report
+        uses: camalot/actions/coverage@v1
+        with:
+          coverage_file: coverage/lcov.info
+          junit_file: coverage/junit.xml
+
+      - name: Upload coverage reports to Codecov
+        if: ${{ !env.ACT }}
+        uses: codecov/codecov-action@v6
+        with:
+          fail_ci_if_error: true # optional (default = false)
+          files: coverage/lcov.info
+          token: ${{ env.CODECOV_TOKEN }}
+          verbose: true # optional (default = false)
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Package VSIX (dry run)
+        run: pnpm run package:vsix
+
+      - name: VSIX Information
+        run: |
+          TREE=$(pnpm exec vsce ls --tree --no-dependencies)
+          echo "## VSIX Tree" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "``` tree" >> "$GITHUB_STEP_SUMMARY"
+          echo "$TREE" >> "$GITHUB_STEP_SUMMARY"
+          echo "```" >> "$GITHUB_STEP_SUMMARY"

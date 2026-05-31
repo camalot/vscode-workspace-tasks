@@ -1,0 +1,67 @@
+---
+name: Run Tests
+
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+
+permissions: {}
+jobs:
+
+
+  test:
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        vscode:
+          - '1.105.1'
+          - 'insiders'
+          - 'stable'
+        os:
+          # - windows-latest
+          # - macos-latest
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      VSCODE_VERSION: ${{ matrix.vscode }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+      - name: Clean Install Dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Allow unprivileged user namespace (ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Run Tests
+        run: xvfb-run -a pnpm test
+        if: runner.os == 'Linux'
+      - name: Run Tests
+        run: pnpm test
+        if: runner.os != 'Linux'
+      - name: Run UI Tests
+        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' pnpm run test:ui
+        if: runner.os == 'Linux'
+      - name: Run UI Tests
+        run: pnpm run test:ui
+        if: runner.os != 'Linux'
+      # - name: Archive test artifacts
+      #   uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      #   if: failure()
+      #   with:
+      #     name: test-screenshots-${{ matrix.os }}-${{ matrix.vscode }}
+      #     path: .test-storage/screenshots
+      #     retention-days: 1

@@ -8,10 +8,100 @@ permissions: {}
 env:
   PACKAGE_OWNER: 'darthminos'
   PACKAGE_NAME: 'workspace-tasks'
+  ACT: ""
+  VS_MARKETPLACE_TOKEN: ""
+  OPEN_VSX_TOKEN: ""
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - version
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - run: |
+          echo "## Verify Release Initialization" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**ACTOR**: $ACTOR" >> "$GITHUB_STEP_SUMMARY"
+          echo "**BRANCH**: $BRANCH" >> "$GITHUB_STEP_SUMMARY"
+          echo "**OWNER**: $OWNER" >> "$GITHUB_STEP_SUMMARY"
+          echo "**REPO_NAME**: $REPO_NAME" >> "$GITHUB_STEP_SUMMARY"
+          echo "**PACKAGE_OWNER**: $PACKAGE_OWNER" >> "$GITHUB_STEP_SUMMARY"
+          echo "**PACKAGE_NAME**: $PACKAGE_NAME" >> "$GITHUB_STEP_SUMMARY"
+          echo "**ACT**: $ACT" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "---" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ ! -z "$ACT" ]; then
+            echo "❌ **ACT** is set to $ACT" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Release Will **NOT** Proceed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **ACT** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$REPO_NAME" != "vscode-workspace-tasks" ]; then
+            echo "❌ **REPO_NAME** is not vscode-workspace-tasks" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Release Will **NOT** Proceed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **REPO_NAME** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if ACTOR is REPOSITORY Owner
+          if [ "$ACTOR" != "$OWNER" ]; then
+            echo "❌ **ACTOR** is not the repository owner" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Release Will **NOT** Proceed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **ACTOR** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if BRANCH is main
+          if [ "$BRANCH" != "refs/heads/main" ]; then
+            echo "❌ **BRANCH** is not main" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Release Will **NOT** Proceed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **BRANCH** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if PACKAGE_OWNER is darthminos
+          if [ "$PACKAGE_OWNER" != "darthminos" ]; then
+            echo "❌ **PACKAGE_OWNER** is not darthminos" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Release Will **NOT** Proceed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **PACKAGE_OWNER** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # release should only proceed if PACKAGE_NAME is workspace-tasks
+          if [ "$PACKAGE_NAME" != "workspace-tasks" ]; then
+            echo "❌ **PACKAGE_NAME** is not workspace-tasks" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Release Will **NOT** Proceed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **PACKAGE_NAME** Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "✅ All Initial Checks Passed" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+    env:
+      ACTOR: ${{ github.actor }}
+      BRANCH: ${{ github.ref }}
+      OWNER: ${{ github.repository_owner }}
+      REPO_NAME: ${{ github.event.repository.name }}
   version:
     runs-on: ubuntu-latest
     environment: production
+    needs:
+      - verify
     permissions:
       contents: read
       statuses: write
@@ -50,11 +140,26 @@ jobs:
           VER_MAJOR_MINOR: ${{ steps.get.outputs.major_minor }}
           VER_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.major_minor_patch }}
 
+  lint:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - version
+      - verify
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: ./.github/workflows/lint.yml
+
   publish-vscode-marketplace:
     runs-on: ubuntu-latest
     environment: production
     needs:
       - version
+      - verify
     permissions:
       contents: write
       statuses: write
@@ -120,6 +225,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
       - name: Publish to Open VSX Registry
+        if: ${{ env.OPEN_VSX_TOKEN != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.OPEN_VSX_TOKEN }}
@@ -131,6 +237,7 @@ jobs:
           OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
       - name: Publish to Visual Studio Marketplace
+        if: ${{ env.VS_MARKETPLACE_TOKEN != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.VS_MARKETPLACE_TOKEN }}

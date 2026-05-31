@@ -12,90 +12,70 @@ permissions: {}
 env:
   ACT: ""
 jobs:
-  build-and-test:
+  version:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
+      statuses: write
       issues: write
       pull-requests: write
-      statuses: write
-      id-token: write
-    environment: production
+    outputs:
+      ver_major_minor_patch: ${{ steps.get.outputs.major_minor_patch }}
+      ver_major_minor: ${{ steps.get.outputs.major_minor }}
+      ver_major: ${{ steps.get.outputs.major }}
+      tag: ${{ steps.get.outputs.tag_major_minor_patch }}
+      tag_major: ${{ steps.get.outputs.tag_major }}
+      tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
+      tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      - uses: pnpm/action-setup@v4
+      - name: Determine next version
+        id: get
+        uses: camalot/actions/version/get@v1
         with:
-          run_install: false
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Prepare Super-Linter log directory
-        run: mkdir -p reports/super-linter
-
-      - name: Lint Codebase
-        # if: ${{ !env.ACT }}
-        uses: camalot/actions/smells/lint@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          super_linter_env_file: .github/linters/super-linter.env
-          validate_all_codebase: true
-          default_branch: ${{ github.ref_name }}
+          default_version: v1.0.0
+          fail_on_default: true
+          enable_pr_comment: true
+          token: ${{ github.token }}
+      - run: |
+          echo "next version: ${TAG}"
         env:
-          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: true
+          TAG: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VERSION: ${{ steps.get.outputs.major_minor_patch }}
+          TAG_MAJOR: ${{ steps.get.outputs.tag_major }}
+          TAG_MAJOR_MINOR: ${{ steps.get.outputs.tag_major_minor }}
+          TAG_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VER_MAJOR: ${{ steps.get.outputs.major }}
+          VER_MAJOR_MINOR: ${{ steps.get.outputs.major_minor }}
+          VER_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.major_minor_patch }}
 
-      - name: Build
-        run: pnpm run compile
+  lint:
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - version
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: ./.github/workflows/lint.yml
 
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libnspr4 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 \
-          libcups2t64 libdrm2 libgtk-3-0t64 libgbm1 libasound2t64 libxss1 xvfb
-
-
-      - name: Test
-        run: xvfb-run -a pnpm run test:coverage
-
-      - name: Upload coverage reports to Codecov
-        if: ${{ !env.ACT }}
-        uses: codecov/codecov-action@v6
-        with:
-          fail_ci_if_error: true # optional (default = false)
-          files: coverage/lcov.info
-          token: ${{ env.CODECOV_TOKEN }}
-          verbose: true # optional (default = false)
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload test results to Codecov
-        if: ${{ !env.ACT }}
-        uses: codecov/codecov-action@v6
-        with:
-          fail_ci_if_error: true
-          files: coverage/junit.xml
-          report_type: test_results
-          disable_search: true
-          token: ${{ env.CODECOV_TOKEN }}
-          verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Package VSIX (dry run)
-        run: pnpm run package:vsix
-
-      - name: VSIX Information
-        run: pnpm exec vsce ls --tree --no-dependencies
+  test:
+    
+    runs-on: ubuntu-latest
+    environment: production
+    needs:
+      - version
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: ./.github/workflows/test.yml
