@@ -12,6 +12,49 @@ env:
   VS_MARKETPLACE_TOKEN: ""
   OPEN_VSX_TOKEN: ""
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      statuses: write
+      issues: write
+      pull-requests: write
+    outputs:
+      current_version: ${{ steps.get.outputs.current_version }}
+      ver_major_minor_patch: ${{ steps.get.outputs.major_minor_patch }}
+      ver_major_minor: ${{ steps.get.outputs.major_minor }}
+      ver_major: ${{ steps.get.outputs.major }}
+      tag: ${{ steps.get.outputs.tag_major_minor_patch }}
+      tag_major: ${{ steps.get.outputs.tag_major }}
+      tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
+      tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Determine next version
+        id: get
+        uses: camalot/actions/version/get@v1
+        with:
+          default_version: v1.0.0
+          fail_on_default: true
+          enable_pr_comment: true
+          token: ${{ github.token }}
+      - run: |
+          echo "next version: ${TAG}"
+        env:
+          CURRENT_VERSION: ${{ steps.get.outputs.current_version }}
+          TAG: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VERSION: ${{ steps.get.outputs.major_minor_patch }}
+          TAG_MAJOR: ${{ steps.get.outputs.tag_major }}
+          TAG_MAJOR_MINOR: ${{ steps.get.outputs.tag_major_minor }}
+          TAG_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.tag_major_minor_patch }}
+          VER_MAJOR: ${{ steps.get.outputs.major }}
+          VER_MAJOR_MINOR: ${{ steps.get.outputs.major_minor }}
+          VER_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.major_minor_patch }}
+
   verify:
     runs-on: ubuntu-latest
     environment: production
@@ -20,6 +63,8 @@ jobs:
       statuses: write
       issues: write
       pull-requests: write
+    needs:
+      - version
     steps:
       - run: |
           {
@@ -101,57 +146,50 @@ jobs:
             echo "✅ **PACKAGE_NAME** Passes Check" >> "$GITHUB_STEP_SUMMARY"
           fi
 
+          # verify against package.json
+          PACKAGE_NAME_JSON=$(jq -r '.name' package.json)
+          PACKAGE_PUBLISHER_JSON=$(jq -r '.publisher' package.json)
+          PACKAGE_VERSION_JSON=$(jq -r '.version' package.json)
+          if [ "$PACKAGE_NAME_JSON" != "$PACKAGE_NAME" ]; then
+            {
+              echo "❌ **PACKAGE_NAME** in package.json is not $PACKAGE_NAME"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **PACKAGE_NAME** in package.json Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$PACKAGE_PUBLISHER_JSON" != "$PACKAGE_OWNER" ]; then
+            {
+              echo "❌ **PACKAGE_PUBLISHER** in package.json is not $PACKAGE_OWNER"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **PACKAGE_PUBLISHER** in package.json Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$PACKAGE_VERSION_JSON" != "$EXPECTED_VERSION" ]; then
+            {
+              echo "❌ **PACKAGE_VERSION** in package.json is not \`$EXPECTED_VERSION\`"
+              echo "❌ Release Will **NOT** Proceed"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **PACKAGE_VERSION** in package.json Passes Check" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
           echo "✅ All Initial Checks Passed" >> "$GITHUB_STEP_SUMMARY"
           exit 0
 
     env:
       ACTOR: ${{ github.actor }}
       BRANCH: ${{ github.ref }}
-      OWNER: ${{ github.repository_owner }}
+      REPO_OWNER: ${{ github.repository_owner }}
       REPO_NAME: ${{ github.event.repository.name }}
+      EXPECTED_VERSION: ${{ needs.version.outputs.current_version }}
 
-  version:
-    runs-on: ubuntu-latest
-    environment: production
-    needs:
-      - verify
-    permissions:
-      contents: read
-      statuses: write
-      issues: write
-      pull-requests: write
-    outputs:
-      ver_major_minor_patch: ${{ steps.get.outputs.major_minor_patch }}
-      ver_major_minor: ${{ steps.get.outputs.major_minor }}
-      ver_major: ${{ steps.get.outputs.major }}
-      tag: ${{ steps.get.outputs.tag_major_minor_patch }}
-      tag_major: ${{ steps.get.outputs.tag_major }}
-      tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
-      tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Determine next version
-        id: get
-        uses: camalot/actions/version/get@v1
-        with:
-          default_version: v1.0.0
-          fail_on_default: true
-          enable_pr_comment: true
-          token: ${{ github.token }}
-      - run: |
-          echo "next version: ${TAG}"
-        env:
-          TAG: ${{ steps.get.outputs.tag_major_minor_patch }}
-          VERSION: ${{ steps.get.outputs.major_minor_patch }}
-          TAG_MAJOR: ${{ steps.get.outputs.tag_major }}
-          TAG_MAJOR_MINOR: ${{ steps.get.outputs.tag_major_minor }}
-          TAG_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.tag_major_minor_patch }}
-          VER_MAJOR: ${{ steps.get.outputs.major }}
-          VER_MAJOR_MINOR: ${{ steps.get.outputs.major_minor }}
-          VER_MAJOR_MINOR_PATCH: ${{ steps.get.outputs.major_minor_patch }}
 
   lint:
     runs-on: ubuntu-latest
