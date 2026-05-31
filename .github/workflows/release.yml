@@ -68,10 +68,10 @@ jobs:
             echo "✅ **ACTOR** Passes Check" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # release should only proceed if BRANCH is main
-          if [ "$BRANCH" != "refs/heads/main" ]; then
+          # release should only proceed if BRANCH is develop
+          if [ "$BRANCH" != "refs/heads/develop" ]; then
               {
-                echo "❌ **BRANCH** is not main"
+                echo "❌ **BRANCH** is not develop"
                 echo "❌ Release Will **NOT** Proceed"
               } >> "$GITHUB_STEP_SUMMARY"
             exit 1
