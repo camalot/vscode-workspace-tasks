@@ -70,6 +70,8 @@ jobs:
           fetch-depth: 0
 
       - uses: ./.github/workflows/lint
+        with:
+          github-token: ${{ github.token }}
 
   test:
 
@@ -89,3 +91,6 @@ jobs:
           fetch-depth: 0
 
       - uses: ./.github/workflows/test
+        with:
+          github-token: ${{ github.token }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}

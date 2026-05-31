@@ -1,6 +1,15 @@
 ---
 name: Run Tests
 description: Run the test suite with coverage
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+    default: ${{ github.token }}
+  codecov-token:
+    description: 'Codecov Token'
+    required: true
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -40,7 +49,7 @@ runs:
         junit_file: coverage/junit.xml
 
     - name: Upload coverage reports to Codecov
-      if: ${{ !env.ACT }}
+      if: ${{ !env.ACT }} && ${{ inputs.codecov-token != '' }}
       uses: codecov/codecov-action@v6
       with:
         fail_ci_if_error: true # optional (default = false)
@@ -48,7 +57,7 @@ runs:
         token: ${{ env.CODECOV_TOKEN }}
         verbose: true # optional (default = false)
       env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        CODECOV_TOKEN: ${{ inputs.codecov-token }}
 
     - name: Package VSIX (dry run)
       shell: bash

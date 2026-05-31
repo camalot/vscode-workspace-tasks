@@ -1,6 +1,11 @@
 ---
 name: Lint
 description: Lint the codebase using Super-Linter
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+    default: ${{ github.token }}
 runs:
   using: "composite"
   steps:
@@ -11,7 +16,7 @@ runs:
     - name: Lint Codebase
       uses: camalot/actions/smells/lint@v1
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ inputs.github-token }}
         super_linter_env_file: .github/linters/super-linter.env
         validate_all_codebase: true
         delete_previous_comment: true
