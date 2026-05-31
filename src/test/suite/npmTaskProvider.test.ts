@@ -18,6 +18,7 @@ suite('NpmTaskProvider Test Suite', () => {
 
   setup(() => {
     provider = new NpmTaskProvider();
+    Object.defineProperty(provider, 'enabled', { value: true, configurable: true });
 
     originalFetchTasks = vscode.tasks.fetchTasks;
     originalOpenTextDocument = vscode.workspace.openTextDocument;
