@@ -85,7 +85,7 @@ function install_antigen_bundles() {
   echo -e "${COLOR_BLUE}=================================================================${COLOR_RESET}"
   echo -e "${COLOR_BLUE}Pre-warming antigen bundle cache (oh-my-zsh + plugins)...${COLOR_RESET}"
 
-  if [ -f "$HOME/.antigen/antigen.zsh" ]; then
+  if [ -f "$HOME/antigen.zsh" ]; then
     # Run zsh non-interactively but source .zshrc to trigger antigen downloads.
     # TERM must be set for some plugins; redirect stderr to suppress p10k noise.
     # ANTIGEN_CACHE=false prevents generating a broken zcache (which stores

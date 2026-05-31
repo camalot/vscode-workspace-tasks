@@ -51,8 +51,8 @@ antigen bundle colored-man-pages
 antigen bundle zsh-users/zsh-autosuggestions
 antigen bundle zsh-users/zsh-history-substring-search
 antigen bundle zsh-users/zsh-completions
-antigen bundle zsh-users/zsh-interactive-cd
-antigen bundle zsh-users/zsh-dircolors-solarized
+# antigen bundle zsh-interactive-cd
+# antigen bundle zsh-users/zsh-dircolors-solarized
 antigen bundle direnv
 antigen bundle MichaelAquilina/zsh-autoswitch-virtualenv
 antigen bundle vscode

@@ -38,13 +38,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: pnpm
-      - name: npm install
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
-      - name: check types
+      - name: Check Types
         run: pnpm run check:types
-      - name: format
+      - name: Format
         run: pnpm run check:format
-      - name: lint
+      - name: Lint
         run: pnpm run lint
 
   test:

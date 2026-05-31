@@ -148,17 +148,21 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
   && chmod +x "/home/${USERNAME}/bin/codecov" \
   && pip install --no-cache-dir --user pipx --break-system-packages && /home/${USERNAME}/.local/bin/pipx ensurepath && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner rust-just
 
-COPY files/home/vscode/ /home/${USERNAME}/
 
 RUN mkdir -p "/home/${USERNAME}/.antigen" "/home/${USERNAME}/.zsh/custom/aliases" "/home/${USERNAME}/.devcontainer" "/home/${USERNAME}/bin" "/home/${USERNAME}/.act" \
   && curl -L git.io/antigen > "/home/${USERNAME}/antigen.zsh" \
+  && rm -rf "/home/${USERNAME}/.oh-my-zsh" \
+  && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
   && ZSH_CUSTOM="/home/${USERNAME}/.oh-my-zsh/custom" \
   && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
   && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin" \
   && chmod +x "/home/${USERNAME}/bin/act" \
   && ln -s "/home/${USERNAME}/bin/act" "/home/${USERNAME}/.act/act" \
-  && curl -sSL https://install.python-poetry.org | python3 -
+  && for i in 1 2 3; do curl -sSL https://install.python-poetry.org | python3 - && break || { sleep $((i * 5)); }; done
 
+COPY files/home/vscode/ /home/${USERNAME}/
+# Pre-warm the antigen bundle cache so p10k loads on the first terminal open instead of requiring a second `source ~/.zshrc`.
+RUN TERM=xterm-256color ZSH_DISABLE_COMPFIX=true zsh -i -c 'exit' 2>/dev/null || true
 # make sure that pnpm is available in the PATH for the vscode user and that the pnpm is up to date.
 RUN export PATH="$HOME/.local/bin:$HOME/.local/share/pnpm/bin:$PATH" \
   && pnpm self-update
