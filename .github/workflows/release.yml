@@ -274,17 +274,22 @@ jobs:
         run: pnpm run test
 
       - name: Build
-        run: pnpm run compile
+        run: |
+          echo "::group::Build"
+          pnpm run compile
+          echo "::endgroup::"
 
       - name: Package VSIX
         run: |
+          echo "::group::Packaging VSIX"
           mkdir -p dist
           pnpm run package:vsix -- --out "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+          echo "::endgroup::"
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
       - name: Create Release
-        uses: camalot/actions/release@v1
+        uses: camalot/actions/version/release@v1
         with:
           tag_major: ${{ needs.version.outputs.tag_major }}
           tag_major_minor: ${{ needs.version.outputs.tag_major_minor }}
@@ -298,6 +303,7 @@ jobs:
       - name: Verify VSIX file exists
         run: |
           VSIX="dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+          echo "::group::VSIX: $VSIX"
           if [ ! -f "$VSIX" ]; then
             echo -e "\e[31mVSIX not found: $VSIX\e[0m" >&2
             echo "Contents of dist/:"
@@ -306,6 +312,7 @@ jobs:
           fi
           echo -e "\e[32mVSIX generated: $VSIX ($(du -h "$VSIX" | cut -f1))\e[0m"
           pnpm exec vsce ls --tree --no-dependencies
+          echo "::endgroup::"
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
@@ -335,6 +342,7 @@ jobs:
 
       - name: Upload VSIX to release
         run: |
+          echo "::group::Uploading VSIX"
           VSIX="dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
           if [ ! -f "$VSIX" ]; then
             echo -e "\e[31mVSIX not found before upload: $VSIX\e[0m" >&2
@@ -342,6 +350,7 @@ jobs:
           fi
           gh release upload "${TAG}" "$VSIX" --repo "${{ github.repository }}" --clobber
           echo -e "\e[32mVSIX uploaded to release $TAG\e[0m"
+          echo "::endgroup::"
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
