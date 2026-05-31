@@ -72,7 +72,7 @@ jobs:
             echo ""
             echo "**ACTOR**: $ACTOR"
             echo "**BRANCH**: $BRANCH"
-            echo "**OWNER**: $OWNER"
+            echo "**OWNER**: $REPO_OWNER"
             echo "**REPO_NAME**: $REPO_NAME"
             echo "**PACKAGE_OWNER**: $PACKAGE_OWNER"
             echo "**PACKAGE_NAME**: $PACKAGE_NAME"
@@ -103,7 +103,7 @@ jobs:
           fi
 
           # release should only proceed if ACTOR is REPOSITORY Owner
-          if [ "$ACTOR" != "$OWNER" ]; then
+          if [ "$ACTOR" != "$REPO_OWNER" ]; then
             {
               echo "❌ **ACTOR** is not the repository owner"
               echo "❌ Release Will **NOT** Proceed"
