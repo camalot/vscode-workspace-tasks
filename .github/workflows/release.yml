@@ -261,6 +261,7 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
+          token: "${{ secrets.RELEASE_TOKEN }}"
 
       - name: Configure git
         shell: bash
@@ -271,7 +272,7 @@ jobs:
           gh auth setup-git
           echo "::endgroup::"
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -338,7 +339,7 @@ jobs:
           tag_major: ${{ needs.version.outputs.tag_major }}
           tag_major_minor: ${{ needs.version.outputs.tag_major_minor }}
           tag_major_minor_patch: ${{ needs.version.outputs.tag_major_minor_patch }}
-          token: ${{ github.token }}
+          token: ${{ secrets.RELEASE_TOKEN }}
         env:
           UPDATE_FILE_CHANGELOG: "CHANGELOG.md"
           # we update in this so fake file name here
