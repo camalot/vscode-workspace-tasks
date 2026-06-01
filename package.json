@@ -3,7 +3,7 @@
   "displayName": "Workspace Tasks",
   "description": "A Task Explorer for Visual Studio Code",
   "readme": "README.md",
-  "version": "1.12.1",
+  "version": "1.12.0",
   "engines": {
     "vscode": "^1.105.1"
   },
