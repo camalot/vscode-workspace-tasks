@@ -8,6 +8,10 @@ on:  # yamllint disable-line rule:truthy
         description: 'Force the next version. Must be in the format vX.Y.Z. Tag must not exist.'
         required: false
         default: ''
+      vsix_publish:
+        description: 'Whether to publish the VSIX to the marketplaces. If false, will still create a GitHub Release and upload the VSIX as an artifact, but skip publishing to marketplaces.'
+        required: false
+        default: 'true'
 permissions: {}
 env:
   PACKAGE_OWNER: 'darthminos'
@@ -209,7 +213,6 @@ jobs:
       REPO_NAME: ${{ github.event.repository.name }}
       EXPECTED_VERSION: ${{ needs.version.outputs.current_version }}
 
-
   lint:
     runs-on: ubuntu-latest
     environment: production
@@ -344,20 +347,6 @@ jobs:
           TAG_MAJOR: ${{ needs.version.outputs.tag_major }}
           TAG_MAJOR_MINOR: ${{ needs.version.outputs.tag_major_minor }}
 
-      - name: Create Release
-        id: create_release
-        uses: camalot/actions/version/release@v1
-        with:
-          tag_major: ${{ needs.version.outputs.tag_major }}
-          tag_major_minor: ${{ needs.version.outputs.tag_major_minor }}
-          tag_major_minor_patch: ${{ needs.version.outputs.tag_major_minor_patch }}
-          token: ${{ github.token }}
-        env:
-          UPDATE_FILE_CHANGELOG: "CHANGELOG.md"
-          # we update in this so fake file name here
-          UPDATE_FILE_PACKAGE_JSON: "fake-ignore-package.json"
-          UPDATE_FILE_JEKYLL_CONFIG: "docs/_config.yml"
-
       - name: Verify VSIX file exists
         run: |
           VSIX="dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
@@ -374,9 +363,37 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
+      - name: Create Release
+        id: create_release
+        uses: camalot/actions/version/release@v1
+        with:
+          tag_major: ${{ needs.version.outputs.tag_major }}
+          tag_major_minor: ${{ needs.version.outputs.tag_major_minor }}
+          tag_major_minor_patch: ${{ needs.version.outputs.tag_major_minor_patch }}
+          token: ${{ github.token }}
+        env:
+          UPDATE_FILE_CHANGELOG: "CHANGELOG.md"
+          # we update in this so fake file name here
+          UPDATE_FILE_PACKAGE_JSON: "fake-ignore-package.json"
+          UPDATE_FILE_JEKYLL_CONFIG: "docs/_config.yml"
+          RELEASE_FILES_GLOB: "dist/*.vsix"
+
+      - name: Setup to Publish
+        shell: bash
+        run: |
+          echo "::group::Setup to Publish"
+          if [[ "${VSIX_PUBLISHZ,,}" != "true" ]]; then
+            echo "VSIX_PUBLISH=false" >> "$GITHUB_ENV"
+          else
+            echo "VSIX_PUBLISH=true" >> "$GITHUB_ENV"
+          fi
+          echo "::endgroup::"
+        env:
+          VSIX_PUBLISHZ: ${{ inputs.vsix_publish }}
+
       - name: Publish to Open VSX Registry
         # only publish if everything before (incl. Create Release) succeeded
-        if: ${{ success() && env.OPEN_VSX_TOKEN != '' }}
+        if: ${{ success() && env.OPEN_VSX_TOKEN != '' && env.VSIX_PUBLISH == 'true' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.OPEN_VSX_TOKEN }}
@@ -389,7 +406,7 @@ jobs:
 
       - name: Publish to Visual Studio Marketplace
         # only publish if everything before (incl. Create Release) succeeded
-        if: ${{ success() && env.VS_MARKETPLACE_TOKEN != '' }}
+        if: ${{ success() && env.VS_MARKETPLACE_TOKEN != '' && inputs.vsix_publish == 'true' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.VS_MARKETPLACE_TOKEN }}
@@ -399,28 +416,6 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
           VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-
-      - name: Upload VSIX to release
-        run: |
-          echo "::group::Uploading VSIX"
-          VSIX="dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
-          if [ ! -f "$VSIX" ]; then
-            echo -e "\e[31mVSIX not found before upload: $VSIX\e[0m" >&2
-            exit 1
-          fi
-          gh release upload "${TAG}" "$VSIX" --repo "${{ github.repository }}" --clobber
-          echo -e "\e[32mVSIX uploaded to release $TAG\e[0m"
-          echo "::endgroup::"
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
-          TAG: ${{ needs.version.outputs.tag_major_minor_patch }}
-
-      - name: Upload VSIX artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: vsix
-          path: dist/*.vsix
 
       - name: Rollback release on later failure
         # Fires only when the release itself SUCCEEDED but a later step
