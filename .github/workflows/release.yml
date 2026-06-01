@@ -9,7 +9,7 @@ on:  # yamllint disable-line rule:truthy
         required: false
         default: ''
       vsix_publish:
-        description: 'Whether to publish the VSIX to the marketplaces. If false, will still create a GitHub Release and upload the VSIX as an artifact, but skip publishing to marketplaces.'
+        description: 'Whether to publish the VSIX to the marketplaces.'
         required: false
         default: 'true'
 permissions: {}
