@@ -2,4 +2,4 @@ allowBuilds:
   '@vscode/vsce-sign': false
   keytar: false
 shamefullyHoist: true
-minimumReleaseAge: 10080 # 7 days in minutes
+# minimumReleaseAge: 10080 # 7 days in minutes
