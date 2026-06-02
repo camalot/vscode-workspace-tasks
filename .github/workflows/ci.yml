@@ -35,7 +35,7 @@ jobs:
           persist-credentials: false
       - name: Determine next version
         id: get
-        uses: camalot/actions/version/get@v1
+        uses: camalot/actions/version/get@v1.2.0
         with:
           default_version: v1.0.0
           fail_on_default: true
