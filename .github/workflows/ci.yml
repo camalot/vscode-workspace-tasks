@@ -29,7 +29,7 @@ jobs:
       tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
       tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -64,7 +64,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: true
           fetch-depth: 0
@@ -86,7 +86,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: true
           fetch-depth: 0
