@@ -1,0 +1,25 @@
+[files]
+extend-exclude = [
+  "**/node_modules/**",
+  "**/dist/**",
+  "**/build/**",
+  "**/vendor/**",
+  "**/.git/**",
+  "**/.venv/**",
+  "**/submodules/**",
+  "**/*.test.ts",
+]
+ignore-hidden = true
+ignore-dot = true
+ignore-vcs = true
+
+
+[default]
+binary = false
+check-filename = true
+check-file = true
+unicode = true
+locale = "en"
+extend-ignore-re = []
+extend-ignore-identifiers-re = []
+extend-ignore-words-re = []

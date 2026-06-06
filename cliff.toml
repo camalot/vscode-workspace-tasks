@@ -127,17 +127,21 @@ body = """
   {%- for contrib in contributors %}
     - {{ self::user_url(name=contrib.username) }}
     {%- if contrib.pr_number %} in \
-      {#- defined with !#!\\d+ to get processed by the post processor after #\\d+ -#}
+      {#- defined with !#!\\d+ to get processed by the post processor after #\\d+ #}
       [!#!{{ contrib.pr_number }}]({{ self::remote_url() }}/pull/{{ contrib.pr_number }})
     {% endif %}
   {%- endfor -%}
 {%- endmacro -%}
 
-{%- macro clean_version(version, unreleased="unreleased") -%}
+{%- macro clean_version(version, unreleased="unreleased", prefix="v", include_prefix=false) -%}
   {%- if version -%}
-    {{ version | trim_start_matches(pat="v") }}
+    {%- if include_prefix -%}
+      {{ prefix }}{{ version | trim_start_matches(pat=prefix) }}
+    {%- else -%}
+      {{ version | trim_start_matches(pat=prefix) }}
+    {%- endif -%}
   {%- else -%}
-    {{ HEADER_UNRELEASED | upper }}
+    {{ unreleased | upper }}
   {%- endif -%}
 {%- endmacro -%}
 
@@ -165,9 +169,9 @@ body = """
   - `{{ s_links_count }}` linked {{ self::plural(count=s_links_count, singular="issue", plural="issues") }} detected in commits.
 
   {%- if s_links_count > 0 -%}
-    {%- for link in statistics.links %}
+	  {%- for link in statistics.links %}
       {{ "  " }}- [{{ link.text }}]({{ link.href }}) (referenced {{ link.count }} {{ self::plural(count=link.count, singular="time", plural="times") }})
-    {%- endfor %}
+	  {%- endfor %}
   {%- endif %}
   {%- if s_days_since > 0 %}
     - `{{ s_days_since }}` {{ self::plural(count=s_days_since, singular="day", plural="days") }}  {{ self::plural(count=s_days_since, singular="has", plural="have")}} passed between releases.
@@ -188,9 +192,9 @@ body = """
 
 {%- macro print_commit(commit) -%}
   {{ self::unquote(input=commit.message) | upper_first | trim }}
-  {%- if commit.links -%} {% for link in commit.links %} [{{ link.text }}]({{ link.href }}) {% endfor -%}{%- endif -%}
+  {%- if commit.links -%} {% for link in commit.links %}[{{ link.text }}]({{ link.href }}) {% endfor -%}{%- endif -%}
   {%- if commit.remote -%}
-    {%- if commit.remote.pr_number %}{{ " [!#!" ~ commit.remote.pr_number ~ "](<REPO>/issues/" ~ commit.remote.pr_number ~ ") "}}{% endif %}
+    {%- if commit.remote.pr_number %}{{ " [!#!" ~ commit.remote.pr_number ~ "](<REPO>/pull/" ~ commit.remote.pr_number ~ ")"}}{% endif %}
     {%- if commit.remote.username %} -
         {%- if commit.remote.is_first_time %} ❤️{%- endif -%}
         {{ self::user_url(name=commit.remote.username) }}
@@ -201,14 +205,14 @@ body = """
 {#- MACROS END -#}
 
 {#- VERSION HEADER -#}
-{%- set c_version = self::clean_version(version=version, unreleased="unreleased") -%}
+{%- set c_version = self::clean_version(version=version, unreleased="unreleased", prefix="v", include_prefix=true) -%}
   {%- if github %}
-    ## [v{{ c_version }}]({{ self::remote_url()}}/releases/tag/v{{ c_version }})
+    ## [{{ c_version }}]({{ self::remote_url()}}/releases/tag/v{{ c_version }})
   {%- else %}
-    ## v{{ c_version }}
-  {%- endif %} \
+    ## {{ c_version }}
+  {%- endif -%}
 
-  - {{ timestamp | date(format="%Y-%m-%d") }}
+  {%- if timestamp %}{% raw %} - {% endraw %}{{- timestamp | date(format="%Y-%m-%d") }}{% endif %}
 {#- VERSION HEADER END -#}
 
 {#- LOOP GROUPS -#}
@@ -352,5 +356,3 @@ topo_order_commits = true
 sort_commits = "oldest"
 # Process submodules commits
 recurse_submodules = false
-
-tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+$"

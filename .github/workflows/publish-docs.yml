@@ -1,0 +1,28 @@
+---
+on: # yamllint disable-line rule:truthy
+  workflow_dispatch: {}
+permissions: {}
+env:
+  ACT: ""
+  JEKYLL_ENV: production
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read # for actions/checkout
+      pages: write # to deploy to GitHub Pages
+    steps:
+      - name: Checkout
+        if: ${{ ! env.ACT }}
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Publish Docs to GitHub Pages
+        if: ${{ ! env.ACT }}
+        uses: camalot/actions/docs/drjekyll@v1
+        with:
+          input_dir: ./docs
+          output_dir: ./_site

@@ -146,7 +146,12 @@ USER ${USERNAME}
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
   && curl -fsSL "https://uploader.codecov.io/latest/linux/codecov" -o "/home/${USERNAME}/bin/codecov" \
   && chmod +x "/home/${USERNAME}/bin/codecov" \
-  && pip install --no-cache-dir --user pipx --break-system-packages && /home/${USERNAME}/.local/bin/pipx ensurepath && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner rust-just
+  && pip install --no-cache-dir --user pipx --break-system-packages \
+  && /home/${USERNAME}/.local/bin/pipx ensurepath \
+  && /home/${USERNAME}/.local/bin/pipx install bitbucket-pipeline-runner rust-just \
+  && TYPOS_VERSION=$(curl -s "https://api.github.com/repos/crate-ci/typos/releases/latest" | jq -r ".tag_name") \
+  && curl -fsSL "https://github.com/crate-ci/typos/releases/download/${TYPOS_VERSION}/typos-${TYPOS_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -xz -C "/home/${USERNAME}/bin"
+
 
 
 RUN mkdir -p "/home/${USERNAME}/.antigen" "/home/${USERNAME}/.zsh/custom/aliases" "/home/${USERNAME}/.devcontainer" "/home/${USERNAME}/bin" "/home/${USERNAME}/.act" \
