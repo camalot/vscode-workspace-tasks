@@ -40,7 +40,7 @@ jobs:
       tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
       tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -79,7 +79,7 @@ jobs:
       - version
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -224,7 +224,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
         with:
           persist-credentials: true
           fetch-depth: 0
@@ -244,7 +244,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
         with:
           persist-credentials: true
           fetch-depth: 0
@@ -272,7 +272,7 @@ jobs:
       checks: write
       packages: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
         with:
           persist-credentials: true
           fetch-depth: 0
@@ -473,7 +473,7 @@ jobs:
       pages: write # to deploy to GitHub Pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.3
         with:
           persist-credentials: false
           fetch-depth: 0
