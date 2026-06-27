@@ -1,5 +1,11 @@
 allowBuilds:
   '@vscode/vsce-sign': false
   keytar: false
+minimumReleaseAgeExclude:
+  - eslint@10.6.0
+  - prettier@3.8.5
+  - webpack-cli@7.1.0
+  - webpack@5.108.1
 shamefullyHoist: true
+
 # minimumReleaseAge: 10080 # 7 days in minutes
