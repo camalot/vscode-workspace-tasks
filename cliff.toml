@@ -169,9 +169,9 @@ body = """
   - `{{ s_links_count }}` linked {{ self::plural(count=s_links_count, singular="issue", plural="issues") }} detected in commits.
 
   {%- if s_links_count > 0 -%}
-	  {%- for link in statistics.links %}
+    {%- for link in statistics.links %}
       {{ "  " }}- [{{ link.text }}]({{ link.href }}) (referenced {{ link.count }} {{ self::plural(count=link.count, singular="time", plural="times") }})
-	  {%- endfor %}
+    {%- endfor %}
   {%- endif %}
   {%- if s_days_since > 0 %}
     - `{{ s_days_since }}` {{ self::plural(count=s_days_since, singular="day", plural="days") }}  {{ self::plural(count=s_days_since, singular="has", plural="have")}} passed between releases.

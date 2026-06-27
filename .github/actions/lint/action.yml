@@ -23,6 +23,5 @@ runs:
         token: ${{ inputs.github-token }}
         super_linter_env_file: .github/linters/super-linter.env
         validate_all_codebase: true
-        delete_previous_comment: true
       env:
         ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: ${{ inputs.enable_pr_comment }}

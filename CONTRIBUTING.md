@@ -194,7 +194,7 @@ srcs = glob(["*.java"]),
 #### Prerequisites
 
 - **Node.js** - Version 18.x or later
-- **npm** - Comes with Node.js
+- **pnpm** - Alternative to npm for package management
 - **Git** - For cloning the repository
 - **Visual Studio Code** - Latest version recommended
 
@@ -220,7 +220,7 @@ srcs = glob(["*.java"]),
 4. **Install Dependencies**
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 5. **Open in Visual Studio Code**
@@ -236,7 +236,7 @@ srcs = glob(["*.java"]),
    Press `Ctrl+Shift+B` (or `Cmd+Shift+B` on macOS) to start the default build task, or run:
 
    ```bash
-   npm run watch
+   pnpm run watch
    ```
 
    This will compile TypeScript files and watch for changes.

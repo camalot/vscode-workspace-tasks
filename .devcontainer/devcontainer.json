@@ -40,6 +40,7 @@
         "dandric.vscode-jq",
         "darthminos.musicbee-remote",
         "darthminos.workspace-tasks",
+        "darthminos.cliff-toml-language",
         "davidanson.vscode-markdownlint",
         "davidnussio.vscode-jq-playground",
         "dbaeumer.vscode-eslint",

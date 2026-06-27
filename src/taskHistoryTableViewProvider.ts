@@ -164,9 +164,19 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
       vscode.Uri.joinPath(this._extensionUri, 'res', 'webviews', 'lib', 'chart.umd.min.js')
     );
 
+    const taskHistoryCssUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'res', 'assets', 'css', 'taskHistory.css')
+    );
+
+    const taskHistoryJsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'res', 'assets', 'javascript', 'taskHistory.js')
+    );
+
     htmlContent = htmlContent.replace(/{{cspSource}}/g, webview.cspSource);
     htmlContent = htmlContent.replace(/{{nonce}}/g, nonce);
     htmlContent = htmlContent.replace(/{{chartJsUri}}/g, chartJsUri.toString());
+    htmlContent = htmlContent.replace(/{{taskHistoryCssUri}}/g, taskHistoryCssUri.toString());
+    htmlContent = htmlContent.replace(/{{taskHistoryJsUri}}/g, taskHistoryJsUri.toString());
 
     return htmlContent;
   }
