@@ -102,6 +102,7 @@
   },
   "postCreateCommand": "[ -f .devcontainer/events/post-create-command.sh ] && chmod +x .devcontainer/events/post-create-command.sh && .devcontainer/events/post-create-command.sh",
   "postAttachCommand": "[ -f .devcontainer/events/post-attach-command.sh ] && chmod +x .devcontainer/events/post-attach-command.sh && .devcontainer/events/post-attach-command.sh",
+  "containerUser": "root",
   "remoteUser": "vscode",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",

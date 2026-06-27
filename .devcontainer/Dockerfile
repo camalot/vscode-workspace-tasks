@@ -169,8 +169,7 @@ COPY files/home/vscode/ /home/${USERNAME}/
 # Pre-warm the antigen bundle cache so p10k loads on the first terminal open instead of requiring a second `source ~/.zshrc`.
 RUN TERM=xterm-256color ZSH_DISABLE_COMPFIX=true zsh -i -c 'exit' 2>/dev/null || true
 # make sure that pnpm is available in the PATH for the vscode user and that the pnpm is up to date.
-RUN export PATH="$HOME/.local/bin:$HOME/.local/share/pnpm/bin:$PATH" \
-  && pnpm self-update
+RUN export PATH="$HOME/.local/bin:$HOME/.local/share/pnpm/bin:$PATH"
 
 # Reset SHELL to prevent pipefail from breaking devcontainer features installation
 SHELL ["/bin/sh", "-c"]
