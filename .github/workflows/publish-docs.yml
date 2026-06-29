@@ -22,7 +22,7 @@ jobs:
 
       - name: Publish Docs to GitHub Pages
         if: ${{ ! env.ACT }}
-        uses: camalot/actions/docs/drjekyll@v1
+        uses: camalot/actions/docs/drjekyll@v1.5.1
         with:
           input_dir: ./docs
           output_dir: ./_site
