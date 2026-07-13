@@ -94,8 +94,10 @@ export class TaskHistoryTreeDataProvider implements vscode.TreeDataProvider<Hist
 type HistoryItem = HistoryGroupItem | HistoryExecutionItem;
 
 class HistoryGroupItem extends vscode.TreeItem {
-  constructor(public readonly group: ITaskHistoryGroup) {
+  public readonly group: ITaskHistoryGroup;
+  constructor(group: ITaskHistoryGroup) {
     super(group.taskName, vscode.TreeItemCollapsibleState.Expanded);
+    this.group = group;
 
     let pathDesc = group.source;
     const firstDef = group.executions[0]?.definition;
@@ -114,8 +116,10 @@ class HistoryGroupItem extends vscode.TreeItem {
 }
 
 class HistoryExecutionItem extends vscode.TreeItem {
-  constructor(public readonly record: ITaskExecutionRecord) {
+  public readonly record: ITaskExecutionRecord;
+  constructor(record: ITaskExecutionRecord) {
     super('', vscode.TreeItemCollapsibleState.None);
+    this.record = record;
 
     const date = new Date(record.startTime);
     const isToday = new Date().toDateString() === date.toDateString();

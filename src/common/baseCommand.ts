@@ -6,10 +6,14 @@ import { LoggerService } from '../services/loggerService';
 
 export default abstract class BaseCommand {
   protected readonly logger = LoggerService.getInstance();
+  public readonly commandName: string;
+  public readonly context: vscode.ExtensionContext;
   constructor(
-    public readonly commandName: string,
-    public readonly context: vscode.ExtensionContext,
+    commandName: string,
+    context: vscode.ExtensionContext,
   ) {
+    this.commandName = commandName;
+    this.context = context;
     // remove 'Command' suffix from class name to get command name
     // let commandName = this.constructor.name.replace(/Command$/, '');
     const fullCommandName = `${constants.configurationSection}.${commandName}`;

@@ -1,7 +1,7 @@
 import * as assert from 'assert';
-import fs = require('fs');
+import * as fs from 'fs';
 import * as path from 'path';
-import os = require('os');
+import * as os from 'os';
 import * as vscode from 'vscode';
 import { TaskfileTaskProvider } from '../../providers/taskfileTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';

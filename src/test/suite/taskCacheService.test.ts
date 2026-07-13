@@ -7,7 +7,12 @@ import { TaskItem } from '../../taskItem';
 import { TaskProvider } from '../../taskProvider';
 
 class MockTaskProvider implements TaskProvider {
-    constructor(private tasks: TaskItem[], public type: string) { }
+    private tasks: TaskItem[];
+    public type: string;
+    constructor(tasks: TaskItem[], type: string) {
+        this.tasks = tasks;
+        this.type = type;
+    }
     async getTasks(): Promise<TaskItem[]> {
         return this.tasks;
     }

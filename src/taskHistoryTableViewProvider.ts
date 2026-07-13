@@ -9,10 +9,13 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
 
   private _view?: vscode.WebviewView;
   private _updateTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly _extensionUri: vscode.Uri;
 
   constructor(
-    private readonly _extensionUri: vscode.Uri,
-  ) { }
+    extensionUri: vscode.Uri,
+  ) {
+    this._extensionUri = extensionUri;
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,

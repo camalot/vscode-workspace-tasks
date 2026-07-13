@@ -25,12 +25,19 @@ export class JupyterTerm implements vscode.Pseudoterminal {
   onDidWrite: vscode.Event<string> = this.writeEmitter.event;
   private closeEmitter = new vscode.EventEmitter<number>();
   onDidClose: vscode.Event<number> = this.closeEmitter.event;
+  private resourceUri: vscode.Uri;
+  private cellIndex: number | undefined;
+  private label: string;
 
   constructor(
-    private resourceUri: vscode.Uri,
-    private cellIndex: number | undefined,
-    private label: string,
-  ) {}
+    resourceUri: vscode.Uri,
+    cellIndex: number | undefined,
+    label: string,
+  ) {
+    this.resourceUri = resourceUri;
+    this.cellIndex = cellIndex;
+    this.label = label;
+  }
 
   open(): void {
     this.doRun();
