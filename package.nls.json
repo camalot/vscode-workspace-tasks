@@ -162,9 +162,9 @@
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
   "config.workspaceTasks.task.stopGracefulDelayMilliseconds": "Stop Graceful Delay (Milliseconds)",
-  "config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown": "The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT). [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/general.html#workspacetaskstaskstopgracefuldelaymilliseconds)",
+  "config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown": "The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT). [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks#workspacetaskstaskstopgracefuldelaymilliseconds)",
   "config.workspaceTasks.task.stopCompoundDependencies": "Stop Compound Dependencies",
-  "config.workspaceTasks.task.stopCompoundDependencies.markdown": "When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action will also stop any currently running dependency tasks referenced by `dependsOn`. [Read More](https://camalot.github.io/vscode-workspace-tasks/features/compound-tasks.html#workspacetaskstaskstopcompounddependencies)",
+  "config.workspaceTasks.task.stopCompoundDependencies.markdown": "When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action will also stop any currently running dependency tasks referenced by `dependsOn`. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks#workspacetaskstaskstopcompounddependencies)",
 
   "config.workspaceTasks.task.confirmPatterns": "Task Confirmation Patterns",
   "config.workspaceTasks.task.confirmPatterns.markdown": "Array of strings (treated as regular expressions, case-insensitive) matched against task labels. Tasks whose labels match any pattern will prompt for confirmation before running. Example: `[\"deploy.*\", \"db:drop\", \"terraform apply\"]`. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks.html#workspacetaskstaskconfirmpatterns)",
