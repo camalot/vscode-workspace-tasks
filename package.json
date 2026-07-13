@@ -130,8 +130,8 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "~26.0.1",
     "@types/vscode": "^1.105.1",
-    "@typescript-eslint/eslint-plugin": "^8.62.0",
-    "@typescript-eslint/parser": "^8.62.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
+    "@typescript-eslint/parser": "^8.62.1",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
     "@vscode/vsce": "^3.9.2",
@@ -146,8 +146,8 @@
     "prettier": "^3.8.5",
     "ts-loader": "^9.6.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.62.0",
-    "webpack": "^5.108.1",
+    "typescript-eslint": "^8.62.1",
+    "webpack": "^5.108.3",
     "webpack-cli": "^7.1.0"
   },
   "dependencies": {
