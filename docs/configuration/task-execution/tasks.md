@@ -166,7 +166,7 @@ Controls which terminal panel is used for the task.
 | **Default:** | `5000` |
 | **Scope:** | `resource` |
 
-The time in milliseconds to wait after sending a termination signal before forcibly killing the task process. During this window the process may perform clean-up work. Set to `0` to kill immediately without a grace period.
+The time in milliseconds to wait after sending a termination signal before forcibly killing the task process. During this window the process may perform clean-up work. Set to `0` to opt out of the force-kill entirely — only the graceful SIGINT is sent, and if the process does not respond the terminal remains open so the output is preserved.
 
 **Example:**
 

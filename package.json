@@ -32,7 +32,7 @@
     "changelog": "https://github.com/camalot/vscode-workspace-tasks/blob/develop/CHANGELOG.md"
   },
   "license": "Apache-2.0",
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@11.12.0",
   "publisher": "darthminos",
   "icon": "res/icon.png",
   "galleryBanner": {

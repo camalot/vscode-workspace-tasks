@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { StopTaskCommand, findTerminalForTask, getCompoundDependencyLabels } from '../../commands/stopTask';
+import { StopTaskCommand, findTerminalForTask, getCompoundDependencyLabels, forceKillPreservingTerminal } from '../../commands/stopTask';
 import { TaskItem } from '../../taskItem';
 import { TaskStateManager } from '../../taskStateManager';
 import { TaskCacheService } from '../../services/taskCacheService';
@@ -45,6 +45,30 @@ function makeTerminal(sendTextFn?: (text: string, addNewLine: boolean) => void):
     state: { isInteractedWith: false },
     shellIntegration: undefined,
   } as unknown as vscode.Terminal;
+}
+
+function makeTerminalWithPid(pid: number, sendTextFn?: (text: string, addNewLine: boolean) => void): vscode.Terminal {
+  const terminal = makeTerminal(sendTextFn);
+  (terminal as any).processId = Promise.resolve(pid);
+  return terminal;
+}
+
+function makeExecutionWithPresentation(
+  presentationOptions: vscode.TaskPresentationOptions,
+  terminateFn?: () => void,
+): vscode.TaskExecution {
+  const task = new vscode.Task(
+    { type: 'shell' },
+    vscode.TaskScope.Workspace,
+    'test-task',
+    'shell',
+    new vscode.ShellExecution('echo hello'),
+  );
+  task.presentationOptions = presentationOptions;
+  return {
+    task,
+    terminate: terminateFn ?? (() => {}),
+  } as vscode.TaskExecution;
 }
 
 function buildFakeStateManager(overrides: Partial<TaskStateManager> = {}): TaskStateManager {
@@ -1019,5 +1043,312 @@ suite('StopTaskCommand Test Suite', () => {
         done();
       }, 100);
     }).catch(done);
+  });
+
+  // -------------------------------------------------------------------------
+  // forceKillPreservingTerminal
+  // -------------------------------------------------------------------------
+
+  suite('forceKillPreservingTerminal', () => {
+    let originalProcessKill: typeof process.kill;
+    const killSpy: Array<{ pid: number; signal: string | number | undefined }> = [];
+
+    setup(() => {
+      killSpy.length = 0;
+      originalProcessKill = process.kill;
+      (process as any).kill = (pid: number, signal: string | number | undefined) => {
+        killSpy.push({ pid, signal });
+        return true;
+      };
+    });
+
+    teardown(() => {
+      (process as any).kill = originalProcessKill;
+    });
+
+    test('calls process.kill with SIGKILL when presentation.close is false and processId is available', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      const terminal = makeTerminalWithPid(99001);
+
+      await forceKillPreservingTerminal(terminal, execution);
+
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called once');
+      assert.strictEqual(killSpy[0].pid, 99001, 'should kill the correct pid');
+      assert.strictEqual(killSpy[0].signal, 'SIGKILL', 'should use SIGKILL');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
+    });
+
+    test('calls execution.terminate when presentation.close is true', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: true }, () => terminateCalls.push(1));
+      const terminal = makeTerminalWithPid(99002);
+
+      await forceKillPreservingTerminal(terminal, execution);
+
+      assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called when close is true');
+      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called');
+    });
+
+    test('calls execution.terminate when no terminal is provided', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+
+      await forceKillPreservingTerminal(undefined, execution);
+
+      assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called without a terminal');
+      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called as fallback');
+    });
+
+    test('calls execution.terminate when processId is unavailable', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      const terminal = makeTerminal(); // no processId property
+
+      await forceKillPreservingTerminal(terminal, execution);
+
+      assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called when processId is unavailable');
+      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called as fallback');
+    });
+
+    test('falls back to execution.terminate when process.kill throws', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      const terminal = makeTerminalWithPid(99003);
+      (process as any).kill = () => { throw new Error('Permission denied'); };
+
+      await forceKillPreservingTerminal(terminal, execution);
+
+      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called when process.kill throws');
+    });
+
+    test('calls process.kill when presentation.close is not set (defaults to false)', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({}, () => terminateCalls.push(1));
+      const terminal = makeTerminalWithPid(99004);
+
+      await forceKillPreservingTerminal(terminal, execution);
+
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called when close is unset (defaults to false)');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Graceful delay of 0 — opt out of force-kill
+  // -------------------------------------------------------------------------
+
+  test('delay of 0 with terminal sends SIGINT but does not schedule a fallback timer', async () => {
+    const item = makeTaskItem('zero-delay-with-terminal');
+    const id = fakeStateManager.getTaskId(item);
+    const terminateCalls: number[] = [];
+    const sentTexts: Array<{ text: string }> = [];
+
+    const execution = makeExecution(() => terminateCalls.push(1));
+    (fakeStateManager as any).getExecution = () => execution;
+    const terminal = makeTerminal((text) => sentTexts.push({ text }));
+    (fakeStateManager as any).getTerminal = () => terminal;
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
+      return defaultValue;
+    };
+
+    await cmd.run(item);
+
+    assert.strictEqual(sentTexts.length, 1, 'SIGINT should still be sent');
+    assert.strictEqual(sentTexts[0].text, '\u0003');
+    assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'no fallback timer should be scheduled');
+    assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when delay is 0');
+    assert.ok(fakeStateManager.isTerminated(id), 'task should be marked as terminated');
+  });
+
+  test('delay of 0 without terminal does not call execution.terminate', async () => {
+    const item = makeTaskItem('zero-delay-no-terminal');
+    const terminateCalls: number[] = [];
+
+    const execution = makeExecution(() => terminateCalls.push(1));
+    (fakeStateManager as any).getExecution = () => execution;
+    (fakeStateManager as any).getTerminal = () => undefined;
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
+      return defaultValue;
+    };
+
+    await cmd.run(item);
+
+    assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when delay is 0 and no terminal');
+    assert.ok(fakeStateManager.isTerminated(fakeStateManager.getTaskId(item)), 'task should be marked as terminated');
+  });
+
+  // -------------------------------------------------------------------------
+  // Fallback timer uses forceKillPreservingTerminal
+  // -------------------------------------------------------------------------
+
+  test('fallback timer calls process.kill when presentation.close is false and processId available', (done) => {
+    const originalProcessKill = process.kill;
+    const killSpy: Array<{ pid: number }> = [];
+    (process as any).kill = (pid: number) => { killSpy.push({ pid }); return true; };
+
+    const item = makeTaskItem('timer-preserve-terminal-task');
+    const id = fakeStateManager.getTaskId(item);
+    const terminateCalls: number[] = [];
+    const pid = 77001;
+
+    const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+    (fakeStateManager as any).getExecution = (_id: string) => execution;
+    const terminal = makeTerminalWithPid(pid);
+    (fakeStateManager as any).getTerminal = (_id: string) => terminal;
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopGracefulDelayMilliseconds') { return 20; }
+      return defaultValue;
+    };
+
+    cmd.run(item).then(() => {
+      setTimeout(() => {
+        assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should have fired and been cleared');
+        assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
+        assert.strictEqual(killSpy.length, 1, 'process.kill should be called to preserve terminal');
+        assert.strictEqual(killSpy[0].pid, pid, 'should kill the correct pid');
+        (process as any).kill = originalProcessKill;
+        done();
+      }, 100);
+    }).catch((err: Error) => {
+      (process as any).kill = originalProcessKill;
+      done(err);
+    });
+  });
+
+  test('fallback timer calls execution.terminate when presentation.close is true', (done) => {
+    const item = makeTaskItem('timer-close-terminal-task');
+    const id = fakeStateManager.getTaskId(item);
+    const terminateCalls: number[] = [];
+
+    const execution = makeExecutionWithPresentation({ close: true }, () => terminateCalls.push(1));
+    (fakeStateManager as any).getExecution = (_id: string) => execution;
+    const terminal = makeTerminalWithPid(77002);
+    (fakeStateManager as any).getTerminal = (_id: string) => terminal;
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopGracefulDelayMilliseconds') { return 20; }
+      return defaultValue;
+    };
+
+    cmd.run(item).then(() => {
+      setTimeout(() => {
+        assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should have fired and been cleared');
+        assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called when close is true');
+        done();
+      }, 100);
+    }).catch(done);
+  });
+
+  // -------------------------------------------------------------------------
+  // Second click uses forceKillPreservingTerminal
+  // -------------------------------------------------------------------------
+
+  test('second click uses process.kill to preserve terminal when presentation.close is false', async () => {
+    const originalProcessKill = process.kill;
+    const killSpy: Array<{ pid: number }> = [];
+    (process as any).kill = (pid: number) => { killSpy.push({ pid }); return true; };
+
+    try {
+      const item = makeTaskItem('second-click-preserve-terminal');
+      const id = fakeStateManager.getTaskId(item);
+      const terminateCalls: number[] = [];
+      const pid = 88001;
+
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      (fakeStateManager as any).getExecution = () => execution;
+      const terminal = makeTerminalWithPid(pid);
+      (fakeStateManager as any).getTerminal = () => terminal;
+
+      const existingTimer = setTimeout(() => {}, 60_000);
+      fakeStateManager.setStopTimer(id, existingTimer);
+
+      await cmd.run(item);
+
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called on second click when close is false');
+      assert.strictEqual(killSpy[0].pid, pid, 'should kill the correct pid');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
+      assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should be cleared');
+    } finally {
+      (process as any).kill = originalProcessKill;
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // Compound dependency delay of 0 — opt out of force-kill
+  // -------------------------------------------------------------------------
+
+  test('delay of 0 with dependency terminal sends SIGINT but does not schedule a timer for dependency', async () => {
+    const item = makeTaskItem('zero-delay-compound-root');
+    const childTerminateCalls: number[] = [];
+    const depSignals: Array<{ text: string }> = [];
+
+    const parentTask = new vscode.Task(
+      { type: 'shell' }, vscode.TaskScope.Workspace, 'xyzzy-parent-zero-delay', 'shell',
+      new vscode.ShellExecution('echo parent'),
+    );
+    const parentExecutionObj = { task: parentTask, terminate: () => {} } as vscode.TaskExecution;
+    const childExecution = makeExecution(() => childTerminateCalls.push(1));
+
+    (fakeStateManager as any).getExecution = (id: string) => {
+      if (id === 'zero-delay-compound-root') { return parentExecutionObj; }
+      if (id === 'zero-delay-dep') { return childExecution; }
+      return undefined;
+    };
+
+    const depTerminal = makeTerminal((text) => depSignals.push({ text }));
+    (fakeStateManager as any).getTerminal = (id: string) => (id === 'zero-delay-dep' ? depTerminal : undefined);
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopCompoundDependencies') { return true; }
+      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
+      return defaultValue;
+    };
+
+    (cmd as any).getCompoundDependencyTaskIds = async () => ['zero-delay-dep'];
+
+    await cmd.run(item);
+
+    assert.strictEqual(depSignals.length, 1, 'SIGINT should be sent to dependency terminal');
+    assert.strictEqual(depSignals[0].text, '\u0003');
+    assert.strictEqual(fakeStateManager.getStopTimer('zero-delay-dep'), undefined, 'no timer should be scheduled for dependency when delay is 0');
+    assert.strictEqual(childTerminateCalls.length, 0, 'dependency should NOT be force-terminated when delay is 0');
+  });
+
+  test('delay of 0 without dependency terminal does not terminate the dependency', async () => {
+    const item = makeTaskItem('zero-delay-no-terminal-root');
+    const childTerminateCalls: number[] = [];
+
+    const parentTask = new vscode.Task(
+      { type: 'shell' }, vscode.TaskScope.Workspace, 'xyzzy-parent-no-term-zero', 'shell',
+      new vscode.ShellExecution('echo parent'),
+    );
+    const parentExecutionObj = { task: parentTask, terminate: () => {} } as vscode.TaskExecution;
+    const childExecution = makeExecution(() => childTerminateCalls.push(1));
+
+    (fakeStateManager as any).getExecution = (id: string) => {
+      if (id === 'zero-delay-no-terminal-root') { return parentExecutionObj; }
+      if (id === 'zero-delay-no-term-dep') { return childExecution; }
+      return undefined;
+    };
+    (fakeStateManager as any).getTerminal = () => undefined;
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.stopCompoundDependencies') { return true; }
+      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
+      return defaultValue;
+    };
+
+    (cmd as any).getCompoundDependencyTaskIds = async () => ['zero-delay-no-term-dep'];
+
+    await cmd.run(item);
+
+    assert.strictEqual(childTerminateCalls.length, 0, 'dependency should NOT be force-terminated when delay is 0 and no terminal');
+    assert.ok(fakeStateManager.isTerminated('zero-delay-no-term-dep'), 'dependency should still be marked as terminated');
   });
 });
