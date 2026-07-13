@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { StopTaskCommand, findTerminalForTask, getCompoundDependencyLabels, forceKillPreservingTerminal } from '../../commands/stopTask';
+import { StopTaskCommand, findTerminalForTask, getCompoundDependencyLabels, forceKillPreservingTerminal, ForceStopSignal } from '../../commands/stopTask';
 import { TaskItem } from '../../taskItem';
 import { TaskStateManager } from '../../taskStateManager';
 import { TaskCacheService } from '../../services/taskCacheService';
@@ -187,6 +187,7 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(sentTexts[0].nl, false, 'should not append a newline');
     assert.strictEqual(terminateCalls.length, 0, 'terminate should NOT be called on first click');
     assert.ok(fakeStateManager.isTerminated(id), 'task should be marked as terminated when SIGINT is sent');
+    assert.ok(fakeStateManager.getStopTimer(id) !== undefined, 'pending marker should be set so a second click can be detected');
 
     fakeStateManager.clearStopTimer(id);
   });
@@ -509,9 +510,6 @@ suite('StopTaskCommand Test Suite', () => {
       if (key === 'task.stopCompoundDependencies') {
         return true;
       }
-      if (key === 'task.stopGracefulDelayMilliseconds') {
-        return 5000;
-      }
       return defaultValue;
     };
 
@@ -569,9 +567,6 @@ suite('StopTaskCommand Test Suite', () => {
       if (key === 'task.stopCompoundDependencies') {
         return true;
       }
-      if (key === 'task.stopGracefulDelayMilliseconds') {
-        return 5000;
-      }
       return defaultValue;
     };
 
@@ -585,6 +580,7 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(depSignals[0].nl, false);
     assert.strictEqual(childTerminateCalls.length, 0, 'dependency should not be force terminated immediately');
     assert.ok(fakeStateManager.isTerminated('dependency-task-graceful'), 'dependency should be marked as terminated when SIGINT is sent');
+    assert.ok(fakeStateManager.getStopTimer('dependency-task-graceful') !== undefined, 'pending marker should be set for the dependency');
 
     fakeStateManager.clearStopTimer('dependency-task-graceful');
   });
@@ -615,7 +611,7 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(blockedIds.length, 0, 'self dependency should be skipped');
   });
 
-  test('stopCompoundDependencies force kills a dependency when a stop timer already exists', async () => {
+  test('stopCompoundDependencies force kills a dependency when a stop marker already exists', async () => {
     const item = makeTaskItem('timer-forced-root');
     const terminateCalls: number[] = [];
     const dependencyExecution = makeExecution(() => terminateCalls.push(1));
@@ -624,10 +620,17 @@ suite('StopTaskCommand Test Suite', () => {
     let clearedTimerId: string | undefined;
     (fakeStateManager as any).getStopTimer = (id: string) => (id === 'dependency-with-timer' ? setTimeout(() => {}, 60000) : undefined);
     (fakeStateManager as any).clearStopTimer = (id: string) => { clearedTimerId = id; };
+    (fakeStateManager as any).getTerminal = () => undefined;
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.forceStopMethod') { return 'SIGKILL'; }
+      if (key === 'task.stopCompoundDependencies') { return true; }
+      return defaultValue;
+    };
 
     await (cmd as any).stopCompoundDependencies(item, 'timer-forced-root', 'force-timer', ['dependency-with-timer']);
 
-    assert.strictEqual(terminateCalls.length, 1, 'dependency should be terminated immediately when a stop timer already exists');
+    assert.strictEqual(terminateCalls.length, 1, 'dependency should be terminated immediately when a stop marker already exists');
     assert.strictEqual(clearedTimerId, 'dependency-with-timer');
   });
 
@@ -646,97 +649,173 @@ suite('StopTaskCommand Test Suite', () => {
   // Second click while pending timer – force kill immediately
   // -------------------------------------------------------------------------
 
-  test('run force kills on second click when a stop timer is already pending', async () => {
+  // -------------------------------------------------------------------------
+  // Second click while pending – force stop with configured/chosen signal
+  // -------------------------------------------------------------------------
+
+  test('run force kills on second click using configured SIGKILL when a stop marker is pending', async () => {
     const item = makeTaskItem('second-click-task');
     const id = fakeStateManager.getTaskId(item);
     const terminateCalls: number[] = [];
-    const execution = makeExecution(() => terminateCalls.push(1));
+    const killSpy: Array<{ pid: number; signal: string }> = [];
+    const originalProcessKill = process.kill;
+    (process as any).kill = (pid: number, signal: string) => { killSpy.push({ pid, signal }); return true; };
 
+    const pid = 65001;
+    const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
     (fakeStateManager as any).getExecution = () => execution;
-    (fakeStateManager as any).getTerminal = () => makeTerminal();
+    const terminal = makeTerminalWithPid(pid);
+    (fakeStateManager as any).getTerminal = () => terminal;
 
-    // Simulate a pending timer already stored (mimics that SIGINT was already sent)
+    // Simulate a pending marker already stored (mimics that SIGINT was already sent)
     const existingTimer = setTimeout(() => {}, 60_000);
     fakeStateManager.setStopTimer(id, existingTimer);
 
-    await cmd.run(item);
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.forceStopMethod') { return 'SIGKILL'; }
+      return defaultValue;
+    };
 
-    assert.strictEqual(terminateCalls.length, 1, 'terminate should be called immediately on second click');
-    assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should be cleared after force kill');
+    try {
+      await cmd.run(item);
+
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called immediately on second click');
+      assert.strictEqual(killSpy[0].signal, 'SIGKILL');
+      assert.strictEqual(killSpy[0].pid, pid);
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
+      assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'pending marker should be cleared after force kill');
+    } finally {
+      (process as any).kill = originalProcessKill;
+    }
   });
 
-  // -------------------------------------------------------------------------
-  // Fallback timer logic – force kills if task is still running after timeout
-  // -------------------------------------------------------------------------
-
-  test('run fallback timer force-terminates primary task when it is still running', async () => {
-    const item = makeTaskItem('primary-timeout-task');
+  test('second click shows QuickPick when forceStopMethod is ask', async () => {
+    const item = makeTaskItem('second-click-ask-task');
     const id = fakeStateManager.getTaskId(item);
     const terminateCalls: number[] = [];
-    const execution = makeExecution(() => terminateCalls.push(1));
+    const killSpy: Array<{ pid: number; signal: string }> = [];
+    const originalProcessKill = process.kill;
+    (process as any).kill = (pid: number, signal: string) => { killSpy.push({ pid, signal }); return true; };
+    const originalShowQuickPick = vscode.window.showQuickPick;
+    let quickPickShown = false;
+    (vscode.window as any).showQuickPick = async (items: vscode.QuickPickItem[]) => {
+      quickPickShown = true;
+      return items.find(i => i.label === 'SIGKILL');
+    };
 
-    (fakeStateManager as any).getExecution = (_taskId: string) => execution;
-    (fakeStateManager as any).getTerminal = (_taskId: string) => makeTerminal();
+    const pid = 65002;
+    const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+    (fakeStateManager as any).getExecution = () => execution;
+    const terminal = makeTerminalWithPid(pid);
+    (fakeStateManager as any).getTerminal = () => terminal;
 
-    const originalGet = configModule.configuration.get;
+    const existingTimer = setTimeout(() => {}, 60_000);
+    fakeStateManager.setStopTimer(id, existingTimer);
+
     configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopGracefulDelayMilliseconds') {
-        return 20;
-      }
+      if (key === 'task.forceStopMethod') { return 'ask'; }
+      return defaultValue;
+    };
+
+    try {
+      await cmd.run(item);
+
+      assert.ok(quickPickShown, 'QuickPick should be shown when forceStopMethod is ask');
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called after QuickPick selection');
+      assert.strictEqual(killSpy[0].signal, 'SIGKILL');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
+    } finally {
+      (process as any).kill = originalProcessKill;
+      (vscode.window as any).showQuickPick = originalShowQuickPick;
+    }
+  });
+
+  test('second click does nothing when QuickPick is dismissed', async () => {
+    const item = makeTaskItem('second-click-cancelled-task');
+    const id = fakeStateManager.getTaskId(item);
+    const terminateCalls: number[] = [];
+    const originalShowQuickPick = vscode.window.showQuickPick;
+    (vscode.window as any).showQuickPick = async () => undefined;
+
+    const execution = makeExecution(() => terminateCalls.push(1));
+    (fakeStateManager as any).getExecution = () => execution;
+    (fakeStateManager as any).getTerminal = () => makeTerminal();
+
+    const existingTimer = setTimeout(() => {}, 60_000);
+    fakeStateManager.setStopTimer(id, existingTimer);
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.forceStopMethod') { return 'ask'; }
+      return defaultValue;
+    };
+
+    try {
+      await cmd.run(item);
+
+      assert.strictEqual(terminateCalls.length, 0, 'nothing should happen when QuickPick is dismissed');
+      assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'pending marker should still be cleared');
+    } finally {
+      (vscode.window as any).showQuickPick = originalShowQuickPick;
+    }
+  });
+
+  test('second click applies SIGTERM via process.kill when configured', async () => {
+    const item = makeTaskItem('second-click-sigterm-task');
+    const id = fakeStateManager.getTaskId(item);
+    const killSpy: Array<{ pid: number; signal: string }> = [];
+    const originalProcessKill = process.kill;
+    (process as any).kill = (pid: number, signal: string) => { killSpy.push({ pid, signal }); return true; };
+
+    const pid = 65003;
+    const execution = makeExecutionWithPresentation({ close: false });
+    (fakeStateManager as any).getExecution = () => execution;
+    const terminal = makeTerminalWithPid(pid);
+    (fakeStateManager as any).getTerminal = () => terminal;
+
+    const existingTimer = setTimeout(() => {}, 60_000);
+    fakeStateManager.setStopTimer(id, existingTimer);
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.forceStopMethod') { return 'SIGTERM'; }
+      return defaultValue;
+    };
+
+    try {
+      await cmd.run(item);
+
+      assert.strictEqual(killSpy.length, 1);
+      assert.strictEqual(killSpy[0].signal, 'SIGTERM');
+      assert.strictEqual(killSpy[0].pid, pid);
+    } finally {
+      (process as any).kill = originalProcessKill;
+    }
+  });
+
+  test('second click applies SIGINT via sendText when configured', async () => {
+    const item = makeTaskItem('second-click-sigint-task');
+    const id = fakeStateManager.getTaskId(item);
+    const sentTexts: Array<{ text: string; nl: boolean }> = [];
+    const terminateCalls: number[] = [];
+
+    const execution = makeExecution(() => terminateCalls.push(1));
+    (fakeStateManager as any).getExecution = () => execution;
+    const terminal = makeTerminal((text, nl) => sentTexts.push({ text, nl: nl ?? false }));
+    (fakeStateManager as any).getTerminal = () => terminal;
+
+    const existingTimer = setTimeout(() => {}, 60_000);
+    fakeStateManager.setStopTimer(id, existingTimer);
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.forceStopMethod') { return 'SIGINT'; }
       return defaultValue;
     };
 
     await cmd.run(item);
-    await new Promise(resolve => setTimeout(resolve, 100));
 
-    assert.strictEqual(terminateCalls.length, 1, 'fallback timer should force-terminate when execution is unchanged');
-    assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should be cleared after fallback fires');
-
-    configModule.configuration.get = originalGet;
-  });
-
-  test('stop timer calls terminate if execution is still tracked', (done) => {
-    const item = makeTaskItem('timeout-task');
-    const id = fakeStateManager.getTaskId(item);
-    const terminateCalls: number[] = [];
-    const execution = makeExecution(() => terminateCalls.push(1));
-
-    (fakeStateManager as any).getExecution = () => execution;
-
-    // Exercise the same timer-callback logic as in stopTask.ts with a tiny delay.
-    const immediateTimer = setTimeout(() => {
-      fakeStateManager.clearStopTimer(id);
-      if (fakeStateManager.getExecution(id) === execution) {
-        fakeStateManager.markTerminated(id);
-        execution.terminate();
-      }
-      assert.strictEqual(terminateCalls.length, 1);
-      done();
-    }, 10);
-
-    fakeStateManager.setStopTimer(id, immediateTimer);
-  });
-
-  test('stop timer does NOT call terminate if execution has already cleared', (done) => {
-    const item = makeTaskItem('cleared-execution-task');
-    const id = fakeStateManager.getTaskId(item);
-    const terminateCalls: number[] = [];
-    const execution = makeExecution(() => terminateCalls.push(1));
-
-    // Simulate: task finished on its own before the timer fired
-    (fakeStateManager as any).getExecution = () => undefined;
-
-    const immediateTimer = setTimeout(() => {
-      fakeStateManager.clearStopTimer(id);
-      if (fakeStateManager.getExecution(id) === execution) {
-        fakeStateManager.markTerminated(id);
-        execution.terminate();
-      }
-      assert.strictEqual(terminateCalls.length, 0, 'terminate must not be called if execution is gone');
-      done();
-    }, 10);
-
-    fakeStateManager.setStopTimer(id, immediateTimer);
+    assert.strictEqual(sentTexts.length, 1, 'sendText should be called once');
+    assert.strictEqual(sentTexts[0].text, '\u0003', 'should send SIGINT character');
+    assert.strictEqual(sentTexts[0].nl, false);
+    assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
   });
   // -------------------------------------------------------------------------
   // Blocking pending sequential dependencies
@@ -769,9 +848,6 @@ suite('StopTaskCommand Test Suite', () => {
     configModule.configuration.get = (key: string, defaultValue: any) => {
       if (key === 'task.stopCompoundDependencies') {
         return true;
-      }
-      if (key === 'task.stopGracefulDelayMilliseconds') {
-        return 5000;
       }
       return defaultValue;
     };
@@ -972,80 +1048,6 @@ suite('StopTaskCommand Test Suite', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Dependency graceful-stop timer fires – force-terminate after timeout
-  // -------------------------------------------------------------------------
-
-  test('stopCompoundDependencies timer fires and force-terminates dependency if still running', (done) => {
-    const item = makeTaskItem('parent-timer-test');
-    const parentExecution = makeExecution();
-    const depTerminateCalls: number[] = [];
-    const depExecution = makeExecution(() => depTerminateCalls.push(1));
-
-    (fakeStateManager as any).getExecution = (id: string) => {
-      if (id === 'parent-timer-test') { return parentExecution; }
-      if (id === 'dep-timer-task') { return depExecution; }
-      return undefined;
-    };
-
-    const depTerminal = makeTerminal();
-    (fakeStateManager as any).getTerminal = (id: string) => {
-      if (id === 'dep-timer-task') { return depTerminal; }
-      return undefined;
-    };
-
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopCompoundDependencies') { return true; }
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 20; }
-      return defaultValue;
-    };
-
-    (cmd as any).getCompoundDependencyTaskIds = async () => ['dep-timer-task'];
-
-    cmd.run(item).then(() => {
-      setTimeout(() => {
-        assert.strictEqual(depTerminateCalls.length, 1, 'dependency should be force-terminated after graceful stop timeout');
-        done();
-      }, 100);
-    }).catch(done);
-  });
-
-  test('stopCompoundDependencies timer does NOT force-terminate if execution has changed', (done) => {
-    const item = makeTaskItem('parent-timer-noop-test');
-    const parentExecution = makeExecution();
-    const depTerminateCalls: number[] = [];
-    const depExecution = makeExecution(() => depTerminateCalls.push(1));
-
-    let depExecutionCleared = false;
-    (fakeStateManager as any).getExecution = (id: string) => {
-      if (id === 'parent-timer-noop-test') { return parentExecution; }
-      if (id === 'dep-timer-noop-task') { return depExecutionCleared ? undefined : depExecution; }
-      return undefined;
-    };
-
-    const depTerminal = makeTerminal();
-    (fakeStateManager as any).getTerminal = (id: string) => {
-      if (id === 'dep-timer-noop-task') { return depTerminal; }
-      return undefined;
-    };
-
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopCompoundDependencies') { return true; }
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 20; }
-      return defaultValue;
-    };
-
-    (cmd as any).getCompoundDependencyTaskIds = async () => ['dep-timer-noop-task'];
-
-    cmd.run(item).then(() => {
-      depExecutionCleared = true;
-      setTimeout(() => {
-        assert.strictEqual(depTerminateCalls.length, 0, 'terminate must not be called if execution has already cleared');
-        done();
-      }, 100);
-    }).catch(done);
-  });
-
-  // -------------------------------------------------------------------------
   // forceKillPreservingTerminal
   // -------------------------------------------------------------------------
 
@@ -1066,7 +1068,7 @@ suite('StopTaskCommand Test Suite', () => {
       (process as any).kill = originalProcessKill;
     });
 
-    test('calls process.kill with SIGKILL when presentation.close is false and processId is available', async () => {
+    test('calls process.kill with SIGKILL by default when presentation.close is false and processId is available', async () => {
       const terminateCalls: number[] = [];
       const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
       const terminal = makeTerminalWithPid(99001);
@@ -1075,8 +1077,46 @@ suite('StopTaskCommand Test Suite', () => {
 
       assert.strictEqual(killSpy.length, 1, 'process.kill should be called once');
       assert.strictEqual(killSpy[0].pid, 99001, 'should kill the correct pid');
-      assert.strictEqual(killSpy[0].signal, 'SIGKILL', 'should use SIGKILL');
+      assert.strictEqual(killSpy[0].signal, 'SIGKILL', 'should use SIGKILL by default');
       assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
+    });
+
+    test('calls process.kill with SIGTERM when signal is SIGTERM', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      const terminal = makeTerminalWithPid(99010);
+
+      await forceKillPreservingTerminal(terminal, execution, 'SIGTERM');
+
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called once');
+      assert.strictEqual(killSpy[0].pid, 99010, 'should kill the correct pid');
+      assert.strictEqual(killSpy[0].signal, 'SIGTERM', 'should use SIGTERM');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
+    });
+
+    test('sends terminal sendText \\u0003 when signal is SIGINT and terminal is available', async () => {
+      const terminateCalls: number[] = [];
+      const sentTexts: Array<{ text: string; nl: boolean }> = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      const terminal = makeTerminalWithPid(99011, (text, nl) => sentTexts.push({ text, nl: nl ?? false }));
+
+      await forceKillPreservingTerminal(terminal, execution, 'SIGINT');
+
+      assert.strictEqual(sentTexts.length, 1, 'sendText should be called for SIGINT');
+      assert.strictEqual(sentTexts[0].text, '\u0003');
+      assert.strictEqual(sentTexts[0].nl, false);
+      assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called for SIGINT');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called for SIGINT');
+    });
+
+    test('calls execution.terminate for SIGINT when no terminal is provided', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+
+      await forceKillPreservingTerminal(undefined, execution, 'SIGINT');
+
+      assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called when no terminal is provided');
+      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called as fallback when no terminal');
     });
 
     test('calls execution.terminate when presentation.close is true', async () => {
@@ -1135,220 +1175,62 @@ suite('StopTaskCommand Test Suite', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Graceful delay of 0 — opt out of force-kill
+  // resolveForceStopSignal – via second-click run() path
   // -------------------------------------------------------------------------
 
-  test('delay of 0 with terminal sends SIGINT but does not schedule a fallback timer', async () => {
-    const item = makeTaskItem('zero-delay-with-terminal');
+  test('resolveForceStopSignal uses configured SIGTERM without QuickPick', async () => {
+    const item = makeTaskItem('resolve-sigterm-task');
     const id = fakeStateManager.getTaskId(item);
-    const terminateCalls: number[] = [];
-    const sentTexts: Array<{ text: string }> = [];
-
-    const execution = makeExecution(() => terminateCalls.push(1));
-    (fakeStateManager as any).getExecution = () => execution;
-    const terminal = makeTerminal((text) => sentTexts.push({ text }));
-    (fakeStateManager as any).getTerminal = () => terminal;
-
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
-      return defaultValue;
-    };
-
-    await cmd.run(item);
-
-    assert.strictEqual(sentTexts.length, 1, 'SIGINT should still be sent');
-    assert.strictEqual(sentTexts[0].text, '\u0003');
-    assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'no fallback timer should be scheduled');
-    assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when delay is 0');
-    assert.ok(fakeStateManager.isTerminated(id), 'task should be marked as terminated');
-  });
-
-  test('delay of 0 without terminal does not call execution.terminate', async () => {
-    const item = makeTaskItem('zero-delay-no-terminal');
-    const terminateCalls: number[] = [];
-
-    const execution = makeExecution(() => terminateCalls.push(1));
-    (fakeStateManager as any).getExecution = () => execution;
-    (fakeStateManager as any).getTerminal = () => undefined;
-
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
-      return defaultValue;
-    };
-
-    await cmd.run(item);
-
-    assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when delay is 0 and no terminal');
-    assert.ok(fakeStateManager.isTerminated(fakeStateManager.getTaskId(item)), 'task should be marked as terminated');
-  });
-
-  // -------------------------------------------------------------------------
-  // Fallback timer uses forceKillPreservingTerminal
-  // -------------------------------------------------------------------------
-
-  test('fallback timer calls process.kill when presentation.close is false and processId available', (done) => {
+    const killSpy: Array<{ pid: number; signal: string }> = [];
     const originalProcessKill = process.kill;
-    const killSpy: Array<{ pid: number }> = [];
-    (process as any).kill = (pid: number) => { killSpy.push({ pid }); return true; };
-
-    const item = makeTaskItem('timer-preserve-terminal-task');
-    const id = fakeStateManager.getTaskId(item);
-    const terminateCalls: number[] = [];
-    const pid = 77001;
-
-    const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
-    (fakeStateManager as any).getExecution = (_id: string) => execution;
-    const terminal = makeTerminalWithPid(pid);
-    (fakeStateManager as any).getTerminal = (_id: string) => terminal;
-
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 20; }
-      return defaultValue;
-    };
-
-    cmd.run(item).then(() => {
-      setTimeout(() => {
-        assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should have fired and been cleared');
-        assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
-        assert.strictEqual(killSpy.length, 1, 'process.kill should be called to preserve terminal');
-        assert.strictEqual(killSpy[0].pid, pid, 'should kill the correct pid');
-        (process as any).kill = originalProcessKill;
-        done();
-      }, 100);
-    }).catch((err: Error) => {
-      (process as any).kill = originalProcessKill;
-      done(err);
-    });
-  });
-
-  test('fallback timer calls execution.terminate when presentation.close is true', (done) => {
-    const item = makeTaskItem('timer-close-terminal-task');
-    const id = fakeStateManager.getTaskId(item);
-    const terminateCalls: number[] = [];
-
-    const execution = makeExecutionWithPresentation({ close: true }, () => terminateCalls.push(1));
-    (fakeStateManager as any).getExecution = (_id: string) => execution;
-    const terminal = makeTerminalWithPid(77002);
-    (fakeStateManager as any).getTerminal = (_id: string) => terminal;
-
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 20; }
-      return defaultValue;
-    };
-
-    cmd.run(item).then(() => {
-      setTimeout(() => {
-        assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should have fired and been cleared');
-        assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called when close is true');
-        done();
-      }, 100);
-    }).catch(done);
-  });
-
-  // -------------------------------------------------------------------------
-  // Second click uses forceKillPreservingTerminal
-  // -------------------------------------------------------------------------
-
-  test('second click uses process.kill to preserve terminal when presentation.close is false', async () => {
-    const originalProcessKill = process.kill;
-    const killSpy: Array<{ pid: number }> = [];
-    (process as any).kill = (pid: number) => { killSpy.push({ pid }); return true; };
+    (process as any).kill = (pid: number, signal: string) => { killSpy.push({ pid, signal }); return true; };
 
     try {
-      const item = makeTaskItem('second-click-preserve-terminal');
-      const id = fakeStateManager.getTaskId(item);
-      const terminateCalls: number[] = [];
-      const pid = 88001;
-
-      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      const execution = makeExecutionWithPresentation({ close: false });
       (fakeStateManager as any).getExecution = () => execution;
-      const terminal = makeTerminalWithPid(pid);
+      const terminal = makeTerminalWithPid(55010);
       (fakeStateManager as any).getTerminal = () => terminal;
 
-      const existingTimer = setTimeout(() => {}, 60_000);
-      fakeStateManager.setStopTimer(id, existingTimer);
+      fakeStateManager.setStopTimer(id, setTimeout(() => {}, 60_000));
+
+      configModule.configuration.get = (key: string, defaultValue: any) => {
+        if (key === 'task.forceStopMethod') { return 'SIGTERM'; }
+        return defaultValue;
+      };
 
       await cmd.run(item);
 
-      assert.strictEqual(killSpy.length, 1, 'process.kill should be called on second click when close is false');
-      assert.strictEqual(killSpy[0].pid, pid, 'should kill the correct pid');
-      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
-      assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'timer should be cleared');
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called without showing QuickPick');
+      assert.strictEqual(killSpy[0].signal, 'SIGTERM');
     } finally {
       (process as any).kill = originalProcessKill;
     }
   });
 
-  // -------------------------------------------------------------------------
-  // Compound dependency delay of 0 — opt out of force-kill
-  // -------------------------------------------------------------------------
+  test('resolveForceStopSignal returns undefined when QuickPick is dismissed and no kill occurs', async () => {
+    const item = makeTaskItem('resolve-dismissed-task');
+    const id = fakeStateManager.getTaskId(item);
+    const terminateCalls: number[] = [];
+    const originalShowQuickPick = vscode.window.showQuickPick;
+    (vscode.window as any).showQuickPick = async () => undefined;
 
-  test('delay of 0 with dependency terminal sends SIGINT but does not schedule a timer for dependency', async () => {
-    const item = makeTaskItem('zero-delay-compound-root');
-    const childTerminateCalls: number[] = [];
-    const depSignals: Array<{ text: string }> = [];
+    try {
+      const execution = makeExecution(() => terminateCalls.push(1));
+      (fakeStateManager as any).getExecution = () => execution;
+      (fakeStateManager as any).getTerminal = () => makeTerminal();
 
-    const parentTask = new vscode.Task(
-      { type: 'shell' }, vscode.TaskScope.Workspace, 'xyzzy-parent-zero-delay', 'shell',
-      new vscode.ShellExecution('echo parent'),
-    );
-    const parentExecutionObj = { task: parentTask, terminate: () => {} } as vscode.TaskExecution;
-    const childExecution = makeExecution(() => childTerminateCalls.push(1));
+      fakeStateManager.setStopTimer(id, setTimeout(() => {}, 60_000));
 
-    (fakeStateManager as any).getExecution = (id: string) => {
-      if (id === 'zero-delay-compound-root') { return parentExecutionObj; }
-      if (id === 'zero-delay-dep') { return childExecution; }
-      return undefined;
-    };
+      configModule.configuration.get = (key: string, defaultValue: any) => {
+        if (key === 'task.forceStopMethod') { return 'ask'; }
+        return defaultValue;
+      };
 
-    const depTerminal = makeTerminal((text) => depSignals.push({ text }));
-    (fakeStateManager as any).getTerminal = (id: string) => (id === 'zero-delay-dep' ? depTerminal : undefined);
+      await cmd.run(item);
 
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopCompoundDependencies') { return true; }
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
-      return defaultValue;
-    };
-
-    (cmd as any).getCompoundDependencyTaskIds = async () => ['zero-delay-dep'];
-
-    await cmd.run(item);
-
-    assert.strictEqual(depSignals.length, 1, 'SIGINT should be sent to dependency terminal');
-    assert.strictEqual(depSignals[0].text, '\u0003');
-    assert.strictEqual(fakeStateManager.getStopTimer('zero-delay-dep'), undefined, 'no timer should be scheduled for dependency when delay is 0');
-    assert.strictEqual(childTerminateCalls.length, 0, 'dependency should NOT be force-terminated when delay is 0');
-  });
-
-  test('delay of 0 without dependency terminal does not terminate the dependency', async () => {
-    const item = makeTaskItem('zero-delay-no-terminal-root');
-    const childTerminateCalls: number[] = [];
-
-    const parentTask = new vscode.Task(
-      { type: 'shell' }, vscode.TaskScope.Workspace, 'xyzzy-parent-no-term-zero', 'shell',
-      new vscode.ShellExecution('echo parent'),
-    );
-    const parentExecutionObj = { task: parentTask, terminate: () => {} } as vscode.TaskExecution;
-    const childExecution = makeExecution(() => childTerminateCalls.push(1));
-
-    (fakeStateManager as any).getExecution = (id: string) => {
-      if (id === 'zero-delay-no-terminal-root') { return parentExecutionObj; }
-      if (id === 'zero-delay-no-term-dep') { return childExecution; }
-      return undefined;
-    };
-    (fakeStateManager as any).getTerminal = () => undefined;
-
-    configModule.configuration.get = (key: string, defaultValue: any) => {
-      if (key === 'task.stopCompoundDependencies') { return true; }
-      if (key === 'task.stopGracefulDelayMilliseconds') { return 0; }
-      return defaultValue;
-    };
-
-    (cmd as any).getCompoundDependencyTaskIds = async () => ['zero-delay-no-term-dep'];
-
-    await cmd.run(item);
-
-    assert.strictEqual(childTerminateCalls.length, 0, 'dependency should NOT be force-terminated when delay is 0 and no terminal');
-    assert.ok(fakeStateManager.isTerminated('zero-delay-no-term-dep'), 'dependency should still be marked as terminated');
+      assert.strictEqual(terminateCalls.length, 0, 'no kill should occur when QuickPick is dismissed');
+    } finally {
+      (vscode.window as any).showQuickPick = originalShowQuickPick;
+    }
   });
 });

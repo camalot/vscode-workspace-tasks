@@ -86,7 +86,7 @@
   "scripts": {
     "pretest": "pnpm run compile:tests && pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "compile": "pnpm run bundle-chartjs && pnpm run compile:webpack",
+    "compile": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\" && webpack",
     "compile:webpack": "webpack",
     "bundle-chartjs": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\"",
     "compile:prod": "pnpm run check:types && pnpm run lint && pnpm run compile",
@@ -1283,11 +1283,18 @@
             "markdownDescription": "%config.workspaceTasks.task.confirmPatterns.markdown%",
             "scope": "resource"
           },
-          "workspaceTasks.task.stopGracefulDelayMilliseconds": {
-            "type": "number",
-            "default": 5000,
-            "description": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds%",
-            "markdownDescription": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown%"
+          "workspaceTasks.task.forceStopMethod": {
+            "type": "string",
+            "enum": ["ask", "SIGINT", "SIGTERM", "SIGKILL"],
+            "enumDescriptions": [
+              "%config.workspaceTasks.task.forceStopMethod.ask%",
+              "%config.workspaceTasks.task.forceStopMethod.SIGINT%",
+              "%config.workspaceTasks.task.forceStopMethod.SIGTERM%",
+              "%config.workspaceTasks.task.forceStopMethod.SIGKILL%"
+            ],
+            "default": "ask",
+            "description": "%config.workspaceTasks.task.forceStopMethod%",
+            "markdownDescription": "%config.workspaceTasks.task.forceStopMethod.markdown%"
           },
           "workspaceTasks.task.stopCompoundDependencies": {
             "type": "boolean",

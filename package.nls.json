@@ -161,8 +161,12 @@
   "config.workspaceTasks.shellEnabledTaskTypes.extensionless": "Extensionless Shell Scripts",
   "config.workspaceTasks.shellEnabledTaskTypes.other": "Other",
 
-  "config.workspaceTasks.task.stopGracefulDelayMilliseconds": "Stop Graceful Delay (Milliseconds)",
-  "config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown": "The delay in **milliseconds** before forcefully stopping (SIGKILL) a task after requesting it to stop gracefully (SIGINT). Set to `0` to opt out of the force-kill entirely — only the graceful SIGINT is sent, and if the process does not respond the terminal remains open so the output is preserved. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks#workspacetaskstaskstopgracefuldelaymilliseconds)",
+  "config.workspaceTasks.task.forceStopMethod": "Force Stop Method",
+  "config.workspaceTasks.task.forceStopMethod.markdown": "Controls how a task is force-stopped when clicking **Stop** a second time (after the initial SIGINT was sent). `ask` (the default) shows a quick-pick so you can choose the signal interactively. `SIGINT` sends a second interrupt, `SIGTERM` requests a graceful exit, and `SIGKILL` immediately kills the process. When possible the terminal panel is preserved regardless of the chosen signal. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks#workspacetaskstaskforcestopmethod)",
+  "config.workspaceTasks.task.forceStopMethod.ask": "Show a quick-pick to choose the signal interactively",
+  "config.workspaceTasks.task.forceStopMethod.SIGINT": "Send a second interrupt signal (Ctrl+C)",
+  "config.workspaceTasks.task.forceStopMethod.SIGTERM": "Request graceful termination (SIGTERM)",
+  "config.workspaceTasks.task.forceStopMethod.SIGKILL": "Immediately force-kill the process (SIGKILL)",
   "config.workspaceTasks.task.stopCompoundDependencies": "Stop Compound Dependencies",
   "config.workspaceTasks.task.stopCompoundDependencies.markdown": "When enabled, stopping a compound Visual Studio Code task from the Workspace Tasks stop action will also stop any currently running dependency tasks referenced by `dependsOn`. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-execution/tasks#workspacetaskstaskstopcompounddependencies)",
 

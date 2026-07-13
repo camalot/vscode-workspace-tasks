@@ -20,6 +20,9 @@ interface VscodeTasksFile {
   tasks?: VscodeTaskDefinition[];
 }
 
+/** Signals that can be used to force-stop a running task. */
+export type ForceStopSignal = 'SIGINT' | 'SIGTERM' | 'SIGKILL';
+
 /**
  * Finds the terminal that belongs to a task by matching against common
  * naming conventions that VSCode uses for task terminals.
@@ -42,13 +45,15 @@ export function findTerminalForTask(
 }
 
 /**
- * Kills the task process while preserving the terminal window when possible.
+ * Kills the task process using the given signal while preserving the terminal
+ * window when possible.
  *
- * When the task's `presentation.close` is `false` and a terminal is available with
- * a known process ID, kills the shell process directly via the OS (SIGKILL) rather
- * than calling `execution.terminate()`. This causes VSCode to treat the shell exit
- * as a natural process end and respect the `presentation.close` setting, keeping the
- * terminal panel open so the user can review the last output.
+ * - **SIGINT**: Sends the interrupt character (`\u0003`) via the terminal so the TTY
+ *   layer handles it. This always preserves the terminal panel.
+ * - **SIGTERM / SIGKILL**: When the task's `presentation.close` is `false` and a
+ *   terminal with a known process ID is available, kills the shell process directly
+ *   via the OS. This causes VSCode to treat the exit as natural and keep the panel
+ *   open. Falls back to `execution.terminate()` otherwise.
  *
  * Falls back to `execution.terminate()` when:
  * - `presentation.close` is `true` (user wants the terminal closed on task end)
@@ -59,13 +64,20 @@ export function findTerminalForTask(
 export async function forceKillPreservingTerminal(
   terminal: vscode.Terminal | undefined,
   execution: vscode.TaskExecution,
+  signal: ForceStopSignal = 'SIGKILL',
 ): Promise<void> {
+  // SIGINT via terminal sendText is the most reliable method and always preserves the terminal.
+  if (signal === 'SIGINT' && terminal !== undefined) {
+    terminal.sendText('\u0003', false);
+    return;
+  }
+
   const shouldClose = execution.task.presentationOptions?.close ?? false;
   if (!shouldClose && terminal !== undefined) {
     const shellPid = await terminal.processId;
     if (shellPid !== undefined) {
       try {
-        process.kill(shellPid, 'SIGKILL');
+        process.kill(shellPid, signal);
         return;
       } catch {
         // Process already exited or kill failed — fall through to execution.terminate()
@@ -148,6 +160,44 @@ export class StopTaskCommand extends BaseCommand {
     super('stopTask', context);
   }
 
+  /**
+   * Resolves the signal to use when force-stopping a task.
+   *
+   * If `workspaceTasks.task.forceStopMethod` is set to a specific signal
+   * (`SIGINT`, `SIGTERM`, or `SIGKILL`), that signal is used directly.
+   * When set to `ask` (the default), a QuickPick is shown so the user can
+   * choose interactively. Returns `undefined` if the user dismisses the picker.
+   */
+  private async resolveForceStopSignal(): Promise<ForceStopSignal | undefined> {
+    const method = configuration.get<string>('task.forceStopMethod', 'ask');
+    if (method === 'SIGINT' || method === 'SIGTERM' || method === 'SIGKILL') {
+      return method as ForceStopSignal;
+    }
+    // 'ask' — show a QuickPick so the user can choose
+    const items: vscode.QuickPickItem[] = [
+      {
+        label: 'SIGINT',
+        description: 'Interrupt (Ctrl+C)',
+        detail: 'Sends a second interrupt signal. Safe for most processes; the terminal is preserved.',
+      },
+      {
+        label: 'SIGTERM',
+        description: 'Terminate',
+        detail: 'Requests the process to exit gracefully. The terminal is preserved when possible.',
+      },
+      {
+        label: 'SIGKILL',
+        description: 'Force kill',
+        detail: 'Immediately kills the process. Cannot be caught or ignored. The terminal is preserved when possible.',
+      },
+    ];
+    const picked = await vscode.window.showQuickPick(items, {
+      title: 'Force Stop Task',
+      placeHolder: 'The task did not respond to SIGINT. Choose how to force stop it.',
+    });
+    return picked?.label as ForceStopSignal | undefined;
+  }
+
   async run(item: TaskItem): Promise<void> {
     if (item?.id) {
       const cached = TaskCacheService.getInstance().getTask(item.id);
@@ -190,13 +240,16 @@ export class StopTaskCommand extends BaseCommand {
       return;
     }
 
-    // Second click while a graceful-stop timer is already pending → force kill now.
+    // Second click while SIGINT is pending → prompt for (or apply configured) force-kill signal.
     if (stateManager.getStopTimer(id)) {
       const terminal = stateManager.getTerminal(id) ?? findTerminalForTask(execution.task);
       stateManager.clearStopTimer(id);
       stateManager.markTerminated(id);
       await this.stopCompoundDependencies(item, id, 'force-stop-second-click');
-      await forceKillPreservingTerminal(terminal, execution);
+      const signal = await this.resolveForceStopSignal();
+      if (signal !== undefined) {
+        await forceKillPreservingTerminal(terminal, execution, signal);
+      }
       return;
     }
 
@@ -218,11 +271,8 @@ export class StopTaskCommand extends BaseCommand {
       return;
     }
 
-    // Regular (non-compound) task: graceful SIGINT with timeout fallback.
+    // Regular (non-compound) task: send SIGINT first; a second click will prompt for force-kill.
     const terminal = stateManager.getTerminal(id) ?? findTerminalForTask(execution.task);
-    // graceful-stop timeout should come from configuration at workspaceTasks.task.stopGracefulDelayMilliseconds
-    // A value of 0 opts out of the force-kill — only SIGINT is sent.
-    const timeout = configuration.get<number>('task.stopGracefulDelayMilliseconds', 5000);
     if (terminal) {
       // Mark as terminated now so that if the process exits on its own in response
       // to SIGINT, the history/metrics service still records it as a termination.
@@ -230,31 +280,13 @@ export class StopTaskCommand extends BaseCommand {
       // Send SIGINT (Ctrl+C) — the process gets a chance to shut down gracefully
       // and the terminal window is preserved.
       terminal.sendText('\u0003', false);
-
-      if (timeout <= 0) {
-        // A delay of 0 opts out of the force-kill entirely — SIGINT is the only stop
-        // signal sent. The process may continue running if it does not respond to SIGINT.
-        return;
-      }
-
-      // Schedule a fallback force-kill in case the process ignores the signal.
-      const timer = (globalThis as any).setTimeout(async () => {
-        stateManager.clearStopTimer(id);
-        // Only terminate if the task is still tracked as running.
-        if (stateManager.getExecution(id) === execution) {
-          stateManager.markTerminated(id);
-          await forceKillPreservingTerminal(terminal, execution);
-        }
-      }, timeout);
-
-      stateManager.setStopTimer(id, timer);
+      // Store a marker so a second click can detect that SIGINT has already been sent.
+      const pendingMarker = (globalThis as any).setTimeout(() => {}, 2147483647);
+      stateManager.setStopTimer(id, pendingMarker);
     } else {
-      // No terminal reference found — fall back to immediate hard kill when allowed.
+      // No terminal reference found — execution.terminate() is the only available stop method.
       stateManager.markTerminated(id);
-      if (timeout > 0) {
-        execution.terminate();
-      }
-      // timeout === 0: opt out of force-kill — mark terminated only, no hard kill possible.
+      execution.terminate();
     }
   }
 
@@ -288,7 +320,6 @@ export class StopTaskCommand extends BaseCommand {
     }
 
     const stateManager = TaskStateManager.getInstance();
-    const timeout = configuration.get<number>('task.stopGracefulDelayMilliseconds', 5000);
     let gracefulCount = 0;
     let forcedCount = 0;
 
@@ -306,13 +337,16 @@ export class StopTaskCommand extends BaseCommand {
         continue;
       }
 
-      // Second stop request while a graceful-stop timer exists for the dependency
-      // means we should force terminate it immediately.
+      // Second stop request while a "pending SIGINT" marker exists for this dependency
+      // means we should force terminate it now using the configured/chosen signal.
       if (stateManager.getStopTimer(dependencyId)) {
         const depTerminal = stateManager.getTerminal(dependencyId) ?? findTerminalForTask(dependencyExecution.task);
         stateManager.clearStopTimer(dependencyId);
         stateManager.markTerminated(dependencyId);
-        await forceKillPreservingTerminal(depTerminal, dependencyExecution);
+        const signal = await this.resolveForceStopSignal();
+        if (signal !== undefined) {
+          await forceKillPreservingTerminal(depTerminal, dependencyExecution, signal);
+        }
         forcedCount += 1;
         continue;
       }
@@ -323,36 +357,15 @@ export class StopTaskCommand extends BaseCommand {
         // response to SIGINT, the history/metrics service records it as a termination.
         stateManager.markTerminated(dependencyId);
         terminal.sendText('\u0003', false);
-
-        if (timeout <= 0) {
-          // A delay of 0 opts out of the force-kill — SIGINT is the only stop signal sent.
-          gracefulCount += 1;
-          continue;
-        }
-
-        const timer = (globalThis as any).setTimeout(async () => {
-          stateManager.clearStopTimer(dependencyId);
-          if (stateManager.getExecution(dependencyId) === dependencyExecution) {
-            stateManager.markTerminated(dependencyId);
-            await forceKillPreservingTerminal(terminal, dependencyExecution);
-            this.logger.debug(
-              `[StopTask] Graceful stop timed out for dependency (${dependencyId}); forced termination applied. Trigger: ${trigger}.`,
-            );
-          }
-        }, timeout);
-
-        stateManager.setStopTimer(dependencyId, timer);
+        // Store a marker so a second click can detect that SIGINT has already been sent.
+        const pendingMarker = (globalThis as any).setTimeout(() => {}, 2147483647);
+        stateManager.setStopTimer(dependencyId, pendingMarker);
         gracefulCount += 1;
-        continue;
-      }
-
-      stateManager.clearStopTimer(dependencyId);
-      stateManager.markTerminated(dependencyId);
-      if (timeout > 0) {
+      } else {
+        stateManager.markTerminated(dependencyId);
         dependencyExecution.terminate();
         forcedCount += 1;
       }
-      // timeout === 0: opt out of force-kill — mark terminated only, no hard kill possible.
     }
 
     if (gracefulCount === 0 && forcedCount === 0) {
