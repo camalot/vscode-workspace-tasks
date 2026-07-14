@@ -485,6 +485,7 @@ jobs:
   publish-docs:
     runs-on: ubuntu-latest
     environment: production
+    continue-on-error: true
     needs:
       - publish-vscode-marketplace
 
