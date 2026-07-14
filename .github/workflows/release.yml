@@ -293,6 +293,7 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           run_install: false
+          version: 11.10.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

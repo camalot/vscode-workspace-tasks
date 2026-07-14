@@ -3,6 +3,10 @@
 FROM mcr.microsoft.com/devcontainers/ruby:3
 
 ARG USERNAME=vscode
+# Allow overriding the version of pnpm to install globally (e.g. `@11.10.0` or `@latest` or `''`).
+# This is here because of a bug in PNPM 11.12.0 https://github.com/pnpm/action-setup/issues/276
+ARG PNPM_VERSION=@11.10.0
+ENV PNPM_VERSION=${PNPM_VERSION}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -53,7 +57,7 @@ RUN curl -fsSL "https://deb.nodesource.com/setup_25.x" | bash - \
   && apt-get install -y nodejs \
   && apt-get remove -y yarn \
   && node -v \
-  && npm install -g npm pnpm yarn git-cliff @anthropic-ai/claude-code \
+  && npm install -g npm pnpm${PNPM_VERSION} yarn git-cliff @anthropic-ai/claude-code \
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
   && export NVM_DIR="/home/${USERNAME}/.nvm" \
   && for i in 1 2 3 4 5; do \
