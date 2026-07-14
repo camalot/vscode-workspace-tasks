@@ -128,7 +128,7 @@
     "@playwright/test": "^1.61.1",
     "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
-    "@types/node": "~26.0.1",
+    "@types/node": "~26.1.0",
     "@types/vscode": "^1.105.1",
     "@typescript-eslint/eslint-plugin": "^8.63.0",
     "@typescript-eslint/parser": "^8.63.0",
