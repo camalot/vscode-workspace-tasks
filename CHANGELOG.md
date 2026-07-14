@@ -1,4 +1,115 @@
 
+## [v1.12.4](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.12.4) - 2026-07-14
+
+### 🐛 BUG FIXES
+
+
+#### _TASK-HISTORY_
+- Adjust position of value on pie chart [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+- Fix issues in cliff.toml -[@camalot](https://github.com/camalot)
+
+- Fix devcontainer issue -[@camalot](https://github.com/camalot)
+
+- Updated reference to help docs for graceful delay [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Working on stopTask to not kill terminal [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Better handling of stop/cancel a running task [#260](https://github.com/camalot/vscode-workspace-tasks/issues/260)  [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Handle dependencies when in group [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Set version of vscode engine to 1.105.1 for now [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Set version of vscode engine to 1.105.1 for now [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Resolve errors returned from: tsc --noEmit --erasableSyntaxOnly [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Pin pnpm to 11.10.0 due to bug https://github.com/pnpm/action-setup/issues/276 [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Improve release workflow [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Remove queue from concurrency section [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- V1.12.x ()[#251](https://github.com/camalot/vscode-workspace-tasks/issues/251)  [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+
+### 🚜 REFACTOR
+
+
+#### _TASK-HISTORY_
+- Move javascript to separate file [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Move css to separate file [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+
+### 📚 DOCUMENTATION
+
+#### _GENERAL_
+
+- Update docs to mention engine upgrade [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Update the docs and badges [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Provide minimum version info in docs [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+
+### 🧪 TESTING
+
+#### _GENERAL_
+
+- Resolve failing tests after fixing tsc --noEmit --erasableSyntaxOnly [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+
+### ⚙️ MISCELLANEOUS TASKS
+
+
+#### _ACTIONS_
+- Give id-token permission [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+- Do not fail build if publish-docs fails. [#251](https://github.com/camalot/vscode-workspace-tasks/pull/251) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot) in
+[#251](https://github.com/camalot/vscode-workspace-tasks/pull/251)
+
+## 📈 Commit Statistics
+
+
+- `22` commits contributed to the release.
+- `38` days have passed between the first and last commit.
+- `21` commits parsed as conventional.
+- `2` linked issues detected in commits.
+  - [#251](https://github.com/camalot/vscode-workspace-tasks/issues/251) (referenced 1 time)
+  - [#260](https://github.com/camalot/vscode-workspace-tasks/issues/260) (referenced 1 time)
+- `43` days  have passed between releases.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[22,1,38,21,2,43]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.12.3...v1.12.4
+
 ## [v1.12.3](https://github.com/camalot/vscode-workspace-tasks/releases/tag/v1.12.3) - 2026-06-01
 
 ### 🐛 BUG FIXES
