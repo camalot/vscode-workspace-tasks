@@ -2,11 +2,13 @@
 
 <!-- markdownlint-disable-file MD033 -->
 
+![VS Code Marketplace](https://img.shields.io/badge/VSC%20Marketplace-blue?style=for-the-badge)
 [![VS Code Marketplace Version](https://vsmarketplacebadges.dev/version-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=VERSION)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![VS Code Marketplace Rating](https://vsmarketplacebadges.dev/rating-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=RATING)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![VS Code Marketplace Downloads](https://vsmarketplacebadges.dev/downloads-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=DOWNLOADS)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![VS Code Marketplace Installs](https://vsmarketplacebadges.dev/installs-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=INSTALLS)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
+![Open VSX](https://img.shields.io/badge/Open%20VSX-%23c260ef?style=for-the-badge)
 [![Open VSX Version](https://img.shields.io/open-vsx/v/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=VERSION)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Rating](https://img.shields.io/open-vsx/rating/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=RATING)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=DOWNLOADS)](https://open-vsx.org/extension/darthminos/workspace-tasks)
