@@ -15,7 +15,6 @@ on:  # yamllint disable-line rule:truthy
 concurrency:
   # Release runs mutate shared tags and release state, so queue them instead of allowing overlap.
   group: ${{ github.workflow }}-${{ github.repository }}
-  queue: max
 permissions: {}
 env:
   PACKAGE_OWNER: 'darthminos'
