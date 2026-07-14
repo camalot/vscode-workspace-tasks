@@ -10,8 +10,8 @@
 [![Open VSX Version](https://img.shields.io/open-vsx/v/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=VERSION)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Rating](https://img.shields.io/open-vsx/rating/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=RATING)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=DOWNLOADS)](https://open-vsx.org/extension/darthminos/workspace-tasks)
-[![Open VSX Release Date](https://img.shields.io/open-vsx/release-date/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=RELEASE%20DATE)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
+![VS Code Engine](https://img.shields.io/badge/v1.105.1-orange?style=for-the-badge&label=engine&labelColor=blue)
 [![Codecov](https://img.shields.io/codecov/c/github/camalot/vscode-workspace-tasks?style=for-the-badge&label=COVERAGE&logo=codecov&logoColor=white)](https://app.codecov.io/gh/camalot/vscode-workspace-tasks/tree/develop)
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fci.yml?style=for-the-badge&logo=github&label=BUILD)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Frelease.yml?style=for-the-badge&logo=github&label=RELEASE)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/release.yml)
@@ -51,7 +51,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **⚡ Fast Performance** — Optimized for large workspaces with caching and incremental updates
 - **[📄 Editor Title Bar Buttons ↗](https://camalot.github.io/vscode-workspace-tasks/features/editor-title-run-buttons.html)** - Run shell scripts and GitHub Actions workflows directly from the editor title bar without switching to the task tree
 - **[🔍 Inline CodeLens Actions ↗](https://camalot.github.io/vscode-workspace-tasks/features/codelens.html)** - Run, favorite, queue, and hide tasks directly from inline CodeLens lenses above each task definition in its source file
-- **⏹️ Smarter Stop Controls** - Stop tasks gracefully with a configurable delay, or force kill after the timeout; Compound Tasks have an option to stop all child tasks together or individually
+- **⏹️ Smarter Stop Controls** - Stop tasks gracefully, or force kill when necessary; Compound Tasks have an option to stop all child tasks together or individually
 - **🎯 Smart Organization** - Hierarchical tree view organized by workspace, task type, and file
 - **🔀 Drag & Drop** - Reorder tasks in compound tasks (queues) with drag and drop
 - **[🎭 GitHub Actions Support ↗](https://camalot.github.io/vscode-workspace-tasks/task-types/github-actions.html)** - Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
@@ -122,7 +122,8 @@ windsurf --install-extension darthminos.workspace-tasks
 
 ### ✔️ Requirements
 
-- **Visual Studio Code** 1.105.1 or later
+- **Visual Studio Code** `1.105.1` or later
+  - **NOTE** This will change to `v1.125.0` in the `v1.13.x` release
 - **External tools** must be installed for task execution (see [External Tools](https://camalot.github.io/vscode-workspace-tasks/getting-started/requirements.html#external-tool-requirements))
 
 ## 🛠️ Supported Task Types
