@@ -28,6 +28,10 @@ nav_order: 1
 
 ---
 
+> [!IMPORTANT]
+> The minimum required version of Visual Studio Code for this extension is `v1.105.1`.
+> This will be changing in `v1.13.0` of workspace tasks to a minimum required version of `v1.125.0`.
+
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and compound tasks — all from a single, intuitive interface.
 
 ---
@@ -52,7 +56,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **⚡ Fast Performance** — Optimized for large workspaces with caching and incremental updates
 - **[📄 Editor Title Bar Buttons](https://camalot.github.io/vscode-workspace-tasks/features/editor-title-run-buttons.html)** - Run shell scripts and GitHub Actions workflows directly from the editor title bar without switching to the task tree
 - **[🔍 Inline CodeLens Actions](https://camalot.github.io/vscode-workspace-tasks/features/codelens.html)** - Run, favorite, queue, and hide tasks directly from inline CodeLens lenses above each task definition in its source file
-- **⏹️ Smarter Stop Controls** - Stop tasks gracefully with a configurable delay, or force kill after the timeout; Compound Tasks have an option to stop all child tasks together or individually
+- **⏹️ Smarter Stop Controls** - Stop tasks gracefully, or force kill them when necessary; Compound Tasks have an option to stop all child tasks together or individually
 - **🎯 Smart Organization** — Hierarchical tree view organized by workspace, task type, and file
 - **🔀 Drag & Drop** — Reorder tasks in Compound Tasks with drag and drop
 - **🎭 GitHub Actions Support** — Run GitHub Actions workflows locally with [act](https://github.com/nektos/act)
