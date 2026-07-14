@@ -56,6 +56,14 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     super('taskfile', constants.GLOB_TASKFILE);
   }
 
+  protected fileExists(filePath: string): boolean {
+    return fs.existsSync(filePath);
+  }
+
+  protected getHomeDir(): string {
+    return os.homedir();
+  }
+
   private disposeGlobalTaskfileWatchers(): void {
     for (const watcher of this.globalTaskfileWatchers) {
       watcher.dispose();
@@ -669,9 +677,9 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
 
-    const homeDir = os.homedir();
+    const homeDir = this.getHomeDir();
     const variants = ['Taskfile.yml', 'taskfile.yml', 'Taskfile.yaml', 'taskfile.yaml'];
-    const globalTaskfilePath = variants.map((v) => path.join(homeDir, v)).find((p) => fs.existsSync(p));
+    const globalTaskfilePath = variants.map((v) => path.join(homeDir, v)).find((p) => this.fileExists(p));
 
     // Keep watcher coverage current even when no global Taskfile exists yet.
     this.reconcileGlobalTaskfileWatchers(homeDir, globalTaskfilePath);
