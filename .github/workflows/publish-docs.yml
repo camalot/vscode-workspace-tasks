@@ -1,4 +1,5 @@
 ---
+name: "Publish Docs"
 on: # yamllint disable-line rule:truthy
   workflow_dispatch: {}
 permissions: {}
@@ -12,6 +13,7 @@ jobs:
     permissions:
       contents: read # for actions/checkout
       pages: write # to deploy to GitHub Pages
+      id-token: write # to authenticate with GitHub Actions OIDC
     steps:
       - name: Checkout
         if: ${{ ! env.ACT }}

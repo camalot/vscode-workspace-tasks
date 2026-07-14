@@ -491,6 +491,7 @@ jobs:
     permissions:
       contents: read # for actions/checkout
       pages: write # to deploy to GitHub Pages
+      id-token: write # to authenticate with GitHub Actions OIDC
     steps:
       - name: Checkout
         uses: actions/checkout@v7
