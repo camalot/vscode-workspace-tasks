@@ -9,10 +9,13 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
 
   private _view?: vscode.WebviewView;
   private _updateTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly _extensionUri: vscode.Uri;
 
   constructor(
-    private readonly _extensionUri: vscode.Uri,
-  ) { }
+    extensionUri: vscode.Uri,
+  ) {
+    this._extensionUri = extensionUri;
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -164,9 +167,19 @@ export class TaskHistoryTableViewProvider implements vscode.WebviewViewProvider 
       vscode.Uri.joinPath(this._extensionUri, 'res', 'webviews', 'lib', 'chart.umd.min.js')
     );
 
+    const taskHistoryCssUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'res', 'assets', 'css', 'taskHistory.css')
+    );
+
+    const taskHistoryJsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'res', 'assets', 'javascript', 'taskHistory.js')
+    );
+
     htmlContent = htmlContent.replace(/{{cspSource}}/g, webview.cspSource);
     htmlContent = htmlContent.replace(/{{nonce}}/g, nonce);
     htmlContent = htmlContent.replace(/{{chartJsUri}}/g, chartJsUri.toString());
+    htmlContent = htmlContent.replace(/{{taskHistoryCssUri}}/g, taskHistoryCssUri.toString());
+    htmlContent = htmlContent.replace(/{{taskHistoryJsUri}}/g, taskHistoryJsUri.toString());
 
     return htmlContent;
   }

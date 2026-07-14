@@ -1503,6 +1503,10 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         newTask.startLine = task.startLine;
         newTask.tooltip = task.tooltip;
         newTask.description = task.description;
+        newTask.metadata = task.metadata;
+        newTask.task = task.task;
+        newTask.taskSource = task.taskSource;
+        newTask.taskOrigin = task.taskOrigin;
         // Inherit ID from the original task to prevent collisions and ensure correct tracking
         // But only if this new task represents the "rest" of the split (which it is).
         // If we split further recursively, the final leaf will carry this ID.
@@ -1515,6 +1519,16 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
         // If it is split further, the next segment "unit" will inherit from "tests:unit" (which inherited from "npm:tests:unit").
         // So yes, inheriting ID at each step works.
         newTask.id = task.id;
+
+        // Carry over dependency children so that grouped tasks retain their dependsOn sub-items.
+        // Without this, a task like "My Group - My Task" (with dependsOn) would lose its
+        // dependency children when placed under the "My Group" folder node.
+        if (task.children.length > 0) {
+          newTask.children = task.children;
+          for (const child of newTask.children) {
+            child.parent = newTask;
+          }
+        }
 
         // Re-run context value update now that originalLabel is set
         newTask.updateContextValue();

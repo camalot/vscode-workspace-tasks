@@ -46,11 +46,14 @@ export class TaskItem extends vscode.TreeItem {
   public onRunActionCommand?: vscode.Command;
   public onRunWithArgsActionCommand?: vscode.Command;
   public task?: vscode.Task;
+  declare public readonly label: string;
+  declare public readonly collapsibleState: vscode.TreeItemCollapsibleState;
+  public readonly taskType: string;
 
   constructor(
-    public readonly label: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly taskType: string,
+    label: string,
+    collapsibleState: vscode.TreeItemCollapsibleState,
+    taskType: string,
     resourceUri?: vscode.Uri,
     command?: vscode.Command,
     defaultIconPath?: string | vscode.ThemeIcon | vscode.Uri | { light: vscode.Uri; dark: vscode.Uri },
@@ -58,6 +61,7 @@ export class TaskItem extends vscode.TreeItem {
     onRunWithArgsActionCommand?: vscode.Command,
   ) {
     super(label, collapsibleState);
+    this.taskType = taskType;
 
     this.onOpenActionCommand = command;
     this.onRunActionCommand = onRunActionCommand;

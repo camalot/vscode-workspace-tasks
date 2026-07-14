@@ -1,11 +1,19 @@
 import * as vscode from 'vscode';
 
-export enum LogLevel {
-  Debug = 0,
-  Info = 1,
-  Warn = 2,
-  Error = 3,
-}
+export const LogLevel = {
+  Debug: 0,
+  Info: 1,
+  Warn: 2,
+  Error: 3,
+} as const;
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
+
+const LOG_LEVEL_NAMES: Record<number, string> = {
+  [LogLevel.Debug]: 'Debug',
+  [LogLevel.Info]: 'Info',
+  [LogLevel.Warn]: 'Warn',
+  [LogLevel.Error]: 'Error',
+};
 
 export class LoggerService {
   private static instance: LoggerService;
@@ -67,7 +75,7 @@ export class LoggerService {
     }
 
     const timestamp = new Date().toISOString();
-    const levelString = LogLevel[level].toUpperCase();
+    const levelString = (LOG_LEVEL_NAMES[level] ?? String(level)).toUpperCase();
     let formattedMessage = `[${timestamp}] [${levelString}] ${message}`;
 
     if (args && args.length > 0) {

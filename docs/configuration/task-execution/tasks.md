@@ -158,25 +158,31 @@ Controls which terminal panel is used for the task.
 
 ---
 
-### workspaceTasks.task.stopGracefulDelayMilliseconds
+### workspaceTasks.task.forceStopMethod
 
 | | |
 | --- | --- |
-| **Type:** | `number` |
-| **Default:** | `5000` |
+| **Type:** | `string` |
+| **Default:** | `ask` |
+| **Allowed values:** | `ask`, `SIGINT`, `SIGTERM`, `SIGKILL` |
 | **Scope:** | `resource` |
 
-The time in milliseconds to wait after sending a termination signal before forcibly killing the task process. During this window the process may perform clean-up work. Set to `0` to kill immediately without a grace period.
+Controls how a task is force-stopped when clicking **Stop** a second time, after the initial SIGINT (Ctrl+C) has already been sent and the process has not yet exited.
+
+- **`ask`** (default) — Shows a Quick Pick so you can choose the signal interactively each time.
+- **`SIGINT`** — Sends a second interrupt signal (Ctrl+C) via the terminal.
+- **`SIGTERM`** — Requests the process to terminate gracefully. The terminal is preserved when possible.
+- **`SIGKILL`** — Immediately force-kills the process. Cannot be caught or ignored. The terminal is preserved when possible.
+
+When the terminal panel is preserved depends on the task's `presentation.close` setting. If `presentation.close` is `false` (the default), the terminal stays open after the process exits so you can review the last output.
 
 **Example:**
 
 ```json
 {
-  "workspaceTasks.task.stopGracefulDelayMilliseconds": 5000
+  "workspaceTasks.task.forceStopMethod": "SIGKILL"
 }
 ```
-
-![Screenshot - Stop Graceful Delay]({{ '/configuration/stop-graceful-delay.png' | prepend: site.github_image_docs_url }})
 
 ---
 

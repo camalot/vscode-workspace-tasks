@@ -12,6 +12,9 @@ on:  # yamllint disable-line rule:truthy
         description: 'Whether to publish the VSIX to the marketplaces.'
         required: false
         default: 'true'
+concurrency:
+  # Release runs mutate shared tags and release state, so queue them instead of allowing overlap.
+  group: ${{ github.workflow }}-${{ github.repository }}
 permissions: {}
 env:
   PACKAGE_OWNER: 'darthminos'
@@ -40,7 +43,7 @@ jobs:
       tag_major_minor: ${{ steps.get.outputs.tag_major_minor }}
       tag_major_minor_patch: ${{ steps.get.outputs.tag_major_minor_patch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -79,7 +82,7 @@ jobs:
       - version
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -212,6 +215,7 @@ jobs:
       REPO_OWNER: ${{ github.repository_owner }}
       REPO_NAME: ${{ github.event.repository.name }}
       EXPECTED_VERSION: ${{ needs.version.outputs.current_version }}
+      FORCE_NEXT_VERSION: ${{ github.event.inputs.force_next_version || '' }}
 
   lint:
     runs-on: ubuntu-latest
@@ -224,7 +228,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: true
           fetch-depth: 0
@@ -244,7 +248,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: true
           fetch-depth: 0
@@ -262,6 +266,9 @@ jobs:
       - verify
       - lint
       - test
+    env:
+      OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+      VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
     permissions:
       contents: write
       statuses: write
@@ -293,6 +300,7 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           run_install: false
+          version: 11.10.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -402,11 +410,10 @@ jobs:
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
-          OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
 
       - name: Publish to Visual Studio Marketplace
         # only publish if everything before (incl. Create Release) succeeded
-        if: ${{ success() && env.VS_MARKETPLACE_TOKEN != '' && inputs.vsix_publish == 'true' }}
+        if: ${{ success() && env.VS_MARKETPLACE_TOKEN != '' && env.VSIX_PUBLISH == 'true' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ env.VS_MARKETPLACE_TOKEN }}
@@ -415,7 +422,6 @@ jobs:
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
-          VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Rollback release on later failure
         # Fires only when the release itself SUCCEEDED but a later step
@@ -423,25 +429,39 @@ jobs:
         # already rolled itself back, so this is gated to avoid double-undo.
         if: ${{ failure() && steps.create_release.outcome == 'success' }}
         run: |
-          set -uo pipefail
+          set -Eeuo pipefail
+          trap 'echo "::error::Rollback failed while executing: ${BASH_COMMAND}"' ERR
           echo "::warning::A step after the release failed — rolling back the release"
           echo "::group::Rollback"
 
           # 1) Delete the GitHub Release.
-          gh release delete "${NEXT_TAG}" --yes 2>/dev/null || true
+          if gh release view "${NEXT_TAG}" >/dev/null 2>&1; then
+            gh release delete "${NEXT_TAG}" --yes
+          else
+            echo "GitHub Release ${NEXT_TAG} already absent"
+          fi
 
           # 2) Delete the new patch tag; restore the floating tags to their
           #    prior targets (or delete them if they did not exist before).
-          git push origin ":refs/tags/${NEXT_TAG}" 2>/dev/null || true
+          if git ls-remote --exit-code origin "refs/tags/${NEXT_TAG}" >/dev/null 2>&1; then
+            git push origin ":refs/tags/${NEXT_TAG}"
+          else
+            echo "Patch tag ${NEXT_TAG} already absent"
+          fi
+
           for pair in "${TAG_MAJOR}=${ORIG_TAG_MAJOR_SHA}" "${TAG_MAJOR_MINOR}=${ORIG_TAG_MAJOR_MINOR_SHA}"; do
             tag="${pair%%=*}"
             sha="${pair#*=}"
             if [[ -n "${sha}" ]]; then
               echo "Restoring ${tag} -> ${sha}"
-              git push origin --force "${sha}:refs/tags/${tag}" 2>/dev/null || true
+              git push origin --force "${sha}:refs/tags/${tag}"
             else
               echo "Deleting ${tag} (did not exist before release)"
-              git push origin ":refs/tags/${tag}" 2>/dev/null || true
+              if git ls-remote --exit-code origin "refs/tags/${tag}" >/dev/null 2>&1; then
+                git push origin ":refs/tags/${tag}"
+              else
+                echo "Tag ${tag} already absent"
+              fi
             fi
           done
 
@@ -465,15 +485,17 @@ jobs:
   publish-docs:
     runs-on: ubuntu-latest
     environment: production
+    continue-on-error: true
     needs:
       - publish-vscode-marketplace
 
     permissions:
       contents: read # for actions/checkout
       pages: write # to deploy to GitHub Pages
+      id-token: write # to authenticate with GitHub Actions OIDC
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0

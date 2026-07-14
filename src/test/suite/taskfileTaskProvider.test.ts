@@ -1,7 +1,7 @@
 import * as assert from 'assert';
-import fs = require('fs');
+import * as fs from 'fs';
 import * as path from 'path';
-import os = require('os');
+import * as os from 'os';
 import * as vscode from 'vscode';
 import { TaskfileTaskProvider } from '../../providers/taskfileTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
@@ -75,19 +75,15 @@ suite('TaskfileTaskProvider Test Suite', () => {
       'taskfile.yaml',
     ];
 
-    let originalExistsSync: typeof fs.existsSync;
-    let originalHomeDir: typeof os.homedir;
     let originalCreateFileSystemWatcher: typeof vscode.workspace.createFileSystemWatcher;
 
     setup(() => {
-      originalExistsSync = fs.existsSync;
-      originalHomeDir = os.homedir;
       originalCreateFileSystemWatcher = vscode.workspace.createFileSystemWatcher;
     });
 
     teardown(() => {
-      (fs as any).existsSync = originalExistsSync;
-      (os as any).homedir = originalHomeDir;
+      (provider as any).fileExists = undefined;
+      (provider as any).getHomeDir = undefined;
       (vscode.workspace as any).createFileSystemWatcher = originalCreateFileSystemWatcher;
     });
 
@@ -113,8 +109,8 @@ suite('TaskfileTaskProvider Test Suite', () => {
     });
 
     test('returns empty when no global Taskfile exists', async () => {
-      (os as any).homedir = () => fakeHome;
-      (fs as any).existsSync = () => false;
+      (provider as any).getHomeDir = () => fakeHome;
+      (provider as any).fileExists = () => false;
 
       (vscode.workspace as any).getConfiguration = (section?: string) => {
         if (section === 'workspaceTasks') {
@@ -145,8 +141,8 @@ suite('TaskfileTaskProvider Test Suite', () => {
       const globalTaskfilePath = path.join(fakeHome, 'Taskfile.yml');
       const stdout = fs.readFileSync(path.join(FIXTURE_DIR, 'global-output.json'), 'utf8');
 
-      (os as any).homedir = () => fakeHome;
-      (fs as any).existsSync = (p: string) => p === globalTaskfilePath;
+      (provider as any).getHomeDir = () => fakeHome;
+      (provider as any).fileExists = (p: string) => p === globalTaskfilePath;
 
       (vscode.workspace as any).getConfiguration = (section?: string) => {
         if (section === 'workspaceTasks') {
@@ -184,11 +180,8 @@ suite('TaskfileTaskProvider Test Suite', () => {
       const seen: string[] = [];
       const winner = path.join(fakeHome, variants[2]);
 
-      (os as any).homedir = () => fakeHome;
-      (fs as any).existsSync = (p: string) => {
-        seen.push(p);
-        return p === winner;
-      };
+      (provider as any).getHomeDir = () => fakeHome;
+      (provider as any).fileExists = (p: string) => { seen.push(p); return p === winner; };
 
       (vscode.workspace as any).getConfiguration = (section?: string) => {
         if (section === 'workspaceTasks') {
@@ -224,8 +217,8 @@ suite('TaskfileTaskProvider Test Suite', () => {
       const globalTaskfilePath = path.join(fakeHome, 'Taskfile.yml');
       const stdout = fs.readFileSync(path.join(FIXTURE_DIR, 'global-output.json'), 'utf8');
 
-      (os as any).homedir = () => fakeHome;
-      (fs as any).existsSync = (p: string) => p === globalTaskfilePath;
+      (provider as any).getHomeDir = () => fakeHome;
+      (provider as any).fileExists = (p: string) => p === globalTaskfilePath;
 
       (vscode.workspace as any).getConfiguration = (section?: string) => {
         if (section === 'workspaceTasks') {
@@ -898,10 +891,8 @@ suite('TaskfileTaskProvider Test Suite', () => {
         dispose: () => undefined,
       });
 
-      const originalExistsSync = fs.existsSync;
-      (fs as any).existsSync = (p: string) => p === globalTaskfilePath;
-      const originalHomeDir = os.homedir;
-      (os as any).homedir = () => fakeHome;
+      (provider as any).fileExists = (p: string) => p === globalTaskfilePath;
+      (provider as any).getHomeDir = () => fakeHome;
       const originalGetConfig = vscode.workspace.getConfiguration;
       (vscode.workspace as any).getConfiguration = (section?: string) => {
         if (section === 'workspaceTasks') {
@@ -930,8 +921,8 @@ suite('TaskfileTaskProvider Test Suite', () => {
         assert.strictEqual(result.has('run'), false, 'old entry should be gone after delete invalidation');
       } finally {
         (vscode.workspace as any).createFileSystemWatcher = originalCreateWatcher;
-        (fs as any).existsSync = originalExistsSync;
-        (os as any).homedir = originalHomeDir;
+        (provider as any).fileExists = undefined;
+        (provider as any).getHomeDir = undefined;
         (vscode.workspace as any).getConfiguration = originalGetConfig;
       }
     });

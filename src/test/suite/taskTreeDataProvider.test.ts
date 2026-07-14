@@ -2087,6 +2087,48 @@ suite('TaskTreeDataProvider Test Suite', () => {
       assert.strictEqual(result[1].label, 'a', 'Second group should be a (insertion order)');
       assert.strictEqual(result[2].label, 'm-standalone', 'Standalone leaf should come last');
     });
+
+    test('grouped task retains dependency children when split by separator', () => {
+      const provider = new TaskTreeDataProvider(ctx);
+
+      // Simulate "My Group - My Task" with two dependency children
+      const dep1 = new TaskItem('Dependee 1', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep1.id = 'dep1-id';
+      const dep2 = new TaskItem('Dependee 2', vscode.TreeItemCollapsibleState.None, 'vscode');
+      dep2.id = 'dep2-id';
+
+      const task = new TaskItem('My Group - My Task', vscode.TreeItemCollapsibleState.Collapsed, 'vscode');
+      task.id = 'my-group-my-task-id';
+      task.originalLabel = 'My Group - My Task';
+      task.metadata = { dependsOnLabels: ['Dependee 1', 'Dependee 2'] };
+      task.children = [dep1, dep2];
+      dep1.parent = task;
+      dep2.parent = task;
+
+      const result = provider.groupTasksByName([task], ' - ');
+
+      // Should have one group: "My Group"
+      assert.strictEqual(result.length, 1, 'Should have one group');
+      const group = result[0];
+      assert.strictEqual(group.label, 'My Group', 'Group label should be "My Group"');
+      assert.strictEqual(group.contextValue, 'folder', 'Group should be a folder');
+
+      // The group should contain "My Task"
+      assert.strictEqual(group.children.length, 1, 'Group should have one child');
+      const taskItem = group.children[0];
+      assert.strictEqual(taskItem.label, 'My Task', 'Task label should be "My Task"');
+      assert.strictEqual(taskItem.collapsibleState, vscode.TreeItemCollapsibleState.Collapsed,
+        'Task should be collapsible (it has dependency children)');
+
+      // The task should still have its dependency children
+      assert.strictEqual(taskItem.children.length, 2, 'Task should have two dependency children');
+      assert.strictEqual(taskItem.children[0].label, 'Dependee 1');
+      assert.strictEqual(taskItem.children[1].label, 'Dependee 2');
+
+      // Children should have the grouped task as their parent
+      assert.strictEqual(taskItem.children[0].parent, taskItem);
+      assert.strictEqual(taskItem.children[1].parent, taskItem);
+    });
   });
 
   // ── onDidChangeTreeData listener ─────────────────────────────────────────

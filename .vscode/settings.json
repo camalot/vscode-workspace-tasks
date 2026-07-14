@@ -255,7 +255,6 @@
     "eslint": false,
     "webpack": false,
     "typescript": false,
-    "vscode": false,
     "bitbucket": false,
     "gitlab-ci": false,
     "npm": false,

@@ -32,7 +32,7 @@
     "changelog": "https://github.com/camalot/vscode-workspace-tasks/blob/develop/CHANGELOG.md"
   },
   "license": "Apache-2.0",
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@11.10.0",
   "publisher": "darthminos",
   "icon": "res/icon.png",
   "galleryBanner": {
@@ -86,7 +86,7 @@
   "scripts": {
     "pretest": "pnpm run compile:tests && pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "compile": "pnpm run bundle-chartjs && pnpm run compile:webpack",
+    "compile": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\" && webpack",
     "compile:webpack": "webpack",
     "bundle-chartjs": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\"",
     "compile:prod": "pnpm run check:types && pnpm run lint && pnpm run compile",
@@ -130,30 +130,30 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "~26.0.1",
     "@types/vscode": "^1.105.1",
-    "@typescript-eslint/eslint-plugin": "^8.62.0",
-    "@typescript-eslint/parser": "^8.62.0",
+    "@typescript-eslint/eslint-plugin": "^8.63.0",
+    "@typescript-eslint/parser": "^8.63.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
     "@vscode/vsce": "^3.9.2",
     "chart.js": "^4.5.1",
-    "eslint": "^10.6.0",
+    "eslint": "^10.7.0",
     "git-cliff": "^2.13.1",
     "glob": "^13.0.6",
     "mocha": "^11.7.6",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
     "nyc": "^18.0.0",
-    "prettier": "^3.8.5",
+    "prettier": "^3.9.5",
     "ts-loader": "^9.6.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.62.0",
-    "webpack": "^5.108.1",
-    "webpack-cli": "^7.1.0"
+    "typescript-eslint": "^8.63.0",
+    "webpack": "^5.108.4",
+    "webpack-cli": "^7.2.1"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "fast-xml-parser": "^5.9.3",
-    "ignore": "^7.0.5",
+    "fast-xml-parser": "^5.10.0",
+    "ignore": "^7.0.6",
     "micromatch": "^4.0.8",
     "smol-toml": "^1.7.0",
     "yaml": "^2.9.0"
@@ -1283,11 +1283,23 @@
             "markdownDescription": "%config.workspaceTasks.task.confirmPatterns.markdown%",
             "scope": "resource"
           },
-          "workspaceTasks.task.stopGracefulDelayMilliseconds": {
-            "type": "number",
-            "default": 5000,
-            "description": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds%",
-            "markdownDescription": "%config.workspaceTasks.task.stopGracefulDelayMilliseconds.markdown%"
+          "workspaceTasks.task.forceStopMethod": {
+            "type": "string",
+            "enum": [
+              "ask",
+              "SIGINT",
+              "SIGTERM",
+              "SIGKILL"
+            ],
+            "enumDescriptions": [
+              "%config.workspaceTasks.task.forceStopMethod.ask%",
+              "%config.workspaceTasks.task.forceStopMethod.SIGINT%",
+              "%config.workspaceTasks.task.forceStopMethod.SIGTERM%",
+              "%config.workspaceTasks.task.forceStopMethod.SIGKILL%"
+            ],
+            "default": "ask",
+            "description": "%config.workspaceTasks.task.forceStopMethod%",
+            "markdownDescription": "%config.workspaceTasks.task.forceStopMethod.markdown%"
           },
           "workspaceTasks.task.stopCompoundDependencies": {
             "type": "boolean",
