@@ -67,6 +67,8 @@ RUN curl -fsSL "https://deb.nodesource.com/setup_25.x" | bash - \
   && test -f "${NVM_DIR}/nvm.sh" \
   && chown -R ${USERNAME}:${USERNAME} "${NVM_DIR}"
 
+RUN curl -sSfL https://get.anchore.io/syft | sh -s -- -b /usr/local/bin \
+  && curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
 
 RUN mkdir -p -m 755 /etc/apt/keyrings \
   && out=$(mktemp) && curl -fsSL -o $out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
@@ -156,18 +158,22 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
   && TYPOS_VERSION=$(curl -s "https://api.github.com/repos/crate-ci/typos/releases/latest" | jq -r ".tag_name") \
   && curl -fsSL "https://github.com/crate-ci/typos/releases/download/${TYPOS_VERSION}/typos-${TYPOS_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -xz -C "/home/${USERNAME}/bin"
 
-
-
 RUN mkdir -p "/home/${USERNAME}/.antigen" "/home/${USERNAME}/.zsh/custom/aliases" "/home/${USERNAME}/.devcontainer" "/home/${USERNAME}/bin" "/home/${USERNAME}/.act" \
-  && curl -L git.io/antigen > "/home/${USERNAME}/antigen.zsh" \
+  && curl -L git.io/antigen > "/home/${USERNAME}/.antigen.zsh" \
   && rm -rf "/home/${USERNAME}/.oh-my-zsh" \
   && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
   && ZSH_CUSTOM="/home/${USERNAME}/.oh-my-zsh/custom" \
+  && git clone --depth 1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM}/themes/powerlevel10k" \
   && ACT_VERSION=$(curl -s "https://api.github.com/repos/nektos/act/releases/latest" | jq -r ".tag_name") \
   && curl -fsSL "https://github.com/nektos/act/releases/download/${ACT_VERSION}/act_Linux_x86_64.tar.gz" | tar -xz -C "/home/${USERNAME}/bin" \
   && chmod +x "/home/${USERNAME}/bin/act" \
   && ln -s "/home/${USERNAME}/bin/act" "/home/${USERNAME}/.act/act" \
   && for i in 1 2 3; do curl -sSL https://install.python-poetry.org | python3 - && break || { sleep $((i * 5)); }; done
+
+RUN HADOLINT_VERSION=$(curl -s "https://api.github.com/repos/hadolint/hadolint/releases/latest" | jq -r ".tag_name") \
+  && curl -fsSL "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-linux-x86_64" -o "/home/${USERNAME}/bin/hadolint" \
+  && chmod +x "/home/${USERNAME}/bin/hadolint"
+
 
 COPY files/home/vscode/ /home/${USERNAME}/
 # Pre-warm the antigen bundle cache so p10k loads on the first terminal open instead of requiring a second `source ~/.zshrc`.
