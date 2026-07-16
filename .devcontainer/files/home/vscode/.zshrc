@@ -93,7 +93,7 @@ if [[ -z "$_ANTIGEN_INITIALIZED" ]]; then
   [[ -f "$_p10k_theme" ]] && source "$_p10k_theme"
   unset _p10k_theme
   autoload -Uz compinit && compinit
-  typeset -gx _ANTIGEN_INITIALIZED=1
+  typeset -g _ANTIGEN_INITIALIZED=1
 fi
 # END ANSIBLE MANAGED — antigen
 # BEGIN ANSIBLE MANAGED — zsh custom dir loader
