@@ -283,34 +283,31 @@ export async function activate(context: vscode.ExtensionContext) {
           }
 
           // Capture the terminal for this task so the stop command can send
-          // SIGINT instead of destroying the terminal.  Match by name to avoid
-          // associating an unrelated terminal when multiple tasks start at once.
-          const existingTerminal = findTerminalForTask(e.execution.task);
-          if (existingTerminal) {
-            // Terminal already exists (task reuses a dedicated/shared terminal).
-            stateManager.setTerminal(id, existingTerminal);
-          } else {
-            const openSub = vscode.window.onDidOpenTerminal((terminal) => {
-              // Only accept the terminal if its name matches this task's
-              // naming conventions; ignore unrelated terminals.
-              if (findTerminalForTask(e.execution.task, [terminal])) {
-                openSub.dispose();
-                clearTimeout(terminalCaptureTimeout);
+          // SIGINT instead of destroying the terminal.  Always subscribe to
+          // onDidOpenTerminal so a freshly created terminal is captured rather
+          // than a stale terminal from a previous run with the same name.
+          stateManager.clearTerminal(id);
+          const openSub = vscode.window.onDidOpenTerminal((terminal) => {
+            // Only accept the terminal if its name matches this task's
+            // naming conventions; ignore unrelated terminals.
+            if (findTerminalForTask(e.execution.task, [terminal])) {
+              openSub.dispose();
+              clearTimeout(terminalCaptureTimeout);
+              stateManager.setTerminal(id, terminal);
+            }
+          });
+          // Fallback: search all open terminals by name after 1.5 s in case
+          // the task reused an existing terminal without opening a new one
+          // (e.g. presentation.panel = "shared").
+          const terminalCaptureTimeout = setTimeout(() => {
+            openSub.dispose();
+            if (!stateManager.getTerminal(id)) {
+              const terminal = findTerminalForTask(e.execution.task);
+              if (terminal) {
                 stateManager.setTerminal(id, terminal);
               }
-            });
-            // Fallback: search all open terminals by name after 1.5 s in case
-            // the task reused an existing terminal without re-opening one.
-            const terminalCaptureTimeout = setTimeout(() => {
-              openSub.dispose();
-              if (!stateManager.getTerminal(id)) {
-                const terminal = findTerminalForTask(e.execution.task);
-                if (terminal) {
-                  stateManager.setTerminal(id, terminal);
-                }
-              }
-            }, 1500);
-          }
+            }
+          }, 1500);
         }
       }
     }),
@@ -322,6 +319,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const id = stateManager.getIdByExecution(e.execution);
       if (id) {
         stateManager.clearStopTimer(id);
+        stateManager.clearTerminal(id);
         const status = e.exitCode === 0 ? 'success' : 'failure';
         stateManager.setStatus(id, status);
         stateManager.clearExecution(id);
@@ -344,6 +342,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // Only act if the task is still marked as running.
         // If it was a process task, status would be 'success' or 'failure' by now.
         if (stateManager.getStatus(id) === 'running') {
+          stateManager.clearTerminal(id);
           if (stateManager.isTerminated(id)) {
             stateManager.setStatus(id, 'idle');
             stateManager.clearTerminated(id);

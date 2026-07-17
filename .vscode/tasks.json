@@ -35,8 +35,8 @@
       "label": "npm: watch"
     },
     {
-      "type": "shell",
-      "command": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync(p.join('res','webviews','lib'),{recursive:true});fs.copyFileSync(p.join('node_modules','chart.js','dist','chart.umd.min.js'),p.join('res','webviews','lib','chart.umd.min.js'));console.log('bundled chart.js');\" && node_modules/.bin/webpack",
+      "type": "npm",
+      "script": "compile",
       "problemMatcher": "$ts-webpack",
       "group": "build",
       "label": "npm: compile"

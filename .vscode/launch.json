@@ -7,7 +7,15 @@
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}", "--disable-extensions"],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "preLaunchTask": "npm: compile"
+      "preLaunchTask": "npm: compile",
+      "rendererDebuggerPort": 9222
+    },
+    {
+      "name": "Run Extension (No Compile)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}", "--disable-extensions"],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
     },
     {
       "name": "Run Extension with All Extensions",

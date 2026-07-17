@@ -36,12 +36,30 @@ export function findTerminalForTask(
 ): vscode.Terminal | undefined {
   const name = task.name;
   const source = task.source;
+  const folderName = (task.scope as vscode.WorkspaceFolder)?.name;
 
-  return terminals.find((t) => {
-    if (t.name === name) { return true; }
-    if (t.name === `${source}: ${name}`) { return true; }
-    return t.name === `Task - ${name}`;
-  });
+  const validNames = new Set<string>([
+    name,
+    `${source}: ${name}`,
+    `Task - ${name}`,
+  ]);
+  if (folderName) {
+    validNames.add(`${name} (${folderName})`);
+    validNames.add(`${source}: ${name} (${folderName})`);
+    validNames.add(`Task - ${name} (${folderName})`);
+  }
+
+  // Iterate all terminals and keep the last match — terminals are ordered
+  // oldest-first, so the last match is the most recently created instance,
+  // which corresponds to the current task run when a previous terminal with
+  // the same name is still open.
+  let result: vscode.Terminal | undefined;
+  for (const t of terminals) {
+    if (validNames.has(t.name)) {
+      result = t;
+    }
+  }
+  return result;
 }
 
 /**
@@ -57,34 +75,42 @@ export function findTerminalForTask(
  *
  * Falls back to `execution.terminate()` when:
  * - `presentation.close` is `true` (user wants the terminal closed on task end)
- * - No terminal reference is provided
- * - The terminal's process ID is unavailable
- * - The OS-level kill call throws unexpectedly
  */
 export async function forceKillPreservingTerminal(
   terminal: vscode.Terminal | undefined,
   execution: vscode.TaskExecution,
   signal: ForceStopSignal = 'SIGKILL',
 ): Promise<void> {
+  // If the caller didn't supply a terminal, try to locate it by task name
+  // (including multi-root workspace folder suffix patterns).
+  const resolvedTerminal = terminal ?? findTerminalForTask(execution.task);
+
   // SIGINT via terminal sendText is the most reliable method and always preserves the terminal.
-  if (signal === 'SIGINT' && terminal !== undefined) {
-    terminal.sendText('\u0003', false);
+  if (signal === 'SIGINT' && resolvedTerminal !== undefined) {
+    resolvedTerminal.sendText('\u0003', false);
     return;
   }
 
   const shouldClose = execution.task.presentationOptions?.close ?? false;
-  if (!shouldClose && terminal !== undefined) {
-    const shellPid = await terminal.processId;
+  if (!shouldClose && resolvedTerminal !== undefined) {
+    const shellPid = await resolvedTerminal.processId;
     if (shellPid !== undefined) {
       try {
         process.kill(shellPid, signal);
         return;
       } catch {
-        // Process already exited or kill failed — fall through to execution.terminate()
+        // Process already exited or kill failed — fall through
       }
     }
   }
-  execution.terminate();
+
+  if (shouldClose) {
+    execution.terminate();
+  } else {
+    vscode.window.showWarningMessage(
+      `Unable to stop task '${execution.task.name}': the process could not be killed directly.`,
+    );
+  }
 }
 
 export function getCompoundDependencyLabels(tasksJsonText: string, taskLabel: string): string[] {
@@ -242,7 +268,7 @@ export class StopTaskCommand extends BaseCommand {
 
     // Second click while SIGINT is pending → prompt for (or apply configured) force-kill signal.
     if (stateManager.getStopTimer(id)) {
-      const terminal = stateManager.getTerminal(id) ?? findTerminalForTask(execution.task);
+      const terminal = findTerminalForTask(execution.task) ?? stateManager.getTerminal(id);
       stateManager.clearStopTimer(id);
       stateManager.markTerminated(id);
       await this.stopCompoundDependencies(item, id, 'force-stop-second-click');
@@ -272,7 +298,9 @@ export class StopTaskCommand extends BaseCommand {
     }
 
     // Regular (non-compound) task: send SIGINT first; a second click will prompt for force-kill.
-    const terminal = stateManager.getTerminal(id) ?? findTerminalForTask(execution.task);
+    const terminal = findTerminalForTask(execution.task) ?? stateManager.getTerminal(id);
+    const pendingMarker = (globalThis as any).setTimeout(() => { }, 2147483647);
+    stateManager.setStopTimer(id, pendingMarker);
     if (terminal) {
       // Mark as terminated now so that if the process exits on its own in response
       // to SIGINT, the history/metrics service still records it as a termination.
@@ -281,12 +309,13 @@ export class StopTaskCommand extends BaseCommand {
       // and the terminal window is preserved.
       terminal.sendText('\u0003', false);
       // Store a marker so a second click can detect that SIGINT has already been sent.
-      const pendingMarker = (globalThis as any).setTimeout(() => {}, 2147483647);
-      stateManager.setStopTimer(id, pendingMarker);
     } else {
-      // No terminal reference found — execution.terminate() is the only available stop method.
+      // No terminal reference found — we cannot send SIGINT without closing the terminal,
+      // so warn the user rather than force-terminating.
       stateManager.markTerminated(id);
-      execution.terminate();
+      vscode.window.showWarningMessage(
+        `Unable to stop task '${execution.task.name}': no terminal panel was found. Try clicking Stop again or closing the terminal manually.`,
+      );
     }
   }
 
@@ -340,7 +369,7 @@ export class StopTaskCommand extends BaseCommand {
       // Second stop request while a "pending SIGINT" marker exists for this dependency
       // means we should force terminate it now using the configured/chosen signal.
       if (stateManager.getStopTimer(dependencyId)) {
-        const depTerminal = stateManager.getTerminal(dependencyId) ?? findTerminalForTask(dependencyExecution.task);
+        const depTerminal = findTerminalForTask(dependencyExecution.task) ?? stateManager.getTerminal(dependencyId);
         stateManager.clearStopTimer(dependencyId);
         stateManager.markTerminated(dependencyId);
         const signal = await this.resolveForceStopSignal();
@@ -351,7 +380,7 @@ export class StopTaskCommand extends BaseCommand {
         continue;
       }
 
-      const terminal = stateManager.getTerminal(dependencyId) ?? findTerminalForTask(dependencyExecution.task);
+      const terminal = findTerminalForTask(dependencyExecution.task) ?? stateManager.getTerminal(dependencyId);
       if (terminal) {
         // Mark as terminated now so that if the dependency exits on its own in
         // response to SIGINT, the history/metrics service records it as a termination.

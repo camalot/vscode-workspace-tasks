@@ -303,6 +303,59 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(findTerminalForTask(task, [unrelated]), undefined, 'substring-only match must not be accepted');
   });
 
+  test('findTerminalForTask returns the last matching terminal when multiple share the same name (most recently opened wins)', () => {
+    const task = new vscode.Task(
+      { type: 'shell' }, vscode.TaskScope.Workspace, 'build', 'shell',
+      new vscode.ShellExecution('make'),
+    );
+    const stale = makeTerminal();
+    (stale as any).name = 'build';
+    const current = makeTerminal();
+    (current as any).name = 'build';
+
+    assert.strictEqual(findTerminalForTask(task, [stale, current]), current, 'should return the last (most recent) match');
+  });
+
+  test('findTerminalForTask finds terminal with "{name} (workspaceFolder)" format for multi-root workspaces', () => {
+    const folder: vscode.WorkspaceFolder = {
+      uri: vscode.Uri.file('/workspace/simple'),
+      name: 'simple',
+      index: 0,
+    };
+    const task = new vscode.Task(
+      { type: 'shell' }, folder, 'Cancelable', 'shell',
+      new vscode.ShellExecution('sleep infinity'),
+    );
+    const terminal = makeTerminal();
+    (terminal as any).name = 'Cancelable (simple)';
+    assert.strictEqual(findTerminalForTask(task, [terminal]), terminal);
+  });
+
+  test('findTerminalForTask finds terminal with "{source}: {name} (workspaceFolder)" format for multi-root workspaces', () => {
+    const folder: vscode.WorkspaceFolder = {
+      uri: vscode.Uri.file('/workspace/simple'),
+      name: 'simple',
+      index: 0,
+    };
+    const task = new vscode.Task(
+      { type: 'npm' }, folder, 'build', 'npm',
+      new vscode.ShellExecution('npm run build'),
+    );
+    const terminal = makeTerminal();
+    (terminal as any).name = 'npm: build (simple)';
+    assert.strictEqual(findTerminalForTask(task, [terminal]), terminal);
+  });
+
+  test('findTerminalForTask does not match workspace-scoped terminal name when task has no workspace folder', () => {
+    const task = new vscode.Task(
+      { type: 'shell' }, vscode.TaskScope.Workspace, 'Cancelable', 'shell',
+      new vscode.ShellExecution('sleep infinity'),
+    );
+    const terminal = makeTerminal();
+    (terminal as any).name = 'Cancelable (simple)';
+    assert.strictEqual(findTerminalForTask(task, [terminal]), undefined);
+  });
+
   test('getCompoundDependencyLabels returns direct and nested dependencies', () => {
     const tasksJson = JSON.stringify({
       version: '2.0.0',
@@ -424,12 +477,12 @@ suite('StopTaskCommand Test Suite', () => {
   });
 
   // -------------------------------------------------------------------------
-  // No terminal at all – hard kill fallback
+  // No terminal at all – warn the user rather than force-terminating
   // Task names are intentionally unique so findTerminalForTask won't match
   // any real terminal open in the test environment.
   // -------------------------------------------------------------------------
 
-  test('run terminates immediately when no terminal can be found', async () => {
+  test('run shows warning and does not terminate when no terminal can be found', async () => {
     const item = makeTaskItem('xyzzy-unreachable-a1b2c3');
     const terminateCalls: number[] = [];
     const execution = makeExecution(() => terminateCalls.push(1));
@@ -437,9 +490,19 @@ suite('StopTaskCommand Test Suite', () => {
     (fakeStateManager as any).getExecution = () => execution;
     (fakeStateManager as any).getTerminal = () => undefined;
 
-    await cmd.run(item);
+    const warnings: string[] = [];
+    const originalShowWarningMessage = vscode.window.showWarningMessage;
+    (vscode.window as any).showWarningMessage = (msg: string) => { warnings.push(msg); };
 
-    assert.strictEqual(terminateCalls.length, 1, 'terminate should be called immediately when no terminal exists');
+    try {
+      await cmd.run(item);
+    } finally {
+      (vscode.window as any).showWarningMessage = originalShowWarningMessage;
+    }
+
+    assert.strictEqual(terminateCalls.length, 0, 'terminate should NOT be called when no terminal exists');
+    assert.strictEqual(warnings.length, 1, 'a warning should be shown when no terminal exists');
+    assert.ok(warnings[0].includes('Unable to stop'), 'warning message should indicate failure to stop');
   });
 
   test('run uses cached task when item.id is present', async () => {
@@ -1053,19 +1116,28 @@ suite('StopTaskCommand Test Suite', () => {
 
   suite('forceKillPreservingTerminal', () => {
     let originalProcessKill: typeof process.kill;
+    let originalShowWarningMessage: typeof vscode.window.showWarningMessage;
     const killSpy: Array<{ pid: number; signal: string | number | undefined }> = [];
+    const warningSpy: string[] = [];
 
     setup(() => {
       killSpy.length = 0;
+      warningSpy.length = 0;
       originalProcessKill = process.kill;
       (process as any).kill = (pid: number, signal: string | number | undefined) => {
         killSpy.push({ pid, signal });
         return true;
       };
+      originalShowWarningMessage = vscode.window.showWarningMessage;
+      (vscode.window as any).showWarningMessage = (msg: string) => {
+        warningSpy.push(msg);
+        return Promise.resolve(undefined);
+      };
     });
 
     teardown(() => {
       (process as any).kill = originalProcessKill;
+      (vscode.window as any).showWarningMessage = originalShowWarningMessage;
     });
 
     test('calls process.kill with SIGKILL by default when presentation.close is false and processId is available', async () => {
@@ -1109,14 +1181,16 @@ suite('StopTaskCommand Test Suite', () => {
       assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called for SIGINT');
     });
 
-    test('calls execution.terminate for SIGINT when no terminal is provided', async () => {
+    test('shows warning for SIGINT when no terminal is provided and close is false', async () => {
       const terminateCalls: number[] = [];
       const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
 
       await forceKillPreservingTerminal(undefined, execution, 'SIGINT');
 
       assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called when no terminal is provided');
-      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called as fallback when no terminal');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
+      assert.strictEqual(warningSpy.length, 1, 'a warning notification should be shown');
+      assert.ok(warningSpy[0].includes('test-task'), 'warning should include the task name');
     });
 
     test('calls execution.terminate when presentation.close is true', async () => {
@@ -1130,17 +1204,19 @@ suite('StopTaskCommand Test Suite', () => {
       assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called');
     });
 
-    test('calls execution.terminate when no terminal is provided', async () => {
+    test('shows warning when no terminal is provided and close is false', async () => {
       const terminateCalls: number[] = [];
       const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
 
       await forceKillPreservingTerminal(undefined, execution);
 
       assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called without a terminal');
-      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called as fallback');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
+      assert.strictEqual(warningSpy.length, 1, 'a warning notification should be shown');
+      assert.ok(warningSpy[0].includes('test-task'), 'warning should include the task name');
     });
 
-    test('calls execution.terminate when processId is unavailable', async () => {
+    test('shows warning when processId is unavailable and close is false', async () => {
       const terminateCalls: number[] = [];
       const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
       const terminal = makeTerminal(); // no processId property
@@ -1148,10 +1224,12 @@ suite('StopTaskCommand Test Suite', () => {
       await forceKillPreservingTerminal(terminal, execution);
 
       assert.strictEqual(killSpy.length, 0, 'process.kill should NOT be called when processId is unavailable');
-      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called as fallback');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
+      assert.strictEqual(warningSpy.length, 1, 'a warning notification should be shown');
+      assert.ok(warningSpy[0].includes('test-task'), 'warning should include the task name');
     });
 
-    test('falls back to execution.terminate when process.kill throws', async () => {
+    test('shows warning when process.kill throws and close is false', async () => {
       const terminateCalls: number[] = [];
       const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
       const terminal = makeTerminalWithPid(99003);
@@ -1159,7 +1237,9 @@ suite('StopTaskCommand Test Suite', () => {
 
       await forceKillPreservingTerminal(terminal, execution);
 
-      assert.strictEqual(terminateCalls.length, 1, 'execution.terminate should be called when process.kill throws');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
+      assert.strictEqual(warningSpy.length, 1, 'a warning notification should be shown');
+      assert.ok(warningSpy[0].includes('test-task'), 'warning should include the task name');
     });
 
     test('calls process.kill when presentation.close is not set (defaults to false)', async () => {
@@ -1171,6 +1251,53 @@ suite('StopTaskCommand Test Suite', () => {
 
       assert.strictEqual(killSpy.length, 1, 'process.kill should be called when close is unset (defaults to false)');
       assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
+    });
+
+    test('falls back to findTerminalForTask when terminal is undefined and task name matches an open terminal', async () => {
+      const terminateCalls: number[] = [];
+      const execution = makeExecutionWithPresentation({ close: false }, () => terminateCalls.push(1));
+      const terminal = makeTerminalWithPid(99020);
+      // The execution's task name is 'test-task'; give the terminal the same name.
+      (terminal as any).name = 'test-task';
+
+      const originalTerminals = Object.getOwnPropertyDescriptor(vscode.window, 'terminals');
+      Object.defineProperty(vscode.window, 'terminals', { value: [terminal], configurable: true });
+
+      try {
+        await forceKillPreservingTerminal(undefined, execution, 'SIGKILL');
+      } finally {
+        if (originalTerminals) {
+          Object.defineProperty(vscode.window, 'terminals', originalTerminals);
+        }
+      }
+
+      assert.strictEqual(killSpy.length, 1, 'process.kill should be called after fallback terminal lookup');
+      assert.strictEqual(killSpy[0].pid, 99020);
+      assert.strictEqual(killSpy[0].signal, 'SIGKILL');
+      assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called');
+      assert.strictEqual(warningSpy.length, 0, 'no warning should be shown when terminal is found via fallback');
+    });
+
+    test('falls back to findTerminalForTask for SIGINT when terminal is undefined', async () => {
+      const sentTexts: Array<{ text: string; nl: boolean }> = [];
+      const execution = makeExecutionWithPresentation({ close: false });
+      const terminal = makeTerminal((text, nl) => sentTexts.push({ text, nl: nl ?? false }));
+      (terminal as any).name = 'test-task';
+
+      const originalTerminals = Object.getOwnPropertyDescriptor(vscode.window, 'terminals');
+      Object.defineProperty(vscode.window, 'terminals', { value: [terminal], configurable: true });
+
+      try {
+        await forceKillPreservingTerminal(undefined, execution, 'SIGINT');
+      } finally {
+        if (originalTerminals) {
+          Object.defineProperty(vscode.window, 'terminals', originalTerminals);
+        }
+      }
+
+      assert.strictEqual(sentTexts.length, 1, 'sendText should be called after fallback lookup');
+      assert.strictEqual(sentTexts[0].text, '\u0003');
+      assert.strictEqual(warningSpy.length, 0, 'no warning should be shown when terminal is found via fallback');
     });
   });
 
