@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         vscode:
-          - '1.105.1'
+          - '1.125.0'
           - 'insiders'
           - 'stable'
         os:
