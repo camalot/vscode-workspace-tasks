@@ -52,7 +52,7 @@ unset _p10k_omz
 export ZSH_DOTENV_PROMPT=false
 
 # BEGIN ANSIBLE MANAGED — antigen
-if [[ -z "$_ANTIGEN_INITIALIZED" ]]; then
+if [[ -z "$_ANTIGEN_INITIALIZED" ]] || ! (( ${+functions[_zsh_highlight]} )); then
   ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/oh-my-zsh"
   mkdir -p "$ZSH_CACHE_DIR/completions"
   source "$HOME/.antigen.zsh"

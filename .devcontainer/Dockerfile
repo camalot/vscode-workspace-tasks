@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/devcontainers/ruby:3
 ARG USERNAME=vscode
 # Allow overriding the version of pnpm to install globally (e.g. `@11.10.0` or `@latest` or `''`).
 # This is here because of a bug in PNPM 11.12.0 https://github.com/pnpm/action-setup/issues/276
-ARG PNPM_VERSION=@11.10.0
+ARG PNPM_VERSION=@latest
 ENV PNPM_VERSION=${PNPM_VERSION}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -175,7 +175,7 @@ RUN HADOLINT_VERSION=$(curl -s "https://api.github.com/repos/hadolint/hadolint/r
   && chmod +x "/home/${USERNAME}/bin/hadolint"
 
 
-COPY files/home/vscode/ /home/${USERNAME}/
+COPY --chown=${USERNAME}:${USERNAME} files/home/vscode/ /home/${USERNAME}/
 # Pre-warm the antigen bundle cache so p10k loads on the first terminal open instead of requiring a second `source ~/.zshrc`.
 RUN TERM=xterm-256color ZSH_DISABLE_COMPFIX=true zsh -i -c 'exit' 2>/dev/null || true
 # make sure that pnpm is available in the PATH for the vscode user and that the pnpm is up to date.
