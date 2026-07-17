@@ -24,8 +24,60 @@ interface VscodeTasksFile {
 export type ForceStopSignal = 'SIGINT' | 'SIGTERM' | 'SIGKILL';
 
 /**
+ * Finds the terminal whose underlying shell process id matches the given OS
+ * process id. This is the authoritative way to correlate a task execution
+ * with its terminal — process ids are unique, unlike terminal names, which
+ * can collide between unrelated or duplicate tasks (e.g. the same task
+ * label run concurrently, or two different tasks that happen to share a
+ * label across workspace folders).
+ *
+ * Returns `undefined` when no `processId` is supplied (e.g. the task hasn't
+ * reported a process yet, or is a `CustomExecution` task with no real OS
+ * process) so callers can fall back to name-based matching.
+ */
+export async function findTerminalByProcessId(
+  processId: number | undefined,
+  terminals: readonly vscode.Terminal[] = vscode.window.terminals,
+): Promise<vscode.Terminal | undefined> {
+  if (processId === undefined) {
+    return undefined;
+  }
+  for (const terminal of terminals) {
+    const pid = await terminal.processId;
+    if (pid === processId) {
+      return terminal;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Resolves the terminal that hosts a task's running process.
+ *
+ * Prefers matching by OS process id (precise and unambiguous) and only falls
+ * back to name-based heuristics — via {@link findTerminalForTask} — when no
+ * process id is known, e.g. because the process hasn't started yet or the
+ * task never spawns a real OS process.
+ */
+export async function resolveTaskTerminal(
+  task: vscode.Task,
+  processId: number | undefined,
+  terminals: readonly vscode.Terminal[] = vscode.window.terminals,
+): Promise<vscode.Terminal | undefined> {
+  const byPid = await findTerminalByProcessId(processId, terminals);
+  if (byPid !== undefined) {
+    return byPid;
+  }
+  return findTerminalForTask(task, terminals);
+}
+
+/**
  * Finds the terminal that belongs to a task by matching against common
  * naming conventions that VSCode uses for task terminals.
+ *
+ * This is a best-effort fallback only — terminal names are not guaranteed to
+ * be unique (e.g. duplicate task labels across folders), so prefer
+ * {@link resolveTaskTerminal} which matches by OS process id first.
  *
  * An optional `terminals` array can be provided for testing; defaults to
  * `vscode.window.terminals`.
@@ -68,22 +120,33 @@ export function findTerminalForTask(
  *
  * - **SIGINT**: Sends the interrupt character (`\u0003`) via the terminal so the TTY
  *   layer handles it. This always preserves the terminal panel.
- * - **SIGTERM / SIGKILL**: When the task's `presentation.close` is `false` and a
- *   terminal with a known process ID is available, kills the shell process directly
- *   via the OS. This causes VSCode to treat the exit as natural and keep the panel
- *   open. Falls back to `execution.terminate()` otherwise.
+ * - **SIGTERM / SIGKILL**: When the task's `presentation.close` is `false`, kills the
+ *   process directly via the OS using `processId` (preferred, captured from
+ *   `onDidStartTaskProcess`) or the resolved terminal's `processId` as a fallback.
+ *   This causes VSCode to treat the exit as natural and keep the panel open. The
+ *   exact signal requested is sent immediately — there is no automatic escalation
+ *   or substitution of a different signal. Note that for wrapper/proxy processes
+ *   (e.g. `docker run`, `ssh`) killing the local wrapper process does not guarantee
+ *   the remote work it launched (a container, a remote session, etc.) is stopped;
+ *   that is an inherent limitation of signaling the wrapper rather than something
+ *   this extension can safely work around on the caller's behalf.
  *
- * Falls back to `execution.terminate()` when:
- * - `presentation.close` is `true` (user wants the terminal closed on task end)
+ * Falls back to `execution.terminate()` only when `presentation.close` is `true`
+ * (the user has explicitly asked for the terminal to be closed on task end).
+ * Otherwise, if the process cannot be killed directly, a warning is shown and
+ * `execution.terminate()` is never called — closing/destroying the terminal
+ * unexpectedly is worse than leaving a task marked as running.
  */
 export async function forceKillPreservingTerminal(
   terminal: vscode.Terminal | undefined,
   execution: vscode.TaskExecution,
   signal: ForceStopSignal = 'SIGKILL',
+  processId?: number,
 ): Promise<void> {
-  // If the caller didn't supply a terminal, try to locate it by task name
-  // (including multi-root workspace folder suffix patterns).
-  const resolvedTerminal = terminal ?? findTerminalForTask(execution.task);
+  // If the caller didn't supply a terminal, resolve it — preferring process id
+  // correlation over name-based matching (including multi-root workspace
+  // folder suffix patterns).
+  const resolvedTerminal = terminal ?? await resolveTaskTerminal(execution.task, processId);
 
   // SIGINT via terminal sendText is the most reliable method and always preserves the terminal.
   if (signal === 'SIGINT' && resolvedTerminal !== undefined) {
@@ -92,11 +155,13 @@ export async function forceKillPreservingTerminal(
   }
 
   const shouldClose = execution.task.presentationOptions?.close ?? false;
-  if (!shouldClose && resolvedTerminal !== undefined) {
-    const shellPid = await resolvedTerminal.processId;
-    if (shellPid !== undefined) {
+  if (signal !== 'SIGINT' && !shouldClose) {
+    // Prefer the process id captured directly from `onDidStartTaskProcess` — it is
+    // authoritative and avoids any ambiguity from terminal matching.
+    const pid = processId ?? await resolvedTerminal?.processId;
+    if (pid !== undefined) {
       try {
-        process.kill(shellPid, signal);
+        process.kill(pid, signal);
         return;
       } catch {
         // Process already exited or kill failed — fall through
@@ -266,15 +331,22 @@ export class StopTaskCommand extends BaseCommand {
       return;
     }
 
-    // Second click while SIGINT is pending → prompt for (or apply configured) force-kill signal.
+    // Second (and every subsequent) click while a stop is pending → prompt for (or apply
+    // configured) force-kill signal. No matter how much time has elapsed since the first
+    // click, or how many force-stop attempts have already been made, another click always
+    // means "force stop" — the pending marker is intentionally NOT cleared here. It is only
+    // cleared once the task actually exits (see the onDidEndTaskProcess/onDidEndTask
+    // handlers in extension.ts), so if a chosen signal fails to stop the process (e.g. the
+    // user picks SIGINT again, dismisses the QuickPick, or no process id is available), the
+    // next click retries force-stop instead of falling back to a fresh graceful SIGINT.
     if (stateManager.getStopTimer(id)) {
-      const terminal = findTerminalForTask(execution.task) ?? stateManager.getTerminal(id);
-      stateManager.clearStopTimer(id);
+      const processId = stateManager.getProcessId(id);
+      const terminal = (await resolveTaskTerminal(execution.task, processId)) ?? stateManager.getTerminal(id);
       stateManager.markTerminated(id);
       await this.stopCompoundDependencies(item, id, 'force-stop-second-click');
       const signal = await this.resolveForceStopSignal();
       if (signal !== undefined) {
-        await forceKillPreservingTerminal(terminal, execution, signal);
+        await forceKillPreservingTerminal(terminal, execution, signal, processId);
       }
       return;
     }
@@ -298,7 +370,7 @@ export class StopTaskCommand extends BaseCommand {
     }
 
     // Regular (non-compound) task: send SIGINT first; a second click will prompt for force-kill.
-    const terminal = findTerminalForTask(execution.task) ?? stateManager.getTerminal(id);
+    const terminal = (await resolveTaskTerminal(execution.task, stateManager.getProcessId(id))) ?? stateManager.getTerminal(id);
     const pendingMarker = (globalThis as any).setTimeout(() => { }, 2147483647);
     stateManager.setStopTimer(id, pendingMarker);
     if (terminal) {
@@ -351,6 +423,7 @@ export class StopTaskCommand extends BaseCommand {
     const stateManager = TaskStateManager.getInstance();
     let gracefulCount = 0;
     let forcedCount = 0;
+    let warnedCount = 0;
 
     for (const dependencyId of dependencyIds) {
       if (dependencyId === taskId) {
@@ -366,21 +439,24 @@ export class StopTaskCommand extends BaseCommand {
         continue;
       }
 
-      // Second stop request while a "pending SIGINT" marker exists for this dependency
-      // means we should force terminate it now using the configured/chosen signal.
+      // Second (and every subsequent) stop request while a "pending SIGINT" marker exists
+      // for this dependency means we should force terminate it now using the
+      // configured/chosen signal. The marker is intentionally NOT cleared here — see the
+      // matching comment in `run()` — so a later click keeps retrying force-stop until the
+      // dependency actually exits.
       if (stateManager.getStopTimer(dependencyId)) {
-        const depTerminal = findTerminalForTask(dependencyExecution.task) ?? stateManager.getTerminal(dependencyId);
-        stateManager.clearStopTimer(dependencyId);
+        const depProcessId = stateManager.getProcessId(dependencyId);
+        const depTerminal = (await resolveTaskTerminal(dependencyExecution.task, depProcessId)) ?? stateManager.getTerminal(dependencyId);
         stateManager.markTerminated(dependencyId);
         const signal = await this.resolveForceStopSignal();
         if (signal !== undefined) {
-          await forceKillPreservingTerminal(depTerminal, dependencyExecution, signal);
+          await forceKillPreservingTerminal(depTerminal, dependencyExecution, signal, depProcessId);
         }
         forcedCount += 1;
         continue;
       }
 
-      const terminal = findTerminalForTask(dependencyExecution.task) ?? stateManager.getTerminal(dependencyId);
+      const terminal = (await resolveTaskTerminal(dependencyExecution.task, stateManager.getProcessId(dependencyId))) ?? stateManager.getTerminal(dependencyId);
       if (terminal) {
         // Mark as terminated now so that if the dependency exits on its own in
         // response to SIGINT, the history/metrics service records it as a termination.
@@ -391,19 +467,24 @@ export class StopTaskCommand extends BaseCommand {
         stateManager.setStopTimer(dependencyId, pendingMarker);
         gracefulCount += 1;
       } else {
+        // No terminal reference found — we cannot send SIGINT without closing the
+        // terminal, so warn rather than calling execution.terminate() (which would
+        // destroy the terminal panel unexpectedly), mirroring the primary-task path.
         stateManager.markTerminated(dependencyId);
-        dependencyExecution.terminate();
-        forcedCount += 1;
+        vscode.window.showWarningMessage(
+          `Unable to stop task '${dependencyExecution.task.name}': no terminal panel was found. Try clicking Stop again or closing the terminal manually.`,
+        );
+        warnedCount += 1;
       }
     }
 
-    if (gracefulCount === 0 && forcedCount === 0) {
+    if (gracefulCount === 0 && forcedCount === 0 && warnedCount === 0) {
       this.logger.debug(
         `[StopTask] Dependencies identified but none are currently running for '${item.label}' (${taskId}). Trigger: ${trigger}. Dependency IDs: ${dependencyIds.join(', ')}`,
       );
     } else {
       this.logger.debug(
-        `[StopTask] Dependency stop summary for '${item.label}' (${taskId}). Trigger: ${trigger}. Graceful: ${gracefulCount}, Forced: ${forcedCount}.`,
+        `[StopTask] Dependency stop summary for '${item.label}' (${taskId}). Trigger: ${trigger}. Graceful: ${gracefulCount}, Forced: ${forcedCount}, Warned: ${warnedCount}.`,
       );
     }
   }

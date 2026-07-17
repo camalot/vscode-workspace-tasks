@@ -18,6 +18,7 @@ export class TaskStateManager {
   private states: Map<string, TaskStatus> = new Map();
   private executions: Map<string, vscode.TaskExecution> = new Map();
   private terminals: Map<string, vscode.Terminal> = new Map();
+  private processIds: Map<string, number> = new Map();
   private stopTimers: Map<string, NodeJS.Timeout> = new Map();
   private terminatedTasks: Set<string> = new Set();
   private blockedTaskIds: Set<string> = new Set();
@@ -246,6 +247,25 @@ export class TaskStateManager {
 
   public clearTerminal(id: string): void {
     this.terminals.delete(id);
+  }
+
+  /**
+   * Records the OS process id reported by `vscode.tasks.onDidStartTaskProcess`
+   * for a running task. This is the authoritative, unambiguous way to correlate
+   * a task execution with the terminal that hosts it (by matching against
+   * `vscode.Terminal.processId`), since terminal names can collide between
+   * unrelated tasks.
+   */
+  public setProcessId(id: string, processId: number): void {
+    this.processIds.set(id, processId);
+  }
+
+  public getProcessId(id: string): number | undefined {
+    return this.processIds.get(id);
+  }
+
+  public clearProcessId(id: string): void {
+    this.processIds.delete(id);
   }
 
   /**

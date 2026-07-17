@@ -6,7 +6,7 @@ import { tmpdir } from 'os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  files: 'out/test/**/*.test.js',
+  files: process.env.TEST_FILE || 'out/test/**/*.test.js',
   workspaceFolder: '.',
   version: '1.105.1',
   launchArgs: ['--disable-updates', '--no-sandbox', '--disable-gpu', `--user-data-dir=${join(tmpdir(), 'vscode-workspace-tasks-test', 'user-data')}`],

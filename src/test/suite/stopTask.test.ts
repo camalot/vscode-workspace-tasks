@@ -95,6 +95,9 @@ function buildFakeStateManager(overrides: Partial<TaskStateManager> = {}): TaskS
     getTerminal: (id: string) => terminalMap.get(id),
     setTerminal: (id: string, t: vscode.Terminal) => { terminalMap.set(id, t); },
     clearTerminal: (id: string) => { terminalMap.delete(id); },
+    getProcessId: (_id: string) => undefined,
+    setProcessId: (_id: string, _pid: number) => {},
+    clearProcessId: (_id: string) => {},
     getStopTimer: (id: string) => stopTimerMap.get(id),
     setStopTimer: (id: string, timer: NodeJS.Timeout) => {
       const existing = stopTimerMap.get(id);
@@ -517,13 +520,20 @@ suite('StopTaskCommand Test Suite', () => {
     TaskCacheService.getInstance().getTask = (id: string) => (id === 'cached-task-id' ? cachedItem : undefined);
 
     try {
-      const terminateCalls: number[] = [];
-      const execution = makeExecution(() => terminateCalls.push(1));
-      (fakeStateManager as any).getExecution = (id: string) => (id === 'cached-task' ? execution : undefined);
-      (fakeStateManager as any).getTerminal = () => undefined;
+      const requestedIds: string[] = [];
+      const sentTexts: Array<{ text: string; nl: boolean }> = [];
+      const execution = makeExecution();
+      (fakeStateManager as any).getExecution = (id: string) => {
+        requestedIds.push(id);
+        return id === 'cached-task' ? execution : undefined;
+      };
+      const terminal = makeTerminal((text, nl) => sentTexts.push({ text, nl }));
+      (fakeStateManager as any).getTerminal = () => terminal;
 
       await cmd.run(staleItem);
-      assert.strictEqual(terminateCalls.length, 1, 'cached task should be used for execution lookup');
+      assert.ok(requestedIds.includes('cached-task'), 'cached task id should be used for execution lookup');
+      assert.ok(!requestedIds.includes('stale-task'), 'stale (pre-cache) task id should not be used for execution lookup');
+      assert.strictEqual(sentTexts.length, 1, 'SIGINT should be sent using the resolved cached task');
     } finally {
       TaskCacheService.getInstance().getTask = originalGetTask;
     }
@@ -543,7 +553,7 @@ suite('StopTaskCommand Test Suite', () => {
     assert.ok(markedTerminated.includes(fakeStateManager.getTaskId(item)));
   });
 
-  test('run also terminates tracked dependency executions when enabled', async () => {
+  test('run terminates parent and warns (never force-terminates) dependency with no terminal when enabled', async () => {
     const item = makeTaskItem('compound-root');
     const parentTerminateCalls: number[] = [];
     const childTerminateCalls: number[] = [];
@@ -578,10 +588,20 @@ suite('StopTaskCommand Test Suite', () => {
 
     (cmd as any).getCompoundDependencyTaskIds = async () => ['dependency-task'];
 
-    await cmd.run(item);
+    const warnings: string[] = [];
+    const originalShowWarningMessage = vscode.window.showWarningMessage;
+    (vscode.window as any).showWarningMessage = (msg: string) => { warnings.push(msg); };
 
-    assert.strictEqual(parentTerminateCalls.length, 1, 'parent execution should be terminated');
-    assert.strictEqual(childTerminateCalls.length, 1, 'dependency execution should be terminated');
+    try {
+      await cmd.run(item);
+    } finally {
+      (vscode.window as any).showWarningMessage = originalShowWarningMessage;
+    }
+
+    assert.strictEqual(parentTerminateCalls.length, 1, 'parent execution (the orchestration) should be terminated');
+    assert.strictEqual(childTerminateCalls.length, 0, 'dependency execution should NEVER be force-terminated silently');
+    assert.strictEqual(warnings.length, 1, 'a warning should be shown since the dependency has no terminal to signal');
+    assert.ok(warnings[0].includes('Unable to stop'), 'warning message should indicate failure to stop the dependency');
   });
 
   test('run stops dependency gracefully when dependency terminal is available', async () => {
@@ -674,7 +694,7 @@ suite('StopTaskCommand Test Suite', () => {
     assert.strictEqual(blockedIds.length, 0, 'self dependency should be skipped');
   });
 
-  test('stopCompoundDependencies force kills a dependency when a stop marker already exists', async () => {
+  test('stopCompoundDependencies force kills a dependency via PID when a stop marker already exists', async () => {
     const item = makeTaskItem('timer-forced-root');
     const terminateCalls: number[] = [];
     const dependencyExecution = makeExecution(() => terminateCalls.push(1));
@@ -684,6 +704,8 @@ suite('StopTaskCommand Test Suite', () => {
     (fakeStateManager as any).getStopTimer = (id: string) => (id === 'dependency-with-timer' ? setTimeout(() => {}, 60000) : undefined);
     (fakeStateManager as any).clearStopTimer = (id: string) => { clearedTimerId = id; };
     (fakeStateManager as any).getTerminal = () => undefined;
+    const fakePid = 918273;
+    (fakeStateManager as any).getProcessId = (id: string) => (id === 'dependency-with-timer' ? fakePid : undefined);
 
     configModule.configuration.get = (key: string, defaultValue: any) => {
       if (key === 'task.forceStopMethod') { return 'SIGKILL'; }
@@ -691,10 +713,56 @@ suite('StopTaskCommand Test Suite', () => {
       return defaultValue;
     };
 
-    await (cmd as any).stopCompoundDependencies(item, 'timer-forced-root', 'force-timer', ['dependency-with-timer']);
+    const originalKill = process.kill;
+    const killCalls: Array<{ pid: number; signal: string | number }> = [];
+    (process as any).kill = (pid: number, signal: string | number) => { killCalls.push({ pid, signal }); };
 
-    assert.strictEqual(terminateCalls.length, 1, 'dependency should be terminated immediately when a stop marker already exists');
-    assert.strictEqual(clearedTimerId, 'dependency-with-timer');
+    try {
+      await (cmd as any).stopCompoundDependencies(item, 'timer-forced-root', 'force-timer', ['dependency-with-timer']);
+    } finally {
+      process.kill = originalKill;
+    }
+
+    assert.strictEqual(terminateCalls.length, 0, 'execution.terminate() should never be called for a force-kill');
+    assert.strictEqual(killCalls.length, 1, 'the process should be killed directly via its PID');
+    assert.strictEqual(killCalls[0].pid, fakePid);
+    assert.strictEqual(killCalls[0].signal, 'SIGKILL');
+    assert.strictEqual(
+      clearedTimerId,
+      undefined,
+      'the pending marker should NOT be cleared here so a later click keeps force-stopping until the dependency actually exits',
+    );
+  });
+
+  test('stopCompoundDependencies warns (never terminates) a dependency it cannot force kill', async () => {
+    const item = makeTaskItem('timer-forced-root-no-pid');
+    const terminateCalls: number[] = [];
+    const dependencyExecution = makeExecution(() => terminateCalls.push(1));
+
+    (fakeStateManager as any).getExecution = (id: string) => (id === 'dependency-with-timer-no-pid' ? dependencyExecution : undefined);
+    (fakeStateManager as any).getStopTimer = (id: string) => (id === 'dependency-with-timer-no-pid' ? setTimeout(() => {}, 60000) : undefined);
+    (fakeStateManager as any).clearStopTimer = () => {};
+    (fakeStateManager as any).getTerminal = () => undefined;
+    (fakeStateManager as any).getProcessId = () => undefined;
+
+    configModule.configuration.get = (key: string, defaultValue: any) => {
+      if (key === 'task.forceStopMethod') { return 'SIGKILL'; }
+      if (key === 'task.stopCompoundDependencies') { return true; }
+      return defaultValue;
+    };
+
+    const warnings: string[] = [];
+    const originalShowWarningMessage = vscode.window.showWarningMessage;
+    (vscode.window as any).showWarningMessage = (msg: string) => { warnings.push(msg); };
+
+    try {
+      await (cmd as any).stopCompoundDependencies(item, 'timer-forced-root-no-pid', 'force-timer', ['dependency-with-timer-no-pid']);
+    } finally {
+      (vscode.window as any).showWarningMessage = originalShowWarningMessage;
+    }
+
+    assert.strictEqual(terminateCalls.length, 0, 'execution.terminate() should never be called as a fallback');
+    assert.strictEqual(warnings.length, 1, 'a warning should be shown when the dependency cannot be force killed');
   });
 
   test('stopCompoundDependencies blocks dependencies that are not currently running', async () => {
@@ -746,7 +814,11 @@ suite('StopTaskCommand Test Suite', () => {
       assert.strictEqual(killSpy[0].signal, 'SIGKILL');
       assert.strictEqual(killSpy[0].pid, pid);
       assert.strictEqual(terminateCalls.length, 0, 'execution.terminate should NOT be called when close is false');
-      assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'pending marker should be cleared after force kill');
+      assert.notStrictEqual(
+        fakeStateManager.getStopTimer(id),
+        undefined,
+        'pending marker should remain set so a further click keeps force-stopping until the task actually exits',
+      );
     } finally {
       (process as any).kill = originalProcessKill;
     }
@@ -816,7 +888,11 @@ suite('StopTaskCommand Test Suite', () => {
       await cmd.run(item);
 
       assert.strictEqual(terminateCalls.length, 0, 'nothing should happen when QuickPick is dismissed');
-      assert.strictEqual(fakeStateManager.getStopTimer(id), undefined, 'pending marker should still be cleared');
+      assert.notStrictEqual(
+        fakeStateManager.getStopTimer(id),
+        undefined,
+        'pending marker should remain set so the next click retries force-stop rather than resending a fresh graceful SIGINT',
+      );
     } finally {
       (vscode.window as any).showQuickPick = originalShowQuickPick;
     }

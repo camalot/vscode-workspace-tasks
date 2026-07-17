@@ -82,8 +82,18 @@ export class TaskHistoryService {
       }),
     );
 
-    await this.loadPersistedHistory();
+    // Register task tracking listeners immediately (synchronously) so no task start/end
+    // events are missed while the (potentially large) persisted history archive loads
+    // below. Callers may choose not to await the remainder of this promise (see
+    // `loadPersistedHistory`) without losing any live task tracking.
     this.registerListeners();
+
+    // Reads and parses the NDJSON archive file, which can be slow for very large
+    // histories. Callers activating the extension should not block on this — see
+    // `extension.ts`, which fires this off without awaiting it so activation isn't
+    // delayed. `onDidChange` fires once loading completes so any already-rendered
+    // views (tree/table) pick up the persisted records reactively.
+    await this.loadPersistedHistory();
   }
 
   private loadConfig(): void {
@@ -151,6 +161,11 @@ export class TaskHistoryService {
       const capped = records.slice(0, this.maxPersistedRecords);
       this.enqueueWorkspaceStateWrite(capped);
     }
+
+    // Notify any already-rendered views (tree/table) so they pick up the persisted
+    // records. This matters because extension activation no longer waits on this
+    // method to complete before creating those views.
+    this._onDidChange.fire();
   }
 
   private addRecordToGroup(record: ITaskExecutionRecord): void {

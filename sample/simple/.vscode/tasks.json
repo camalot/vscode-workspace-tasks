@@ -14,6 +14,11 @@
         "clear": false,
         "close": false
       }
+    },
+    {
+      "label": "Not cancelable Task",
+      "command": "docker run --rm -it alpine:latest /bin/sh -c 'echo Sleeping...;sleep infinity'",
+      "type": "shell"
     }
   ]
 }

@@ -25,3 +25,7 @@
 {"id":"1784267563638340","taskName":"Cancelable","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784267563638,"status":"Terminated","endTime":1784267570480,"exitCode":1,"duration":6842}
 {"id":"1784267573098874","taskName":"Cancelable","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784267573098,"status":"Terminated","endTime":1784267577222,"exitCode":1,"duration":4124}
 {"id":"1784267579331971","taskName":"Cancelable","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784267579331,"status":"Terminated","endTime":1784267583282,"exitCode":1,"duration":3951}
+{"id":"1784302361488128","taskName":"Cancelable","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784302361488,"status":"Terminated","endTime":1784302371226,"exitCode":130,"duration":9738}
+{"id":"1784302650201055","taskName":"Not cancelable Task","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784302650201,"status":"Terminated","endTime":1784302692912,"exitCode":137,"duration":42711}
+{"id":"1784304642563673","taskName":"Not cancelable Task","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784304642563,"status":"Success","endTime":1784304665362,"exitCode":0,"duration":22799}
+{"id":"1784306919754707","taskName":"Not cancelable Task","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784306919754,"status":"Success","endTime":1784306948185,"exitCode":0,"duration":28431}

@@ -20,7 +20,6 @@ import { TaskHistoryTableViewProvider } from './taskHistoryTableViewProvider';
 import { TaskMetricsService } from './services/taskMetricsService';
 import { TaskDurationEstimateService } from './services/taskDurationEstimateService';
 import { loadCommands } from './commands/index';
-import { findTerminalForTask } from './commands/stopTask';
 import { registerLmTools } from './tools/index';
 import { registerAllProviders } from './providers/index';
 import { configuration } from './libs/configuration';
@@ -37,8 +36,16 @@ export async function activate(context: vscode.ExtensionContext) {
   ExtensionConfigurationService.getInstance().initialize(context);
   TaskStateManager.getInstance().initialize(context);
 
-  // Initialize TaskHistoryService (loads persisted history) before creating tree provider
-  await TaskHistoryService.getInstance().initialize(context);
+  // Initialize TaskHistoryService without awaiting it: it registers task-tracking
+  // listeners synchronously (so no running task is missed), but reading and parsing
+  // the persisted `.vscode/task-history.ndjson` archive can be slow for large
+  // histories. That read runs in the background so extension activation is not
+  // delayed; the History tree/table views listen for `onDidChange` and refresh
+  // reactively once the archive has finished loading.
+  const taskHistoryService = TaskHistoryService.getInstance();
+  void taskHistoryService.initialize(context).catch((e) => {
+    logger.error(`Failed to initialize TaskHistoryService: ${e}`);
+  });
 
   const taskHistoryTreeDataProvider = new TaskHistoryTreeDataProvider(context);
   const historyTreeView = vscode.window.createTreeView('workspaceTasksHistoryView', {
@@ -54,7 +61,8 @@ export async function activate(context: vscode.ExtensionContext) {
   // Initialize the view based on persisted preference
   await taskHistoryTreeDataProvider.initializeView();
 
-  // Initialize TaskMetricsService now that TaskHistoryService is ready
+  // Initialize TaskMetricsService: it only subscribes to new completed-task records
+  // (onDidRecordHistory), so it does not need to wait for the persisted history archive.
   TaskMetricsService.getInstance().initialize(context);
   TaskDurationEstimateService.getInstance().initialize(context);
 
@@ -273,6 +281,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
           stateManager.clearTerminated(id); // Clear any terminated state if task is restarting
           stateManager.clearStopTimer(id);  // Cancel any pending force-kill timer
+          stateManager.clearTerminal(id);
+          stateManager.clearProcessId(id);
           stateManager.setExecution(id, e.execution);
           stateManager.setStatus(id, 'running');
           taskTreeDataProvider.refreshLocal();
@@ -281,34 +291,22 @@ export async function activate(context: vscode.ExtensionContext) {
             clearTimeout(resetTimers.get(id)!);
             resetTimers.delete(id);
           }
-
-          // Capture the terminal for this task so the stop command can send
-          // SIGINT instead of destroying the terminal.  Always subscribe to
-          // onDidOpenTerminal so a freshly created terminal is captured rather
-          // than a stale terminal from a previous run with the same name.
-          stateManager.clearTerminal(id);
-          const openSub = vscode.window.onDidOpenTerminal((terminal) => {
-            // Only accept the terminal if its name matches this task's
-            // naming conventions; ignore unrelated terminals.
-            if (findTerminalForTask(e.execution.task, [terminal])) {
-              openSub.dispose();
-              clearTimeout(terminalCaptureTimeout);
-              stateManager.setTerminal(id, terminal);
-            }
-          });
-          // Fallback: search all open terminals by name after 1.5 s in case
-          // the task reused an existing terminal without opening a new one
-          // (e.g. presentation.panel = "shared").
-          const terminalCaptureTimeout = setTimeout(() => {
-            openSub.dispose();
-            if (!stateManager.getTerminal(id)) {
-              const terminal = findTerminalForTask(e.execution.task);
-              if (terminal) {
-                stateManager.setTerminal(id, terminal);
-              }
-            }
-          }, 1500);
         }
+      }
+    }),
+  );
+
+  // Records the OS process id for each running task as soon as it is known.
+  // This is the authoritative signal used to resolve the terminal that hosts a
+  // task (by matching against `vscode.Terminal.processId`) and to send
+  // SIGTERM/SIGKILL directly to the correct process — far more reliable than
+  // matching terminals by name, which can collide between unrelated tasks.
+  context.subscriptions.push(
+    vscode.tasks.onDidStartTaskProcess((e) => {
+      const stateManager = TaskStateManager.getInstance();
+      const id = stateManager.getIdByExecution(e.execution);
+      if (id) {
+        stateManager.setProcessId(id, e.processId);
       }
     }),
   );
@@ -320,6 +318,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (id) {
         stateManager.clearStopTimer(id);
         stateManager.clearTerminal(id);
+        stateManager.clearProcessId(id);
         const status = e.exitCode === 0 ? 'success' : 'failure';
         stateManager.setStatus(id, status);
         stateManager.clearExecution(id);
