@@ -152,7 +152,7 @@
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "fast-xml-parser": "^5.10.0",
+    "fast-xml-parser": "^5.10.1",
     "ignore": "^7.0.6",
     "micromatch": "^4.0.8",
     "smol-toml": "^1.7.0",
