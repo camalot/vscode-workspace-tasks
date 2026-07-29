@@ -1,0 +1,53 @@
+---
+name: "VIX SBOM Generation"
+description: "Generates SBOM for a given VSIX asset if it exists."
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+    default: ${{ github.token }}
+  target-asset:
+    description: 'Target asset for SBOM generation'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check Asset Existence
+      id: check_asset
+      shell: bash
+      env:
+        TARGET_ASSET: ${{ inputs.target-asset }}
+      run: |
+        if [ ! -f "$TARGET_ASSET" ]; then
+          echo "Asset not found: $TARGET_ASSET"
+          echo "SBOM generation skipped."
+          echo "asset_exists=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        else
+          echo "Asset found: $TARGET_ASSET"
+          echo "asset_exists=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Extract VISX Package
+      if: steps.check_asset.outputs.asset_exists == 'true'
+      shell: bash
+      id: extract_visx
+      env:
+        TARGET_ASSET: ${{ inputs.target-asset }}
+      run: |
+        mkdir -p sbom_temp
+        unzip -q "$TARGET_ASSET" -d sbom_temp
+
+        # get the name of the visx file without extension
+        VISX_NAME=$(basename "$TARGET_ASSET" .vsix)
+        echo "visx_name=$VISX_NAME" >> "$GITHUB_OUTPUT"
+
+    - name: Generate SBOM
+      if: steps.check_asset.outputs.asset_exists == 'true'
+      uses: anchore/sbom-action@v0
+      with:
+        path: ./sbom_temp
+        format: spdx-json
+        artifact-name: "${{ steps.extract_visx.outputs.visx_name }}.sbom.json"
+        github-token: ${{ inputs.github-token }}

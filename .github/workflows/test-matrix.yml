@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         vscode:
-          - '1.105.1'
+          - '1.125.0'
           - 'insiders'
           - 'stable'
         os:
@@ -37,8 +37,8 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           run_install: false
-          version: 11.10.0
-      - uses: actions/setup-node@v6
+
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: pnpm

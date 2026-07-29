@@ -5,7 +5,7 @@
   "readme": "README.md",
   "version": "1.12.4",
   "engines": {
-    "vscode": "^1.105.1"
+    "vscode": "^1.125.0"
   },
   "author": {
     "name": "darthminos",
@@ -32,7 +32,7 @@
     "changelog": "https://github.com/camalot/vscode-workspace-tasks/blob/develop/CHANGELOG.md"
   },
   "license": "Apache-2.0",
-  "packageManager": "pnpm@11.10.0",
+  "packageManager": "pnpm@11.17.0",
   "publisher": "darthminos",
   "icon": "res/icon.png",
   "galleryBanner": {
@@ -128,10 +128,10 @@
     "@playwright/test": "^1.61.1",
     "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
-    "@types/node": "~26.0.1",
-    "@types/vscode": "^1.105.1",
-    "@typescript-eslint/eslint-plugin": "^8.63.0",
-    "@typescript-eslint/parser": "^8.63.0",
+    "@types/node": "~26.1.1",
+    "@types/vscode": "^1.125.0",
+    "@typescript-eslint/eslint-plugin": "^8.64.0",
+    "@typescript-eslint/parser": "^8.64.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
     "@vscode/vsce": "^3.9.2",
@@ -146,13 +146,13 @@
     "prettier": "^3.9.5",
     "ts-loader": "^9.6.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.63.0",
+    "typescript-eslint": "^8.64.0",
     "webpack": "^5.108.4",
     "webpack-cli": "^7.2.1"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "fast-xml-parser": "^5.10.0",
+    "fast-xml-parser": "^5.10.1",
     "ignore": "^7.0.6",
     "micromatch": "^4.0.8",
     "smol-toml": "^1.7.0",

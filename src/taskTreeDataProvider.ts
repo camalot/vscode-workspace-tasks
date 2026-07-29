@@ -369,7 +369,15 @@ export class TaskTreeDataProvider implements vscode.TreeDataProvider<TaskItem> {
           if (this.views.length === 0) {
             return;
           }
+          // Only reveal in views that are currently visible. Calling reveal() on a
+          // hidden view forces Visual Studio Code to make that view visible, which
+          // steals focus away from the view the user is actually interacting with
+          // (e.g. toggling collapse/expand in the Explorer view briefly switches
+          // focus to the dedicated Workspace Tasks view, and vice versa).
           for (const view of this.views) {
+            if (!view.visible) {
+              continue;
+            }
             for (const root of this.currentRoots) {
               try {
                 if (level === 1) {

@@ -16,9 +16,8 @@ runs:
     - uses: pnpm/action-setup@v6
       with:
         run_install: false
-        version: 11.10.0
 
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@v7
       with:
         node-version-file: ".nvmrc"
         cache: pnpm
@@ -50,7 +49,7 @@ runs:
         junit-file: coverage/junit.xml
 
     - name: Upload coverage reports to Codecov
-      if: ${{ !env.ACT }} && ${{ inputs.codecov-token != '' }}
+      if: ${{ !env.ACT && inputs.codecov-token != '' }}
       uses: codecov/codecov-action@v6
       with:
         fail_ci_if_error: true # optional (default = false)
@@ -70,6 +69,6 @@ runs:
         TREE=$(pnpm exec vsce ls --tree --no-dependencies)
         echo "## VSIX Tree" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "``` tree" >> "$GITHUB_STEP_SUMMARY"
+        echo '``` tree' >> "$GITHUB_STEP_SUMMARY"
         echo "$TREE" >> "$GITHUB_STEP_SUMMARY"
-        echo "```" >> "$GITHUB_STEP_SUMMARY"
+        echo '```' >> "$GITHUB_STEP_SUMMARY"

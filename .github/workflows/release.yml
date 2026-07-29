@@ -300,10 +300,9 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           run_install: false
-          version: 11.10.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '25.x'
           cache: 'pnpm'
@@ -370,6 +369,14 @@ jobs:
           echo "::endgroup::"
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
+
+      # - name: SBOM Generation
+      #   uses: ./.github/actions/sbom
+      #   with:
+      #     github-token: ${{ github.token }}
+      #     target-asset: "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
+      #   env:
+      #     VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
       - name: Create Release
         id: create_release
