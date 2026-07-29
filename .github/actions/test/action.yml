@@ -69,6 +69,6 @@ runs:
         TREE=$(pnpm exec vsce ls --tree --no-dependencies)
         echo "## VSIX Tree" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "``` tree" >> "$GITHUB_STEP_SUMMARY"
+        echo '``` tree' >> "$GITHUB_STEP_SUMMARY"
         echo "$TREE" >> "$GITHUB_STEP_SUMMARY"
-        echo "```" >> "$GITHUB_STEP_SUMMARY"
+        echo '```' >> "$GITHUB_STEP_SUMMARY"
