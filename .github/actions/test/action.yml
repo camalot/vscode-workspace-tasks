@@ -16,7 +16,7 @@ runs:
     - uses: pnpm/action-setup@v6
       with:
         run_install: false
-        version: 11.10.0
+        version: latest
 
     - uses: actions/setup-node@v7
       with:
