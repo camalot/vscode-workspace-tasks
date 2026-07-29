@@ -1,4 +1,5 @@
 import { defineConfig } from '@vscode/test-cli';
+import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { tmpdir } from 'os';
@@ -11,8 +12,10 @@ export default defineConfig({
   workspaceFolder: '.',
   // instead of hardcoding this, it should be read from package.json or env
   version: process.env.VSCODE_VERSION || (() => {
-    const pkg = JSON.parse(Deno.readTextFileSync(join(__dirname, 'package.json')));
-    return pkg.engines.vscode;
+    const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf8'));
+    // engines.vscode is a semver range (e.g. "^1.125.0"); strip the range prefix
+    // since @vscode/test-electron requires an exact version, 'stable', or 'insiders'.
+    return pkg.engines.vscode.replace(/^[\^~>=<]+/, '');
   })() || (() => {
     console.error('Could not determine VS Code version. Please set the VSCODE_VERSION environment variable.');
     return __vscode_version;

@@ -2552,6 +2552,54 @@ suite('TaskTreeDataProvider Test Suite', () => {
         }, 300);
       });
     });
+
+    test('only reveals in visible views, skipping hidden ones', (done) => {
+      const uri = vscode.Uri.file('/root/package.json');
+      const task = new TaskItem('build', vscode.TreeItemCollapsibleState.None, 'npm', uri);
+      task.taskFileUri = uri;
+      task.id = 'reveal-visible-only';
+      task.originalLabel = 'build';
+      stubServicesForOrganize([task]);
+
+      let hiddenRevealCalled = false;
+      let visibleRevealCalled = false;
+
+      const hiddenView = {
+        onDidExpandElement: (_cb: any) => ({ dispose: () => {} }),
+        onDidCollapseElement: (_cb: any) => ({ dispose: () => {} }),
+        reveal: async () => {
+          hiddenRevealCalled = true;
+        },
+        dispose: () => {},
+        visible: false,
+        selection: [],
+      } as unknown as vscode.TreeView<TaskItem>;
+
+      const visibleView = {
+        onDidExpandElement: (_cb: any) => ({ dispose: () => {} }),
+        onDidCollapseElement: (_cb: any) => ({ dispose: () => {} }),
+        reveal: async () => {
+          visibleRevealCalled = true;
+        },
+        dispose: () => {},
+        visible: true,
+        selection: [],
+      } as unknown as vscode.TreeView<TaskItem>;
+
+      const provider = new TestableTaskTreeDataProvider(ctx);
+      provider.bindView(hiddenView);
+      provider.bindView(visibleView);
+
+      (provider as any).pendingRevealLevel = 1;
+
+      provider.getChildren().then(() => {
+        setTimeout(() => {
+          assert.strictEqual(hiddenRevealCalled, false, 'hidden view should not be revealed');
+          assert.ok(visibleRevealCalled, 'visible view should be revealed');
+          done();
+        }, 300);
+      });
+    });
   });
 
   // ── Loading placeholders (Phase 3) ─────────────────────────────────────────
