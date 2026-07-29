@@ -49,7 +49,7 @@ runs:
         junit-file: coverage/junit.xml
 
     - name: Upload coverage reports to Codecov
-      if: ${{ !env.ACT }} && ${{ inputs.codecov-token != '' }}
+      if: ${{ !env.ACT && inputs.codecov-token != '' }}
       uses: codecov/codecov-action@v6
       with:
         fail_ci_if_error: true # optional (default = false)
