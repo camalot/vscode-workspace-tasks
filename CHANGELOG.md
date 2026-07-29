@@ -1,4 +1,94 @@
 
+## [v1.13.0](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.13.0) - 2026-07-29
+
+### 🚀 FEATURES
+
+#### _GENERAL_
+
+- Update to vscode engine 1.125.0 [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+
+### 🐛 BUG FIXES
+
+#### _GENERAL_
+
+- Resolve zsh plugin loading issue in devcontainer [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Consistent stopping of a task [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- First stop SIGINT. always use force after first click [#267](https://github.com/camalot/vscode-workspace-tasks/issues/267)  [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Terminal now found by task pid instead of name [#266](https://github.com/camalot/vscode-workspace-tasks/issues/266)  [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Update reference versions [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Clicking the "Collapse All" button for the second time will navigate to the Explorer view. [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Resolve lint and test errors [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Resolve multiple pnpm versions defined [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Resolve issue with output of packaged vsix tree [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- Action if logic [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- V1.13.0 ()[#276](https://github.com/camalot/vscode-workspace-tasks/issues/276)  [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+- [#274](https://github.com/camalot/vscode-workspace-tasks/issues/274)  [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+
+### 📚 DOCUMENTATION
+
+#### _GENERAL_
+
+- Added some possible future features [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+
+### ⚙️ MISCELLANEOUS TASKS
+
+
+#### _REPO_
+- Updates to devcontainer [#276](https://github.com/camalot/vscode-workspace-tasks/pull/276) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot) in
+[#276](https://github.com/camalot/vscode-workspace-tasks/pull/276)
+
+## 📈 Commit Statistics
+
+
+- `15` commits contributed to the release.
+- `0` days have passed between the first and last commit.
+- `13` commits parsed as conventional.
+- `4` linked issues detected in commits.
+  - [#266](https://github.com/camalot/vscode-workspace-tasks/issues/266) (referenced 1 time)
+  - [#267](https://github.com/camalot/vscode-workspace-tasks/issues/267) (referenced 1 time)
+  - [#274](https://github.com/camalot/vscode-workspace-tasks/issues/274) (referenced 1 time)
+  - [#276](https://github.com/camalot/vscode-workspace-tasks/issues/276) (referenced 1 time)
+- `15` days  have passed between releases.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[15,1,0,13,4,15]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.12.4...v1.13.0
+
 ## [v1.12.4](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.12.4) - 2026-07-14
 
 ### 🐛 BUG FIXES
