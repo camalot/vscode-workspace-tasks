@@ -45,5 +45,5 @@ kiro --install-extension darthminos.workspace-tasks
 {% endhighlight %}
 
 {% highlight shell %}
-windsurf --install-extension darthminos.workspace-tasks
+devin --install-extension darthminos.workspace-tasks
 {% endhighlight %}
