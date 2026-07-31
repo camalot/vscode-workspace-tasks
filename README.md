@@ -124,8 +124,7 @@ devin --install-extension darthminos.workspace-tasks
 
 ### ✔️ Requirements
 
-- **Visual Studio Code** `1.105.1` or later
-  - **NOTE** This will change to `v1.125.0` in the `v1.13.x` release
+- **Visual Studio Code** `1.125.0` or later
 - **External tools** must be installed for task execution (see [External Tools](https://camalot.github.io/vscode-workspace-tasks/getting-started/requirements.html#external-tool-requirements))
 
 ## 🛠️ Supported Task Types

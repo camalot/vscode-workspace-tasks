@@ -33,7 +33,7 @@ This page compares **Workspace Tasks** (`darthminos.workspace-tasks`) with **Tas
 | Marketplace ID | `darthminos.workspace-tasks` | `spmeesseman.vscode-taskexplorer` |
 | License | Apache 2.0 | Custom (paid license planned) |
 | Open VSX | ✅ Available | ❌ Not listed |
-| VS Code minimum | 1.105.1 | 1.50+ (v2) / 1.102+ (v3) |
+| VS Code minimum | 1.125.0 | 1.50+ (v2) / 1.102+ (v3) |
 | Pricing | Free & open source | Free (Preview); paid license planned for full features |
 
 ---

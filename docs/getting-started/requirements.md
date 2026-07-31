@@ -21,9 +21,9 @@ parent: 📦 Getting Started
 ## Visual Studio Code Version
 
 > [!IMPORTANT]
-> The minimum required version of Visual Studio Code will change to `v1.125.0` in the `v1.13.x` release.
+> The minimum required version of Visual Studio Code is `v1.125.0`.
 
-- **Minimum:** Visual Studio Code `1.105.1` or later
+- **Minimum:** Visual Studio Code `1.125.0` or later
   - Editor must use Visual Studio Code Engine with this minimum version
   - Editor must support Open VSX, Visual Studio Marketplace, or manual install of VSIX files
 
