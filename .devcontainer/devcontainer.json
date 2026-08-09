@@ -111,6 +111,8 @@
     // if this doesn't exist locally, it creates it as a folder...
     // to combat this, a default is loaded into the container
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig-oss,target=/home/vscode/.gitconfig-oss,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig-work,target=/home/vscode/.gitconfig-work,type=bind,consistency=cached",
     "source=${localWorkspaceFolder}/.devcontainer/mount,target=/home/vscode/.devcontainer,type=bind,consistency=cached",
     // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
     // "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
