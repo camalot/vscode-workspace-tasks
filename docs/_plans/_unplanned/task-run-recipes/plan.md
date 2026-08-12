@@ -4,16 +4,19 @@
 
 Let users save a named set of "Run with Args" inputs (arguments and, optionally, env var
 overrides) per task — e.g. save `--coverage --watch` for a `test` task as **"Coverage Watch"**.
-Recipes are stored per-task in `workspaceState` (same tier as Favorites/Recent Tasks), surfaced as
-extra entries at the top of the existing "Run with Args" QuickPick, and manageable both via a
-global `workspaceTasks.recipes.manage` command and via two new **right-click context menu items**
-per task — **Run Recipe** and **Delete Recipe** — for fast, task-scoped management without opening
-the full cross-task list. Goal: stop users retyping the same argument combinations every time
-they run a parameterized task.
+Recipes are stored per-task in `workspaceState` (same tier as Favorites/Recent Tasks). When a task
+has saved recipes, a new capped/sorted picker step (top 5 by recency, with overflow and inline
+delete — see "UI Scaling") appears ahead of today's existing "Run with Args" flow; tasks with no
+recipes see no change at all. Recipes are manageable both via a global
+`workspaceTasks.recipes.manage` command and via two new **right-click context menu items** per
+task — **Run Recipe** and **Delete Recipe** — for fast, task-scoped management without opening the
+full cross-task list. Goal: stop users retyping the same argument combinations every time they run
+a parameterized task, without turning the picker into a wall of stale entries as recipes
+accumulate.
 
 The save flow itself (when/how a recipe gets created) is treated as the least-settled part of
-this plan — see "Save-Flow UX Risk" in the Self-Critique below. It is being folded into the last
-step of "Run with Args" as an experiment to validate before considering it final.
+this plan — see "Save-Flow UX Risk" in the Self-Critique below. It uses a post-run notification
+(not an inline prompt) as an experiment to validate before considering it final.
 
 ---
 
@@ -57,22 +60,41 @@ step of "Run with Args" as an experiment to validate before considering it final
   existing 14-layer precedence in `TaskEnvService` at a clearly documented layer (recipe overrides
   sit just below manual "Run with Args" input, above workspace/task-level env). This must be
   decided explicitly, not left implicit.
-- **Save-Flow UX Risk (open, explicitly flagged, not yet resolved by design alone).** Folding the
-  "save as recipe?" prompt into the last step of "Run with Args" directly trades off against user
-  expectations: a user who enters args expects the very next thing to happen to be "the task
-  runs," not "answer a question about saving." Adding *any* step after the last arg is entered —
-  even an optional, skippable one — changes that flow's shape. This is a genuine, not fully
-  resolvable-on-paper risk: it needs to be tried and felt, not just reasoned about. The mitigations
-  below (execution never blocks on the answer, auto-skip on exact duplicate, an easy kill-switch
-  setting) reduce the cost of trying it, but do not eliminate the possibility that any prompt at
-  all — however optional — is the wrong call. Treat Phase 1's save-flow as provisional and expect
-  it may be replaced (e.g. by a pure post-hoc "save last run's args" command with no inline prompt
-  at all) after real usage.
+- **Save-Flow UX Risk — resolved by switching from an inline prompt to a post-run notification.**
+  An earlier draft folded a "save as recipe?" *input box* into the last step of "Run with Args",
+  after the last argument/`${input}` variable but before launch. Even made "skippable" via
+  Escape, an input box still steals focus and costs a deliberate dismissal on every single custom
+  run — that's an ongoing tax for users who never want to save anything. **Resolution:** the task
+  is dispatched immediately with no gating step at all, and only *after* dispatch does a
+  non-modal `vscode.window.showInformationMessage` toast appear with a single **"Save as
+  Recipe"** action. Ignoring it costs nothing (no keystroke, no stolen focus, no blocking of the
+  already-running task); only clicking the action opens a name prompt. This is still new surface
+  area and should be treated as provisional — the exact-duplicate skip and kill-switch setting
+  below exist specifically so it can be dialed back or removed cheaply if it proves noisy in
+  practice.
+- **Reality check: "Run with Args" is not currently a QuickPick.** [runTaskWithArgs.ts](../../../../src/commands/runTaskWithArgs.ts)
+  drives either guided per-parameter prompts or a loop of free-text `showInputBox` calls
+  ([collectAdditionalArgs](../../../../src/libs/guidedArgInput.ts)) — there is no existing item list to "prepend recipes
+  to". Recipes must introduce one new, *conditional* `showQuickPick` step ahead of the existing
+  flow — conditional so that tasks with zero saved recipes see **no new step at all** and the
+  current input-box behavior is completely unchanged for them.
+- **Reality check: the secret matcher works on key names, not arbitrary strings.**
+  [`TaskSecretWarningService.matchesAnyPattern(key, patterns)`](../../../../src/services/taskSecretWarningService.ts) glob-matches a
+  single *key name* (e.g. an env var name) against `workspaceTasks.envVars.secretPatterns` — it
+  has no facility for scanning a free-form string like `--token=abc123` for secret-looking
+  values. Reusing it for recipe args means parsing each `--flag=value` / `-flag value` token to
+  extract the flag name first, then running just that name through the existing matcher. For
+  `envOverrides` this requires no parsing — the keys are already discrete.
+- **UI noise at scale.** A per-task recipe list that only ever grows will eventually turn the
+  "helpful shortcut" into a wall of stale entries the user has to read past every time. Addressed
+  directly under "UI Scaling" below: hard-capped visible list, recency-based ordering so unused
+  recipes sink out of view on their own, inline delete, and a soft nudge (never silent deletion)
+  toward pruning once a task's recipe count gets large.
 
-**Verdict:** Go, with the storage-location and secret-warning changes folded in from the start.
-Low effort relative to value — the main remaining design question (env layering) is a one-time
-decision, not open-ended risk. The save-flow trigger point is explicitly called out as
-**provisional** and should be validated with real use before being treated as settled.
+**Verdict:** Go, with the storage-location, secret-warning, and save-flow corrections folded in
+from the start. Low effort relative to value — the main remaining design question (env layering)
+is a one-time decision, not open-ended risk. The notification-based save trigger and the list-cap
+behavior are the two provisional pieces most likely to need tuning after real usage.
 
 ---
 
@@ -94,35 +116,68 @@ decision, not open-ended risk. The save-flow trigger point is explicitly called 
   }
   ```
 
-- **QuickPick integration**: When the user invokes "Run with Args" for a task that has saved
-  recipes, the picker's top section lists recipes (sorted by `lastUsedAt` desc, then `createdAt`
-  desc), each showing `name` as label and `args` as detail. A separator follows, then the normal
-  free-text input entry ("Enter custom arguments…") as today. Selecting a recipe runs immediately
-  with its stored args/env — no extra confirmation step.
-- **Saving a recipe — folded into "Run with Args" as its last step**: Rather than a separate
-  post-run notification, the save prompt is the final step of the *same* multi-step input the user
-  is already in, immediately after the last argument/`${input}` variable is entered and immediately
-  before the task launches:
-  1. **Selecting an existing recipe** from the top of the picker never triggers the save prompt —
-     that path only bumps the selected recipe's `lastUsedAt` and runs.
-  2. **Typing custom arguments** that, once normalized (trimmed, whitespace-collapsed), exactly
-     match an existing recipe's `args` + `envOverrides` for this task also skips the prompt
-     entirely — bump that recipe's `lastUsedAt` instead of asking to save a duplicate.
-  3. Otherwise, show one optional input box: **"Save these arguments as a recipe? Enter a name,
-     or press Enter/Esc to skip."** Task execution is **not gated** on this box — the run is
-     already dispatched (or dispatches immediately on submit/skip, whichever is simpler to
-     implement without perceptible delay) so a user who only wanted to run the task never
-     experiences added latency, only an extra (skippable) keystroke. A non-empty name persists a
-     new recipe (subject to the secret check below); empty/Escape is a silent no-op.
-  4. **Kill switch**: `workspaceTasks.recipes.promptOnRunWithArgs` (boolean, default `true`).
+- **Entry-point integration (conditional, not a rewrite of existing input)**: `runTaskWithArgs`
+  and `runActiveEditorTaskWithArgs` check `TaskRunRecipeService.getRecipes(taskId)` *before*
+  starting today's guided/free-text flow. If the task has **zero** saved recipes, behavior is
+  byte-for-byte unchanged — no new step, no picker, nothing to read past. If it has one or more,
+  a single `showQuickPick` step is inserted first: items are the capped/sorted recipe list (see
+  "UI Scaling" below) plus a final, always-present item **"Enter custom arguments…"** which hands
+  off directly into the existing `tryGuidedInputWithStatus` / `collectAdditionalArgs` flow,
+  unchanged. Selecting a recipe instead runs immediately with its stored `args`/`envOverrides` —
+  no extra confirmation step, and bumps `lastUsedAt`.
+- **Saving a recipe — post-run notification, not an inline prompt**: the task is dispatched the
+  moment args are collected, exactly as today, with zero added latency or gating step. Only
+  *after* dispatch:
+  1. **Selecting an existing recipe** never triggers a save notification — that path only bumps
+     `lastUsedAt`.
+  2. **Custom arguments** that, once normalized (trimmed, whitespace-collapsed), exactly match an
+     existing recipe's `args` + `envOverrides` for this task also skip the notification — bump
+     that recipe's `lastUsedAt` instead of offering to save a duplicate.
+  3. Otherwise, show one non-modal `vscode.window.showInformationMessage` with a single action:
+     **"Save these arguments as a recipe?"** / action button `Save as Recipe`. It does not block,
+     does not steal focus from the task's terminal, and disappears on its own if ignored — the
+     cost of *not* wanting a recipe is exactly zero. Clicking the action opens a `showInputBox`
+     for the recipe name (subject to the secret check below); dismissing the notification or
+     never clicking it is a silent no-op.
+  4. **Kill switch**: `workspaceTasks.recipes.notifyOnRunWithArgs` (boolean, default `true`).
      Setting it to `false` disables step 3 entirely — recipes can then only be created via the
-     explicit `workspaceTasks.recipes.manage` "Save current args as recipe" action (Phase 2). This
-     setting exists specifically so the in-flow prompt can be evaluated and abandoned cheaply if it
-     proves disruptive in practice (see "Save-Flow UX Risk" above) — Phase 1 should not be
-     considered a final answer on this flow.
-- **Secret check on save**: Reuse `TaskSecretWarningService`'s value-pattern heuristics against
-  the args string and any env override values; if a match is found, the save prompt becomes a
-  warning-styled confirmation instead of a plain save.
+     explicit `workspaceTasks.recipes.manage` "Save current args as recipe" action (Phase 2).
+- **Secret check on save**: Parse the args string into `--flag=value` / `-flag value` tokens and
+  extract just the flag/key portion of each (e.g. `--token=abc123` → `token`); run each extracted
+  key, plus every `envOverrides` key, through the existing
+  `TaskSecretWarningService.matchesAnyPattern(key, secretPatterns)` glob matcher (same
+  `workspaceTasks.envVars.secretPatterns` setting already used for env files). This service
+  matches key *names*, not values, so no new heuristic engine is needed — only a small tokenizer.
+  If any key matches, the save action becomes a `showWarningMessage` confirmation instead of
+  proceeding straight to the name `showInputBox`.
+
+### UI Scaling — keeping the recipe list from becoming noise
+
+The single biggest failure mode for this feature is a task accumulating enough recipes that the
+picker becomes something the user has to read past rather than a shortcut. Mitigations, all in
+Phase 1 (not deferred, since the list is the *first* thing a user sees):
+
+- **Hard cap on visible items: top 5.** Sorted by `lastUsedAt` desc (falling back to `createdAt`
+  desc for never-reused recipes). This is self-maintaining — a recipe a user stops using
+  naturally sinks out of the visible top 5 without any manual pinning/archiving feature needed for
+  v1.
+- **Overflow, not truncation.** When more than 5 recipes exist for a task, item 5 is replaced by
+  a separator followed by **"$(list-unordered) Show all {n} recipes for '{taskLabel}'…"**.
+  Selecting it opens a second `showQuickPick` with the full list and VS Code's built-in fuzzy
+  filter box — appropriate once a user has opted into browsing a longer list, but never the
+  default view.
+- **Inline delete, right where the noise is.** Each recipe `QuickPickItem` gets a trash-icon
+  `button` (`onDidTriggerItemButton`) so a stale entry can be pruned the moment it's noticed,
+  without leaving the picker or invoking a separate command.
+- **Soft cap with a nudge, never silent deletion.** When saving a *new* recipe would push a
+  task's count past 10, the save notification/confirmation gets one extra line — *"You now have
+  {n} recipes for this task — [Manage Recipes]"* — linking to `workspaceTasks.recipes.manage`
+  scoped to that task. The save still succeeds; nothing is auto-deleted or blocked. This treats
+  "too many recipes" as a user problem to nudge toward fixing, not a system problem to solve by
+  discarding their data.
+- **Deferred, not built now:** usage-count-weighted ordering and manual pinning are called out as
+  a possible Phase 3 if recency-only ordering proves insufficient in practice — not worth the
+  complexity until the recency-based cap is validated with real usage.
 - **Right-click management on task tree items** (in addition to the global manage command):
   - **"Run Recipe"** (`workspaceTasks.recipes.run`) — context-menu-only (not an inline icon, to
     avoid crowding the already-dense inline action row). Opens a QuickPick scoped to *this task's*
@@ -146,7 +201,7 @@ decision, not open-ended risk. The save-flow trigger point is explicitly called 
     always shown and no-ops gracefully rather than being conditionally hidden).
 - **Management command**: `workspaceTasks.recipes.manage` — QuickPick listing all recipes across
   all tasks (grouped by task label), with rename/delete actions per item via QuickPick buttons,
-  plus (Phase 2) a "Save current args as recipe" entry point for when the in-flow prompt is
+  plus (Phase 2) a "Save current args as recipe" entry point for when the post-run notification is
   disabled via the kill switch above.
 - **Drift handling**: On tree refresh, any recipe whose `taskId` is not present in
   `TaskCacheService` is skipped when building the QuickPick (not deleted from storage — the task
@@ -162,18 +217,23 @@ decision, not open-ended risk. The save-flow trigger point is explicitly called 
 
 ## Phases
 
-### Phase 1: Core Storage, Execution & In-Flow Save (provisional)
+### Phase 1: Core Storage, Execution & Post-Run Save (provisional)
 
 1. `src/services/taskRunRecipeService.ts` — new singleton: `initialize(context)`,
-   `getRecipes(taskId)`, `findExactMatch(taskId, args, envOverrides)`, `saveRecipe(taskId, recipe)`,
+   `getRecipes(taskId)` (returns full list; capping/overflow is a picker-building concern, not a
+   service concern), `findExactMatch(taskId, args, envOverrides)`, `saveRecipe(taskId, recipe)`,
    `deleteRecipe(taskId, recipeId)`, `clearRecipes(taskId)`, `renameRecipe(taskId, recipeId, newName)`,
    `touchLastUsed(taskId, recipeId)`, `onDidChangeRecipes` event.
-2. Wire into existing "Run with Args" QuickPick builder (`runTaskWithArgs.ts` /
-   `runActiveEditorTaskWithArgs.ts`) to prepend recipe items and, on the custom-arguments path,
-   run the last-step save prompt described above (gated by `promptOnRunWithArgs` and the
-   exact-match skip check).
-3. `workspaceTasks.recipes.promptOnRunWithArgs` setting in `package.json` (default `true`).
-4. Secret-heuristic gating on save, reusing `TaskSecretWarningService`.
+2. Wire into `runTaskWithArgs.ts` / `runActiveEditorTaskWithArgs.ts`: insert a conditional
+   `showQuickPick` step (recipes present only) ahead of the existing guided/free-text flow, capped
+   to top-5-by-`lastUsedAt` plus a "Show all N…" overflow item and trash-icon item buttons as
+   described under "UI Scaling". On the custom-arguments path (including the fallback when no
+   recipes exist yet), after the task is dispatched, show the post-run `showInformationMessage`
+   save action (gated by `notifyOnRunWithArgs` and the exact-match skip check) plus the soft-cap
+   nudge line once a task's recipe count exceeds 10.
+3. `workspaceTasks.recipes.notifyOnRunWithArgs` setting in `package.json` (default `true`).
+4. Secret-check gating on save: tokenize `args` into flag names and check them, plus every
+   `envOverrides` key, via `TaskSecretWarningService.matchesAnyPattern`.
 
 ### Phase 2: Right-Click Management, Manage Command & Polish
 
@@ -184,11 +244,13 @@ decision, not open-ended risk. The save-flow trigger point is explicitly called 
 3. `package.json` — register both commands and their `6_recipes@1`/`6_recipes@2` context-menu
    contributions (context-menu only, no inline icons).
 4. `src/commands/manageRunRecipesCommand.ts` — `workspaceTasks.recipes.manage` (cross-task list)
-   plus a "Save current args as recipe" entry for when the in-flow prompt is disabled.
+   plus a "Save current args as recipe" entry for when the post-run notification is disabled.
 5. "Export Recipes to file" action (explicit, manual — writes a JSON file via
    `showSaveDialog`, never silent).
-6. Docs: new `docs/features/task-run-recipes.md` page documenting both the in-flow save step
-   (and its kill switch) and the right-click management commands; README feature bullet.
-7. Tests: recipe QuickPick ordering, drift-skip behavior, secret-heuristic gating on save,
-   env-layer precedence in `TaskEnvService`, exact-match skip logic, empty-state messaging for
-   both context-menu commands, and confirmed "Clear All" behavior.
+6. Docs: new `docs/features/task-run-recipes.md` page documenting the post-run save notification
+   (and its kill switch), the recipe-picker overflow/cap behavior, and the right-click management
+   commands; README feature bullet.
+7. Tests: recipe picker cap/overflow/sort ordering, inline delete via item button, drift-skip
+   behavior, secret-token-parsing gating on save, env-layer precedence in `TaskEnvService`,
+   exact-match skip logic, soft-cap nudge threshold, empty-state messaging for both context-menu
+   commands, and confirmed "Clear All" behavior.
