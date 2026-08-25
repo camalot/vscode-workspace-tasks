@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TaskItem } from './taskItem';
 import { TaskConfigService } from './services/taskConfigService';
+import { TaskFilesService } from './services/taskFilesService';
 import { TaskStateManager } from './taskStateManager';
 import { LoggerService } from './services/loggerService';
 import { CreatedTask } from './libs/taskCreationUtils';
@@ -24,7 +25,28 @@ export abstract class BaseTaskProvider implements TaskProvider {
   }
 
   getFilePatterns(): string[] {
-    return this.filePattern ? [this.filePattern] : [];
+    return this.mergeFilePatterns(this.filePattern ? [this.filePattern] : []);
+  }
+
+  protected getConfiguredAdditionalPatterns(): string[] {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const patternsByType = config.get<Record<string, unknown>>('additionalFilePatterns', {});
+    const rawPatterns = patternsByType?.[TaskConfigService.getInstance().getConfigKey(this.type)];
+
+    if (!Array.isArray(rawPatterns)) {
+      return [];
+    }
+
+    return rawPatterns.filter((pattern): pattern is string => typeof pattern === 'string' && pattern.length > 0);
+  }
+
+  protected mergeFilePatterns(builtin: string[]): string[] {
+    const extraPatterns = this.getConfiguredAdditionalPatterns();
+    return Array.from(new Set([...builtin, ...extraPatterns]));
+  }
+
+  protected async getMatchingFiles(exclude?: string[]): Promise<vscode.Uri[]> {
+    return TaskFilesService.getInstance().findFiles(this.getFilePatterns(), exclude);
   }
 
   get enabled(): boolean {

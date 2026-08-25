@@ -558,6 +558,11 @@ export class TaskFilesService {
         this.invalidateCache();
         isInvalidated = true;
       }
+      if (e.affectsConfiguration('workspaceTasks.additionalFilePatterns')) {
+        this.rebuildRegisteredPatterns();
+        this.invalidateCache();
+        isInvalidated = true;
+      }
       if (!isInvalidated && e.affectsConfiguration('workspaceTasks.taskDiscovery.fetchDepth')) {
         this.invalidateCache();
       }

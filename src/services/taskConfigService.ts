@@ -67,6 +67,10 @@ export class TaskConfigService {
     return TaskConfigService.instance;
   }
 
+  public getConfigKey(taskType: string): string {
+    return TaskConfigService.taskTypeMap[taskType] ?? taskType;
+  }
+
   /**
    * Check if a task type is enabled in the configuration.
    *
@@ -87,7 +91,7 @@ export class TaskConfigService {
 
     // Normalise to the visible config-key so patterns and enabledTaskTypes always refer to the
     // same name (e.g. 'docker' for both 'dockerfile' and 'docker-compose', 'make' for 'makefile').
-    const configKey = TaskConfigService.taskTypeMap[taskType] ?? taskType;
+    const configKey = this.getConfigKey(taskType);
 
     // Steps 1 & 2: enabledTaskTypePatterns non-empty → acts as a whitelist (highest priority).
     // IMPORTANT: the length guard is load-bearing. micromatch.isMatch(x, []) always

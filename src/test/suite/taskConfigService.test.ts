@@ -189,6 +189,18 @@ suite('TaskConfigService Test Suite', () => {
     assert.strictEqual(TaskConfigService.getInstance().isTaskTypeEnabled('workspace-task'), false);
   });
 
+  test('getConfigKey returns mapped config key for known task types', () => {
+    const service = TaskConfigService.getInstance();
+    assert.strictEqual(service.getConfigKey('makefile'), 'make');
+    assert.strictEqual(service.getConfigKey('docker-compose'), 'docker');
+    assert.strictEqual(service.getConfigKey('workspace-task'), 'workspace');
+  });
+
+  test('getConfigKey falls back to the original type for unknown task types', () => {
+    const service = TaskConfigService.getInstance();
+    assert.strictEqual(service.getConfigKey('custom-type'), 'custom-type');
+  });
+
   // ── Patterns match on visible config key (normalised) ──────────────────────
 
   test('patterns match config key: "docker" enables both dockerfile and docker-compose', () => {
