@@ -6,7 +6,6 @@ import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import constants from '../libs/constants';
-import { TaskFilesService } from '../services/taskFilesService';
 import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
 interface WorkflowInput {
@@ -51,8 +50,7 @@ export class GithubActionsTaskProvider extends BaseTaskProvider implements TaskP
       return [];
     }
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
-    const files = await filesService.findFiles([constants.GLOB_GITHUB_ACTIONS]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       const content = await vscode.workspace.fs.readFile(file);

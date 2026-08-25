@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
 import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
@@ -49,10 +48,9 @@ export class CakeTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
 
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
 
-    const files = await filesService.findFiles([constants.GLOB_CAKE]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       try {

@@ -72,7 +72,6 @@ function getDependsOnMap(text: string): Map<string, string[]> {
 
 export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider {
   private readonly addedTasks: Set<string> = new Set<string>();
-  private readonly filesService = TaskFilesService.getInstance();
   private readonly iconService = TaskIconService.getInstance();
   private readonly filteredTaskService = FilteredTaskService.getInstance();
 
@@ -86,7 +85,7 @@ export class VscodeTaskProvider extends BaseTaskProvider implements TaskProvider
     }
     this.addedTasks.clear();
     const tasks: TaskItem[] = await this.getSystemTasks();
-    const workspaceFiles = await this.filesService.findFiles([constants.GLOB_VSCODE]);
+    const workspaceFiles = await this.getMatchingFiles();
 
     const files: vscode.Uri[] = [...workspaceFiles];
 

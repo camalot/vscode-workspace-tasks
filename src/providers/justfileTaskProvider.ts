@@ -5,7 +5,6 @@ import { execFile } from 'child_process';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
@@ -150,13 +149,12 @@ export class JustfileTaskProvider extends BaseTaskProvider implements TaskProvid
     }
 
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
     const groupsEnabled = vscode.workspace.getConfiguration('workspaceTasks').get<boolean>(
       'groups.justfile.enabled',
       false,
     );
-    const files = await filesService.findFiles([constants.GLOB_JUST]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       try {

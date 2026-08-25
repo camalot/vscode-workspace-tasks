@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskFilesService } from '../services/taskFilesService';
 import * as path from 'path';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
@@ -17,9 +16,8 @@ export class ComposerTaskProvider extends BaseTaskProvider implements TaskProvid
     if (!this.enabled) {
       return [];
     }
-    const filesService = TaskFilesService.getInstance();
     const tasks: TaskItem[] = [];
-    const files = await filesService.findFiles([constants.GLOB_COMPOSER]);
+    const files = await this.getMatchingFiles();
     const iconService = TaskIconService.getInstance();
 
     for (const file of files) {

@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { parse } from 'smol-toml';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableResult } from '../services/executableService';
 
@@ -16,7 +15,7 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
   public abstract getCommand(workspaceUri?: vscode.Uri): ExecutableResult;
 
   override getFilePatterns(): string[] {
-    return this.getGlobPatterns();
+    return this.mergeFilePatterns(this.getGlobPatterns());
   }
 
   async getTasks(): Promise<TaskItem[]> {
@@ -25,9 +24,8 @@ export abstract class TomlTaskProvider extends BaseTaskProvider implements TaskP
     }
 
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
-    const files = await filesService.findFiles(this.getGlobPatterns());
+    const files = await this.getMatchingFiles();
 
     // Parse using the statically imported parser
     let parseFunc: ((s: string) => any) | undefined = parse;

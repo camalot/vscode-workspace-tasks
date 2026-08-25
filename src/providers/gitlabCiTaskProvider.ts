@@ -5,7 +5,6 @@ import { promisify } from 'util';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
@@ -26,6 +25,12 @@ interface GitlabCiJobEntry {
 export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
     super('gitlab-ci', constants.GLOB_GITLAB_CI);
+  }
+
+  override getFilePatterns(): string[] {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const extraPatterns = config.get<string[]>('gitlabCiLocal.additionalFilePatterns', []);
+    return this.mergeFilePatterns([constants.GLOB_GITLAB_CI, ...extraPatterns]);
   }
 
   public getCommand(resourceUri?: vscode.Uri): ExecutableResult {
@@ -52,11 +57,7 @@ export class GitlabCiTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
 
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    const extraPatterns = config.get<string[]>('gitlabCiLocal.additionalFilePatterns', []);
-    const globs = [constants.GLOB_GITLAB_CI, ...extraPatterns];
-    const filesService = TaskFilesService.getInstance();
-    const files = await filesService.findFiles(globs);
+    const files = await this.getMatchingFiles();
     const results = await Promise.all(files.map((f) => this._loadJobsFromFile(f)));
     return results.flat();
   }

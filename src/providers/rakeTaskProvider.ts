@@ -32,8 +32,7 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
     }
 
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
-    const files = await filesService.findFiles([constants.GLOB_RAKE]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       try {
@@ -139,8 +138,7 @@ export class RakeTaskProvider extends BaseTaskProvider implements TaskProvider {
 
       // Try to find the Rakefile in the workspace
       if (taskScope && taskScope.uri) {
-        const filesService = TaskFilesService.getInstance();
-        const files = await filesService.findFiles([constants.GLOB_RAKE]);
+        const files = await this.getMatchingFiles();
 
         // Find the first Rakefile in this workspace folder
         fileUri = files.find(f => {

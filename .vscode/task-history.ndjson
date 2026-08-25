@@ -222,3 +222,4 @@
 {"id":"1785296216045573","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1785296216045,"status":"Success","endTime":1785296306397,"exitCode":0,"duration":90352}
 {"id":"1785296754025935","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1785296754025,"status":"Success","endTime":1785296857629,"exitCode":0,"duration":103604}
 {"id":"1785297406154117","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1785297406154,"status":"Success","endTime":1785297501145,"exitCode":0,"duration":94991}
+{"id":"1787696607276578","taskName":"npm: compile","taskSource":"Workspace","scope":"workspace","definitionType":"npm","startTime":1787696607276,"status":"Success","endTime":1787696692695,"exitCode":0,"duration":85419}

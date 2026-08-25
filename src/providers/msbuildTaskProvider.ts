@@ -4,7 +4,6 @@ import { TaskItem } from '../taskItem';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
-import { TaskFilesService } from '../services/taskFilesService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
 
@@ -18,10 +17,9 @@ export class MsBuildTaskProvider extends BaseTaskProvider implements TaskProvide
     }
 
     const iconService = TaskIconService.getInstance();
-    const filesService = TaskFilesService.getInstance();
 
     const tasks: TaskItem[] = [];
-    const buildFiles = await filesService.findFiles([constants.GLOB_MSBUILD]);
+    const buildFiles = await this.getMatchingFiles();
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_',

@@ -32,7 +32,7 @@ export class DenoTaskProvider extends BaseTaskProvider {
     */
     const tasks: TaskItem[] = [];
     const filesService = TaskFilesService.getInstance();
-    const files = await filesService.findFiles([constants.GLOB_DENO]);
+    const files = await this.getMatchingFiles();
     const iconService = TaskIconService.getInstance();
 
     for (const file of files) {
