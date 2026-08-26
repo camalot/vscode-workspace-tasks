@@ -1,6 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import { ensureTaskProviderRegistryPopulated } from '../../providers';
 import { TaskConfigService } from '../../services/taskConfigService';
+import { TaskProviderRegistry } from '../../taskProviderRegistry';
 
 suite('TaskConfigService Test Suite', () => {
   let originalGetConfig: typeof vscode.workspace.getConfiguration;
@@ -208,6 +210,46 @@ suite('TaskConfigService Test Suite', () => {
     assert.strictEqual(service.getAdditionalFilePatternConfigKey('gitlab-ci'), 'gitlab-ci');
     assert.strictEqual(service.getAdditionalFilePatternConfigKey('dockerfile'), undefined);
     assert.strictEqual(service.getAdditionalFilePatternConfigKey('eslint'), undefined);
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('shell'), undefined);
+  });
+
+  test('every registered file-pattern provider has an additionalFilePatterns key', () => {
+    const registry = TaskProviderRegistry.getInstance();
+    const snapshot = registry.snapshot();
+
+    try {
+      registry.clear();
+      ensureTaskProviderRegistryPopulated();
+
+      const service = TaskConfigService.getInstance();
+      const allowedTypes: string[] = [];
+
+      for (const type of registry.getKnownTypes()) {
+        const provider = registry.get(type);
+        if (!provider) {
+          continue;
+        }
+
+        if (type === 'shell') {
+          continue;
+        }
+
+        if (provider.getFilePatterns().length === 0) {
+          continue;
+        }
+
+        const configKey = service.getAdditionalFilePatternConfigKey(type);
+        assert.ok(
+          configKey,
+          `Expected ${type} to have an allowed workspaceTasks.additionalFilePatterns key`,
+        );
+        allowedTypes.push(`${type}:${configKey}`);
+      }
+
+      assert.ok(allowedTypes.length > 0, 'Expected at least one file-pattern provider to be checked');
+    } finally {
+      registry.restore(snapshot);
+    }
   });
 
   // ── Patterns match on visible config key (normalised) ──────────────────────
