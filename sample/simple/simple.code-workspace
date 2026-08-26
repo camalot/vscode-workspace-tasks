@@ -7,8 +7,8 @@
   "settings": {
     "workspaceTasks.additionalFilePatterns": {
       
-      "makefile": [
-        "**/*.{.makefile,mk}"
+      "make": [
+        "**/*.{makefile,mk}"
       ]
     }
   }

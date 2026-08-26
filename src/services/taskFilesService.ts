@@ -563,6 +563,15 @@ export class TaskFilesService {
         this.invalidateCache();
         isInvalidated = true;
       }
+      if (
+        e.affectsConfiguration('workspaceTasks.taskfile.additionalFilePatterns') ||
+        e.affectsConfiguration('workspaceTasks.gitlabCiLocal.additionalFilePatterns') ||
+        e.affectsConfiguration('workspaceTasks.circleci.additionalFilePatterns')
+      ) {
+        this.rebuildRegisteredPatterns();
+        this.invalidateCache();
+        isInvalidated = true;
+      }
       if (!isInvalidated && e.affectsConfiguration('workspaceTasks.taskDiscovery.fetchDepth')) {
         this.invalidateCache();
       }
