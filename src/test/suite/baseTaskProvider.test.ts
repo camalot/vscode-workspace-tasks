@@ -104,4 +104,11 @@ suite('BaseTaskProvider Test Suite', () => {
       filesService.findFiles = originalFindFiles;
     }
   });
+
+  test('getFilePatterns merges the generic setting for workspace-task providers', () => {
+    stubAdditionalFilePatterns({ workspace: ['**/.workspace-tasks.json'] });
+    const provider = new StubProvider('workspace-task', '**/.workspace-tasks.json');
+
+    assert.deepStrictEqual(provider.exposedGetFilePatterns(), ['**/.workspace-tasks.json']);
+  });
 });

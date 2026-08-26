@@ -107,7 +107,7 @@ CircleCI CLI does not natively run workflows locally. Workspace Tasks emulates t
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `workspaceTasks.applicationPath.circleci` | `string` | `"circleci"` | Path to the CircleCI CLI executable |
-| `workspaceTasks.circleci.additionalFilePatterns` | `string[]` | `[]` | Extra globs merged with built-in `.circleci/config` discovery patterns |
+| `workspaceTasks.circleci.additionalFilePatterns` | `string[]` | `[]` | Deprecated: use `workspaceTasks.additionalFilePatterns.circleci` |
 
 ---
 

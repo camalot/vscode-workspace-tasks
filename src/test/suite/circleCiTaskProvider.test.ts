@@ -85,4 +85,40 @@ suite('CircleCiTaskProvider Test Suite', () => {
     assert.ok(labels.includes('lint'));
     assert.ok(labels.includes('cleanup'));
   });
+
+  test('getTasks merges generic and legacy custom patterns without duplicates', async () => {
+    Object.defineProperty(provider, 'enabled', { value: true, configurable: true });
+    const filesService = require('../../services/taskFilesService').TaskFilesService.getInstance();
+    let capturedPatterns: string[] = [];
+    filesService.findFiles = async (patterns: string[]) => {
+      capturedPatterns = patterns;
+      return [];
+    };
+
+    const previous = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return {
+          get: <T>(key: string, def?: T): T => {
+            if (key === 'circleci.additionalFilePatterns') {
+              return ['**/.circleci/config.local.yml'] as T;
+            }
+            if (key === 'additionalFilePatterns') {
+              return { circleci: ['**/.circleci/config.local.yml', '**/.circleci/config.staging.yml'] } as T;
+            }
+            return def as T;
+          },
+        };
+      }
+      return previous(section);
+    };
+
+    try {
+      await provider.getTasks();
+    } finally {
+      (vscode.workspace as any).getConfiguration = previous;
+    }
+
+    assert.deepStrictEqual(capturedPatterns, [constants.GLOB_CIRCLECI, '**/.circleci/config.local.yml', '**/.circleci/config.staging.yml']);
+  });
 });

@@ -1797,6 +1797,18 @@
             "markdownDescription": "%config.workspaceTasks.taskfile.additionalFilePatterns.markdown%",
             "scope": "resource"
           },
+          "workspaceTasks.additionalFilePatterns": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default": {},
+            "markdownDescription": "%config.workspaceTasks.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
           "workspaceTasks.taskfile.discoverGlobalTaskfile": {
             "type": "boolean",
             "default": false,
