@@ -201,6 +201,15 @@ suite('TaskConfigService Test Suite', () => {
     assert.strictEqual(service.getConfigKey('custom-type'), 'custom-type');
   });
 
+  test('getAdditionalFilePatternConfigKey returns keys only for file-based providers', () => {
+    const service = TaskConfigService.getInstance();
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('makefile'), 'make');
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('workspace-task'), 'workspace');
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('gitlab-ci'), 'gitlab-ci');
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('dockerfile'), undefined);
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('eslint'), undefined);
+  });
+
   // ── Patterns match on visible config key (normalised) ──────────────────────
 
   test('patterns match config key: "docker" enables both dockerfile and docker-compose', () => {

@@ -58,6 +58,39 @@ export class TaskConfigService {
     yarn: 'yarn',
   };
 
+  private static readonly additionalFilePatternConfigKeys = new Set([
+    'ant',
+    'bitbucket',
+    'bun',
+    'cake',
+    'cargo-make',
+    'circleci',
+    'cmake',
+    'composer',
+    'deno',
+    'github-actions',
+    'gitlab-ci',
+    'gradle',
+    'grunt',
+    'gulp',
+    'just',
+    'jupyter',
+    'make',
+    'maven',
+    'mise',
+    'msbuild',
+    'npm',
+    'pipenv',
+    'pnpm',
+    'poe',
+    'poetry',
+    'rake',
+    'taskfile',
+    'vscode',
+    'workspace',
+    'yarn',
+  ]);
+
   private constructor() {}
 
   public static getInstance(): TaskConfigService {
@@ -69,6 +102,11 @@ export class TaskConfigService {
 
   public getConfigKey(taskType: string): string {
     return TaskConfigService.taskTypeMap[taskType] ?? taskType;
+  }
+
+  public getAdditionalFilePatternConfigKey(taskType: string): string | undefined {
+    const configKey = this.getConfigKey(taskType);
+    return TaskConfigService.additionalFilePatternConfigKeys.has(configKey) ? configKey : undefined;
   }
 
   /**

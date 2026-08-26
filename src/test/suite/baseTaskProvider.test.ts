@@ -70,6 +70,20 @@ suite('BaseTaskProvider Test Suite', () => {
     assert.deepStrictEqual(provider.exposedGetFilePatterns(), ['**/*.mk', '**/*.mk.local']);
   });
 
+  test('getFilePatterns ignores configured patterns for recognized but non-file-based types', () => {
+    stubAdditionalFilePatterns({ docker: ['**/Dockerfile.custom'] });
+    const provider = new StubProvider('dockerfile', '**/Dockerfile');
+
+    assert.deepStrictEqual(provider.exposedGetFilePatterns(), ['**/Dockerfile']);
+  });
+
+  test('getFilePatterns ignores configured patterns for unknown types', () => {
+    stubAdditionalFilePatterns({ 'custom-type': ['**/*.custom'] });
+    const provider = new StubProvider('custom-type', '**/*.base');
+
+    assert.deepStrictEqual(provider.exposedGetFilePatterns(), ['**/*.base']);
+  });
+
   test('getFilePatterns ignores non-array configuration values', () => {
     stubAdditionalFilePatterns({ make: '**/*.mk' });
     const provider = new StubProvider();

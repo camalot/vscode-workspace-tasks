@@ -18,6 +18,8 @@ export abstract class BaseTaskProvider implements TaskProvider {
   public filePattern?: string;
   protected context: vscode.ExtensionContext | undefined;
   protected logger = LoggerService.getInstance();
+  private static lastAdditionalFilePatternsSignature = '';
+  private static warnedAdditionalFilePatternKeys = new Set<string>();
   constructor(type: string, filePattern?: string) {
     this.type = type;
     this.filePattern = filePattern;
@@ -31,13 +33,45 @@ export abstract class BaseTaskProvider implements TaskProvider {
   protected getConfiguredAdditionalPatterns(): string[] {
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     const patternsByType = config.get<Record<string, unknown>>('additionalFilePatterns', {});
-    const rawPatterns = patternsByType?.[TaskConfigService.getInstance().getConfigKey(this.type)];
+    const enabledTaskTypes = config.get<Record<string, boolean>>('enabledTaskTypes', {});
+    const signature = JSON.stringify(patternsByType ?? {});
+
+    if (signature !== BaseTaskProvider.lastAdditionalFilePatternsSignature) {
+      BaseTaskProvider.lastAdditionalFilePatternsSignature = signature;
+      BaseTaskProvider.warnedAdditionalFilePatternKeys.clear();
+    }
+
+    const configKey = TaskConfigService.getInstance().getAdditionalFilePatternConfigKey(this.type);
+    if (!configKey) {
+      const normalizedKey = TaskConfigService.getInstance().getConfigKey(this.type);
+      const reason = Object.prototype.hasOwnProperty.call(enabledTaskTypes, normalizedKey)
+        ? 'recognized task type but not file-based discovery provider'
+        : 'unknown task type';
+      this.logAdditionalPatternWarning(normalizedKey, reason);
+      return [];
+    }
+
+    const rawPatterns = patternsByType?.[configKey];
 
     if (!Array.isArray(rawPatterns)) {
+      if (Object.prototype.hasOwnProperty.call(patternsByType ?? {}, configKey)) {
+        this.logAdditionalPatternWarning(configKey, 'non-array additionalFilePatterns value');
+      }
       return [];
     }
 
     return rawPatterns.filter((pattern): pattern is string => typeof pattern === 'string' && pattern.length > 0);
+  }
+
+  private logAdditionalPatternWarning(configKey: string, reason: string): void {
+    const warningKey = `${configKey}:${reason}`;
+    if (BaseTaskProvider.warnedAdditionalFilePatternKeys.has(warningKey)) {
+      return;
+    }
+    BaseTaskProvider.warnedAdditionalFilePatternKeys.add(warningKey);
+    this.logger.debug(
+      `[BaseTaskProvider] Ignoring workspaceTasks.additionalFilePatterns.${configKey}: ${reason}.`,
+    );
   }
 
   protected mergeFilePatterns(builtin: string[]): string[] {
