@@ -31,3 +31,13 @@ indent_style = space
 indent_size = unset
 indent_style = unset
 charset = unset
+
+[{MakeFile,Makefile,makefile,*.makefile,*.mk}]
+indent_style = tab
+indent_size = tab
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+
+[*.code-workspace]
+insert_final_newline = unset
+trim_trailing_whitespace = unset

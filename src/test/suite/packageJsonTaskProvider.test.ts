@@ -1,9 +1,11 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { PackageJsonTaskProvider } from '../../providers/packageJsonTaskProvider';
+import { NpmTaskProvider } from '../../providers/npmTaskProvider';
 import { TaskItem } from '../../taskItem';
 import { TaskFilesService } from '../../services/taskFilesService';
 import { TaskIconService } from '../../services/taskIconService';
+import constants from '../../libs/constants';
 
 class TestPackageJsonProvider extends PackageJsonTaskProvider {
   public systemTasks: TaskItem[] = [];
@@ -85,6 +87,30 @@ suite('PackageJsonTaskProvider Test Suite', () => {
     Object.defineProperty(provider, 'enabled', { value: false, configurable: true });
     const tasks = await provider.getTasks();
     assert.deepStrictEqual(tasks, []);
+  });
+
+  test('getFilePatterns merges the generic setting with the built-in package.json pattern', () => {
+    const provider = new NpmTaskProvider();
+    const previous = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return {
+          get: <T>(key: string, def?: T): T => {
+            if (key === 'additionalFilePatterns') {
+              return { npm: ['**/package.custom.json'] } as T;
+            }
+            return def as T;
+          },
+        };
+      }
+      return previous(section);
+    };
+
+    try {
+      assert.deepStrictEqual(provider.getFilePatterns(), [constants.GLOB_NODEJS, '**/package.custom.json']);
+    } finally {
+      (vscode.workspace as any).getConfiguration = previous;
+    }
   });
 
   test('getTasks returns scripts from package json and sets line/open command', async () => {

@@ -111,6 +111,42 @@ suite('GitlabCiTaskProvider Test Suite', () => {
     }
   });
 
+  test('getTasks merges generic and legacy custom patterns without duplicates', async () => {
+    Object.defineProperty(provider, 'enabled', { value: true, configurable: true });
+    const filesService = TaskFilesService.getInstance();
+    let capturedPatterns: string[] = [];
+    filesService.findFiles = async (patterns: string[]) => {
+      capturedPatterns = patterns;
+      return [];
+    };
+
+    const previous = vscode.workspace.getConfiguration;
+    (vscode.workspace as any).getConfiguration = (section?: string) => {
+      if (section === 'workspaceTasks') {
+        return {
+          get: <T>(key: string, def?: T): T => {
+            if (key === 'gitlabCiLocal.additionalFilePatterns') {
+              return ['**/.gitlab-ci.staging.yml'] as T;
+            }
+            if (key === 'additionalFilePatterns') {
+              return { 'gitlab-ci': ['**/.gitlab-ci.staging.yml', '**/ci/pipeline.yml'] } as T;
+            }
+            return def as T;
+          },
+        };
+      }
+      return previous(section);
+    };
+
+    try {
+      await provider.getTasks();
+    } finally {
+      (vscode.workspace as any).getConfiguration = previous;
+    }
+
+    assert.deepStrictEqual(capturedPatterns, [constants.GLOB_GITLAB_CI, '**/.gitlab-ci.staging.yml', '**/ci/pipeline.yml']);
+  });
+
   // ──────────────────────────────────────────────────────────────
   // parseOutput — invalid JSON
   // ──────────────────────────────────────────────────────────────

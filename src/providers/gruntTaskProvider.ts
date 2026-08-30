@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskFilesService } from '../services/taskFilesService';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
@@ -34,10 +33,9 @@ export class GruntTaskProvider extends BaseTaskProvider implements TaskProvider 
     }
 
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
 
-    const files = await filesService.findFiles([constants.GLOB_GRUNT]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       try {

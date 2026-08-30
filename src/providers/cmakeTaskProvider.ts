@@ -76,9 +76,8 @@ export class CMakeTaskProvider extends BaseTaskProvider implements TaskProvider 
 
     const tasks: TaskItem[] = [];
     const iconService = TaskIconService.getInstance();
-    const filesService = TaskFilesService.getInstance();
 
-    const files = await filesService.findFiles([constants.GLOB_CMAKE]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       try {

@@ -32,7 +32,7 @@ that contains a Taskfile, the extension runs:
 
 ```shell
 task --list-all --no-status --json
-```
+```yaml
 
 The JSON response contains the resolved task name, description, and source location
 (file path and line number) for every available task. Each task is surfaced as a
@@ -85,6 +85,9 @@ create/change/delete events, and global tasks are refreshed automatically when
 they change.
 
 ### Custom Taskfile Patterns
+
+{: .deprecated }
+> **Deprecated in favor of `workspaceTasks.additionalFilePatterns.taskfile`.**
 
 If your project uses non-standard Taskfile names, add custom glob patterns to
 discover them:
@@ -231,7 +234,7 @@ wildcard segment before executing.
 
 For example, running `build:*` opens an input box:
 
-```
+```text
 Enter value for wildcard 1 of 1 in "build:*"
 ```
 

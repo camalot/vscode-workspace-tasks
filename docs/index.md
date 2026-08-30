@@ -20,17 +20,13 @@ nav_order: 1
 [![Open VSX Rating](https://img.shields.io/open-vsx/rating/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=RATING)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=DOWNLOADS)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
-![VS Code Engine](https://img.shields.io/badge/v1.105.1-orange?style=for-the-badge&label=engine&labelColor=blue)
+![VS Code Engine](https://img.shields.io/badge/v1.125.0-green?style=for-the-badge&label=engine&labelColor=blue)
 [![Codecov](https://img.shields.io/codecov/c/github/camalot/vscode-workspace-tasks?style=for-the-badge&label=COVERAGE&logo=codecov&logoColor=white)](https://app.codecov.io/gh/camalot/vscode-workspace-tasks/tree/develop)
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fci.yml?style=for-the-badge&logo=github&label=BUILD)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Frelease.yml?style=for-the-badge&logo=github&label=RELEASE)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/release.yml)
 [![Issues](https://img.shields.io/github/issues/camalot/vscode-workspace-tasks?style=for-the-badge&logo=github&color=%2313773d)](https://github.com/camalot/vscode-workspace-tasks/issues)
 
 ---
-
-> [!IMPORTANT]
-> The minimum required version of Visual Studio Code for this extension is `v1.105.1`.
-> This will be changing in `v1.13.0` of workspace tasks to a minimum required version of `v1.125.0`.
 
 A powerful Visual Studio Code extension that automatically discovers, organizes, and runs tasks from your workspace. Manage build scripts, run tests, execute workflows, and organize your development tasks with favorites and compound tasks — all from a single, intuitive interface.
 

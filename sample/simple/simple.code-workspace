@@ -3,5 +3,13 @@
     {
       "path": "."
     }
-  ]
+  ],
+  "settings": {
+    "workspaceTasks.additionalFilePatterns": {
+      
+      "make": [
+        "**/*.{makefile,mk}"
+      ]
+    }
+  }
 }

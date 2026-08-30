@@ -23,8 +23,7 @@ export class AntTaskProvider extends BaseTaskProvider implements TaskProvider {
     const iconService = TaskIconService.getInstance();
 
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
-    const xmlFiles = await filesService.findFiles([constants.GLOB_ANT]);
+    const xmlFiles = await this.getMatchingFiles();
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_',

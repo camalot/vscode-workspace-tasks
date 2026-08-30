@@ -2,18 +2,18 @@
 
 <!-- markdownlint-disable-file MD033 -->
 
-![VS Code Marketplace](https://img.shields.io/badge/VSC%20Marketplace-blue?style=for-the-badge)
+[![VS Code Marketplace](https://img.shields.io/badge/VSC%20Marketplace-blue?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![VS Code Marketplace Version](https://vsmarketplacebadges.dev/version-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=VERSION)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![VS Code Marketplace Rating](https://vsmarketplacebadges.dev/rating-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=RATING)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![VS Code Marketplace Downloads](https://vsmarketplacebadges.dev/downloads-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=DOWNLOADS)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 [![VS Code Marketplace Installs](https://vsmarketplacebadges.dev/installs-short/darthminos.workspace-tasks.png?style=for-the-badge&colorA=555555&colorB=007ec6&label=INSTALLS)](https://marketplace.visualstudio.com/items?itemName=darthminos.workspace-tasks)
 
-![Open VSX](https://img.shields.io/badge/Open%20VSX-%23c260ef?style=for-the-badge)
+[![Open VSX](https://img.shields.io/badge/Open%20VSX-%23c260ef?style=for-the-badge)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Version](https://img.shields.io/open-vsx/v/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=VERSION)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Rating](https://img.shields.io/open-vsx/rating/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=RATING)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/darthminos/workspace-tasks?style=for-the-badge&color=%23c260ef&label=DOWNLOADS)](https://open-vsx.org/extension/darthminos/workspace-tasks)
 
-![VS Code Engine](https://img.shields.io/badge/v1.105.1-orange?style=for-the-badge&label=engine&labelColor=blue)
+![VS Code Engine](https://img.shields.io/badge/v1.125.0-green?style=for-the-badge&label=engine&labelColor=blue)
 [![Codecov](https://img.shields.io/codecov/c/github/camalot/vscode-workspace-tasks?style=for-the-badge&label=COVERAGE&logo=codecov&logoColor=white)](https://app.codecov.io/gh/camalot/vscode-workspace-tasks/tree/develop)
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Fci.yml?style=for-the-badge&logo=github&label=BUILD)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/actions/workflow/status/camalot/vscode-workspace-tasks/.github%2Fworkflows%2Frelease.yml?style=for-the-badge&logo=github&label=RELEASE)](https://github.com/camalot/vscode-workspace-tasks/actions/workflows/release.yml)
@@ -117,15 +117,14 @@ kiro --install-extension darthminos.workspace-tasks
 ```
 
 ```shell
-windsurf --install-extension darthminos.workspace-tasks
+devin --install-extension darthminos.workspace-tasks
 ```
 
 <a id="requirements"></a>
 
 ### ✔️ Requirements
 
-- **Visual Studio Code** `1.105.1` or later
-  - **NOTE** This will change to `v1.125.0` in the `v1.13.x` release
+- **Visual Studio Code** `1.125.0` or later
 - **External tools** must be installed for task execution (see [External Tools](https://camalot.github.io/vscode-workspace-tasks/getting-started/requirements.html#external-tool-requirements))
 
 ## 🛠️ Supported Task Types

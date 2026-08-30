@@ -359,6 +359,41 @@ suite('TaskfileTaskProvider Test Suite', () => {
       assert.deepStrictEqual(capturedPatterns, [constants.GLOB_TASKFILE, '**/Taskfile.ci.yml']);
     });
 
+    test('getTasks merges generic and legacy custom patterns without duplicates', async () => {
+      const filesService = TaskFilesService.getInstance();
+      let capturedPatterns: string[] = [];
+      filesService.findFiles = async (patterns: string[]) => {
+        capturedPatterns = patterns;
+        return [];
+      };
+
+      const previous = vscode.workspace.getConfiguration;
+      (vscode.workspace as any).getConfiguration = (section?: string) => {
+        if (section === 'workspaceTasks') {
+          return {
+            get: <T>(key: string, def?: T): T => {
+              if (key === 'taskfile.additionalFilePatterns') {
+                return ['**/Taskfile.ci.yml'] as T;
+              }
+              if (key === 'additionalFilePatterns') {
+                return { taskfile: ['**/Taskfile.ci.yml', '**/Taskfile.custom.yml'] } as T;
+              }
+              return def as T;
+            },
+          };
+        }
+        return previous(section);
+      };
+
+      try {
+        await provider.getTasks();
+      } finally {
+        (vscode.workspace as any).getConfiguration = previous;
+      }
+
+      assert.deepStrictEqual(capturedPatterns, [constants.GLOB_TASKFILE, '**/Taskfile.ci.yml', '**/Taskfile.custom.yml']);
+    });
+
     test('Taskfiles are deduplicated by path', async () => {
       const dir = '/workspace';
       const file1 = vscode.Uri.file(path.join(dir, 'Taskfile.yml'));

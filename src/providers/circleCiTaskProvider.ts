@@ -4,7 +4,6 @@ import * as yaml from 'yaml';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableResult, ExecutableService } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
@@ -24,6 +23,12 @@ interface CircleWorkflowEntry {
 export class CircleCiTaskProvider extends BaseTaskProvider implements TaskProvider {
   constructor() {
     super('circleci', constants.GLOB_CIRCLECI);
+  }
+
+  override getFilePatterns(): string[] {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const extraPatterns = config.get<string[]>('circleci.additionalFilePatterns', []);
+    return this.mergeFilePatterns([constants.GLOB_CIRCLECI, ...extraPatterns]);
   }
 
   public getCommand(resourceUri?: vscode.Uri): ExecutableResult {
@@ -46,11 +51,7 @@ export class CircleCiTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
 
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    const extraPatterns = config.get<string[]>('circleci.additionalFilePatterns', []);
-    const globs = [constants.GLOB_CIRCLECI, ...extraPatterns];
-
-    const files = await TaskFilesService.getInstance().findFiles(globs);
+    const files = await this.getMatchingFiles();
     const tasks: TaskItem[] = [];
 
     for (const file of files) {

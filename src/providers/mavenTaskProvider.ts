@@ -4,7 +4,6 @@ import { XMLParser } from 'fast-xml-parser';
 import { TaskItem } from '../taskItem';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import constants from '../libs/constants';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
@@ -20,10 +19,9 @@ export class MavenTaskProvider extends BaseTaskProvider implements TaskProvider 
     }
 
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
     // Use the glob constant for maven
-    const mavenFiles = await filesService.findFiles([constants.GLOB_MAVEN]);
+    const mavenFiles = await this.getMatchingFiles();
 
     // Standard Maven lifecycle phases
     const standardGoals = ['clean', 'validate', 'compile', 'test', 'package', 'verify', 'install', 'site', 'deploy'];

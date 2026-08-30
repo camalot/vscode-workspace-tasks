@@ -76,7 +76,7 @@ export class BitbucketPipelinesTaskProvider extends BaseTaskProvider implements 
       return [];
     }
 
-    const allFiles = await TaskFilesService.getInstance().findFiles([constants.GLOB_BITBUCKET_PIPELINES]);
+    const allFiles = await this.getMatchingFiles();
 
     // pipeline-runner has no flag to specify the config file path — it always
     // reads bitbucket-pipelines.yml from the current working directory (workspace
