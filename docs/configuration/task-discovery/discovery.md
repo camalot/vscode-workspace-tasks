@@ -230,6 +230,56 @@ Evaluation order — first matching rule wins:
 Additional glob patterns for discovering Taskfiles with non-standard names.
 These patterns are merged with the built-in Taskfile patterns.
 
+{: .deprecated }
+> **Deprecated in favor of `workspaceTasks.additionalFilePatterns.taskfile`.**
+> Use the generic setting when possible so discovery patterns stay consistent across providers.
+
+---
+
+### workspaceTasks.additionalFilePatterns
+
+{: .new }
+> **v1.13.1** Add extra file-discovery globs per task type.
+
+| | |
+| --- | --- |
+| **Type:** | `object` |
+| **Default:** | `{}` |
+| **Scope:** | `resource` |
+
+Add extra glob patterns for file-based task providers without replacing their built-in patterns. Keys use the same task-type config names shown in `workspaceTasks.enabledTaskTypes` for file-based providers: `ant`, `bitbucket`, `bun`, `cake`, `cmake`, `composer`, `deno`, `github-actions`, `gitlab-ci`, `gradle`, `grunt`, `gulp`, `just`, `jupyter`, `make`, `maven`, `mise`, `msbuild`, `npm`, `pipenv`, `pnpm`, `poe`, `poetry`, `rake`, `taskfile`, `vscode`, `workspace`, and `yarn`.
+
+Keys like `docker`, `eslint`, `go`, `ruby`, `shell`, `typescript`, and `webpack` are intentionally not accepted here because they do not have file-based discovery providers in this extension.
+
+**Example:**
+
+```json
+{
+  "workspaceTasks.additionalFilePatterns": {
+    "make": ["**/*.mk"]
+  }
+}
+```
+
+**Multiple providers:**
+
+```json
+{
+  "workspaceTasks.additionalFilePatterns": {
+    "make": ["**/*.mk"],
+    "taskfile": ["**/Taskfile.ci.yml"],
+    "gitlab-ci": ["**/.gitlab-ci.staging.yml"]
+  }
+}
+```
+
+These patterns are merged additively with the built-in provider patterns and are also used for file-watcher registration.
+
+{: .note }
+> Invalid keys are ignored. Empty arrays are allowed and simply add no extra patterns.
+
+---
+
 **Example:**
 
 ```json

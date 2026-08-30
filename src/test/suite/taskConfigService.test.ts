@@ -1,6 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import { ensureTaskProviderRegistryPopulated } from '../../providers';
 import { TaskConfigService } from '../../services/taskConfigService';
+import { TaskProviderRegistry } from '../../taskProviderRegistry';
 
 suite('TaskConfigService Test Suite', () => {
   let originalGetConfig: typeof vscode.workspace.getConfiguration;
@@ -187,6 +189,67 @@ suite('TaskConfigService Test Suite', () => {
   test('alias: workspace-task maps to workspace config key', () => {
     stubConfig({ workspace: false });
     assert.strictEqual(TaskConfigService.getInstance().isTaskTypeEnabled('workspace-task'), false);
+  });
+
+  test('getConfigKey returns mapped config key for known task types', () => {
+    const service = TaskConfigService.getInstance();
+    assert.strictEqual(service.getConfigKey('makefile'), 'make');
+    assert.strictEqual(service.getConfigKey('docker-compose'), 'docker');
+    assert.strictEqual(service.getConfigKey('workspace-task'), 'workspace');
+  });
+
+  test('getConfigKey falls back to the original type for unknown task types', () => {
+    const service = TaskConfigService.getInstance();
+    assert.strictEqual(service.getConfigKey('custom-type'), 'custom-type');
+  });
+
+  test('getAdditionalFilePatternConfigKey returns keys only for file-based providers', () => {
+    const service = TaskConfigService.getInstance();
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('makefile'), 'make');
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('workspace-task'), 'workspace');
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('gitlab-ci'), 'gitlab-ci');
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('dockerfile'), undefined);
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('eslint'), undefined);
+    assert.strictEqual(service.getAdditionalFilePatternConfigKey('shell'), undefined);
+  });
+
+  test('every registered file-pattern provider has an additionalFilePatterns key', () => {
+    const registry = TaskProviderRegistry.getInstance();
+    const snapshot = registry.snapshot();
+
+    try {
+      registry.clear();
+      ensureTaskProviderRegistryPopulated();
+
+      const service = TaskConfigService.getInstance();
+      const allowedTypes: string[] = [];
+
+      for (const type of registry.getKnownTypes()) {
+        const provider = registry.get(type);
+        if (!provider) {
+          continue;
+        }
+
+        if (type === 'shell') {
+          continue;
+        }
+
+        if (provider.getFilePatterns().length === 0) {
+          continue;
+        }
+
+        const configKey = service.getAdditionalFilePatternConfigKey(type);
+        assert.ok(
+          configKey,
+          `Expected ${type} to have an allowed workspaceTasks.additionalFilePatterns key`,
+        );
+        allowedTypes.push(`${type}:${configKey}`);
+      }
+
+      assert.ok(allowedTypes.length > 0, 'Expected at least one file-pattern provider to be checked');
+    } finally {
+      registry.restore(snapshot);
+    }
   });
 
   // ── Patterns match on visible config key (normalised) ──────────────────────

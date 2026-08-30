@@ -644,6 +644,56 @@ ignore.me
         cacheService.getProviders = origGetProviders;
     });
 
+    test('configuration change for additionalFilePatterns rebuilds registered patterns and invalidates cache', async () => {
+        const originalRebuildRegisteredPatterns = service.rebuildRegisteredPatterns.bind(service);
+        const originalInvalidateCache = service.invalidateCache.bind(service);
+        let rebuildCalls = 0;
+        let invalidateCalls = 0;
+
+        service.rebuildRegisteredPatterns = () => {
+            rebuildCalls++;
+        };
+        service.invalidateCache = () => {
+            invalidateCalls++;
+        };
+
+        try {
+            mockConfigValues['additionalFilePatterns'] = { make: ['**/*.mk'] };
+            await fireConfigChange('workspaceTasks.additionalFilePatterns');
+
+            assert.strictEqual(rebuildCalls, 1, 'Expected rebuildRegisteredPatterns to run once');
+            assert.strictEqual(invalidateCalls, 1, 'Expected invalidateCache to run once');
+        } finally {
+            service.rebuildRegisteredPatterns = originalRebuildRegisteredPatterns;
+            service.invalidateCache = originalInvalidateCache;
+        }
+    });
+
+    test('legacy additionalFilePatterns settings also rebuild registered patterns and invalidate cache', async () => {
+        const originalRebuildRegisteredPatterns = service.rebuildRegisteredPatterns.bind(service);
+        const originalInvalidateCache = service.invalidateCache.bind(service);
+        let rebuildCalls = 0;
+        let invalidateCalls = 0;
+
+        service.rebuildRegisteredPatterns = () => {
+            rebuildCalls++;
+        };
+        service.invalidateCache = () => {
+            invalidateCalls++;
+        };
+
+        try {
+            mockConfigValues['taskfile.additionalFilePatterns'] = ['**/Taskfile.ci.yml'];
+            await fireConfigChange('workspaceTasks.taskfile.additionalFilePatterns');
+
+            assert.strictEqual(rebuildCalls, 1, 'Expected rebuildRegisteredPatterns to run once for legacy key');
+            assert.strictEqual(invalidateCalls, 1, 'Expected invalidateCache to run once for legacy key');
+        } finally {
+            service.rebuildRegisteredPatterns = originalRebuildRegisteredPatterns;
+            service.invalidateCache = originalInvalidateCache;
+        }
+    });
+
     test('dispose - clears all internal watchers', async () => {
         // Watchers are set up during initialize(); verify they exist first
         assert.ok(

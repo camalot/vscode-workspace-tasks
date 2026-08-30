@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
-import { TaskFilesService } from '../services/taskFilesService';
 import * as path from 'path';
 import * as fs from 'fs';
 import constants from '../libs/constants';
@@ -20,9 +19,8 @@ export class GradleTaskProvider extends BaseTaskProvider implements TaskProvider
       return [];
     }
     const tasks: TaskItem[] = [];
-    const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
-    const files = await filesService.findFiles([constants.GLOB_GRADLE]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       try {

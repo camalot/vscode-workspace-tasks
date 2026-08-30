@@ -58,7 +58,7 @@ Jobs with `when: never` are automatically filtered from the task tree — they a
 ## Features
 
 - **Automatic Discovery** — Scans `**/.gitlab-ci.yml` across the workspace
-- **Custom File Patterns** — Additional glob patterns via `gitlabCiLocal.additionalFilePatterns`
+- **Custom File Patterns** — Additional glob patterns via `workspaceTasks.additionalFilePatterns.gitlab-ci` (legacy `gitlabCiLocal.additionalFilePatterns` still works but is deprecated)
 - **Job Filtering** — Jobs with `when: never` are automatically hidden
 - **Stage Labels** — Each job shows its pipeline stage as a description
 - **Rich Tooltips** — Stage, when condition, allow_failure, and needs are shown in hover tooltips
@@ -89,7 +89,7 @@ Configure GitLab CI Local in your VS Code `settings.json`:
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `workspaceTasks.applicationPath.gitlabCiLocal` | `string` | `"gitlab-ci-local"` | Path to the `gitlab-ci-local` executable |
-| `workspaceTasks.gitlabCiLocal.additionalFilePatterns` | `string[]` | `[]` | Extra glob patterns for non-standard CI file locations |
+| `workspaceTasks.gitlabCiLocal.additionalFilePatterns` | `string[]` | `[]` | Deprecated: use `workspaceTasks.additionalFilePatterns.gitlab-ci` |
 | `workspaceTasks.gitlabCiLocal.variablesFile` | `string` | `""` | Path to a YAML variables file (`--variables-file`) |
 | `workspaceTasks.gitlabCiLocal.variable` | `string[]` | `[]` | Array of `KEY=VALUE` variables (`--variable`) |
 | `workspaceTasks.gitlabCiLocal.unsetVariable` | `string[]` | `[]` | Variable names to unset (`--unset-variable`) |
@@ -99,6 +99,9 @@ Configure GitLab CI Local in your VS Code `settings.json`:
 ---
 
 ## Custom File Patterns
+
+{: .deprecated }
+> Use `workspaceTasks.additionalFilePatterns.gitlab-ci` instead.
 
 By default, the extension discovers all `**/.gitlab-ci.yml` files. To include CI files with non-standard names, add extra glob patterns:
 

@@ -58,6 +58,39 @@ export class TaskConfigService {
     yarn: 'yarn',
   };
 
+  private static readonly additionalFilePatternConfigKeys = new Set([
+    'ant',
+    'bitbucket',
+    'bun',
+    'cake',
+    'cargo-make',
+    'circleci',
+    'cmake',
+    'composer',
+    'deno',
+    'github-actions',
+    'gitlab-ci',
+    'gradle',
+    'grunt',
+    'gulp',
+    'just',
+    'jupyter',
+    'make',
+    'maven',
+    'mise',
+    'msbuild',
+    'npm',
+    'pipenv',
+    'pnpm',
+    'poe',
+    'poetry',
+    'rake',
+    'taskfile',
+    'vscode',
+    'workspace',
+    'yarn',
+  ]);
+
   private constructor() {}
 
   public static getInstance(): TaskConfigService {
@@ -65,6 +98,15 @@ export class TaskConfigService {
       TaskConfigService.instance = new TaskConfigService();
     }
     return TaskConfigService.instance;
+  }
+
+  public getConfigKey(taskType: string): string {
+    return TaskConfigService.taskTypeMap[taskType] ?? taskType;
+  }
+
+  public getAdditionalFilePatternConfigKey(taskType: string): string | undefined {
+    const configKey = this.getConfigKey(taskType);
+    return TaskConfigService.additionalFilePatternConfigKeys.has(configKey) ? configKey : undefined;
   }
 
   /**
@@ -87,7 +129,7 @@ export class TaskConfigService {
 
     // Normalise to the visible config-key so patterns and enabledTaskTypes always refer to the
     // same name (e.g. 'docker' for both 'dockerfile' and 'docker-compose', 'make' for 'makefile').
-    const configKey = TaskConfigService.taskTypeMap[taskType] ?? taskType;
+    const configKey = this.getConfigKey(taskType);
 
     // Steps 1 & 2: enabledTaskTypePatterns non-empty → acts as a whitelist (highest priority).
     // IMPORTANT: the length guard is load-bearing. micromatch.isMatch(x, []) always

@@ -3,7 +3,6 @@ import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
 import { TaskIconService } from '../services/taskIconService';
-import { TaskFilesService } from '../services/taskFilesService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import * as path from 'path';
 import { CreatedTask, resolveTaskContext, splitArgs } from '../libs/taskCreationUtils';
@@ -32,9 +31,8 @@ export class MakefileTaskProvider extends BaseTaskProvider implements TaskProvid
     }
     const tasks: TaskItem[] = [];
     const iconService = TaskIconService.getInstance();
-    const filesService = TaskFilesService.getInstance();
 
-    const files = await filesService.findFiles([constants.GLOB_MAKE]);
+    const files = await this.getMatchingFiles();
 
     for (const file of files) {
       try {

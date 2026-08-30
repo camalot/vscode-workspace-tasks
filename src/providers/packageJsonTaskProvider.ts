@@ -25,6 +25,10 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
 
   public abstract getCommand(workspaceUri?: vscode.Uri): ExecutableResult;
 
+  override getFilePatterns(): string[] {
+    return this.mergeFilePatterns(this.filePattern ? [this.filePattern] : [constants.GLOB_NODEJS]);
+  }
+
   async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       return [];
@@ -34,14 +38,13 @@ export abstract class PackageJsonTaskProvider extends BaseTaskProvider implement
 
       this.addedTasks.clear();
       const tasks: TaskItem[] = await this.getSystemTasks();
-      const filesService = TaskFilesService.getInstance();
       const iconService = TaskIconService.getInstance();
       this.logger.debug(`[${this.type}TaskProvider] Searching for task files with pattern: ${glob}`);
-      const files = await filesService.findFiles([this.filePattern || constants.GLOB_NODEJS]);
+      const files = await this.getMatchingFiles();
       this.logger.debug(`[${this.type}TaskProvider] Found ${files.length} files matching pattern.`);
 
       for (const file of files) {
-        if (filesService.shouldIgnore(file)) {
+        if (TaskFilesService.getInstance().shouldIgnore(file)) {
           continue;
         }
 

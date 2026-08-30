@@ -8,7 +8,6 @@ import * as yaml from 'yaml';
 import { BaseTaskProvider, TaskProvider } from '../taskProvider';
 import { TaskItem } from '../taskItem';
 import constants from '../libs/constants';
-import { TaskFilesService } from '../services/taskFilesService';
 import { TaskIconService } from '../services/taskIconService';
 import { ExecutableService, ExecutableResult } from '../services/executableService';
 import { LoggerService } from '../services/loggerService';
@@ -54,6 +53,12 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
   constructor() {
     super('taskfile', constants.GLOB_TASKFILE);
+  }
+
+  override getFilePatterns(): string[] {
+    const config = vscode.workspace.getConfiguration('workspaceTasks');
+    const customPatterns = config.get<string[]>('taskfile.additionalFilePatterns', []);
+    return this.mergeFilePatterns([constants.GLOB_TASKFILE, ...customPatterns]);
   }
 
   protected fileExists(filePath: string): boolean {
@@ -168,13 +173,8 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       return [];
     }
 
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
-    const customPatterns = config.get<string[]>('taskfile.additionalFilePatterns', []);
-    const patterns = [constants.GLOB_TASKFILE, ...customPatterns];
-
-    const filesService = TaskFilesService.getInstance();
     const iconService = TaskIconService.getInstance();
-    const files = await filesService.findFiles(patterns);
+    const files = await this.getMatchingFiles();
 
     // Deduplicate by Taskfile path and always use --taskfile for explicit, deterministic discovery.
     const taskfileMap = new Map<string, vscode.Uri>();
