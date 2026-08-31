@@ -125,7 +125,7 @@
     "changelog:build": "pnpm exec git-cliff --bump --unreleased --prepend CHANGELOG.md"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.1",
     "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
     "@types/node": "~26.1.2",
