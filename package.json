@@ -136,7 +136,7 @@
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
     "chart.js": "^4.5.1",
-    "eslint": "^10.7.0",
+    "eslint": "^10.9.0",
     "git-cliff": "^2.13.1",
     "glob": "^13.0.6",
     "mocha": "^11.7.6",
