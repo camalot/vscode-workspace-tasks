@@ -129,7 +129,7 @@
     "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
     "@types/node": "~26.1.2",
-    "@types/vscode": "^1.125.0",
+    "@types/vscode": "^1.134.0",
     "@typescript-eslint/eslint-plugin": "^8.64.0",
     "@typescript-eslint/parser": "^8.64.0",
     "@vscode/test-cli": "^0.0.15",
