@@ -573,7 +573,8 @@
           "workspaceTasks.debug": {
             "type": "boolean",
             "default": false,
-            "description": "%config.workspaceTasks.debug%"
+            "description": "%config.workspaceTasks.debug%",
+            "scope": "resource"
           },
           "workspaceTasks.metrics.scope": {
             "title": "%config.workspaceTasks.metrics.scope%",
@@ -592,7 +593,8 @@
             ],
             "default": "workspace",
             "description": "%config.workspaceTasks.metrics.scope.description%",
-            "markdownDescription": "%config.workspaceTasks.metrics.scope.markdown%"
+            "markdownDescription": "%config.workspaceTasks.metrics.scope.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.metrics.maxDurationSamples": {
             "title": "%config.workspaceTasks.metrics.maxDurationSamples%",
@@ -601,7 +603,8 @@
             "minimum": 10,
             "maximum": 1000,
             "description": "%config.workspaceTasks.metrics.maxDurationSamples.description%",
-            "markdownDescription": "%config.workspaceTasks.metrics.maxDurationSamples.markdown%"
+            "markdownDescription": "%config.workspaceTasks.metrics.maxDurationSamples.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.metrics.retentionDays": {
             "title": "%config.workspaceTasks.metrics.retentionDays%",
@@ -609,7 +612,8 @@
             "default": 0,
             "minimum": 0,
             "description": "%config.workspaceTasks.metrics.retentionDays.description%",
-            "markdownDescription": "%config.workspaceTasks.metrics.retentionDays.markdown%"
+            "markdownDescription": "%config.workspaceTasks.metrics.retentionDays.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.history.maxPersistedRecords": {
             "title": "%config.workspaceTasks.history.maxPersistedRecords%",
@@ -618,7 +622,8 @@
             "minimum": 10,
             "maximum": 2000,
             "description": "%config.workspaceTasks.history.maxPersistedRecords.description%",
-            "markdownDescription": "%config.workspaceTasks.history.maxPersistedRecords.markdown%"
+            "markdownDescription": "%config.workspaceTasks.history.maxPersistedRecords.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.history.retentionDays": {
             "title": "%config.workspaceTasks.history.retentionDays%",
@@ -626,7 +631,8 @@
             "default": 0,
             "minimum": 0,
             "description": "%config.workspaceTasks.history.retentionDays.description%",
-            "markdownDescription": "%config.workspaceTasks.history.retentionDays.markdown%"
+            "markdownDescription": "%config.workspaceTasks.history.retentionDays.markdown%",
+            "scope": "resource"
           }
         }
       },
@@ -640,7 +646,8 @@
             },
             "default": [],
             "description": "%config.workspaceTasks.exclude.description%",
-            "markdownDescription": "%config.workspaceTasks.exclude.markdown%"
+            "markdownDescription": "%config.workspaceTasks.exclude.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.taskDiscovery.fetchDepth": {
             "type": [
@@ -650,7 +657,8 @@
             "description": "%config.workspaceTasks.taskDiscovery.fetchDepth%",
             "markdownDescription": "%config.workspaceTasks.taskDiscovery.fetchDepth.markdown%",
             "default": null,
-            "minimum": 1
+            "minimum": 1,
+            "scope": "resource"
           },
           "workspaceTasks.enabledTaskTypes": {
             "type": "object",
@@ -849,11 +857,12 @@
               "taskfile": true,
               "gitlab-ci": true,
               "bitbucket": true
-            }
+            },
+            "scope": "resource"
           },
           "workspaceTasks.enabledTaskTypePatterns": {
             "type": "array",
-            "scope": "window",
+            "scope": "resource",
             "items": {
               "type": "string"
             },
@@ -863,7 +872,7 @@
           },
           "workspaceTasks.disabledTaskTypePatterns": {
             "type": "array",
-            "scope": "window",
+            "scope": "resource",
             "items": {
               "type": "string"
             },
@@ -943,7 +952,8 @@
               "python": true,
               "ruby": true,
               "other": true
-            }
+            },
+            "scope": "resource"
           },
           "workspaceTasks.shellPaths": {
             "type": "object",
@@ -1006,7 +1016,8 @@
                 "description": "%config.workspaceTasks.shellEnabledTaskTypes.zsh%",
                 "default": "zsh"
               }
-            }
+            },
+            "scope": "resource"
           },
           "workspaceTasks.shellAdditionalExtensions": {
             "type": "object",
@@ -1014,7 +1025,47 @@
               "type": "string"
             },
             "description": "%config.workspaceTasks.shellAdditionalExtensions%",
-            "markdownDescription": "%config.workspaceTasks.shellAdditionalExtensions.markdown%"
+            "markdownDescription": "%config.workspaceTasks.shellAdditionalExtensions.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.additionalFilePatterns": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default": {},
+            "markdownDescription": "%config.workspaceTasks.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.taskfile.additionalFilePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.taskfile.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.gitlabCiLocal.additionalFilePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.additionalFilePatterns.markdown%",
+            "scope": "resource"
+          },
+          "workspaceTasks.circleci.additionalFilePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "%config.workspaceTasks.circleci.additionalFilePatterns.markdown%",
+            "scope": "resource"
           }
         }
       },
@@ -1025,26 +1076,30 @@
             "title": "%config.workspaceTasks.tasks.sortingEnabled%",
             "type": "boolean",
             "default": true,
-            "markdownDescription": "%config.workspaceTasks.tasks.sortingEnabled.markdown%"
+            "markdownDescription": "%config.workspaceTasks.tasks.sortingEnabled.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.groups.enabled": {
             "title": "%config.workspaceTasks.groups.enabled%",
             "type": "boolean",
             "default": true,
             "description": "%config.workspaceTasks.groups.enabled.description%",
-            "markdownDescription": "%config.workspaceTasks.groups.enabled.markdown%"
+            "markdownDescription": "%config.workspaceTasks.groups.enabled.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.groups.useParentFolder": {
             "title": "%config.workspaceTasks.groups.useParentFolder%",
             "type": "boolean",
             "default": false,
             "description": "%config.workspaceTasks.groups.useParentFolder.description%",
-            "markdownDescription": "%config.workspaceTasks.groups.useParentFolder.markdown%"
+            "markdownDescription": "%config.workspaceTasks.groups.useParentFolder.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.groups.expanded": {
             "type": "object",
             "additionalProperties": false,
             "markdownDescription": "%config.workspaceTasks.groups.expanded.markdown%",
+            "scope": "window",
             "properties": {
               "favorites": {
                 "type": "boolean",
@@ -1070,47 +1125,53 @@
             "type": "boolean",
             "default": false,
             "description": "%config.workspaceTasks.groups.recentTasks.enabled%",
-            "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%"
+            "markdownDescription": "%config.workspaceTasks.groups.recentTasks.enabled.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.groups.justfile.enabled": {
             "title": "%config.workspaceTasks.groups.justfile.enabled%",
             "type": "boolean",
             "default": false,
             "description": "%config.workspaceTasks.groups.justfile.enabled.description%",
-            "markdownDescription": "%config.workspaceTasks.groups.justfile.enabled.markdown%"
+            "markdownDescription": "%config.workspaceTasks.groups.justfile.enabled.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.secrets.showEmptyGroup": {
             "type": "boolean",
             "description": "%config.workspaceTasks.secrets.showEmptyGroup%",
             "markdownDescription": "%config.workspaceTasks.secrets.showEmptyGroup.markdown%",
             "default": false,
-            "scope": "resource"
+            "scope": "window"
           },
           "workspaceTasks.groups.compoundTasks.enabled": {
             "title": "%config.workspaceTasks.groups.compoundTasks.enabled%",
             "type": "boolean",
             "default": false,
             "description": "%config.workspaceTasks.groups.compoundTasks.enabled%",
-            "markdownDescription": "%config.workspaceTasks.groups.compoundTasks.enabled.markdown%"
+            "markdownDescription": "%config.workspaceTasks.groups.compoundTasks.enabled.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.groups.taskSeparator": {
             "title": "%config.workspaceTasks.groups.taskSeparator%",
             "type": "string",
             "default": "",
             "description": "%config.workspaceTasks.groups.taskSeparator.description%",
-            "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%"
+            "markdownDescription": "%config.workspaceTasks.groups.taskSeparator.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.groups.taskSeparatorIsRegex": {
             "title": "%config.workspaceTasks.groups.taskSeparatorIsRegex%",
             "type": "boolean",
             "default": false,
             "description": "%config.workspaceTasks.groups.taskSeparatorIsRegex.description%",
-            "markdownDescription": "%config.workspaceTasks.groups.taskSeparatorIsRegex.markdown%"
+            "markdownDescription": "%config.workspaceTasks.groups.taskSeparatorIsRegex.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.task.actionBar": {
             "type": "object",
             "markdownDescription": "%config.workspaceTasks.task.actionBar%",
             "additionalProperties": false,
+            "scope": "window",
             "properties": {
               "run": {
                 "type": "boolean",
@@ -1155,7 +1216,8 @@
             "type": "number",
             "default": 500,
             "description": "%config.workspaceTasks.task.statusResetDelay%",
-            "markdownDescription": "%config.workspaceTasks.task.statusResetDelay.markdown%"
+            "markdownDescription": "%config.workspaceTasks.task.statusResetDelay.markdown%",
+            "scope": "resource"
           },
           "workspaceTasks.task.singleClickAction": {
             "type": "string",
@@ -1173,7 +1235,8 @@
             ],
             "default": "open",
             "description": "%config.workspaceTasks.task.singleClickAction%",
-            "markdownDescription": "%config.workspaceTasks.task.singleClickAction.markdown%"
+            "markdownDescription": "%config.workspaceTasks.task.singleClickAction.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.task.doubleClickAction": {
             "type": "string",
@@ -1191,7 +1254,8 @@
               "Do nothing"
             ],
             "description": "%config.workspaceTasks.task.doubleClickAction%",
-            "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%"
+            "markdownDescription": "%config.workspaceTasks.task.doubleClickAction.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.task.iconType": {
             "type": "string",
@@ -1211,18 +1275,22 @@
               "A play icon that usually represents running or starting something",
               "A custom icon defined by the user"
             ],
-            "markdownDescription": "%config.workspaceTasks.task.iconType.markdown%"
+            "markdownDescription": "%config.workspaceTasks.task.iconType.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.task.iconTypeCustom": {
             "type": "string",
             "default": "",
             "description": "%config.workspaceTasks.task.iconTypeCustom%",
-            "markdownDescription": "%config.workspaceTasks.task.iconTypeCustom.markdown%"
+            "markdownDescription": "%config.workspaceTasks.task.iconTypeCustom.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.task.guidedArgInput": {
             "type": "boolean",
             "default": true,
-            "markdownDescription": "When enabled, running script tasks with arguments will attempt to discover the script's parameters and show guided input prompts. Supported for PowerShell (`.ps1`) via `Get-Help` (with static `param()` block parsing as fallback), Python (`.py`) scripts using `argparse`, and Node.js (`.js`/`.mjs`/`.cjs`) scripts using `argparse` or `parseArgs` (`node:util` and `@pkgjs/parseargs`). Falls back to free-text input when parameters cannot be detected."
+            "description": "%config.workspaceTasks.task.guidedArgInput.description%",
+            "markdownDescription": "%config.workspaceTasks.task.guidedArgInput.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.recentTasks.maxItems": {
             "title": "%config.workspaceTasks.recentTasks.maxItems%",
@@ -1230,7 +1298,8 @@
             "default": 20,
             "minimum": 0,
             "description": "%config.workspaceTasks.recentTasks.maxItems.description%",
-            "markdownDescription": "%config.workspaceTasks.recentTasks.maxItems.markdown%"
+            "markdownDescription": "%config.workspaceTasks.recentTasks.maxItems.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.codeLens.enabled": {
             "title": "%config.workspaceTasks.codeLens.enabled%",
@@ -1244,6 +1313,7 @@
             "type": "object",
             "markdownDescription": "%config.workspaceTasks.codeLens.actionBar%",
             "additionalProperties": false,
+            "scope": "window",
             "properties": {
               "run": {
                 "type": "boolean",
@@ -1299,13 +1369,15 @@
             ],
             "default": "ask",
             "description": "%config.workspaceTasks.task.forceStopMethod%",
-            "markdownDescription": "%config.workspaceTasks.task.forceStopMethod.markdown%"
+            "markdownDescription": "%config.workspaceTasks.task.forceStopMethod.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.task.stopCompoundDependencies": {
             "type": "boolean",
             "default": true,
             "description": "%config.workspaceTasks.task.stopCompoundDependencies%",
-            "markdownDescription": "%config.workspaceTasks.task.stopCompoundDependencies.markdown%"
+            "markdownDescription": "%config.workspaceTasks.task.stopCompoundDependencies.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.compoundTasks.defaultExecutionType": {
             "type": "string",
@@ -1315,18 +1387,21 @@
             ],
             "default": "sequential",
             "description": "%config.workspaceTasks.compoundTasks.defaultExecutionType%",
-            "markdownDescription": "%config.workspaceTasks.compoundTasks.defaultExecutionType.markdown%"
+            "markdownDescription": "%config.workspaceTasks.compoundTasks.defaultExecutionType.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.compoundTasks.includeVsCodeCompoundTasks": {
             "type": "boolean",
             "default": true,
             "description": "%config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks%",
-            "markdownDescription": "%config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks.markdown%"
+            "markdownDescription": "%config.workspaceTasks.compoundTasks.includeVsCodeCompoundTasks.markdown%",
+            "scope": "window"
           },
           "workspaceTasks.task.presentationOptions": {
             "type": "object",
             "additionalProperties": false,
             "markdownDescription": "%config.workspaceTasks.task.presentationOptions.markdown%",
+            "scope": "window",
             "properties": {
               "reveal": {
                 "type": "string",
@@ -1675,25 +1750,29 @@
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.ansicon%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.ansicon.markdown%",
-            "default": "ansicon.exe"
+            "default": "ansicon.exe",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.ant": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.ant%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.ant.markdown%",
-            "default": "ant"
+            "default": "ant",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.cargo": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.cargo%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.cargo.markdown%",
-            "default": "cargo"
+            "default": "cargo",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.cargo-make": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.cargo-make%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.cargo-make.markdown%",
-            "default": "cargo-make"
+            "default": "cargo-make",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.cmake": {
             "type": "string",
@@ -1706,67 +1785,78 @@
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.composer%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.composer.markdown%",
-            "default": "composer"
+            "default": "composer",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.deno": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.deno%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.deno.markdown%",
-            "default": "~/.deno/bin/deno"
+            "default": "~/.deno/bin/deno",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.gradle": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.gradle%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.gradle.markdown%",
-            "default": "gradlew"
+            "default": "gradlew",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.just": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.just%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.just.markdown%",
-            "default": "just"
+            "default": "just",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.make": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.make%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.make.markdown%",
-            "default": "make"
+            "default": "make",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.maven": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.maven%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.maven.markdown%",
-            "default": "mvn"
+            "default": "mvn",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.msbuild": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.msbuild%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.msbuild.markdown%",
-            "default": "msbuild"
+            "default": "msbuild",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.pipenv": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.pipenv%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.pipenv.markdown%",
-            "default": "pipenv"
+            "default": "pipenv",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.poe": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.poe%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.poe.markdown%",
-            "default": "poe"
+            "default": "poe",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.poetry": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.poetry%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.poetry.markdown%",
-            "default": "poetry"
+            "default": "poetry",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.rake": {
             "type": "string",
             "description": "%config.workspaceTasks.applicationPath.rake%",
             "markdownDescription": "%config.workspaceTasks.applicationPath.rake.markdown%",
-            "default": "rake"
+            "default": "rake",
+            "scope": "resource"
           },
           "workspaceTasks.applicationPath.taskfile": {
             "type": "string",
@@ -1788,27 +1878,6 @@
             "markdownDescription": "%config.workspaceTasks.taskfile.showAliases.markdown%",
             "scope": "resource"
           },
-          "workspaceTasks.taskfile.additionalFilePatterns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "markdownDescription": "%config.workspaceTasks.taskfile.additionalFilePatterns.markdown%",
-            "scope": "resource"
-          },
-          "workspaceTasks.additionalFilePatterns": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "default": {},
-            "markdownDescription": "%config.workspaceTasks.additionalFilePatterns.markdown%",
-            "scope": "resource"
-          },
           "workspaceTasks.taskfile.discoverGlobalTaskfile": {
             "type": "boolean",
             "default": false,
@@ -1825,7 +1894,8 @@
             "type": "boolean",
             "description": "%config.workspaceTasks.ant.ansicon.enabled%",
             "markdownDescription": "%config.workspaceTasks.ant.ansicon.enabled.markdown%",
-            "default": true
+            "default": true,
+            "scope": "resource"
           },
           "workspaceTasks.act.envFile": {
             "type": "string",
@@ -1888,15 +1958,6 @@
             "default": "",
             "scope": "resource"
           },
-          "workspaceTasks.gitlabCiLocal.additionalFilePatterns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.additionalFilePatterns.markdown%",
-            "scope": "resource"
-          },
           "workspaceTasks.gitlabCiLocal.variablesFile": {
             "type": "string",
             "default": "",
@@ -1934,15 +1995,6 @@
             "type": "string",
             "default": "",
             "markdownDescription": "%config.workspaceTasks.gitlabCiLocal.home.markdown%",
-            "scope": "resource"
-          },
-          "workspaceTasks.circleci.additionalFilePatterns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "markdownDescription": "%config.workspaceTasks.circleci.additionalFilePatterns.markdown%",
             "scope": "resource"
           },
           "workspaceTasks.bitbucketPipelineRunner.environmentFiles": {
