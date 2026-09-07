@@ -4,8 +4,9 @@
   "IgnoreDefaults": false,
   "SpacesAfterTabs": false,
   "NoColor": false,
-  "exclude": [
+  "Exclude": [
     "test",
+    "sample",
     "node_modules"
   ],
   "AllowedContentTypes": [],
