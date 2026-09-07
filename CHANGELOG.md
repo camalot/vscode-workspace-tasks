@@ -1,4 +1,97 @@
 
+## [v1.14.0](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.0) - 2026-08-30
+
+### 🚀 FEATURES
+
+#### _GENERAL_
+
+- User-Configurable File Discovery Patterns Per Task Provider - Phase 1 [#286](https://github.com/camalot/vscode-workspace-tasks/issues/286)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- User-Configurable File Discovery Patterns Per Task Provider - Phase 2 [#286](https://github.com/camalot/vscode-workspace-tasks/issues/286)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- User-Configurable File Discovery Patterns Per Task Provider - Phase 3 [#286](https://github.com/camalot/vscode-workspace-tasks/issues/286)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- User-Configurable File Discovery Patterns Per Task Provider - Phase 4 [#286](https://github.com/camalot/vscode-workspace-tasks/issues/286)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- User-Configurable File Discovery Patterns Per Task Provider - Phase 5 [#286](https://github.com/camalot/vscode-workspace-tasks/issues/286)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- User-Configurable File Discovery Patterns Per Task Provider - Phase 6 [#286](https://github.com/camalot/vscode-workspace-tasks/issues/286)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+
+### 🐛 BUG FIXES
+
+#### _GENERAL_
+
+- Linter issues for sample files [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- Still having issues with makefile lint [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- Wrong glob for editorconfig makefile rules [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- V1.14.0 ()[#288](https://github.com/camalot/vscode-workspace-tasks/issues/288)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- Updated dependencies     [#285](https://github.com/camalot/vscode-workspace-tasks/issues/285) [#284](https://github.com/camalot/vscode-workspace-tasks/issues/284) [#283](https://github.com/camalot/vscode-workspace-tasks/issues/283) [#280](https://github.com/camalot/vscode-workspace-tasks/issues/280) [#279](https://github.com/camalot/vscode-workspace-tasks/issues/279)  [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+
+### 📚 DOCUMENTATION
+
+#### _GENERAL_
+
+- Update readme and docs with version info -[@camalot](https://github.com/camalot)
+
+- Update readme and docs with version info -[@camalot](https://github.com/camalot)
+
+- Adjust plan for recipes [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+- Plan for provider specific user defined file globs [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+
+### ⚙️ MISCELLANEOUS TASKS
+
+#### _GENERAL_
+
+- Devcontainer to support gitconfig-oss/work file [#288](https://github.com/camalot/vscode-workspace-tasks/pull/288) -[@camalot](https://github.com/camalot)
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot) in
+[#288](https://github.com/camalot/vscode-workspace-tasks/pull/288)
+
+## 📈 Commit Statistics
+
+
+- `16` commits contributed to the release.
+- `30` days have passed between the first and last commit.
+- `15` commits parsed as conventional.
+- `7` linked issues detected in commits.
+  - [#286](https://github.com/camalot/vscode-workspace-tasks/issues/286) (referenced 6 times)
+  - [#279](https://github.com/camalot/vscode-workspace-tasks/issues/279) (referenced 1 time)
+  - [#280](https://github.com/camalot/vscode-workspace-tasks/issues/280) (referenced 1 time)
+  - [#283](https://github.com/camalot/vscode-workspace-tasks/issues/283) (referenced 1 time)
+  - [#284](https://github.com/camalot/vscode-workspace-tasks/issues/284) (referenced 1 time)
+  - [#285](https://github.com/camalot/vscode-workspace-tasks/issues/285) (referenced 1 time)
+  - [#288](https://github.com/camalot/vscode-workspace-tasks/issues/288) (referenced 1 time)
+- `32` days  have passed between releases.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[16,1,30,15,7,32]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.13.0...v1.14.0
+
 ## [v1.13.0](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.13.0) - 2026-07-29
 
 ### 🚀 FEATURES
