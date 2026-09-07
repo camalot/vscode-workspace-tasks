@@ -1,4 +1,65 @@
 
+## [v1.14.1](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.1) - 2026-09-07
+
+### 🐛 BUG FIXES
+
+#### _GENERAL_
+
+- Better support for makefile includes [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- Lint issues. ignore sample directory. [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- Update to not require new line at end of package.json [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- V1.14.1 ()[#296](https://github.com/camalot/vscode-workspace-tasks/issues/296)  [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+
+### ⚙️ MISCELLANEOUS TASKS
+
+#### _GENERAL_
+
+- WorkspaceTasks.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- WorkspaceTasks.taskfile.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- WorkspaceTasks.gitlabCiLocal.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- WorkspaceTasks.circleci.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot) in
+[#296](https://github.com/camalot/vscode-workspace-tasks/pull/296)
+
+## 📈 Commit Statistics
+
+
+- `8` commits contributed to the release.
+- `0` days have passed between the first and last commit.
+- `7` commits parsed as conventional.
+- `1` linked issue detected in commits.
+  - [#296](https://github.com/camalot/vscode-workspace-tasks/issues/296) (referenced 1 time)
+- `8` days  have passed between releases.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[8,1,0,7,1,8]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.14.0...v1.14.1
+
 ## [v1.14.0](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.0) - 2026-08-30
 
 ### 🚀 FEATURES
