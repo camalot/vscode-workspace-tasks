@@ -85,6 +85,10 @@
   "config.workspaceTasks.debug": "Enable debug logging for Workspace Tasks",
   "config.workspaceTasks.debug.markdown": "When enabled, the extension will output detailed debug logs to the WorkspaceTasks Output Channel. This can help with troubleshooting issues. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/general/debugging#workspacetasksdebug)",
 
+  "config.workspaceTasks.task.guidedArgInput.markdown": "When enabled, running script tasks with arguments will attempt to discover the script's parameters and show guided input prompts. Supported for PowerShell (`.ps1`) via `Get-Help` (with static `param()` block parsing as fallback), Python (`.py`) scripts using `argparse`, and Node.js (`.js`/`.mjs`/`.cjs`) scripts using `argparse` or `parseArgs` (`node:util` and `@pkgjs/parseargs`). Falls back to free-text input when parameters cannot be detected",
+
+  "config.workspaceTasks.task.guidedArgInput.description": "When enabled, running script tasks with arguments will attempt to discover the script's parameters and show guided input prompts. Supported for PowerShell (.ps1) via Get-Help (with static param() block parsing as fallback), Python (.py) scripts using argparse, and Node.js (.js/.mjs/.cjs) scripts using argparse or parseArgs (node:util and @pkgjs/parseargs). Falls back to free-text input when parameters cannot be detected",
+
   "config.workspaceTasks.task.actionBar": "Select which items should be shown in the task action bar for each task. This allows you to customize the actions available for tasks in the workspace. [Read More](https://camalot.github.io/vscode-workspace-tasks/configuration/task-action.html#workspacetaskstaskactionbar)",
 
   "config.workspaceTasks.task.actionBar.run": "Run Task",

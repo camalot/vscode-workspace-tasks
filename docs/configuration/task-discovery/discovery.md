@@ -239,7 +239,7 @@ These patterns are merged with the built-in Taskfile patterns.
 ### workspaceTasks.additionalFilePatterns
 
 {: .new }
-> **v1.13.1** Add extra file-discovery globs per task type.
+> **v1.14.0** Add extra file-discovery globs per task type.
 
 | | |
 | --- | --- |

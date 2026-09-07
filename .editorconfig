@@ -41,3 +41,6 @@ trim_trailing_whitespace = unset
 [*.code-workspace]
 insert_final_newline = unset
 trim_trailing_whitespace = unset
+
+[package.json]
+insert_final_newline = unset

@@ -29,3 +29,10 @@
 {"id":"1784302650201055","taskName":"Not cancelable Task","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784302650201,"status":"Terminated","endTime":1784302692912,"exitCode":137,"duration":42711}
 {"id":"1784304642563673","taskName":"Not cancelable Task","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784304642563,"status":"Success","endTime":1784304665362,"exitCode":0,"duration":22799}
 {"id":"1784306919754707","taskName":"Not cancelable Task","taskSource":"Workspace","scope":"simple","definitionType":"shell","startTime":1784306919754,"status":"Success","endTime":1784306948185,"exitCode":0,"duration":28431}
+{"id":"1788802990826219","taskName":"build-windows","taskSource":"makefile","scope":"2","definitionType":"shell","startTime":1788802990826,"status":"Success","endTime":1788802991400,"exitCode":0,"duration":574}
+{"id":"1788803009926461","taskName":"clean","taskSource":"makefile","scope":"2","definitionType":"shell","startTime":1788803009926,"status":"Success","endTime":1788803010269,"exitCode":0,"duration":343}
+{"id":"1788803019813172","taskName":"help","taskSource":"makefile","scope":"2","definitionType":"shell","startTime":1788803019813,"status":"Success","endTime":1788803020205,"exitCode":0,"duration":392}
+{"id":"1788803059842745","taskName":"build-windows","taskSource":"makefile","scope":"2","definitionType":"shell","startTime":1788803059842,"status":"Success","endTime":1788803060202,"exitCode":0,"duration":360}
+{"id":"1788803121737017","taskName":"go-lint","taskSource":"makefile","scope":"2","definitionType":"shell","startTime":1788803121737,"status":"Success","endTime":1788803122024,"exitCode":0,"duration":287}
+{"id":"1788803151255579","taskName":"clean","taskSource":"makefile","scope":"2","definitionType":"shell","startTime":1788803151255,"status":"Failed","endTime":1788803151516,"exitCode":2,"duration":261}
+{"id":"1788803253284279","taskName":"generate-help","taskSource":"makefile","scope":"2","definitionType":"shell","startTime":1788803253284,"status":"Success","endTime":1788803253576,"exitCode":0,"duration":292}
