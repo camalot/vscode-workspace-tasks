@@ -1,4 +1,97 @@
 
+## [v1.14.3](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.3) - 2026-09-08
+
+### 🐛 BUG FIXES
+
+#### _GENERAL_
+
+- Better support for makefile includes [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- Lint issues. ignore sample directory. [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- Update to not require new line at end of package.json [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- V1.14.1 ()[#296](https://github.com/camalot/vscode-workspace-tasks/issues/296)  [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+
+### ⚙️ MISCELLANEOUS TASKS
+
+
+#### _RELEASE_
+- Update changelog for v1.14.1 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- Update changelog for v1.14.1 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- Update changelog for v1.14.1 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- Update changelog for v1.14.2 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+#### _GENERAL_
+
+- WorkspaceTasks.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- WorkspaceTasks.taskfile.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- WorkspaceTasks.gitlabCiLocal.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- WorkspaceTasks.circleci.additionalFilePatterns moved to task discovery group [#296](https://github.com/camalot/vscode-workspace-tasks/pull/296) -[@camalot](https://github.com/camalot)
+
+- Use dependencies false during publish -[@camalot](https://github.com/camalot)
+
+
+### ◀️ REVERT
+
+#### _GENERAL_
+
+- Revert "chore(release): update changelog for v1.14.1 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- This reverts commit d209c22d7735c439c654caab8b0323e3a190916a. -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- Revert "chore(release): update changelog for v1.14.1 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- This reverts commit cd77a5a4001b308641e5c8318c90399fff7a2ddd. -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- Revert "chore(release): update changelog for v1.14.1 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- This reverts commit 094c8c80b25183cba21868fee3abb103ba2d958b. -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- Revert "chore(release): update changelog for v1.14.2 -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+- This reverts commit 628c26619407e3fc6b8b28e65e8a3e7c03d4a8cb. -[@github-actions[bot]](https://github.com/github-actions[bot])
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot)
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+## 📈 Commit Statistics
+
+
+- `21` commits contributed to the release.
+- `1` day has passed between the first and last commit.
+- `12` commits parsed as conventional.
+- `1` linked issue detected in commits.
+  - [#296](https://github.com/camalot/vscode-workspace-tasks/issues/296) (referenced 1 time)
+- `9` days  have passed between releases.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[21,2,1,12,1,9]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.14.0...v1.14.3
+
 ## [v1.14.0](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.0) - 2026-08-30
 
 ### 🚀 FEATURES
