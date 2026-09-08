@@ -1,4 +1,56 @@
 
+## [v1.14.4](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.4) - 2026-09-08
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- Merge branch 'develop' of github.com:camalot/vscode-workspace-tasks into develop -[@camalot](https://github.com/camalot)
+
+- Develop' of github.com:camalot/vscode-workspace-tasks: -[@camalot](https://github.com/camalot)
+
+
+### ⚙️ MISCELLANEOUS TASKS
+
+#### _GENERAL_
+
+- Added files to the .vscodeignore -[@camalot](https://github.com/camalot)
+
+- Added files to the .vscodeignore -[@camalot](https://github.com/camalot)
+
+- chore(release): update changelog for v1.14.3 -[@camalot](https://github.com/camalot)
+
+- Lock file updated -[@camalot](https://github.com/camalot)
+
+- Move openvsx publish after vsmarket publish -[@camalot](https://github.com/camalot)
+
+- Reset package.json to expected version for release -[@camalot](https://github.com/camalot)
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot)
+## 📈 Commit Statistics
+
+
+- `8` commits contributed to the release.
+- `0` days have passed between the first and last commit.
+- `5` commits parsed as conventional.
+- `0` linked issues detected in commits.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[8,1,0,5,0,0]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.14...v1.14.4
+
 ## [v1.14.3](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.3) - 2026-09-08
 
 ### 🐛 BUG FIXES
