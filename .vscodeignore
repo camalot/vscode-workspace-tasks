@@ -55,6 +55,8 @@ CONTRIBUTING.md
 docs/
 node_modules/
 .pnpm-store/
+pnpm-lock.yaml
+pnpm-workspace.yaml
 ROADMAP.md
 src/
 out/
@@ -63,6 +65,9 @@ eslint.config.mjs
 tsconfig.json
 esbuild.mjs
 eslint.config.mjs
+
+_typos.toml
+.version
 
 reports/**
 

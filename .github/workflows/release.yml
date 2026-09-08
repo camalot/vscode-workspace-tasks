@@ -414,7 +414,6 @@ jobs:
           pat: ${{ env.OPEN_VSX_TOKEN }}
           registryUrl: https://open-vsx.org
           skipDuplicate: true
-          dependencies: false
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
@@ -427,7 +426,6 @@ jobs:
           pat: ${{ env.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
           skipDuplicate: true
-          dependencies: false
           extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
