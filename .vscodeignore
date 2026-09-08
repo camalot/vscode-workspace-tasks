@@ -93,3 +93,7 @@ changelog.yml
 res/**/*.png
 res/**/*.gif
 !res/icon.png
+
+**/*.sbom.*
+playwright-report/
+test-results/
