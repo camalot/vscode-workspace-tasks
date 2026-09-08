@@ -406,18 +406,6 @@ jobs:
         env:
           VSIX_PUBLISHZ: ${{ inputs.vsix_publish }}
 
-      - name: Publish to Open VSX Registry
-        # only publish if everything before (incl. Create Release) succeeded
-        if: ${{ success() && env.OPEN_VSX_TOKEN != '' && env.VSIX_PUBLISH == 'true' }}
-        uses: HaaLeo/publish-vscode-extension@v2
-        with:
-          pat: ${{ env.OPEN_VSX_TOKEN }}
-          registryUrl: https://open-vsx.org
-          skipDuplicate: true
-          extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
-        env:
-          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
-
       - name: Publish to Visual Studio Marketplace
         # only publish if everything before (incl. Create Release) succeeded
         if: ${{ success() && env.VS_MARKETPLACE_TOKEN != '' && env.VSIX_PUBLISH == 'true' }}
@@ -430,6 +418,17 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
+      - name: Publish to Open VSX Registry
+        # only publish if everything before (incl. Create Release) succeeded
+        if: ${{ success() && env.OPEN_VSX_TOKEN != '' && env.VSIX_PUBLISH == 'true' }}
+        uses: HaaLeo/publish-vscode-extension@v2
+        with:
+          pat: ${{ env.OPEN_VSX_TOKEN }}
+          registryUrl: https://open-vsx.org
+          skipDuplicate: true
+          extensionFile: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.vsix
+        env:
+          VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
       - name: Rollback release on later failure
         # Fires only when the release itself SUCCEEDED but a later step
         # (publish/upload) failed. If Create Release failed, the action has
