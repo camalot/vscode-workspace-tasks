@@ -44,3 +44,10 @@ trim_trailing_whitespace = unset
 
 [package.json]
 insert_final_newline = unset
+
+[LICENSE]
+indent_style = unset
+indent_size = unset
+charset = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
