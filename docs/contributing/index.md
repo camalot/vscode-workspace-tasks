@@ -113,6 +113,33 @@ Fix failing tests before submitting; do not skip tests or weaken assertions to h
 
 ---
 
+## Release Supply-Chain Artifacts
+
+The release workflow generates an SPDX JSON SBOM by scanning the extracted VSIX
+contents. It is attached to the GitHub Release alongside the VSIX, with `.sbom.json`
+appended to the complete package filename, for example:
+
+```text
+darthminos-workspace-tasks-1.14.4.vsix
+darthminos-workspace-tasks-1.14.4.vsix.sbom.json
+```
+
+Before creating the release, the workflow generates GitHub build provenance
+attestations covering both files. The signed attestation bundle is attached to
+the workflow run as a versioned `.vsix.provenance` artifact, and the attestation
+is linked from the run summary. Provenance identifies the source commit checked
+out by the workflow; the later release commit updates release metadata.
+SBOM generation, attestation, and artifact upload must succeed before publishing.
+These artifacts are generated even when marketplace publishing is disabled.
+
+To verify a downloaded VSIX using GitHub CLI:
+
+```bash
+gh attestation verify darthminos-workspace-tasks-1.14.4.vsix --repo camalot/vscode-workspace-tasks
+```
+
+---
+
 ## Contributors
 
 <!-- markdownlint-disable MD033 -->
