@@ -103,6 +103,12 @@ Test reports are generated to:
 - `coverage/lcov.info` — Coverage data
 - `coverage/junit.xml` — JUnit test results
 
+Keep Mocha on version 11 while using `mocha-junit-reporter` 2.x. Mocha 12 changes
+the base reporter to an ES class, which causes the JUnit reporter to fail with
+`TypeError: Class constructor Base cannot be invoked without 'new'`.
+After changing test dependencies, run `pnpm install` and commit the updated
+`pnpm-lock.yaml` so the test runner and reporters resolve compatible Mocha versions.
+
 The goal is **90% code coverage** for existing files. New code should achieve **100% coverage**.
 
 Tests must pass on Windows as well as Unix-like systems. Derive filesystem expectations
