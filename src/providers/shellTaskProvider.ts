@@ -12,6 +12,7 @@ interface ShellConfig {
   extensions: string[];
   configKey: string;
   defaultInterpreter: string;
+  defaultInterpreterArgs?: string[];
   /**
    * When true, only files that contain a shebang line (`#!`) are included as tasks.
    * Defaults to false — all files with matching extensions are included regardless.
@@ -44,7 +45,7 @@ const BUILT_IN_SHELLS: Record<string, ShellConfig> = {
   zsh: { extensions: ['zsh'], configKey: 'zsh', defaultInterpreter: 'zsh', requireShebang: false, useShebang: true },
   fish: { extensions: ['fish'], configKey: 'fish', defaultInterpreter: 'fish', requireShebang: false, useShebang: false },
   pwsh: { extensions: ['ps1'], configKey: 'pwsh', defaultInterpreter: 'pwsh', requireShebang: false, useShebang: false },
-  batch: { extensions: ['bat', 'cmd'], configKey: 'batch', defaultInterpreter: 'cmd.exe', requireShebang: false, useShebang: false },
+  batch: { extensions: ['bat', 'cmd'], configKey: 'batch', defaultInterpreter: 'cmd.exe', defaultInterpreterArgs: ['/c'], requireShebang: false, useShebang: false },
   python: { extensions: ['py'], configKey: 'python', defaultInterpreter: 'python3', requireShebang: false, useShebang: true },
   perl: { extensions: ['pl'], configKey: 'perl', defaultInterpreter: 'perl', requireShebang: false, useShebang: true },
   ruby: { extensions: ['rb'], configKey: 'ruby', defaultInterpreter: 'ruby', requireShebang: false, useShebang: true },
@@ -173,7 +174,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
         }
 
         processedFiles.add(file.fsPath);
-        tasks.push(this.createShellTaskItem(file, effectiveInterpreter, type, usesShebang));
+        tasks.push(this.createShellTaskItem(file, effectiveInterpreter, type, usesShebang, '', def.defaultInterpreterArgs));
         typeTaskCount++;
       }
 
@@ -391,7 +392,14 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     return items;
   }
 
-  private createShellTaskItem(resourceUri: vscode.Uri, interpreter: string, subType: string, useShebang = false, shebangInterpreter = ''): TaskItem {
+  private createShellTaskItem(
+    resourceUri: vscode.Uri,
+    interpreter: string,
+    subType: string,
+    useShebang = false,
+    shebangInterpreter = '',
+    interpreterArgs: string[] = [],
+  ): TaskItem {
     const filename = path.basename(resourceUri.fsPath);
     const iconService = TaskIconService.getInstance();
 
@@ -428,6 +436,7 @@ export class ShellTaskProvider extends BaseTaskProvider implements TaskProvider 
     // Store interpreter info for TaskFactory
     item.metadata = {
       interpreter: interpreter,
+      interpreterArgs: interpreterArgs,
       subType: subType,
       useShebang: useShebang,
     };

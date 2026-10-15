@@ -6,6 +6,7 @@ import { ShellTaskProvider } from '../../providers/shellTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
 import { TaskItem } from '../../taskItem';
 import { TaskIconService } from '../../services/taskIconService';
+import { createTaskForItem } from '../../taskFactory';
 
 // Helper to build a file URI from the task-files/shell directory.
 // The compiled tests run from out/test/suite but task-files live in src/test/task-files,
@@ -300,6 +301,33 @@ suite('ShellTaskProvider Test Suite', () => {
   });
 
   // ── Duplicate file prevention ─────────────────────────────────────────────
+
+  for (const extension of ['bat', 'cmd']) {
+    for (const customInterpreter of [undefined, path.join('custom shell', 'cmd.exe')]) {
+      test(`batch .${extension} tasks pass /c before the script (${customInterpreter ?? 'default interpreter'})`, async () => {
+        mockConfig.shellPaths = customInterpreter ? { batch: customInterpreter } : {};
+        const uri = shellUri(`script with spaces.${extension}`);
+        TaskFilesService.getInstance().findFiles = async (patterns: string[]) =>
+          patterns.includes(`**/*.${extension}`) ? [uri] : [];
+
+        const provider = new ShellTaskProvider();
+        Object.defineProperty(provider, 'enabled', { get: () => true, configurable: true });
+        const items = await provider.getTasks();
+        const item = items.find((task) => task.taskFileUri?.fsPath === uri.fsPath);
+        assert.ok(item, 'Should discover the batch script');
+        assert.deepStrictEqual(item.metadata.interpreterArgs, ['/c']);
+
+        const created = await createTaskForItem(item, '--config "my config.json"');
+        assert.ok(created, 'Should create a runnable task');
+        const execution = created.task.execution as vscode.ShellExecution;
+        const interpreter = customInterpreter ?? 'cmd.exe';
+        assert.strictEqual(execution.command, interpreter);
+        assert.deepStrictEqual(execution.args, ['/c', uri.fsPath, '--config', 'my config.json']);
+        assert.strictEqual(created.command, `${interpreter} /c ${uri.fsPath} --config my config.json`);
+        provider.dispose();
+      });
+    }
+  }
 
   test('duplicate files are not added twice even when matched by multiple patterns', async () => {
     const filesService = TaskFilesService.getInstance();

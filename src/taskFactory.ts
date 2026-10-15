@@ -177,6 +177,7 @@ async function _buildTask(
       }
 
       if (interpreter) {
+        shellArgs.unshift(...(item.metadata?.interpreterArgs ?? []));
         shellExec = new vscode.ShellExecution(interpreter, shellArgs, { cwd });
         commandString = `${interpreter} ${shellArgs.join(' ')}`;
       } else {

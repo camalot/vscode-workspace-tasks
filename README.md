@@ -209,7 +209,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/vscode.png" width="32" alt="Visual Studio Code" title="Visual Studio Code"/>
 </p>
 
-- **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`; extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
+- **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd` (batch scripts use `cmd.exe /c`); extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
 - **[Jupyter Notebook](https://jupyter.org/)** - Execute notebook cells from `*.ipynb` files
   - **Discovery:** Notebook tasks are discovered from `*.ipynb` files even if the Jupyter extension is not currently available
   - **Requirements for execution:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
