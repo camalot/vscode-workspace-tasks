@@ -1,4 +1,73 @@
 
+## [v1.14.5](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.5) - 2026-10-15
+
+### 🐛 BUG FIXES
+
+
+#### _LINT_
+- Unset configs for license file [#307](https://github.com/camalot/vscode-workspace-tasks/pull/307) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+- Executing batch file with cmd does not work [#306](https://github.com/camalot/vscode-workspace-tasks/issues/306)  [#307](https://github.com/camalot/vscode-workspace-tasks/pull/307) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- Replace short license with full Apache License 2.0 -[@camalot](https://github.com/camalot)
+
+- Updated the LICENSE file to include the full Apache License 2.0 text. -[@camalot](https://github.com/camalot)
+
+- Ryan Conrad <camalot@gmail.com> -[@camalot](https://github.com/camalot)
+
+- V1.14.5 ()[#307](https://github.com/camalot/vscode-workspace-tasks/issues/307)  [#307](https://github.com/camalot/vscode-workspace-tasks/pull/307) -[@camalot](https://github.com/camalot)
+
+
+### 🧪 TESTING
+
+#### _GENERAL_
+
+- Ensure tests run correctly on windows as well as linux. [#307](https://github.com/camalot/vscode-workspace-tasks/pull/307) -[@camalot](https://github.com/camalot)
+
+
+### ⚙️ MISCELLANEOUS TASKS
+
+
+#### _REPO_
+- Added sbom / provenance to release [#307](https://github.com/camalot/vscode-workspace-tasks/pull/307) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot)
+## 📈 Commit Statistics
+
+
+- `8` commits contributed to the release.
+- `25` days have passed between the first and last commit.
+- `5` commits parsed as conventional.
+- `2` linked issues detected in commits.
+  - [#306](https://github.com/camalot/vscode-workspace-tasks/issues/306) (referenced 1 time)
+  - [#307](https://github.com/camalot/vscode-workspace-tasks/issues/307) (referenced 1 time)
+- `37` days  have passed between releases.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[8,1,25,5,2,37]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.14.4...v1.14.5
+
 ## [v1.14.4](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.4) - 2026-09-08
 
 ### 💼 OTHER
