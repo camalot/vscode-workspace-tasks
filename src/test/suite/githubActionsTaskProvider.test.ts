@@ -51,7 +51,7 @@ suite('GithubActionsTaskProvider Test Suite', () => {
     };
 
     const command = provider.getCommand();
-    assert.strictEqual(command.command, '/mock/tools/act');
+    assert.strictEqual(command.command, process.platform === 'win32' ? '/mock/tools/act.exe' : '/mock/tools/act');
   });
 
   test('getTasks returns empty array when provider is disabled', async () => {

@@ -163,7 +163,7 @@ suite('PackageJsonTaskProvider Test Suite', () => {
     filesService.findFiles = async () => [badFile, goodFile];
 
     (vscode.workspace as any).openTextDocument = async (uri: vscode.Uri) => {
-      if (uri.fsPath.includes('/bad/')) {
+      if (uri.toString() === badFile.toString()) {
         return { getText: () => '{invalid json' };
       }
       return { getText: () => '{"scripts":{"lint":"eslint ."}}' };

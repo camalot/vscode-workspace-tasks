@@ -70,7 +70,7 @@ suite('Mise Provider Test Suite', () => {
       return vscode.Uri.file(p);
     }
 
-    const root = '/project';
+    const root = vscode.Uri.file(path.resolve('project')).fsPath;
 
     test('mise.toml at root → config_root is file directory', () => {
       assert.strictEqual(

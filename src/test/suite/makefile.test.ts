@@ -261,8 +261,8 @@ suite('MakefileTaskProvider Test Suite', () => {
     });
 
     test('surfaces targets from included makefiles under the including makefile', async () => {
-      const root = vscode.Uri.file('/test/Makefile');
-      const included = vscode.Uri.file('/test/makefiles/windows.mk');
+      const root = vscode.Uri.file(path.resolve('test', 'Makefile'));
+      const included = vscode.Uri.joinPath(root, '..', 'makefiles', 'windows.mk');
       TaskFilesService.getInstance().findFiles = async () => [root];
       setFiles({
         [root.fsPath]: 'include ./makefiles/windows.mk\n\nall:\n\techo all\n',
@@ -280,9 +280,9 @@ suite('MakefileTaskProvider Test Suite', () => {
     });
 
     test('resolves transitive includes and skips cycles', async () => {
-      const root = vscode.Uri.file('/test/Makefile');
-      const first = vscode.Uri.file('/test/first.mk');
-      const second = vscode.Uri.file('/test/second.mk');
+      const root = vscode.Uri.file(path.resolve('test', 'Makefile'));
+      const first = vscode.Uri.joinPath(root, '..', 'first.mk');
+      const second = vscode.Uri.joinPath(root, '..', 'second.mk');
       TaskFilesService.getInstance().findFiles = async () => [root];
       setFiles({
         [root.fsPath]: 'include first.mk\n',
@@ -298,8 +298,8 @@ suite('MakefileTaskProvider Test Suite', () => {
     });
 
     test('does not list an included makefile as its own root', async () => {
-      const root = vscode.Uri.file('/test/Makefile');
-      const included = vscode.Uri.file('/test/included.mk');
+      const root = vscode.Uri.file(path.resolve('test', 'Makefile'));
+      const included = vscode.Uri.joinPath(root, '..', 'included.mk');
       TaskFilesService.getInstance().findFiles = async () => [root, included];
       setFiles({
         [root.fsPath]: '-include included.mk\n',
@@ -314,7 +314,7 @@ suite('MakefileTaskProvider Test Suite', () => {
     });
 
     test('ignores includes that are missing, globbed, variable based or inside recipes', async () => {
-      const root = vscode.Uri.file('/test/Makefile');
+      const root = vscode.Uri.file(path.resolve('test', 'Makefile'));
       TaskFilesService.getInstance().findFiles = async () => [root];
       setFiles({
         [root.fsPath]: [

@@ -287,7 +287,7 @@ Contributions are welcome! If you'd like to improve Workspace Tasks, here's how:
 3. **Reopen in Dev Container**: When prompted, reopen the project in the recommended dev container for a consistent development environment
 4. **Install dependencies**: `npm install`
 5. **Run the extension**: Press `F5` to launch a new Extension Development Host instance with the extension loaded
-6. **Run tests**: `npm test` to run unit tests and `npm run test:coverage` for coverage reports
+6. **Run tests**: `pnpm test` to run unit tests and `pnpm run test:coverage` for coverage reports
 
 ### Guidelines
 

@@ -261,16 +261,26 @@ suite('Rake Provider Test Suite', () => {
     filesService.findFiles = async () => [fixtureFile];
 
     (provider as any).getCommand = () => ({
-      command: 'sh',
-      args: ['-c', 'printf "rake lint # Lint tasks\\n"'],
-      cwd: '/workspace',
+      command: process.execPath,
+      args: ['-e', 'process.stdout.write("rake lint # Lint tasks\\n")', '--'],
+      cwd: path.dirname(fixtureFile.fsPath),
     });
 
-    const tasks = await provider.getTasks();
-    assert.strictEqual(tasks.length, 1);
-    assert.strictEqual(tasks[0].label, 'lint');
-    assert.strictEqual(tasks[0].tooltip, 'Lint tasks');
-    assert.ok(!String(tasks[0].tooltip).includes('(static parse)'));
+    const originalRunAsNode = process.env.ELECTRON_RUN_AS_NODE;
+    process.env.ELECTRON_RUN_AS_NODE = '1';
+    try {
+      const tasks = await provider.getTasks();
+      assert.strictEqual(tasks.length, 1);
+      assert.strictEqual(tasks[0].label, 'lint');
+      assert.strictEqual(tasks[0].tooltip, 'Lint tasks');
+      assert.ok(!String(tasks[0].tooltip).includes('(static parse)'));
+    } finally {
+      if (originalRunAsNode === undefined) {
+        delete process.env.ELECTRON_RUN_AS_NODE;
+      } else {
+        process.env.ELECTRON_RUN_AS_NODE = originalRunAsNode;
+      }
+    }
   });
 
   test('getSystemTasks returns empty array when provider is disabled', async () => {

@@ -163,8 +163,8 @@ suite('TaskHistoryService — Persistence', () => {
   let restoreOnDidChangeConfig: () => void;
   let restoreWorkspaceFolders: () => void;
 
-  const NDJSON_PATH = '/workspace/.vscode/task-history.ndjson';
-  const VSCODE_DIR_PATH = '/workspace/.vscode';
+  const VSCODE_DIR_PATH = vscode.Uri.joinPath(vscode.Uri.file('/workspace'), '.vscode').fsPath;
+  const NDJSON_PATH = vscode.Uri.joinPath(vscode.Uri.file(VSCODE_DIR_PATH), 'task-history.ndjson').fsPath;
 
   const resetSingletons = () => {
     (TaskHistoryService as any).instance = undefined;

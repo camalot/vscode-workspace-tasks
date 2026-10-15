@@ -77,7 +77,7 @@ suite('CakeTaskProvider Test Suite', () => {
     const result = provider.getCommand(uri);
     assert.strictEqual(result.command, 'dotnet');
     assert.deepStrictEqual(result.args, ['cake']);
-    assert.strictEqual(result.cwd, '/some/workspace');
+    assert.strictEqual(result.cwd, uri.fsPath);
   });
 
   // ── getSystemTasks ───────────────────────────────────────────────────────────

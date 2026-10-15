@@ -34,7 +34,7 @@ suite('CircleCiTaskProvider Test Suite', () => {
 
   test('getCommand returns circleci as default command', () => {
     const result = provider.getCommand();
-    assert.strictEqual(result.command, 'circleci');
+    assert.strictEqual(result.command, process.platform === 'win32' ? 'circleci.exe' : 'circleci');
   });
 
   test('parseConfig returns undefined for invalid YAML', () => {

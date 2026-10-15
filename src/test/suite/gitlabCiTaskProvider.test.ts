@@ -68,7 +68,7 @@ suite('GitlabCiTaskProvider Test Suite', () => {
 
   test('getCommand returns gitlab-ci-local as default command', () => {
     const result = provider.getCommand();
-    assert.strictEqual(result.command, 'gitlab-ci-local');
+    assert.strictEqual(result.command, process.platform === 'win32' ? 'gitlab-ci-local.exe' : 'gitlab-ci-local');
   });
 
   test('getSystemTasks returns empty array', async () => {

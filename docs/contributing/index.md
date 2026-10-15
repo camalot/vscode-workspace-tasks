@@ -36,7 +36,7 @@ Contributions are welcome! If you'd like to improve Workspace Tasks, here's how 
 3. **Reopen in Dev Container**: When prompted, reopen the project in the recommended dev container for a consistent development environment
 4. **Install dependencies**: `npm install`
 5. **Run the extension**: Press `F5` to launch a new Extension Development Host instance with the extension loaded
-6. **Run tests**: `npm test` to run unit tests and `npm run test:coverage` for coverage reports
+6. **Run tests**: `pnpm test` to run unit tests and `pnpm run test:coverage` for coverage reports
 
 ---
 
@@ -46,7 +46,7 @@ Contributions are welcome! If you'd like to improve Workspace Tasks, here's how 
 - Write clear, descriptive commit messages using [Conventional Commits](https://www.conventionalcommits.org/)
 - Add tests for new features when applicable — new code should have 100% coverage
 - Update documentation for any user-facing changes
-- Ensure all tests pass before submitting: `npm test`
+- Ensure all tests pass before submitting: `pnpm test`
 
 ---
 
@@ -92,10 +92,10 @@ sample/                ← Sample workspace for testing
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run tests with coverage
-npm run vscode:test:coverage
+pnpm run vscode:test:coverage
 ```
 
 Test reports are generated to:
@@ -104,6 +104,12 @@ Test reports are generated to:
 - `coverage/junit.xml` — JUnit test results
 
 The goal is **90% code coverage** for existing files. New code should achieve **100% coverage**.
+
+Tests must pass on Windows as well as Unix-like systems. Derive filesystem expectations
+from `Uri.fsPath` or `path` utilities rather than assuming `/` separators, and account for
+platform-specific executable extensions. Mock filesystem keys must use the same native
+paths as the code under test. CLI tests must not depend on optional shells such as `sh`.
+Fix failing tests before submitting; do not skip tests or weaken assertions to hide failures.
 
 ---
 

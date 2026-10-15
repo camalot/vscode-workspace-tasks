@@ -463,8 +463,8 @@ suite('TaskfileTaskProvider Test Suite', () => {
         (provider as any)._loadTasksFromDirectory = previousLoader;
       }
 
-      assert.strictEqual(capturedDir, '/workspace/backend');
-      assert.strictEqual(capturedPath, '/workspace/backend/Taskfile.ci.yml');
+      assert.strictEqual(capturedDir, path.dirname(selectedTaskfile.fsPath));
+      assert.strictEqual(capturedPath, selectedTaskfile.fsPath);
     });
   });
 
