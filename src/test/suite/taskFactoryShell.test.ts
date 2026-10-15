@@ -53,6 +53,33 @@ suite('TaskFactory Shell Tests', () => {
 
   // ── Direct shebang execution ───────────────────────────────────────────────
 
+  test('preserves interpreter argument order before the script and user arguments', async () => {
+    const uri = shellUri('no-shebang.py');
+    const item = new TaskItem('no-shebang.py', vscode.TreeItemCollapsibleState.None, 'shell', uri);
+    const interpreterArgs = ['-u', '-B'];
+    item.metadata = { interpreter: 'python', interpreterArgs, subType: 'python', useShebang: false };
+
+    const created = await createTaskForItem(item, '--config "my config.json"');
+
+    assert.ok(created);
+    const execution = created.task.execution as vscode.ShellExecution;
+    assert.deepStrictEqual(execution.args, ['-u', '-B', uri.fsPath, '--config', 'my config.json']);
+    assert.strictEqual(created.command, `python -u -B ${uri.fsPath} --config my config.json`);
+    assert.deepStrictEqual(interpreterArgs, ['-u', '-B'], 'Must not mutate metadata arguments');
+  });
+
+  test('accepts an empty interpreter argument list', async () => {
+    const uri = shellUri('no-shebang.py');
+    const item = new TaskItem('no-shebang.py', vscode.TreeItemCollapsibleState.None, 'shell', uri);
+    item.metadata = { interpreter: 'python', interpreterArgs: [] };
+
+    const created = await createTaskForItem(item);
+
+    assert.ok(created);
+    const execution = created.task.execution as vscode.ShellExecution;
+    assert.deepStrictEqual(execution.args, [uri.fsPath]);
+  });
+
   test('executes script directly (no interpreter prefix) when useShebang is true', async () => {
     const uri = shellUri('with-shebang.py');
     const item = new TaskItem('with-shebang.py', vscode.TreeItemCollapsibleState.None, 'shell', uri);
@@ -162,13 +189,14 @@ suite('TaskFactory Shell Tests', () => {
   test('no-interpreter shell task uses array-form ShellExecution with user args', async () => {
     const uri = shellUri('with-shebang.sh');
     const item = new TaskItem('with-shebang.sh', vscode.TreeItemCollapsibleState.None, 'shell', uri);
-    item.metadata = { interpreter: '', subType: 'bash', useShebang: true };
+    item.metadata = { interpreter: '', interpreterArgs: ['/c'], subType: 'bash', useShebang: true };
 
     const created = await createTaskForItem(item, '--config "my config.json"');
     assert.ok(created, 'Should create a task');
     const exec = created!.task.execution as vscode.ShellExecution;
     assert.strictEqual(exec.commandLine, undefined, 'Must not use string-form ShellExecution');
     assert.ok(Array.isArray(exec.args), 'exec.args must be an array');
+    assert.deepStrictEqual(exec.args, ['--config', 'my config.json'], 'Direct execution ignores interpreter arguments');
     // splitArgs() should parse the quoted arg correctly, keeping "my config.json" as a single element
     assert.ok(
       exec.args.some((a) => a === 'my config.json'),

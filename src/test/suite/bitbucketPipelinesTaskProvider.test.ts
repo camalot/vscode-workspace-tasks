@@ -88,7 +88,7 @@ suite('BitbucketPipelinesTaskProvider Test Suite', () => {
 
   test('getCommand returns pipeline-runner as default command', () => {
     const result = provider.getCommand();
-    assert.strictEqual(result.command, 'pipeline-runner');
+    assert.strictEqual(result.command, process.platform === 'win32' ? 'pipeline-runner.exe' : 'pipeline-runner');
   });
 
   test('getSystemTasks returns empty array', async () => {

@@ -165,19 +165,20 @@ suite('contextTokenResolver Test Suite', () => {
       index: 0,
     });
 
+    const activeFileUri = vscode.Uri.file('/repo/src/index.ts');
     Object.defineProperty(vscode.window, 'activeTextEditor', {
       value: {
         document: {
-          uri: vscode.Uri.file('/repo/src/index.ts'),
+          uri: activeFileUri,
         },
       } as unknown as vscode.TextEditor,
       configurable: true,
     });
 
     const ctx = buildContextFromVscode(vscode.Uri.file('/repo/src/a.ts'));
-    assert.strictEqual(ctx.workspaceFolder, '/repo');
+    assert.strictEqual(ctx.workspaceFolder, wsUri.fsPath);
     assert.strictEqual(ctx.workspaceFolderBasename, 'repo');
-    assert.strictEqual(ctx.activeFile, '/repo/src/index.ts');
+    assert.strictEqual(ctx.activeFile, activeFileUri.fsPath);
     assert.strictEqual(ctx.processEnv, process.env);
   });
 

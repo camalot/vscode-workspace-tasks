@@ -1,6 +1,6 @@
 ---
-name: "VIX SBOM Generation"
-description: "Generates SBOM for a given VSIX asset if it exists."
+name: "VSIX SBOM Generation"
+description: "Generates an SPDX JSON SBOM from the packaged VSIX contents."
 inputs:
   github-token:
     description: 'GitHub Token'
@@ -9,45 +9,45 @@ inputs:
   target-asset:
     description: 'Target asset for SBOM generation'
     required: true
+outputs:
+  sbom-path:
+    description: 'Path to the generated SPDX JSON SBOM'
+    value: ${{ steps.extract_vsix.outputs.sbom_path }}
 
 runs:
   using: "composite"
   steps:
-    - name: Check Asset Existence
-      id: check_asset
+    - name: Extract VSIX Package
+      id: extract_vsix
       shell: bash
       env:
         TARGET_ASSET: ${{ inputs.target-asset }}
       run: |
+        set -euo pipefail
         if [ ! -f "$TARGET_ASSET" ]; then
-          echo "Asset not found: $TARGET_ASSET"
-          echo "SBOM generation skipped."
-          echo "asset_exists=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        else
-          echo "Asset found: $TARGET_ASSET"
-          echo "asset_exists=true" >> "$GITHUB_OUTPUT"
+          echo "::error::VSIX not found: $TARGET_ASSET"
+          exit 1
         fi
 
-    - name: Extract VISX Package
-      if: steps.check_asset.outputs.asset_exists == 'true'
-      shell: bash
-      id: extract_visx
-      env:
-        TARGET_ASSET: ${{ inputs.target-asset }}
-      run: |
-        mkdir -p sbom_temp
-        unzip -q "$TARGET_ASSET" -d sbom_temp
-
-        # get the name of the visx file without extension
-        VISX_NAME=$(basename "$TARGET_ASSET" .vsix)
-        echo "visx_name=$VISX_NAME" >> "$GITHUB_OUTPUT"
+        EXTRACT_DIR=$(mktemp -d "${RUNNER_TEMP}/vsix-sbom.XXXXXX")
+        echo "extract_dir=$EXTRACT_DIR" >> "$GITHUB_OUTPUT"
+        echo "sbom_path=${TARGET_ASSET}.sbom.json" >> "$GITHUB_OUTPUT"
+        echo "sbom_name=$(basename "$TARGET_ASSET").sbom.json" >> "$GITHUB_OUTPUT"
+        unzip -q "$TARGET_ASSET" -d "$EXTRACT_DIR"
 
     - name: Generate SBOM
-      if: steps.check_asset.outputs.asset_exists == 'true'
       uses: anchore/sbom-action@v0
       with:
-        path: ./sbom_temp
+        path: ${{ steps.extract_vsix.outputs.extract_dir }}
         format: spdx-json
-        artifact-name: "${{ steps.extract_visx.outputs.visx_name }}.sbom.json"
+        artifact-name: ${{ steps.extract_vsix.outputs.sbom_name }}
+        output-file: ${{ steps.extract_vsix.outputs.sbom_path }}
+        upload-release-assets: false
         github-token: ${{ inputs.github-token }}
+
+    - name: Clean extracted VSIX
+      if: ${{ always() && steps.extract_vsix.outputs.extract_dir != '' }}
+      shell: bash
+      env:
+        EXTRACT_DIR: ${{ steps.extract_vsix.outputs.extract_dir }}
+      run: rm -rf -- "$EXTRACT_DIR"

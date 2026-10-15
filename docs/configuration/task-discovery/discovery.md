@@ -428,6 +428,11 @@ Enable or disable individual shell-script sub-types. This allows fine-grained co
 
 Specify custom interpreter paths for shell script types. Each key is a shell type and the value is the path to the interpreter executable. The configured interpreter is used when a script **does not** contain a shebang line (`#!`), or when the shell type has `useShebang` set to `false`.
 
+Built-in interpreter arguments are placed before the script path, with user-supplied
+task arguments after it. Batch scripts (`.bat` and `.cmd`) run as
+`cmd.exe /c <script> [task arguments]`. The `/c` argument is retained when overriding
+`workspaceTasks.shellPaths.batch`. Direct shebang execution does not use interpreter arguments.
+
 **Example:**
 
 ```json

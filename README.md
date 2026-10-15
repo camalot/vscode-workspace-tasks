@@ -209,7 +209,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
   <img src="https://raw.githubusercontent.com/camalot/vscode-workspace-tasks/refs/heads/develop/res/icons/dark/vscode.png" width="32" alt="Visual Studio Code" title="Visual Studio Code"/>
 </p>
 
-- **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd`; extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
+- **Shell Scripts** - `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd` (batch scripts use `cmd.exe /c`); extensionless scripts (shebang + executable bit, opt-in via `shellEnabledTaskTypes.extensionless`)
 - **[Jupyter Notebook](https://jupyter.org/)** - Execute notebook cells from `*.ipynb` files
   - **Discovery:** Notebook tasks are discovered from `*.ipynb` files even if the Jupyter extension is not currently available
   - **Requirements for execution:** [Jupyter Extension](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) must be installed
@@ -287,7 +287,7 @@ Contributions are welcome! If you'd like to improve Workspace Tasks, here's how:
 3. **Reopen in Dev Container**: When prompted, reopen the project in the recommended dev container for a consistent development environment
 4. **Install dependencies**: `npm install`
 5. **Run the extension**: Press `F5` to launch a new Extension Development Host instance with the extension loaded
-6. **Run tests**: `npm test` to run unit tests and `npm run test:coverage` for coverage reports
+6. **Run tests**: `pnpm test` to run unit tests and `pnpm run test:coverage` for coverage reports
 
 ### Guidelines
 

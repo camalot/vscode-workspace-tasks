@@ -504,7 +504,9 @@ export class TaskCacheService {
           .join(' ');
         cmdLine = `${cmd} ${args}`;
       }
-      cmdLine = cmdLine.toLowerCase();
+      const normalizeExecutionPath = (value: string): string =>
+        value.toLowerCase().replace(/\\/g, '/');
+      cmdLine = normalizeExecutionPath(cmdLine);
 
       const execMatch = candidates.find((item) => {
         const itemUri = item.taskFileUri || item.resourceUri;
@@ -513,7 +515,7 @@ export class TaskCacheService {
         }
         // Check if the item's fsPath is present in the command line
         // We use lowerCase for case-insensitive check (especially on Windows)
-        return cmdLine.includes(itemUri.fsPath.toLowerCase());
+        return cmdLine.includes(normalizeExecutionPath(itemUri.fsPath));
       });
 
       if (execMatch) {

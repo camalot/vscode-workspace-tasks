@@ -437,10 +437,11 @@ suite('WorkspaceTasksService Test Suite', () => {
         (service as any).configLoaded = true;
 
         const uri = vscode.Uri.file('/root/project/src/script.py');
-        vscode.workspace.getWorkspaceFolder = (_u: vscode.Uri) => ({ uri: vscode.Uri.file('/root/project'), name: 'project', index: 0 });
+        const workspaceUri = vscode.Uri.file('/root/project');
+        vscode.workspace.getWorkspaceFolder = (_u: vscode.Uri) => ({ uri: workspaceUri, name: 'project', index: 0 });
 
         const cmd = await service.resolveTaskCommand('tCtx', langId, uri);
-        assert.strictEqual(cmd, 'echo /root/project script.py');
+        assert.strictEqual(cmd, `echo ${workspaceUri.fsPath} script.py`);
     });
 
     test('resolveTaskCommand resolves ${env.VAR} from process.env', async () => {

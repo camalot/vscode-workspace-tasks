@@ -173,7 +173,7 @@ suite('taskToolsUtils — toSummary', () => {
     setWorkspaceFolders([]);
 
     const summary = toSummary(item);
-    assert.strictEqual(summary.source, '/external/Taskfile.yml');
+    assert.strictEqual(summary.source, fileUri.fsPath);
   });
 
   test('item with no file URI — source is null', () => {

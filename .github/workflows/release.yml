@@ -276,6 +276,8 @@ jobs:
       pull-requests: write
       deployments: write
       artifact-metadata: write
+      attestations: write
+      id-token: write
       checks: write
       packages: write
     steps:
@@ -370,13 +372,27 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
 
-      # - name: SBOM Generation
-      #   uses: ./.github/actions/sbom
-      #   with:
-      #     github-token: ${{ github.token }}
-      #     target-asset: "dist/${PACKAGE_OWNER}-${PACKAGE_NAME}-${VERSION}.vsix"
-      #   env:
-      #     VERSION: ${{ needs.version.outputs.ver_major_minor_patch }}
+      - name: Generate SPDX SBOM
+        id: sbom
+        uses: ./.github/actions/sbom
+        with:
+          github-token: ${{ github.token }}
+          target-asset: dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ needs.version.outputs.ver_major_minor_patch }}.vsix
+
+      - name: Attest release build provenance
+        id: provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            dist/${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ needs.version.outputs.ver_major_minor_patch }}.vsix
+            ${{ steps.sbom.outputs.sbom-path }}
+
+      - name: Attach provenance to workflow run
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PACKAGE_OWNER }}-${{ env.PACKAGE_NAME }}-${{ needs.version.outputs.ver_major_minor_patch }}.vsix.provenance
+          path: ${{ steps.provenance.outputs.bundle-path }}
+          if-no-files-found: error
 
       - name: Create Release
         id: create_release
@@ -391,7 +407,7 @@ jobs:
           # we update in this so fake file name here
           UPDATE_FILE_PACKAGE_JSON: "fake-ignore-package.json"
           UPDATE_FILE_JEKYLL_CONFIG: "docs/_config.yml"
-          RELEASE_FILES_GLOB: "dist/*.vsix"
+          RELEASE_FILES_GLOB: "dist/*.vsix*"
 
       - name: Setup to Publish
         shell: bash

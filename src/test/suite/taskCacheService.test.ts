@@ -395,6 +395,27 @@ suite('TaskCacheService Test Suite', () => {
         assert.strictEqual(match, itemB);
     });
 
+    for (const commandLineForm of [true, false]) {
+        test(`findMatchingTask - Matches mixed path separators (${commandLineForm ? 'command line' : 'args'})`, async () => {
+            const uriA = vscode.Uri.file(path.resolve('project', 'scriptA.sh'));
+            const uriB = vscode.Uri.file(path.resolve('project', 'scriptB.sh'));
+            const itemA = createTaskItem('Run Script', 'custom', uriA);
+            const itemB = createTaskItem('Run Script', 'custom', uriB);
+            mockTasks.push(itemA, itemB);
+            await service.refreshProvider('mockType');
+
+            const scriptPath = uriB.fsPath.replace(/[\\/]/g, process.platform === 'win32' ? '/' : '\\');
+            const execution = commandLineForm
+                ? new vscode.ShellExecution(`"${scriptPath}" --flag`)
+                : new vscode.ShellExecution('sh', ['-c', `${scriptPath} --flag`]);
+            const shellTask = new vscode.Task(
+                { type: 'shell' }, vscode.TaskScope.Workspace, 'Run Script', 'testSource', execution,
+            );
+
+            assert.strictEqual(service.findMatchingTask(shellTask), itemB);
+        });
+    }
+
     test('findMatchingTask - Falls back to first candidate when type and execution do not disambiguate', async () => {
         const uriA = vscode.Uri.file('/project/scriptA.sh');
         const uriB = vscode.Uri.file('/project/scriptB.sh');

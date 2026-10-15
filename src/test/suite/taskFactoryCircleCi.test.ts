@@ -45,7 +45,7 @@ suite('Task Factory CircleCI Test Suite', () => {
     assert.strictEqual(created!.task.definition.type, 'circleci');
     assert.strictEqual(created!.task.definition.job, 'lint');
     assert.ok(created!.command?.includes('local execute'));
-    assert.ok(created!.command?.includes('-c .circleci/config.yml'));
+    assert.ok(created!.command?.includes(`-c ${path.join('.circleci', 'config.yml')}`));
     assert.ok(created!.command?.includes(' lint'));
     assert.strictEqual(created!.cwd?.toLowerCase(), path.dirname(path.dirname(configPath)).toLowerCase());
   });
