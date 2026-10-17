@@ -130,6 +130,7 @@ devin --install-extension darthminos.workspace-tasks
 ## 🛠️ Supported Task Types
 
 <a id="supported-task-types"></a>
+
 Workspace Tasks automatically discovers and organizes tasks from a wide variety of tools and frameworks:
 
 ### Package Managers & Build Tools

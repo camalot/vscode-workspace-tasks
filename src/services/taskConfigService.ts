@@ -119,15 +119,16 @@ export class TaskConfigService {
    * 4. `enabledTaskTypes[configKey]` boolean → opt-out default
    *
    * @param taskType The task type to check (e.g., 'npm', 'vscode', 'workspace', 'dockerfile')
+   * @param resource The resource whose workspace-folder settings should apply
    * @returns true if the task type is enabled, false otherwise
    */
-  public isTaskTypeEnabled(taskType: string): boolean {
-    const config = vscode.workspace.getConfiguration('workspaceTasks');
+  public isTaskTypeEnabled(taskType: string, resource?: vscode.Uri): boolean {
+    const config = vscode.workspace.getConfiguration('workspaceTasks', resource);
     const enabledTaskTypes = config.get<Record<string, boolean>>('enabledTaskTypes', {});
     const enabledPatterns = config.get<string[]>('enabledTaskTypePatterns', []);
     const disabledPatterns = config.get<string[]>('disabledTaskTypePatterns', []);
 
-    // Normalise to the visible config-key so patterns and enabledTaskTypes always refer to the
+    // Normalize to the visible config-key so patterns and enabledTaskTypes always refer to the
     // same name (e.g. 'docker' for both 'dockerfile' and 'docker-compose', 'make' for 'makefile').
     const configKey = this.getConfigKey(taskType);
 

@@ -2,14 +2,19 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { CakeTaskProvider } from '../../providers/cakeTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
+import { TaskConfigService } from '../../services/taskConfigService';
 import constants from '../../libs/constants';
 
 suite('CakeTaskProvider Test Suite', () => {
   let originalFindFiles: any;
   let originalOpenTextDocument: any;
   let originalAsRelativePath: any;
+  let originalIsTaskTypeEnabled: TaskConfigService['isTaskTypeEnabled'];
 
   setup(() => {
+    const configService = TaskConfigService.getInstance();
+    originalIsTaskTypeEnabled = configService.isTaskTypeEnabled;
+    configService.isTaskTypeEnabled = () => true;
     const filesService = TaskFilesService.getInstance();
     originalFindFiles = filesService.findFiles.bind(filesService);
     originalOpenTextDocument = vscode.workspace.openTextDocument;
@@ -25,6 +30,7 @@ suite('CakeTaskProvider Test Suite', () => {
   });
 
   teardown(() => {
+    TaskConfigService.getInstance().isTaskTypeEnabled = originalIsTaskTypeEnabled;
     const filesService = TaskFilesService.getInstance();
     filesService.findFiles = originalFindFiles;
     (vscode.workspace as any).openTextDocument = originalOpenTextDocument;

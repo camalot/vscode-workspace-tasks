@@ -65,8 +65,12 @@ eslint.config.mjs
 tsconfig.json
 esbuild.mjs
 eslint.config.mjs
+.markdownlint-cli2.jsonc
 
 _typos.toml
+.typos.toml
+typos.toml
+
 .version
 
 reports/**

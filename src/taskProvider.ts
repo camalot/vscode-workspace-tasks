@@ -80,11 +80,17 @@ export abstract class BaseTaskProvider implements TaskProvider {
   }
 
   protected async getMatchingFiles(exclude?: string[]): Promise<vscode.Uri[]> {
-    return TaskFilesService.getInstance().findFiles(this.getFilePatterns(), exclude);
+    const files = await TaskFilesService.getInstance().findFiles(this.getFilePatterns(), exclude);
+    const configService = TaskConfigService.getInstance();
+    return files.filter((file) => configService.isTaskTypeEnabled(this.type, file));
   }
 
   get enabled(): boolean {
-    return TaskConfigService.getInstance().isTaskTypeEnabled(this.type);
+    const configService = TaskConfigService.getInstance();
+    const folders = vscode.workspace.workspaceFolders;
+    return folders?.length
+      ? folders.some((folder) => configService.isTaskTypeEnabled(this.type, folder.uri))
+      : configService.isTaskTypeEnabled(this.type);
   }
 
   abstract getTasks(): Promise<TaskItem[]>;

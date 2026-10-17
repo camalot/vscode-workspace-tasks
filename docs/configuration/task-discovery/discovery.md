@@ -67,6 +67,19 @@ nav_order: 2
 
 Select which task-type providers are active. Disabling a provider prevents the extension from scanning for tasks of that type, which can improve performance and reduce noise in the task tree.
 
+Folder settings override workspace settings for files in that workspace folder. For example, if the workspace enables `npm` and disables `pnpm`, a folder can use its own `.vscode/settings.json` to show only pnpm tasks:
+
+```json
+{
+  "workspaceTasks.enabledTaskTypes": {
+    "npm": false,
+    "pnpm": true
+  }
+}
+```
+
+Other workspace folders keep their own effective settings. Task-type enable and disable patterns are also evaluated using each discovered file's folder settings, with the precedence described below.
+
 #### Available Task Types
 
 - **ant** - Ant

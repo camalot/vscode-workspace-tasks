@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { CMakeTaskProvider } from '../../providers/cmakeTaskProvider';
 import { TaskFilesService } from '../../services/taskFilesService';
+import { TaskConfigService } from '../../services/taskConfigService';
 import { configuration } from '../../libs/configuration';
 import constants from '../../libs/constants';
 
@@ -10,8 +11,12 @@ suite('CMakeTaskProvider Test Suite', () => {
   let originalOpenTextDocument: any;
   let originalAsRelativePath: any;
   let originalConfigGet: typeof configuration.get;
+  let originalIsTaskTypeEnabled: TaskConfigService['isTaskTypeEnabled'];
 
   setup(() => {
+    const configService = TaskConfigService.getInstance();
+    originalIsTaskTypeEnabled = configService.isTaskTypeEnabled;
+    configService.isTaskTypeEnabled = () => true;
     const filesService = TaskFilesService.getInstance();
     originalFindFiles = filesService.findFiles.bind(filesService);
     originalOpenTextDocument = vscode.workspace.openTextDocument;
@@ -26,6 +31,7 @@ suite('CMakeTaskProvider Test Suite', () => {
   });
 
   teardown(() => {
+    TaskConfigService.getInstance().isTaskTypeEnabled = originalIsTaskTypeEnabled;
     const filesService = TaskFilesService.getInstance();
     filesService.findFiles = originalFindFiles;
     (vscode.workspace as any).openTextDocument = originalOpenTextDocument;
