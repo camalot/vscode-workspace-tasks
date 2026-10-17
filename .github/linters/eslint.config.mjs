@@ -2,7 +2,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import n from 'eslint-plugin-n';
 import prettier from 'eslint-plugin-prettier';
 import globals from 'globals';
-import jsoncParser from 'jsonc-eslint-parser';
+import * as jsoncParser from 'jsonc-eslint-parser';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import vueParser from 'vue-eslint-parser';
