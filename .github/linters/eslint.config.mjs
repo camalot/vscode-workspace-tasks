@@ -2,7 +2,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import n from 'eslint-plugin-n';
 import prettier from 'eslint-plugin-prettier';
 import globals from 'globals';
-import * as jsoncParser from 'jsonc-eslint-parser';
+import jsonc from 'eslint-plugin-jsonc';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import vueParser from 'vue-eslint-parser';
@@ -46,45 +46,15 @@ export default defineConfig([
   },
   {
     files: ['**/*.json'],
-    extends: compat.extends('plugin:jsonc/recommended-with-json'),
-
-    languageOptions: {
-      parser: jsoncParser,
-      ecmaVersion: 'latest',
-      sourceType: 'script',
-
-      parserOptions: {
-        jsonSyntax: 'JSON',
-      },
-    },
+    extends: jsonc.configs['flat/recommended-with-json'],
   },
   {
     files: ['**/*.jsonc'],
-    extends: compat.extends('plugin:jsonc/recommended-with-jsonc'),
-
-    languageOptions: {
-      parser: jsoncParser,
-      ecmaVersion: 'latest',
-      sourceType: 'script',
-
-      parserOptions: {
-        jsonSyntax: 'JSONC',
-      },
-    },
+    extends: jsonc.configs['flat/recommended-with-jsonc'],
   },
   {
     files: ['**/*.json5'],
-    extends: compat.extends('plugin:jsonc/recommended-with-json5'),
-
-    languageOptions: {
-      parser: jsoncParser,
-      ecmaVersion: 'latest',
-      sourceType: 'script',
-
-      parserOptions: {
-        jsonSyntax: 'JSON5',
-      },
-    },
+    extends: jsonc.configs['flat/recommended-with-json5'],
   },
   {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.jsx'],
