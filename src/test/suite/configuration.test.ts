@@ -3,6 +3,41 @@ import * as vscode from 'vscode';
 import { configuration } from '../../libs/configuration';
 
 suite('Configuration Test Suite', () => {
+  const windowSettings = [
+    { key: 'debug', type: 'boolean', default: false },
+    { key: 'history.maxPersistedRecords', type: 'integer', default: 200, minimum: 10, maximum: 2000 },
+    { key: 'history.retentionDays', type: 'integer', default: 0, minimum: 0 },
+  ];
+
+  for (const expected of windowSettings) {
+    test(`${expected.key} is window-scoped with unchanged defaults and limits`, () => {
+      const extension = vscode.extensions.getExtension('darthminos.workspace-tasks');
+      assert.ok(extension, 'The development extension must be registered');
+      const manifest = extension.packageJSON as {
+        contributes: {
+          configuration: Array<{
+            properties: Record<string, {
+              scope: string;
+              type: string;
+              default: boolean | number;
+              minimum?: number;
+              maximum?: number;
+            }>;
+          }>;
+        };
+      };
+      const registrations = new Map(manifest.contributes.configuration.flatMap((group) =>
+        Object.entries(group.properties)));
+      const actual = registrations.get(`workspaceTasks.${expected.key}`);
+      assert.ok(actual, 'The setting must be registered');
+      assert.strictEqual(actual.scope, 'window');
+      assert.strictEqual(actual.type, expected.type);
+      assert.strictEqual(actual.default, expected.default);
+      assert.strictEqual(actual.minimum, expected.minimum);
+      assert.strictEqual(actual.maximum, expected.maximum);
+    });
+  }
+
   async function waitFor(predicate: () => boolean, timeout = 10000) {
     const start = Date.now();
     while (!predicate() && Date.now() - start < timeout) {

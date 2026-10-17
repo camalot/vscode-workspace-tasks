@@ -25,9 +25,13 @@ nav_order: 1
 | --- | --- |
 | **Type:** | `boolean` |
 | **Default:** | `false` |
-| **Scope:** | `application` |
+| **Scope:** | `window` |
 
 Controls whether debug logging is enabled for the extension. When enabled, the extension will output additional information to the `Workspace Tasks` output channel, which can be useful for troubleshooting issues or understanding the extension's behavior.
+
+Set this option in user or workspace settings. Workspace settings override user settings, and the
+effective value applies to the whole window's output channel. Folder-level overrides in a multi-root
+workspace are not supported. No settings or logging data are migrated automatically.
 
 **Example:**
 

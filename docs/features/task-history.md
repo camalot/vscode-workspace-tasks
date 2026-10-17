@@ -194,6 +194,11 @@ is used as a fallback.
 
 Two settings control persistence behavior:
 
+Both settings have `window` scope. Configure them in user or workspace settings; workspace settings
+override user settings and apply to the entire window's history. Folder-level overrides in multi-root
+workspaces are not supported. Defaults, stored records, archive locations, and normal retention/clear
+behavior are unchanged; this scope change does not migrate settings or history data.
+
 | Setting | Default | Description |
 | ------- | ------- | ----------- |
 | `workspaceTasks.history.maxPersistedRecords` | `200` | Maximum number of records stored in the workspace state cache (range 10–2000). The NDJSON archive is not subject to this cap. |

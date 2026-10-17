@@ -574,7 +574,7 @@
             "type": "boolean",
             "default": false,
             "description": "%config.workspaceTasks.debug%",
-            "scope": "resource"
+            "scope": "window"
           },
           "workspaceTasks.metrics.scope": {
             "title": "%config.workspaceTasks.metrics.scope%",
@@ -623,7 +623,7 @@
             "maximum": 2000,
             "description": "%config.workspaceTasks.history.maxPersistedRecords.description%",
             "markdownDescription": "%config.workspaceTasks.history.maxPersistedRecords.markdown%",
-            "scope": "resource"
+            "scope": "window"
           },
           "workspaceTasks.history.retentionDays": {
             "title": "%config.workspaceTasks.history.retentionDays%",
@@ -632,7 +632,7 @@
             "minimum": 0,
             "description": "%config.workspaceTasks.history.retentionDays.description%",
             "markdownDescription": "%config.workspaceTasks.history.retentionDays.markdown%",
-            "scope": "resource"
+            "scope": "window"
           }
         }
       },
