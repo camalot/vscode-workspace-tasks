@@ -75,6 +75,8 @@ CI uses a separate Super-Linter configuration in `.github/linters/eslint.config.
 Its JSON, JSONC, and JSON5 rules use `eslint-plugin-jsonc`'s native `flat/recommended-with-*`
 presets. Do not pass these presets through `FlatCompat`: newer plugin releases export flat
 configs, which cannot be validated as legacy eslintrc configs.
+The TypeScript configuration also extends `eslint-plugin-n`'s native `flat/recommended`
+preset directly rather than resolving `plugin:n/recommended` through `FlatCompat`.
 With the Super-Linter dependencies installed, run its configuration regression tests with
 `node --test .github/linters/eslint.config.test.mjs`.
 

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { ESLint } from 'eslint';
+import n from 'eslint-plugin-n';
 
 const eslint = new ESLint({
   overrideConfigFile: fileURLToPath(new URL('./eslint.config.mjs', import.meta.url)),
@@ -36,3 +37,17 @@ for (const extension of ['js', 'ts', 'vue']) {
     assert.equal(config.plugins.jsonc, undefined);
   });
 }
+
+for (const extension of ['ts', 'cts', 'mts', 'tsx']) {
+  test(`applies the native Node recommended rules to ${extension}`, async () => {
+    const config = await eslint.calculateConfigForFile(`fixture.${extension}`);
+    assert.equal(config.plugins.n, n);
+    assert.deepEqual(config.rules['n/no-process-exit'], [2]);
+    assert.deepEqual(config.rules['n/no-deprecated-api'], [2]);
+  });
+}
+
+test('does not apply Node recommended rules to JavaScript', async () => {
+  const config = await eslint.calculateConfigForFile('fixture.js');
+  assert.equal(config.rules['n/no-process-exit'], undefined);
+});
