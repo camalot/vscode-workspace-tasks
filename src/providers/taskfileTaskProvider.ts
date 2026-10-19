@@ -41,6 +41,7 @@ interface RequiredVarsInfo {
 }
 
 export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvider {
+  private static discoveryQueue: Promise<void> = Promise.resolve();
   private globalTaskfileWatchers: vscode.FileSystemWatcher[] = [];
   private workspaceTaskfileWatchers = new Map<string, vscode.FileSystemWatcher>();
   private taskrcWatchers = new Map<string, vscode.FileSystemWatcher>();
@@ -573,6 +574,24 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     representativeFile: vscode.Uri,
     iconService: TaskIconService,
   ): Promise<TaskItem[]> {
+    // Overlapping refreshes (e.g. save handler + file watcher) would start concurrent `task` processes
+    // that clone Git includes into Task's shared user-level cache; run one discovery at a time.
+    const previousDiscovery = TaskfileTaskProvider.discoveryQueue;
+    let release!: () => void;
+    TaskfileTaskProvider.discoveryQueue = new Promise<void>((resolve) => { release = resolve; });
+    await previousDiscovery;
+    try {
+      return await this.listTasksFromDirectory(dir, representativeFile, iconService);
+    } finally {
+      release();
+    }
+  }
+
+  private async listTasksFromDirectory(
+    dir: string,
+    representativeFile: vscode.Uri,
+    iconService: TaskIconService,
+  ): Promise<TaskItem[]> {
     const { command, args } = this.getCommand(representativeFile);
     const cmdArgs = [...(args ?? []), '--taskfile', representativeFile.fsPath, '--list-all', '--no-status', '--json'];
 
@@ -581,6 +600,11 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       const bytes = await vscode.workspace.fs.readFile(representativeFile);
       yamlContent = new TextDecoder().decode(bytes);
     } catch { /* non-fatal */ }
+
+    if (!vscode.workspace.isTrusted) {
+      this.logger.debug('[TaskfileTaskProvider] Skipping queued CLI invocation: workspace is not trusted.');
+      return [];
+    }
 
     try {
       const { stdout } = await execFileAsync(command, cmdArgs, { cwd: dir, timeout: 10000 });
