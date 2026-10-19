@@ -1,4 +1,66 @@
 
+## [v1.14.7](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.7) - 2026-10-19
+
+### 🐛 BUG FIXES
+
+
+#### _LINT_
+- Resolve lint issues [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+- Resolve lint issues [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+- Resolve lint issues [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+
+#### _SETTINGS_
+- Some scope adjustments and ground work for settings scope correctness [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+
+#### _TASKS_
+- Folder setting not taking priority over workspace setting [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+- When TaskFile includes remote taskfile that is not trusted, loading silently fails [#314](https://github.com/camalot/vscode-workspace-tasks/issues/314)  [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+- Queue taskfile discovery calls to prevent clobber [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- V1.14.7 ()[#316](https://github.com/camalot/vscode-workspace-tasks/issues/316)  [#316](https://github.com/camalot/vscode-workspace-tasks/pull/316) -[@camalot](https://github.com/camalot)
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot) in
+[#316](https://github.com/camalot/vscode-workspace-tasks/pull/316)
+
+## 📈 Commit Statistics
+
+
+- `8` commits contributed to the release.
+- `0` days have passed between the first and last commit.
+- `7` commits parsed as conventional.
+- `2` linked issues detected in commits.
+  - [#314](https://github.com/camalot/vscode-workspace-tasks/issues/314) (referenced 1 time)
+  - [#316](https://github.com/camalot/vscode-workspace-tasks/issues/316) (referenced 1 time)
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[8,1,0,7,2,0]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.14.6...v1.14.7
+
 ## [v1.14.6](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.6) - 2026-10-19
 
 ### 🐛 BUG FIXES
