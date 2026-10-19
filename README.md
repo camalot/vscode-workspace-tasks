@@ -181,7 +181,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
 - **[mise](https://mise.jdx.dev/)** - Tasks from active mise TOML config files (for example `mise.toml`, `.mise.toml`, and `.config/mise/config.toml`)
-- **[Task (go-task)](https://taskfile.dev/)** - Tasks from `Taskfile.yml` (CLI-based discovery, wildcard task prompting, required variable prompts from `requires.vars`, `{{.CLI_ARGS}}` forwarding)
+- **[Task (go-task)](https://taskfile.dev/)** - Tasks from `Taskfile.yml` (CLI-based discovery, wildcard task prompting, required variable prompts from `requires.vars`, `{{.CLI_ARGS}}` forwarding). Included tasks run through the local including Taskfile, including remote tasks shown under External. Discovery failures appear in Problems; `.taskrc.yml` and `.taskrc.yaml` changes automatically reload tasks.
 - **[Cake Build](https://cakebuild.net/)** - Tasks from `*.cake` scripts via `Task("...")`
 
 ### DevOps & Containers

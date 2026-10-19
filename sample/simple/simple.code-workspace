@@ -2,6 +2,9 @@
   "folders": [
     {
       "path": "."
+    },
+    {
+      "path": "../sample-workspace-tasks"
     }
   ],
   "settings": {

@@ -41,6 +41,7 @@ suite('TaskfileTaskProvider Test Suite', () => {
   });
 
   teardown(() => {
+    provider.dispose();
     const filesService = TaskFilesService.getInstance();
     filesService.findFiles = originalFindFiles;
     (vscode.workspace as any).asRelativePath = originalAsRelativePath;
@@ -314,6 +315,210 @@ suite('TaskfileTaskProvider Test Suite', () => {
     assert.deepStrictEqual(tasks, []);
   });
 
+  suite('discovery diagnostics', () => {
+    const taskfile = vscode.Uri.file(path.join(FIXTURE_DIR, 'Taskfile.yml'));
+    const untrustedMessage = 'task: Taskfile "https://github.com/example/tasks.yml" not trusted by user';
+
+    function setCliOutput(stderr?: string): void {
+      const script = stderr
+        ? `process.stderr.write(${JSON.stringify(stderr)}); process.exitCode = 1;`
+        : 'process.stdout.write(\'{"tasks":[]}\');';
+      provider.getCommand = () => ({ command: 'node', args: ['-e', script, '--'], cwd: FIXTURE_DIR });
+    }
+
+    function diagnostics(): readonly vscode.Diagnostic[] {
+      return vscode.languages.getDiagnostics(taskfile)
+        .filter((diagnostic) => diagnostic.source === 'Workspace Tasks (Taskfile)');
+    }
+
+    setup(() => {
+      TaskFilesService.getInstance().findFiles = async () => [taskfile];
+    });
+
+    test('reports untrusted remote errors and clears them after successful discovery', async () => {
+      setCliOutput(untrustedMessage);
+      assert.deepStrictEqual(await provider.getTasks(), []);
+      const reported = diagnostics();
+      assert.strictEqual(reported.length, 1);
+      assert.strictEqual(reported[0].severity, vscode.DiagnosticSeverity.Error);
+      assert.ok(reported[0].message.includes(untrustedMessage));
+      assert.strictEqual(reported[0].range.start.line, 0);
+
+      await provider.getTasks();
+      assert.strictEqual(diagnostics().length, 1, 'repeated failures must not duplicate diagnostics');
+      setCliOutput();
+      await provider.getTasks();
+      assert.deepStrictEqual(diagnostics(), []);
+    });
+
+    test('reports clone failures without hiding stderr', async () => {
+      const message = 'failed to clone repository: fatal: could not set core.repositoryformatversion to 0';
+      setCliOutput(message);
+      await provider.getTasks();
+      assert.ok(diagnostics()[0].message.includes(message));
+    });
+
+    test('removes diagnostics when a Taskfile disappears or the provider is disabled', async () => {
+      setCliOutput(untrustedMessage);
+      await provider.getTasks();
+      TaskFilesService.getInstance().findFiles = async () => [];
+      await provider.getTasks();
+      assert.deepStrictEqual(diagnostics(), []);
+
+      TaskFilesService.getInstance().findFiles = async () => [taskfile];
+      await provider.getTasks();
+      Object.defineProperty(provider, 'enabled', { get: () => false, configurable: true });
+      await provider.getTasks();
+      assert.deepStrictEqual(diagnostics(), []);
+    });
+
+    test('reports failures for global Taskfiles and clears them when discovery is disabled', async () => {
+      const originalConfiguration = vscode.workspace.getConfiguration;
+      let discoverGlobal = true;
+      vscode.workspace.getConfiguration = ((section?: string) => section === 'workspaceTasks'
+        ? { get: <T>(key: string, fallback?: T): T =>
+          (key === 'taskfile.discoverGlobalTaskfile' ? discoverGlobal : fallback) as T }
+        : originalConfiguration(section)) as typeof vscode.workspace.getConfiguration;
+      Object.defineProperty(provider, 'getHomeDir', { value: () => FIXTURE_DIR });
+      Object.defineProperty(provider, 'fileExists', { value: (filePath: string) => filePath === taskfile.fsPath });
+      try {
+        setCliOutput(untrustedMessage);
+        await provider.getSystemTasks();
+        assert.ok(diagnostics()[0].message.includes(untrustedMessage));
+        setCliOutput();
+        await provider.getSystemTasks();
+        assert.deepStrictEqual(diagnostics(), []);
+        setCliOutput(untrustedMessage);
+        await provider.getSystemTasks();
+        discoverGlobal = false;
+        await provider.getSystemTasks();
+        assert.deepStrictEqual(diagnostics(), []);
+      } finally {
+        vscode.workspace.getConfiguration = originalConfiguration;
+      }
+    });
+  });
+
+  suite('Task configuration watchers', () => {
+    let originalCreateWatcher: typeof vscode.workspace.createFileSystemWatcher;
+    const callbacks = new Map<string, Map<string, () => void>>();
+    const disposed = new Set<string>();
+
+    setup(() => {
+      callbacks.clear();
+      disposed.clear();
+      originalCreateWatcher = vscode.workspace.createFileSystemWatcher;
+      vscode.workspace.createFileSystemWatcher = (pattern) => {
+        assert.ok(typeof pattern !== 'string');
+        const filePath = path.join(pattern.baseUri.fsPath, pattern.pattern);
+        const events = new Map<string, () => void>();
+        callbacks.set(filePath, events);
+        const register = (event: string): vscode.Event<vscode.Uri> => (callback) => {
+          events.set(event, () => callback(vscode.Uri.file(filePath)));
+          return new vscode.Disposable(() => { events.delete(event); });
+        };
+        return {
+          ignoreCreateEvents: false,
+          ignoreChangeEvents: false,
+          ignoreDeleteEvents: false,
+          onDidCreate: register('create'),
+          onDidChange: register('change'),
+          onDidDelete: register('delete'),
+          dispose: () => { disposed.add(filePath); },
+        };
+      };
+    });
+
+    teardown(() => {
+      vscode.workspace.createFileSystemWatcher = originalCreateWatcher;
+    });
+
+    for (const filename of ['.taskrc.yml', '.taskrc.yaml']) {
+      test(`watches absent local/home ${filename} and debounces create/change/delete into a reload`, async () => {
+        const taskfile = vscode.Uri.file(path.join(FIXTURE_DIR, 'Taskfile.yml'));
+        TaskFilesService.getInstance().findFiles = async () => [taskfile];
+        let shouldFail = true;
+        provider.getCommand = () => ({
+          command: 'node',
+          args: ['-e', shouldFail
+            ? 'process.stderr.write("remote Taskfile not trusted by user"); process.exitCode = 1;'
+            : 'process.stdout.write(\'{"tasks":[{"name":"remote:build","task":"remote:build"}]}\');', '--'],
+          cwd: FIXTURE_DIR,
+        });
+        await provider.getTasks();
+        assert.ok(vscode.languages.getDiagnostics(taskfile)
+          .some((diagnostic) => diagnostic.source === 'Workspace Tasks (Taskfile)'));
+        const configPath = path.join(FIXTURE_DIR, filename);
+        assert.ok(callbacks.has(path.join(os.homedir(), filename)));
+        assert.ok(callbacks.has(configPath));
+        for (const folder of vscode.workspace.workspaceFolders ?? []) {
+          assert.ok(callbacks.has(path.join(folder.uri.fsPath, filename)));
+        }
+        const cache = TaskCacheService.getInstance();
+        const originalRefresh = cache.refresh;
+        let refreshCount = 0;
+        let taskCount = 0;
+        let reloaded!: () => void;
+        const reloadComplete = new Promise<void>((resolve) => { reloaded = resolve; });
+        cache.refresh = async () => {
+          refreshCount++;
+          try {
+            const tasks = await provider.getTasks();
+            taskCount = tasks.length;
+            return tasks;
+          } finally {
+            reloaded();
+          }
+        };
+        try {
+          shouldFail = false;
+          for (const event of ['create', 'change', 'delete']) {
+            provider.detectCLIArgsTasks(taskfile.fsPath, 'tasks:\n  run:\n    cmds:\n      - echo {{.CLI_ARGS}}');
+            provider.detectRequiredVars(taskfile.fsPath, 'tasks:\n  run:\n    requires:\n      vars: [TOKEN]');
+            callbacks.get(configPath)!.get(event)!();
+            assert.strictEqual(provider.detectCLIArgsTasks(taskfile.fsPath, 'tasks: {}').size, 0);
+            assert.strictEqual(provider.detectRequiredVars(taskfile.fsPath, 'tasks: {}').tasks.size, 0);
+          }
+          await reloadComplete;
+          assert.strictEqual(refreshCount, 1);
+          assert.strictEqual(taskCount, 1, 'configuration changes must recover previously failed discovery');
+          assert.ok(!vscode.languages.getDiagnostics(taskfile)
+            .some((diagnostic) => diagnostic.source === 'Workspace Tasks (Taskfile)'));
+          await provider.getTasks();
+          assert.strictEqual(callbacks.get(configPath)?.size, 3);
+          TaskFilesService.getInstance().findFiles = async () => [];
+          await provider.getTasks();
+          assert.ok(disposed.has(configPath));
+          assert.ok(disposed.has(path.join(os.homedir(), filename)));
+        } finally {
+          cache.refresh = originalRefresh;
+        }
+      });
+    }
+
+    test('disposal cancels a pending config refresh and disposes watchers', async () => {
+      const taskfile = vscode.Uri.file(path.join(FIXTURE_DIR, 'Taskfile.yml'));
+      TaskFilesService.getInstance().findFiles = async () => [taskfile];
+      provider.getCommand = () => ({ command: 'definitely-not-a-real-command-xyz', args: [], cwd: FIXTURE_DIR });
+      await provider.getTasks();
+      const configPath = path.join(FIXTURE_DIR, '.taskrc.yml');
+      const cache = TaskCacheService.getInstance();
+      const originalRefresh = cache.refresh;
+      let refreshCount = 0;
+      cache.refresh = async () => { refreshCount++; return []; };
+      try {
+        callbacks.get(configPath)!.get('change')!();
+        provider.dispose();
+        assert.ok(disposed.has(configPath));
+        provider = new TaskfileTaskProvider();
+        await new Promise((resolve) => setTimeout(resolve, 220));
+        assert.strictEqual(refreshCount, 0);
+      } finally {
+        cache.refresh = originalRefresh;
+      }
+    });
+  });
+
   suite('additionalFilePatterns', () => {
     test('getTasks uses only built-in patterns when additionalFilePatterns is empty', async () => {
       const filesService = TaskFilesService.getInstance();
@@ -517,6 +722,78 @@ suite('TaskfileTaskProvider Test Suite', () => {
       const tasks = provider.parseOutput(stdout, dir);
       assert.ok(tasks[0].taskFileUri);
       assert.ok(tasks[0].taskFileUri!.fsPath.endsWith('Taskfile.yml'));
+    });
+
+    for (const source of [
+      'ssh://git@github.com/camalot/actions.git//smells/codeql/TaskFile.yml?ref=v1',
+      'https://github.com/camalot/actions.git//smells/codeql/TaskFile.yml?ref=v1',
+      'https://raw.githubusercontent.com/camalot/actions/v1/smells/codeql/TaskFile.yml',
+      path.join(dir, 'included', 'Taskfile.yml'),
+    ]) {
+      test(`runs included tasks and aliases through the discovery Taskfile: ${source}`, async () => {
+        const root = path.join(dir, 'local project', 'Taskfile.custom.yml');
+        const stdout = JSON.stringify({
+          tasks: [{
+            name: 'codeql:action:.',
+            aliases: ['codeql:run'],
+            location: { taskfile: source, line: 12, column: 3 },
+          }],
+          location: root,
+        });
+        const [item] = provider.parseOutput(stdout, path.dirname(root));
+        const expectedSource = source.includes('://') ? vscode.Uri.parse(source) : vscode.Uri.file(source);
+        assert.strictEqual(item.taskFileUri?.toString(), expectedSource.toString());
+        assert.strictEqual(item.startLine, 11);
+        assert.strictEqual(item.metadata?.executionTaskfilePath, root);
+        if (expectedSource.scheme !== 'file') {
+          assert.strictEqual(item.description, source);
+        }
+
+        for (const taskItem of [item, ...item.children]) {
+          assert.strictEqual(taskItem.taskFileUri?.toString(), expectedSource.toString());
+          const created = await provider.createTask(taskItem);
+          assert.ok(created);
+          const execution = created.task.execution;
+          assert.ok(execution instanceof vscode.ShellExecution);
+          assert.deepStrictEqual(execution.args, ['--taskfile', root, taskItem.label]);
+          assert.strictEqual(execution.options?.cwd, path.dirname(root));
+          assert.strictEqual(created.cwd, path.dirname(root));
+          assert.strictEqual(created.task.definition.path, root);
+          const [openUri, openLine] = taskItem.onOpenActionCommand?.arguments ?? [];
+          assert.strictEqual(
+            (openUri as vscode.Uri).toString(),
+            expectedSource.scheme === 'file' ? expectedSource.toString() : vscode.Uri.file(root).toString(),
+          );
+          assert.strictEqual(openLine, expectedSource.scheme === 'file' ? 11 : 0);
+        }
+      });
+    }
+
+    test('uses the explicit discovery Taskfile for missing locations and resolved task arguments', async () => {
+      const root = path.join(dir, 'Taskfile.ci.yml');
+      const [item] = provider.parseOutput(JSON.stringify({
+        tasks: [{ name: 'build:*', aliases: ['b:*'] }],
+        location: path.join(dir, 'Taskfile.yml'),
+      }), dir, undefined, root);
+      assert.strictEqual(item.taskFileUri?.fsPath, root);
+      assert.strictEqual(item.children[0].metadata?.executionTaskfilePath, root);
+      item.metadata = { ...item.metadata, hasCLIArgs: true };
+      const created = await provider.createTask(item, '--verbose', 'build:release', ['MODE=release']);
+      assert.ok(created);
+      const execution = created.task.execution;
+      assert.ok(execution instanceof vscode.ShellExecution);
+      assert.deepStrictEqual(execution.args, [
+        '--taskfile', root, 'build:release', 'MODE=release', '--', '--verbose',
+      ]);
+    });
+
+    test('keeps Windows source paths as file URIs', () => {
+      const source = 'C:\\project\\Taskfile.yml';
+      const [item] = provider.parseOutput(JSON.stringify({
+        tasks: [{ name: 'build', location: { taskfile: source, line: 1 } }],
+      }), dir);
+      assert.strictEqual(item.taskFileUri?.scheme, 'file');
+      assert.strictEqual(item.taskFileUri?.toString(), vscode.Uri.file(source).toString());
     });
 
     test('stores aliases in metadata', () => {
