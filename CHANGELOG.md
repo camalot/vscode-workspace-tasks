@@ -1,4 +1,61 @@
 
+## [v1.14.6](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.6) - 2026-10-19
+
+### 🐛 BUG FIXES
+
+
+#### _LINT_
+- Resolve lint issues [#315](https://github.com/camalot/vscode-workspace-tasks/pull/315) -[@camalot](https://github.com/camalot)
+
+
+#### _SETTINGS_
+- Some scope adjustments and ground work for settings scope correctness [#315](https://github.com/camalot/vscode-workspace-tasks/pull/315) -[@camalot](https://github.com/camalot)
+
+
+#### _TASKS_
+- Folder setting not taking priority over workspace setting [#315](https://github.com/camalot/vscode-workspace-tasks/pull/315) -[@camalot](https://github.com/camalot)
+
+#### _GENERAL_
+
+- When TaskFile includes remote taskfile that is not trusted, loading silently fails [#314](https://github.com/camalot/vscode-workspace-tasks/issues/314)  [#315](https://github.com/camalot/vscode-workspace-tasks/pull/315) -[@camalot](https://github.com/camalot)
+
+
+### 💼 OTHER
+
+#### _GENERAL_
+
+- V1.14.6 ()[#315](https://github.com/camalot/vscode-workspace-tasks/issues/315)  [#315](https://github.com/camalot/vscode-workspace-tasks/pull/315) -[@camalot](https://github.com/camalot)
+
+
+## GitHub
+
+### 💛 Contributors
+
+
+- [@camalot](https://github.com/camalot) in
+[#315](https://github.com/camalot/vscode-workspace-tasks/pull/315)
+
+## 📈 Commit Statistics
+
+
+- `5` commits contributed to the release.
+- `0` days have passed between the first and last commit.
+- `4` commits parsed as conventional.
+- `2` linked issues detected in commits.
+  - [#314](https://github.com/camalot/vscode-workspace-tasks/issues/314) (referenced 1 time)
+  - [#315](https://github.com/camalot/vscode-workspace-tasks/issues/315) (referenced 1 time)
+- `4` days  have passed between releases.
+
+
+![Statistics](https://quickchart.io/chart?c={type:'bar',data:{labels:['Commits','Contributors','Days%20Between%20Commits','Conventional%20Commits','Referenced%20Links','Days%20Since%20Last%20Release'],datasets:[{label:'Release',data:[5,1,0,4,2,4]}]}})
+
+
+
+---
+
+
+**Full Changelog**: https://github.com/camalot/vscode-workspace-tasks/compare/v1.14.5...v1.14.6
+
 ## [v1.14.5](https://github.com/camalot/vscode-workspace-tasks/releases/tag/vv1.14.5) - 2026-10-15
 
 ### 🐛 BUG FIXES
