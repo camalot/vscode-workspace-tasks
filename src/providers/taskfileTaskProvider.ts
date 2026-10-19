@@ -43,6 +43,8 @@ interface RequiredVarsInfo {
 export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvider {
   private globalTaskfileWatchers: vscode.FileSystemWatcher[] = [];
   private workspaceTaskfileWatchers = new Map<string, vscode.FileSystemWatcher>();
+  private taskrcWatchers = new Map<string, vscode.FileSystemWatcher>();
+  private readonly diagnostics = vscode.languages.createDiagnosticCollection('workspaceTasks.taskfile');
   private globalWatcherDebounce?: NodeJS.Timeout;
   /** Cache: taskfile path → set of task names that reference {{.CLI_ARGS}} */
   private cliArgsTaskCache = new Map<string, Set<string>>();
@@ -53,6 +55,59 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
   constructor() {
     super('taskfile', constants.GLOB_TASKFILE);
+    this.context?.subscriptions.push(this);
+  }
+
+  /** Releases discovery watchers, pending refreshes, and Problems diagnostics. */
+  public dispose(): void {
+    this.disposeWorkspaceTaskfileWatchers();
+    this.disposeGlobalTaskfileWatchers();
+    for (const watcher of this.taskrcWatchers.values()) {
+      watcher.dispose();
+    }
+    this.taskrcWatchers.clear();
+    this.diagnostics.dispose();
+  }
+
+  private reconcileTaskrcWatchers(): void {
+    const directories = new Set(
+      Array.from(this.workspaceTaskfileWatchers.keys(), (filePath) => path.dirname(filePath)),
+    );
+    if (directories.size > 0 || this.globalTaskfileWatchers.length > 0) {
+      directories.add(this.getHomeDir());
+      for (const folder of vscode.workspace.workspaceFolders ?? []) {
+        directories.add(folder.uri.fsPath);
+      }
+    }
+
+    const targets = new Set(
+      Array.from(directories).flatMap((dir) =>
+        ['.taskrc.yml', '.taskrc.yaml'].map((filename) => path.join(dir, filename)),
+      ),
+    );
+    for (const [filePath, watcher] of this.taskrcWatchers) {
+      if (!targets.has(filePath)) {
+        watcher.dispose();
+        this.taskrcWatchers.delete(filePath);
+      }
+    }
+    for (const filePath of targets) {
+      if (this.taskrcWatchers.has(filePath)) {
+        continue;
+      }
+      const watcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(path.dirname(filePath), path.basename(filePath)),
+      );
+      const onEvent = () => {
+        this.cliArgsTaskCache.clear();
+        this.requiredVarsCache.clear();
+        this.scheduleGlobalRefresh();
+      };
+      watcher.onDidCreate(onEvent);
+      watcher.onDidChange(onEvent);
+      watcher.onDidDelete(onEvent);
+      this.taskrcWatchers.set(filePath, watcher);
+    }
   }
 
   override getFilePatterns(): string[] {
@@ -73,6 +128,11 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     for (const watcher of this.globalTaskfileWatchers) {
       watcher.dispose();
     }
+    for (const [uri] of this.diagnostics) {
+      if (!this.workspaceTaskfileWatchers.has(uri.fsPath)) {
+        this.diagnostics.delete(uri);
+      }
+    }
     this.globalTaskfileWatchers = [];
     if (this.globalWatcherDebounce) {
       clearTimeout(this.globalWatcherDebounce);
@@ -81,8 +141,9 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
   }
 
   private disposeWorkspaceTaskfileWatchers(): void {
-    for (const watcher of this.workspaceTaskfileWatchers.values()) {
+    for (const [filePath, watcher] of this.workspaceTaskfileWatchers) {
       watcher.dispose();
+      this.diagnostics.delete(vscode.Uri.file(filePath));
     }
     this.workspaceTaskfileWatchers.clear();
   }
@@ -94,6 +155,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       if (!target.has(watchedPath)) {
         watcher.dispose();
         this.workspaceTaskfileWatchers.delete(watchedPath);
+        this.diagnostics.delete(vscode.Uri.file(watchedPath));
       }
     }
 
@@ -113,6 +175,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       watcher.onDidDelete(onEvent);
       this.workspaceTaskfileWatchers.set(filePath, watcher);
     }
+    this.reconcileTaskrcWatchers();
   }
 
   private scheduleGlobalRefresh(): void {
@@ -145,6 +208,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       watcher.onDidDelete(onEvent);
       this.globalTaskfileWatchers.push(watcher);
     }
+    this.reconcileTaskrcWatchers();
   }
 
   public getCommand(resourceUri?: vscode.Uri): ExecutableResult {
@@ -165,10 +229,12 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
   public async getTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       this.disposeWorkspaceTaskfileWatchers();
+      this.reconcileTaskrcWatchers();
       return [];
     }
 
     if (!vscode.workspace.isTrusted) {
+      this.diagnostics.clear();
       this.logger.debug('[TaskfileTaskProvider] Skipping CLI invocation: workspace is not trusted.');
       return [];
     }
@@ -518,11 +584,21 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
     try {
       const { stdout } = await execFileAsync(command, cmdArgs, { cwd: dir, timeout: 10000 });
-      return this.parseOutput(stdout, dir, iconService, representativeFile.fsPath, yamlContent);
+      const tasks = this.parseOutput(stdout, dir, iconService, representativeFile.fsPath, yamlContent);
+      this.diagnostics.delete(representativeFile);
+      return tasks;
     } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       LoggerService.getInstance().warn(
-        `[taskfile] Failed to list tasks in ${dir}: ${err instanceof Error ? err.message : String(err)}`,
+        `[taskfile] Failed to list tasks in ${dir}: ${message}`,
       );
+      const diagnostic = new vscode.Diagnostic(
+        new vscode.Range(0, 0, 0, 0),
+        `Failed to load Taskfile tasks: ${message}`,
+        vscode.DiagnosticSeverity.Error,
+      );
+      diagnostic.source = 'Workspace Tasks (Taskfile)';
+      this.diagnostics.set(representativeFile, [diagnostic]);
       return [];
     }
   }
@@ -531,7 +607,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
    * Parses the JSON output from `taskfile --list-all --no-status --json` into `TaskItem` instances.
    * Extracted as a public method to enable direct unit-testing without spawning a process.
    *
-   * @param taskfilePath  Optional path to the Taskfile on disk. Used to detect `{{.CLI_ARGS}}`.
+   * @param taskfilePath  Optional path to the discovery Taskfile on disk, also used for execution.
    * @param yamlContent   Optional raw YAML content of the Taskfile. Used to detect `{{.CLI_ARGS}}`.
    */
   public parseOutput(
@@ -553,7 +629,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
     const svc = iconService ?? TaskIconService.getInstance();
     const tasks: TaskItem[] = [];
-    const fallbackUri = vscode.Uri.file(path.join(dir, 'Taskfile.yml'));
+    const fallbackUri = vscode.Uri.file(taskfilePath ?? output.location ?? path.join(dir, 'Taskfile.yml'));
     const iconPath = svc.getTaskIcon('taskfile', fallbackUri);
     const showAliases = vscode.workspace.getConfiguration('workspaceTasks').get<boolean>('taskfile.showAliases', true);
 
@@ -566,9 +642,14 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       : { tasks: new Map<string, TaskfileRequiredVar[]>(), taskVarDefaults: new Map<string, Record<string, string>>() };
 
     for (const entry of output.tasks ?? []) {
-      const taskFileUri = entry.location?.taskfile
-        ? vscode.Uri.file(entry.location.taskfile)
+      const source = entry.location?.taskfile;
+      const taskFileUri = source
+        ? /^[a-z][a-z\d+.-]*:\/\//i.test(source) ? vscode.Uri.parse(source, true) : vscode.Uri.file(source)
         : fallbackUri;
+      const isRemote = taskFileUri.scheme !== 'file';
+      const openUri = isRemote ? fallbackUri : taskFileUri;
+      const openLine = isRemote ? 0 : entry.location?.line ? entry.location.line - 1 : 0;
+      const description = isRemote ? taskFileUri.toString(true) : vscode.workspace.asRelativePath(taskFileUri);
       const aliases = entry.aliases ?? [];
       const hasAliases = showAliases && aliases.length > 0;
 
@@ -582,7 +663,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       );
       item.taskFileUri = taskFileUri;
       // description: relative path shown in tree view (consistent with other file-based providers)
-      item.description = vscode.workspace.asRelativePath(taskFileUri);
+      item.description = description;
       item.startLine = entry.location?.line ? entry.location.line - 1 : 0;
 
       // Wildcard detection
@@ -606,6 +687,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       }
 
       item.metadata = {
+        executionTaskfilePath: fallbackUri.fsPath,
         aliases,
         summary: entry.summary ?? '',
         ...(isWildcardTask ? { isWildcardTask: true, wildcardCount } : {}),
@@ -616,7 +698,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
       item.onOpenActionCommand = {
         command: 'workspaceTasks.openFileAtLine',
         title: 'Open File',
-        arguments: [taskFileUri, item.startLine],
+        arguments: [openUri, openLine],
       };
 
       if (hasAliases) {
@@ -630,13 +712,14 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
             iconPath,
           );
           aliasItem.taskFileUri = taskFileUri;
-          aliasItem.description = vscode.workspace.asRelativePath(taskFileUri);
+          aliasItem.description = description;
           aliasItem.tooltip = `Alias for: ${entry.name}`;
           aliasItem.startLine = item.startLine;
           // Wildcard detection for alias
           const aliasWildcardCount = (alias.match(/\*/g) ?? []).length;
           const isAliasWildcardTask = aliasWildcardCount > 0;
           aliasItem.metadata = {
+            executionTaskfilePath: fallbackUri.fsPath,
             isAlias: true,
             primaryTask: entry.name,
             ...(isAliasWildcardTask ? { isWildcardTask: true, wildcardCount: aliasWildcardCount } : {}),
@@ -647,7 +730,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
           aliasItem.onOpenActionCommand = {
             command: 'workspaceTasks.openFileAtLine',
             title: 'Open File',
-            arguments: [taskFileUri, item.startLine],
+            arguments: [openUri, openLine],
           };
           aliasItem.parent = item;
           item.children.push(aliasItem);
@@ -662,10 +745,12 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
   public async getSystemTasks(): Promise<TaskItem[]> {
     if (!this.enabled) {
       this.disposeGlobalTaskfileWatchers();
+      this.reconcileTaskrcWatchers();
       return [];
     }
 
     if (!vscode.workspace.isTrusted) {
+      this.diagnostics.clear();
       this.logger.debug('[TaskfileTaskProvider] Skipping CLI invocation: workspace is not trusted.');
       return [];
     }
@@ -674,6 +759,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     const discoverGlobal = config.get<boolean>('taskfile.discoverGlobalTaskfile', false);
     if (!discoverGlobal) {
       this.disposeGlobalTaskfileWatchers();
+      this.reconcileTaskrcWatchers();
       return [];
     }
 
@@ -689,34 +775,15 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     }
 
     const iconService = TaskIconService.getInstance();
-    const { command, args } = this.getCommand(vscode.Uri.file(globalTaskfilePath));
-    const cmdArgs = [...(args ?? []), '--taskfile', globalTaskfilePath, '--list-all', '--no-status', '--json'];
-
-    let globalYamlContent: string | undefined;
-    try {
-      const bytes = await vscode.workspace.fs.readFile(vscode.Uri.file(globalTaskfilePath));
-      globalYamlContent = new TextDecoder().decode(bytes);
-    } catch { /* non-fatal */ }
-
-    try {
-      const { stdout } = await execFileAsync(command, cmdArgs, { cwd: homeDir, timeout: 10000 });
-      const items = this.parseOutput(stdout, homeDir, iconService, globalTaskfilePath, globalYamlContent);
-
-      for (const item of items) {
-        item.metadata = {
-          ...(item.metadata ?? {}),
-          isGlobalTask: true,
-          globalTaskfilePath,
-        };
-      }
-
-      return items;
-    } catch (err: unknown) {
-      LoggerService.getInstance().warn(
-        `[taskfile] Failed to list global tasks in ${homeDir}: ${err instanceof Error ? err.message : String(err)}`,
-      );
-      return [];
+    const items = await this._loadTasksFromDirectory(homeDir, vscode.Uri.file(globalTaskfilePath), iconService);
+    for (const item of items) {
+      item.metadata = {
+        ...(item.metadata ?? {}),
+        isGlobalTask: true,
+        globalTaskfilePath,
+      };
     }
+    return items;
   }
 
   async createTask(
@@ -725,7 +792,13 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     resolvedLabel?: string,
     varAssignments?: string[],
   ): Promise<CreatedTask | undefined> {
-    const { resourceUri, workspaceFolder } = resolveTaskContext(item);
+    const context = resolveTaskContext(item);
+    const executionTaskfilePath = typeof item.metadata?.executionTaskfilePath === 'string'
+      ? item.metadata.executionTaskfilePath
+      : undefined;
+    const taskFileUri = executionTaskfilePath ? vscode.Uri.file(executionTaskfilePath) : item.taskFileUri;
+    const resourceUri = taskFileUri ?? context.resourceUri;
+    const workspaceFolder = taskFileUri ? vscode.workspace.getWorkspaceFolder(taskFileUri) : context.workspaceFolder;
     const taskLabel = resolvedLabel ?? (item.originalLabel || item.label as string);
     const { command: taskCmd, args: taskInitialArgs, cwd: taskCwd } = this.getCommand(workspaceFolder?.uri);
 
@@ -736,8 +809,8 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
 
     if (globalTaskfilePath) {
       taskArgs.push('--taskfile', globalTaskfilePath);
-    } else if (item.taskFileUri) {
-      taskArgs.push('--taskfile', item.taskFileUri.fsPath);
+    } else if (taskFileUri) {
+      taskArgs.push('--taskfile', taskFileUri.fsPath);
     }
 
     taskArgs.push(taskLabel);
@@ -754,7 +827,7 @@ export class TaskfileTaskProvider extends BaseTaskProvider implements TaskProvid
     }
 
     const full = `${taskCmd} ${taskArgs.join(' ')}`;
-    const taskFileCwd = item.taskFileUri ? path.dirname(item.taskFileUri.fsPath) : taskCwd;
+    const taskFileCwd = taskFileUri ? path.dirname(taskFileUri.fsPath) : taskCwd;
     const shellExec = new vscode.ShellExecution(taskCmd, taskArgs, { cwd: taskFileCwd });
 
     const task = new vscode.Task(

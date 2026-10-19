@@ -9,7 +9,7 @@ has_children: true
 # Getting Started
 {: .no_toc }
 
-Getting started with Workspace Tasks. This will describe how to install, what requirements are needed for iinstalling, and for executing sepecific tasks.
+Getting started with Workspace Tasks. This will describe how to install, what requirements are needed for installing, and for executing specific tasks.
 
 ---
 

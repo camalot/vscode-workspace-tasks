@@ -8,6 +8,8 @@ extend-exclude = [
   "**/.venv/**",
   "**/submodules/**",
   "**/*.test.ts",
+  "**/docs/_plans/**",
+  "**/*.svg"
 ]
 ignore-hidden = true
 ignore-dot = true
@@ -20,6 +22,18 @@ check-filename = true
 check-file = true
 unicode = true
 locale = "en"
-extend-ignore-re = []
+extend-ignore-re = [
+  '''(?:\*{1,2}/)?\[.*\]\w''',
+  '''`(als|hsi)`''' # Ignore these specific inline code patterns
+]
 extend-ignore-identifiers-re = []
 extend-ignore-words-re = []
+
+[default.extend-words]
+# <typo> = "<correction>"
+
+[default.extend-identifiers]
+# <typo> = "<correction>"
+
+[type.ts.extend-words]
+  "leafs" = "leafs" # This is intentionally left as "leafs"

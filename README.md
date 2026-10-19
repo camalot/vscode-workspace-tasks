@@ -63,7 +63,7 @@ A powerful Visual Studio Code extension that automatically discovers, organizes,
 - **[🔐 Environment Variable & Secrets Management ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-environment-variables.html)** - Inject env vars and secrets into any task with fourteen-layer precedence; manage SecretStorage keys directly from the **Secrets** tree group (store, update, delete, copy key) or via the Command Palette; git-tracked env/secret files are flagged in the Problems panel to prevent accidental credential exposure
 - **[🚫 Task Filtering ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-filtering.html)** - Use `.tasksignore` files to exclude unwanted tasks
 - **[🙈 Hide Tasks & Groups ↗](https://camalot.github.io/vscode-workspace-tasks/features/hide-tasks.html)** - Hide individual tasks or entire task groups from view
-- **[🕰️ Task History, Statistics & Dashboard ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html)** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts
+- **[🕰️ Task History, Statistics & Dashboard ↗](https://camalot.github.io/vscode-workspace-tasks/features/task-history.html)** - Track all task executions in a sortable history table, view per-task performance metrics (duration trends, success rates, failure streaks), and explore workspace-wide health in the interactive Dashboard with Chart.js charts. History persistence settings apply to the whole window, not individual folders.
 - **💾 Persistent State** - Favorites and Compound Tasks (queues) are saved across Visual Studio Code sessions
 - **☁️ Settings Sync** - Sync your favorites and Compound Tasks (queues) across multiple machines via VS Code's Settings Sync
 - **[🛡️ Run Guard ↗](https://camalot.github.io/vscode-workspace-tasks/features/run-guard.html)** - Require confirmation before running destructive or sensitive tasks; guard via manual toggle, definition flag, or label pattern
@@ -130,6 +130,7 @@ devin --install-extension darthminos.workspace-tasks
 ## 🛠️ Supported Task Types
 
 <a id="supported-task-types"></a>
+
 Workspace Tasks automatically discovers and organizes tasks from a wide variety of tools and frameworks:
 
 ### Package Managers & Build Tools
@@ -180,7 +181,7 @@ Workspace Tasks automatically discovers and organizes tasks from a wide variety 
 - **[Just](https://github.com/casey/just)** - Recipes from `justfile` or `*.just` files
 - **[Make](https://www.gnu.org/software/make/)** - Targets from `Makefile`
 - **[mise](https://mise.jdx.dev/)** - Tasks from active mise TOML config files (for example `mise.toml`, `.mise.toml`, and `.config/mise/config.toml`)
-- **[Task (go-task)](https://taskfile.dev/)** - Tasks from `Taskfile.yml` (CLI-based discovery, wildcard task prompting, required variable prompts from `requires.vars`, `{{.CLI_ARGS}}` forwarding)
+- **[Task (go-task)](https://taskfile.dev/)** - Tasks from `Taskfile.yml` (CLI-based discovery, wildcard task prompting, required variable prompts from `requires.vars`, `{{.CLI_ARGS}}` forwarding). Included tasks run through the local including Taskfile, including remote tasks shown under External. Discovery failures appear in Problems; `.taskrc.yml` and `.taskrc.yaml` changes automatically reload tasks.
 - **[Cake Build](https://cakebuild.net/)** - Tasks from `*.cake` scripts via `Task("...")`
 
 ### DevOps & Containers

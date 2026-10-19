@@ -27,12 +27,12 @@ variables, dependencies, namespacing, includes, and remote Taskfiles.
 
 Task discovery uses the CLI's built-in JSON output mode rather than static YAML
 parsing. This correctly resolves included Taskfiles, namespaced tasks, and template
-variables that a static parser cannot evaluate. For each directory in the workspace
-that contains a Taskfile, the extension runs:
+variables that a static parser cannot evaluate. For each discovered Taskfile in
+the workspace, the extension runs:
 
 ```shell
-task --list-all --no-status --json
-```yaml
+task --taskfile <discoveryTaskfile> --list-all --no-status --json
+```
 
 The JSON response contains the resolved task name, description, and source location
 (file path and line number) for every available task. Each task is surfaced as a
@@ -61,12 +61,74 @@ The extension scans for any of the following Taskfile filenames anywhere in the 
 | `**/taskfile.dist.yaml` | Lowercase distribution YAML variant |
 
 When multiple Taskfile variants exist in the same directory (e.g. both
-`Taskfile.yml` and `Taskfile.dist.yml`), the directory is scanned only once by
-the CLI, which automatically applies its own resolution precedence.
+`Taskfile.yml` and `Taskfile.dist.yml`), each distinct Taskfile path is discovered
+using an explicit `--taskfile` argument.
 
 {: .note }
 > Global Taskfiles (`$HOME/Taskfile.yml`) are outside the workspace and are not
 > discovered by default.
+
+### Remote Includes and Discovery Errors
+
+If Task cannot list tasks (for example, an untrusted remote include, a Git clone
+failure, or a missing executable), Workspace Tasks adds an error to the
+**Problems** panel on the Taskfile that failed to load. The diagnostic includes
+the CLI error details; the Output > Workspace Tasks channel retains the log.
+Errors clear after successful discovery or when the Taskfile is removed or
+discovery is disabled.
+
+Task's remote trust policy is separate from VS Code Workspace Trust. The extension
+does not automatically trust remote hosts or bypass Task's trust checks. Only add
+hosts whose remote Taskfiles you trust to your project's `.taskrc.yml` or `.taskrc.yaml`:
+
+```yaml
+remote:
+  trusted-hosts:
+    - github.com
+  cache-dir: .task
+temp-dir: .task
+```
+
+`trusted-hosts` allows Task to load remote includes from the listed hosts. The
+cache and temporary directory settings can also help with Git clone errors in
+Task's default cache location. Consider excluding `.task/` from version control.
+This configuration applies to HTTPS raw files, Git over HTTPS, and Git over SSH;
+repository paths, refs, and SSH credentials must still be valid.
+
+For example, include one remote Taskfile using one of these forms:
+
+```yaml
+includes:
+  codeql:
+    taskfile: 'git@github.com:camalot/actions.git//smells/codeql/TaskFile.yml?ref=main'
+    # Or Git over HTTPS:
+    # taskfile: 'https://github.com/camalot/actions.git//smells/codeql/TaskFile.yml?ref=main'
+    # Or a raw HTTPS file:
+    # taskfile: 'https://raw.githubusercontent.com/camalot/actions/main/smells/codeql/TaskFile.yml'
+    flatten: true
+```
+
+Creating, editing, or deleting `.taskrc.yml` or `.taskrc.yaml` in a discovered Taskfile's directory,
+a workspace root, or your home directory automatically triggers a debounced task
+reload, including when the previous discovery failed. Global Taskfiles use the
+same error reporting and configuration watching when global discovery is enabled.
+CLI discovery only runs in trusted VS Code workspaces.
+
+Tasks from remote includes may appear under **External**. Their source URIs retain
+the original `ssh://` or `https://` scheme, but execution uses the local Taskfile
+that included them and the task's fully qualified name. For example:
+
+```shell
+task --taskfile /workspace/sample/sample-workspace-tasks/task/Taskfile.yml codeql:action:.
+```
+
+This also applies to aliases and local includes, preserving the including
+Taskfile's namespaces, variables, and include settings. The working directory is
+the directory of the local discovery Taskfile, not the remote URI.
+
+For remote tasks, **Open File** opens the including local Taskfile instead.
+Task's CLI does not expose a command to report the cached source file path; the
+extension does not guess cache locations or attempt to open remote URIs as local files.
 
 ### Global Taskfile
 
@@ -111,16 +173,16 @@ selected Taskfile is used consistently regardless of current working directory.
 When you run a Task task, the extension invokes:
 
 ```shell
-task <taskName> [args]
+task --taskfile <discoveryTaskfile> <taskName> [args]
 ```
 
-The working directory is set to the directory containing the Taskfile. This ensures
+The working directory is set to the directory containing the discovery Taskfile. This ensures
 `task` resolves the correct Taskfile, local includes, and relative paths.
 
 **Run with arguments example:**
 
 ```shell
-task deploy --force
+task --taskfile /workspace/project/Taskfile.yml deploy --force
 ```
 
 ---

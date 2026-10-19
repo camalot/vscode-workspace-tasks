@@ -125,4 +125,52 @@ suite('BaseTaskProvider Test Suite', () => {
 
     assert.deepStrictEqual(provider.exposedGetFilePatterns(), ['**/.workspace-tasks.json']);
   });
+
+  test('discovery respects opposite folder and workspace npm/pnpm settings', async () => {
+    const folder = vscode.workspace.workspaceFolders![0];
+    const folderFile = vscode.Uri.joinPath(folder.uri, 'folder-package.json');
+    const otherFile = vscode.Uri.file('/other-project/package.json');
+    const workspaceTypes: Record<string, boolean> = { npm: true, pnpm: false };
+    const folderTypes: Record<string, boolean> = { npm: false, pnpm: true };
+    vscode.workspace.getConfiguration = (_section, resource) => {
+      const values = resource === folder.uri || resource === folderFile ? folderTypes : workspaceTypes;
+      return {
+        get: <T>(key: string, fallback?: T): T =>
+          (key === 'enabledTaskTypes' ? values : fallback) as T,
+      } as vscode.WorkspaceConfiguration;
+    };
+    const filesService = TaskFilesService.getInstance();
+    const originalFindFiles = filesService.findFiles;
+    filesService.findFiles = async () => [folderFile, otherFile];
+
+    try {
+      const npm = new StubProvider('npm', '**/package.json');
+      const pnpm = new StubProvider('pnpm', '**/package.json');
+      assert.strictEqual(npm.enabled, false);
+      assert.strictEqual(pnpm.enabled, true);
+      assert.deepStrictEqual(await npm.exposedGetMatchingFiles(), [otherFile]);
+      assert.deepStrictEqual(await pnpm.exposedGetMatchingFiles(), [folderFile]);
+    } finally {
+      filesService.findFiles = originalFindFiles;
+    }
+  });
+
+  test('enabled falls back to workspace settings when no folders are open', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(vscode.workspace, 'workspaceFolders')!;
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', { configurable: true, value: undefined });
+    vscode.workspace.getConfiguration = (_section, resource) => {
+      assert.strictEqual(resource, undefined);
+      return {
+        get: <T>(key: string, fallback?: T): T =>
+          (key === 'enabledTaskTypes' ? { npm: false, pnpm: true } : fallback) as T,
+      } as vscode.WorkspaceConfiguration;
+    };
+
+    try {
+      assert.strictEqual(new StubProvider('npm').enabled, false);
+      assert.strictEqual(new StubProvider('pnpm').enabled, true);
+    } finally {
+      Object.defineProperty(vscode.workspace, 'workspaceFolders', descriptor);
+    }
+  });
 });

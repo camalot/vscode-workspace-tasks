@@ -68,6 +68,27 @@ suite('TaskConfigService Test Suite', () => {
     assert.strictEqual(TaskConfigService.getInstance().isTaskTypeEnabled('npm'), false);
   });
 
+  test('folder settings override opposite workspace task type settings', () => {
+    const folderUri = vscode.Uri.file('/folder');
+    const packageUri = vscode.Uri.joinPath(folderUri, 'package.json');
+    const workspaceTypes = { npm: true, pnpm: false };
+    const folderTypes = { npm: false, pnpm: true };
+    vscode.workspace.getConfiguration = (section, resource) => {
+      assert.strictEqual(section, 'workspaceTasks');
+      const values = resource === packageUri ? folderTypes : workspaceTypes;
+      return {
+        get: <T>(key: string, fallback?: T): T =>
+          (key === 'enabledTaskTypes' ? values : fallback) as T,
+      } as vscode.WorkspaceConfiguration;
+    };
+
+    const service = TaskConfigService.getInstance();
+    assert.strictEqual(service.isTaskTypeEnabled('npm'), true);
+    assert.strictEqual(service.isTaskTypeEnabled('pnpm'), false);
+    assert.strictEqual(service.isTaskTypeEnabled('npm', packageUri), false);
+    assert.strictEqual(service.isTaskTypeEnabled('pnpm', packageUri), true);
+  });
+
   // ── Steps 1 & 2 — enabledTaskTypePatterns whitelist ───────────────────────
 
   test('enabledPatterns: exact match enables type', () => {

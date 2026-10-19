@@ -636,7 +636,7 @@
 
 - Resolve shellcheck SC2129 [#237](https://github.com/camalot/vscode-workspace-tasks/issues/237)  -[@camalot](https://github.com/camalot)
 
-- Release check set verifiy branch to develop -[@camalot](https://github.com/camalot)
+- Release check set verify branch to develop -[@camalot](https://github.com/camalot)
 
 - Adjust checks in release -[@camalot](https://github.com/camalot)
 
@@ -1139,7 +1139,7 @@
 
 - Documented how the shebang processing works for interpreters
 
-- Update documentation around the performance imrpovements
+- Update documentation around the performance improvements
 
 - Correct workspace-tasks-loading fix 5 documentation
 
@@ -1187,7 +1187,7 @@
 
 - Vscode compound tasks not updating state
 
-- Correct possition of run compound task action bar button
+- Correct position of run compound task action bar button
 
 - Ensure queue setting is deprecated and backwards compatible with the new compoundTasks expanded setting #149
 
@@ -1367,7 +1367,7 @@
 
 - * chore: docs pages styling changes by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- * chore: implemented a devcontainer for being able to haave all necessary tools for development by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+- * chore: implemented a devcontainer for being able to have all necessary tools for development by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
 - * chore: lint errors fixed by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
@@ -1389,7 +1389,7 @@
 
 - * chore: updates to dev container by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
-- * chore: update documenation layout by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
+- * chore: update documentation layout by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
 - * chore: update to devcontainer built-in tools by @camalot in [#127](https://github.com/camalot/vscode-workspace-tasks/pull/127)
 
@@ -1649,7 +1649,7 @@
 
 - * fix: The webview enables scripts but the HTML is injected without a Content Security Policy (CSP) / nonce setup.  #84 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
 
-- * feat: enable task history view presistence by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
+- * feat: enable task history view persistence by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
 
 - * feat(tasks): Support for Bun and Bun for NPM Script Runner #77 by @camalot in [#90](https://github.com/camalot/vscode-workspace-tasks/pull/90)
 
@@ -1772,7 +1772,7 @@
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Update svg -> png to not overwite existing png by default by @camalot
+- *(repo)* Update svg -> png to not overwrite existing png by default by @camalot
 
 
 
@@ -1936,7 +1936,7 @@
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(repo)* Added configuration documenation by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
+- *(repo)* Added configuration documentation by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
 - *(repo)* Bump version by @camalot in [#39](https://github.com/camalot/vscode-workspace-tasks/pull/39)
 
@@ -2159,7 +2159,7 @@
 
 - Removed the context menu for now by @camalot
 
-- Added some scafolding for settings by @camalot
+- Added some scaffolding for settings by @camalot
 
 - More task providers by @camalot
 

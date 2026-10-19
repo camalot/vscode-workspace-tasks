@@ -4,9 +4,13 @@
 version: '3'
 
 vars: {}
-  # GREETING: Hello, world!
 
 tasks:
+  typos:
+    desc: check for typos
+    cmds:
+      - typos --config .typos.toml
+    silent: true
   test:
     desc: run tests
     cmds:

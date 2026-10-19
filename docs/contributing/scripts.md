@@ -71,6 +71,15 @@ The project targets **90% code coverage** for existing files. New code should ac
 | `check:types` | `npm run check:types` | Runs `tsc --noEmit` to verify TypeScript types without emitting output. |
 | `check:format` | `npm run check:format` | Runs Prettier in check mode; exits with an error if any files are not formatted. |
 
+CI uses a separate Super-Linter configuration in `.github/linters/eslint.config.mjs`.
+Its JSON, JSONC, and JSON5 rules use `eslint-plugin-jsonc`'s native `flat/recommended-with-*`
+presets. Do not pass these presets through `FlatCompat`: newer plugin releases export flat
+configs, which cannot be validated as legacy eslintrc configs.
+The TypeScript configuration also extends `eslint-plugin-n`'s native `flat/recommended`
+preset directly rather than resolving `plugin:n/recommended` through `FlatCompat`.
+With the Super-Linter dependencies installed, run its configuration regression tests with
+`node --test .github/linters/eslint.config.test.mjs`.
+
 ---
 
 ## Packaging
