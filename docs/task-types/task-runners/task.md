@@ -90,9 +90,12 @@ temp-dir: .task
 ```
 
 `trusted-hosts` allows Task to load remote includes from the listed hosts. The
-cache and temporary directory settings can also help with Git clone errors in
-Task's default cache location. Consider excluding `.task/` from version control.
-This configuration applies to HTTPS raw files, Git over HTTPS, and Git over SSH;
+cache and temporary directory settings control Task's downloaded-file cache and
+task metadata. Git includes (HTTPS or SSH) are always cloned into Task's
+user-level cache (for example `%LOCALAPPDATA%\task\task-git-repos` on Windows),
+which `remote.cache-dir` does not relocate; a clone error mentioning that location
+does not by itself mean `.taskrc.yml` was ignored. Consider excluding `.task/` from version control.
+`trusted-hosts` applies to HTTPS raw files, Git over HTTPS, and Git over SSH;
 repository paths, refs, and SSH credentials must still be valid.
 
 For example, include one remote Taskfile using one of these forms:
@@ -113,6 +116,14 @@ a workspace root, or your home directory automatically triggers a debounced task
 reload, including when the previous discovery failed. Global Taskfiles use the
 same error reporting and configuration watching when global discovery is enabled.
 CLI discovery only runs in trusted VS Code workspaces.
+
+Taskfile discovery processes are serialized across workspace and global discovery,
+including overlapping save-triggered and manual refreshes. Saving a Taskfile can
+trigger more than one refresh; running them one at a time prevents concurrent
+Task processes from cloning the same Git include into Task's shared user-level
+clone cache. Every discovery runs in the discovered Taskfile's directory so
+Task can load its local `.taskrc.yml` or `.taskrc.yaml`; the extension does not
+override trust or cache settings.
 
 Tasks from remote includes may appear under **External**. Their source URIs retain
 the original `ssh://` or `https://` scheme, but execution uses the local Taskfile

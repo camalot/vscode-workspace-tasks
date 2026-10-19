@@ -315,6 +315,98 @@ suite('TaskfileTaskProvider Test Suite', () => {
     assert.deepStrictEqual(tasks, []);
   });
 
+  suite('serialized discovery', () => {
+    let directory: string;
+    let taskfile: vscode.Uri;
+    let configuration: string;
+    let script: string;
+
+    setup(() => {
+      directory = fs.mkdtempSync(path.join(os.tmpdir(), 'workspace-tasks-discovery-'));
+      taskfile = vscode.Uri.file(path.join(directory, 'Taskfile.yml'));
+      configuration = 'remote:\n  trusted-hosts: [github.com]\n  cache-dir: .task\ntemp-dir: .task\n';
+      fs.writeFileSync(taskfile.fsPath, 'version: "3"\ntasks: {}\n');
+      fs.writeFileSync(path.join(directory, '.taskrc.yml'), configuration);
+      TaskFilesService.getInstance().findFiles = async () => [taskfile];
+      script = `
+        const fs = require('fs');
+        const path = require('path');
+        const lock = ${JSON.stringify(path.join(directory, 'discovery.lock'))};
+        fs.closeSync(fs.openSync(lock, 'wx'));
+        setTimeout(() => {
+          const taskfile = process.argv[process.argv.indexOf('--taskfile') + 1];
+          const config = fs.readFileSync('.taskrc.yml', 'utf8');
+          fs.unlinkSync(lock);
+          process.stdout.write(JSON.stringify({
+            tasks: [{ name: 'build', desc: process.cwd() + '\\n' + config }],
+            location: taskfile,
+          }));
+        }, 200);
+      `;
+      provider.getCommand = () => ({ command: 'node', args: ['-e', script, '--'], cwd: directory });
+    });
+
+    teardown(() => {
+      fs.rmSync(directory, { recursive: true, force: true });
+    });
+
+    test('serializes overlapping refreshes and distinct Taskfiles across provider instances', async () => {
+      const otherDirectory = path.join(directory, 'other');
+      fs.mkdirSync(otherDirectory);
+      const otherTaskfile = vscode.Uri.file(path.join(otherDirectory, 'Taskfile.yml'));
+      fs.writeFileSync(otherTaskfile.fsPath, 'version: "3"\ntasks: {}\n');
+      fs.writeFileSync(path.join(otherDirectory, '.taskrc.yml'), configuration);
+      TaskFilesService.getInstance().findFiles = async () => [taskfile, otherTaskfile];
+      const otherProvider = new TaskfileTaskProvider();
+      otherProvider.getCommand = provider.getCommand;
+      try {
+        const results = await Promise.all([provider.getTasks(), provider.getTasks(), otherProvider.getTasks()]);
+        for (const tasks of results) {
+          assert.strictEqual(tasks.length, 2, 'no CLI process should collide with another discovery');
+          for (const [index, expectedDirectory] of [directory, otherDirectory].entries()) {
+            const [cwd, ...configLines] = String(tasks[index].tooltip).split('\n');
+            assert.strictEqual(path.relative(expectedDirectory, cwd), '');
+            assert.strictEqual(configLines.join('\n'), configuration);
+          }
+        }
+        for (const uri of [taskfile, otherTaskfile]) {
+          assert.ok(!vscode.languages.getDiagnostics(uri)
+            .some((diagnostic) => diagnostic.source === 'Workspace Tasks (Taskfile)'));
+        }
+      } finally {
+        otherProvider.dispose();
+      }
+    });
+
+    test('releases queued discovery after an unexpected failure', async () => {
+      const getCommand = provider.getCommand;
+      const error = new Error('failed to resolve Task executable');
+      provider.getCommand = () => { throw error; };
+      await assert.rejects(provider.getTasks(), error);
+      provider.getCommand = getCommand;
+      assert.strictEqual((await provider.getTasks()).length, 1);
+    });
+
+    test('does not spawn queued processes after workspace trust is revoked', async () => {
+      const first = provider.getTasks();
+      const lock = path.join(directory, 'discovery.lock');
+      const deadline = Date.now() + 5000;
+      while (!fs.existsSync(lock)) {
+        assert.ok(Date.now() < deadline, 'first discovery should start');
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      const queued = provider.getTasks();
+      Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => false, configurable: true });
+      try {
+        const results = await Promise.all([first, queued]);
+        assert.strictEqual(results[0].length, 1);
+        assert.deepStrictEqual(results[1], []);
+      } finally {
+        Object.defineProperty(vscode.workspace, 'isTrusted', { get: () => true, configurable: true });
+      }
+    });
+  });
+
   suite('discovery diagnostics', () => {
     const taskfile = vscode.Uri.file(path.join(FIXTURE_DIR, 'Taskfile.yml'));
     const untrustedMessage = 'task: Taskfile "https://github.com/example/tasks.yml" not trusted by user';
