@@ -293,7 +293,7 @@ export class TaskCacheService {
   }
 
   public hasTasksForFile(uri: vscode.Uri): boolean {
-    return this.fileTaskMap.has(uri.toString());
+    return this.getTasksForFile(uri).length > 0;
   }
 
   public getTasksForFile(uri: vscode.Uri): TaskItem[] {

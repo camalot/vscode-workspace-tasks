@@ -36,6 +36,9 @@ super-linter-output/
 
 .pnpm-store/
 
+.codeql/
+.task/
+
 changelog.yml
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode,intellij,node

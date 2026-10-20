@@ -1,0 +1,230 @@
+---
+version: '3'
+
+dotenv:
+  - .secrets
+  - .env
+
+vars:
+  GITHUB_TOKEN_NAME: GITHUB_TOKEN
+  CAMALOT_ACTIONS_VERSION: v1
+includes:
+  codeql:
+    taskfile: 'https://raw.githubusercontent.com/camalot/actions/refs/tags/{{.CAMALOT_ACTIONS_VERSION}}/smells/codeql/Taskfile.yml'
+    flatten: true
+    internal: true
+
+tasks:
+
+  require-xget:
+    silent: true
+    internal: true
+    desc: Ensure xget is installed in the system PATH
+    cmds:
+      - command -v xget >/dev/null 2>&1 || { echo "xget is required but not installed"; exit 1; }
+  
+  tools:
+    internal: true
+    deps:
+      - require-xget
+    desc: Install the CI-only Go tools (golangci-lint, govulncheck) into GOBIN
+    cmds:
+      - task: tools:typos
+      - task: tools:golangci
+      - task: tools:govulncheck
+      - task: tools:pandoc
+
+  tools:golangci:
+    internal: true
+    deps:
+      - require-xget
+    desc: Install golangci-lint
+    if: '! command -v golangci-lint >/dev/null 2>&1'
+    status:
+      - '! command -v golangci-lint >/dev/null 2>&1'
+    cmds:
+      - go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+
+  tools:govulncheck:
+    internal: true
+    deps:
+      - require-xget
+    desc: Install govulncheck
+    if: '! command -v govulncheck >/dev/null 2>&1'
+    status:
+      - '! command -v govulncheck >/dev/null 2>&1'
+    cmds:
+      - go install golang.org/x/vuln/cmd/govulncheck@latest
+
+  tools:typos:
+    internal: true
+    deps:
+      - require-xget
+    desc: Install typos-action
+    if: '! command -v typos >/dev/null 2>&1'
+    status:
+      - '! command -v typos >/dev/null 2>&1'
+    cmds:
+      - xget install crate-ci/typos --to ~/.local/bin/ --non-interactive
+
+  tools:pandoc:
+    internal: true
+    deps:
+      - require-xget
+    desc: Install pandoc
+    if: '! command -v pandoc >/dev/null 2>&1'
+    status:
+      - '! command -v pandoc >/dev/null 2>&1'
+    cmds:
+      - xget install jgm/pandoc --to ~/.local/bin/ --non-interactive --ignore .msi
+
+  sha256:
+    desc: Regenerate install/*.sha256 for the install scripts
+    cmds:
+      - chmod +x ./scripts/generate-install-sha256.sh
+      - chmod +x ./install/xget.sh
+      - chmod +x ./install/xget.ps1
+      - bash ./scripts/generate-install-sha256.sh
+
+  verify:sha256:
+    internal: true
+    desc: 'CI job "verify": check install/*.sha256 matches the scripts'
+    cmds:
+      - bash ./scripts/verify-install-sha256.sh
+
+  typos:check:
+    internal: true
+    desc: 'check for typos'
+    cmds:
+      - typos
+
+  tidy:
+    desc: go mod tidy
+    cmds:
+      - go mod tidy
+
+  tidy:check:
+    internal: true
+    desc: 'fail if go mod tidy would change any module''s go.mod/go.sum'
+    cmds:
+      - bash ./scripts/check-tidy.sh
+
+  build-snapshot:
+    internal: true
+    desc: 'goreleaser snapshot of every target'
+    env:
+      # cgo cross-compilation for android needs the NDK, which is only present in CI.
+      XGET_SKIP_ANDROID: '{{.SKIP_ANDROID | default "true"}}'
+    cmds:
+      - goreleaser build --snapshot --clean
+
+  ci:
+    deps:
+      - tools
+    desc: Run every check the ci.yml workflow runs, in the same order
+    cmds:
+      - task: verify:sha256
+      - task: typos:check
+      - task: tidy:check
+      - task: lint
+      - task: vet
+      - task: fmt:check
+      - task: vuln
+      - task: codeql
+      - task: test
+      - task: build-snapshot
+
+  build:
+    deps:
+      - tools
+    desc: Build the project (local dev loop - full CI parity is 'task ci')
+    cmds:
+      - task: sha256
+      - task: verify:sha256
+      - task: typos:check
+      - task: tidy
+      - task: tidy:check
+      - task: lint
+      - task: vet
+      - task: fmt:check
+      - task: vuln
+      - task: codeql
+      - task: test
+      - task: manpage:clean
+      - task: build-snapshot
+
+  manpage:clean:
+    internal: true
+    desc: Clean generated manpage
+    cmds:
+      - rm -f dist/xget.1
+      - task: manpage
+
+  manpage:
+    deps:
+      - tools
+    desc: Generate xget.1
+    status:
+      - test -f dist/xget.1
+    cmds:
+      - cmd: pandoc docs/_man/xget.md -s -t man -o dist/xget.1
+
+  lint:
+    desc: Run the same golangci-lint version as CI
+    cmds:
+      - go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 run ./...
+
+  vet:
+    internal: true
+    desc: 'go vet'
+    cmds:
+      - go vet ./...
+
+  vuln:
+    internal: true
+    desc: 'govulncheck'
+    cmds:
+      - govulncheck ./...
+
+  codeql:
+    cmds:
+      - task: codeql:actions:.
+      - task: codeql:go:.
+
+  fmt:check:
+    silent: true
+    internal: true
+    desc: Fail if any file is not gofmt-clean
+    cmds:
+      # gofmt -l exits 0 even when it lists files, so turn any output into a failure.
+      - |
+        unformatted="$(gofmt -l .)"
+        if [ -n "$unformatted" ]; then
+          echo "not gofmt-clean:"
+          echo "$unformatted"
+          exit 1
+        fi
+
+  test:
+    desc: 'build + full test suite with coverage'
+    cmds:
+      - go build ./...
+      - go test ./... -coverprofile=coverage.out
+  release:dry-run:
+    desc: Build the release and render the winget/scoop/homebrew manifests into dist/ without publishing anything
+    deps:
+      - manpage
+    env:
+      XGET_DRY_RUN: "true"
+      # cgo cross-compilation for android needs the NDK, which is only present in CI.
+      XGET_SKIP_ANDROID: '{{.SKIP_ANDROID | default "true"}}'
+    cmds:
+      - goreleaser release --clean --skip=validate,announce,sign,sbom
+      - echo "--- dist/scoop/xget.json ---"
+      - cat dist/scoop/xget.json
+      - echo "--- dist/homebrew/Casks/xget.rb ---"
+      - cat dist/homebrew/Casks/xget.rb
+
+  ironstate:
+    cmds:
+      - .\dist\xget_windows_amd64_v1\xget.exe tacocontent/ironstate --to=./bin --verify-sha256 --ignore-asset=.sbom.json
