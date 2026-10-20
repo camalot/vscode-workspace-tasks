@@ -1173,6 +1173,18 @@ suite('TaskCacheService Test Suite', () => {
 
             assert.strictEqual(service.hasTasksForFile(uri), true);
         });
+
+        test('matches getTasksForFile when Taskfile filename casing differs', async () => {
+            const source = vscode.Uri.file('/workspace/sample/simple/TaskFile.yml');
+            const document = vscode.Uri.file('/workspace/sample/simple/Taskfile.yml');
+            const task = createTaskItem('build', 'taskfile', source);
+            mockTasks.push(task);
+            await service.refreshProvider('mockType');
+
+            assert.deepStrictEqual(service.getTasksForFile(document), [task]);
+            assert.strictEqual(service.hasTasksForFile(document), true);
+            assert.strictEqual(service.hasTasksForFile(vscode.Uri.file('/workspace/Taskfile.yml')), false);
+        });
     });
 
 });

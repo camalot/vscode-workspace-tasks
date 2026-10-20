@@ -221,6 +221,38 @@ suite('TaskCodeLensProvider Test Suite', () => {
   // T05: No visible tasks and no hidden tasks → []
   // ---------------------------------------------------------------------------
 
+  test('uses cached tasks when the editor Taskfile URI differs only in filename casing', async () => {
+    const stubCache = TaskCacheService.getInstance();
+    Reflect.set(TaskCacheService, 'instance', undefined);
+    const cache = TaskCacheService.getInstance();
+    const task = makeTask({
+      taskFileUri: vscode.Uri.file('/workspace/sample/simple/TaskFile.yml'),
+      startLine: 18,
+    });
+    cache.registerProvider({
+      type: 'taskfile',
+      getTasks: async () => [task],
+      getFilePatterns: () => [],
+    });
+
+    try {
+      await cache.refreshProvider('taskfile');
+      const document = makeDocument(vscode.Uri.file('/workspace/sample/simple/Taskfile.yml'));
+      assert.deepStrictEqual(cache.getTasksForFile(document.uri), [task]);
+
+      const lenses = provider.provideCodeLenses(document, makeToken());
+      assert.strictEqual(lenses.length, 4);
+      assert.ok(lenses.every((lens) => lens.range.start.line === 18));
+      assert.ok(lenses.every((lens) => lens.command?.arguments?.[0] === task));
+      assert.deepStrictEqual(
+        provider.provideCodeLenses(makeDocument(vscode.Uri.file('/workspace/Taskfile.yml')), makeToken()),
+        [],
+      );
+    } finally {
+      Reflect.set(TaskCacheService, 'instance', stubCache);
+    }
+  });
+
   test('T05 - returns [] when no tasks pass filter', () => {
     stubGetTasksForFile = () => [makeTask()];
     stubIsFilteredOrHasFilteredParent = () => true;

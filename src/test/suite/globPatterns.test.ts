@@ -333,6 +333,25 @@ suite('Glob Pattern Constants Test Suite', () => {
     });
   }
 
+  test('GLOB_TASKFILE supports all filename variants at the root and in nested directories', () => {
+    const matches: string[] = [];
+    for (const directory of ['', 'sample/simple/']) {
+      for (const name of ['Taskfile', 'TaskFile', 'taskfile', 'taskFile']) {
+        for (const suffix of ['', '.dist', '.local']) {
+          for (const extension of ['yml', 'yaml']) {
+            matches.push(`${directory}${name}${suffix}.${extension}`);
+          }
+        }
+      }
+    }
+    assertPattern({
+      name: 'GLOB_TASKFILE',
+      pattern: constants.GLOB_TASKFILE,
+      matches,
+      nonMatches: ['sample/simple/Taskfile.yml.backup', 'sample/simple/Taskfile.toml'],
+    });
+  });
+
   test('GLOB_GLOBAL_EXCLUDE filters only expected paths', () => {
     const excludes = constants.GLOB_GLOBAL_EXCLUDE.split(',').map((s: string) => s.trim());
 

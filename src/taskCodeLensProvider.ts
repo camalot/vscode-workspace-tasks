@@ -76,7 +76,7 @@ export class TaskCodeLensProvider implements vscode.CodeLensProvider, vscode.Dis
     const config = vscode.workspace.getConfiguration('workspaceTasks');
     if (!config.get<boolean>('codeLens.enabled', true)) { return []; }
 
-    // Fast path: O(1) Map check — avoids heavier work for non-task files
+    // Use the same URI matching as the task lookup, including filename casing fallback.
     if (!TaskCacheService.getInstance().hasTasksForFile(document.uri)) { return []; }
 
     // Honour cancellation after the cheap lookup

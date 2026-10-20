@@ -42,6 +42,11 @@ CodeLens actions appear in any file that Workspace Tasks can discover tasks from
 - `*.sh` (shell scripts)
 - …and all other supported task provider types
 
+Taskfile CodeLens actions work at the workspace root and in nested folders such as `sample/simple/`.
+Supported filenames match `**/[Tt]ask[Ff]ile{.dist,.*,}.{yml,yaml}`, including `Taskfile.yml`,
+`TaskFile.yml`, `taskfile.yaml`, `Taskfile.dist.yml`, and `Taskfile.local.yaml`.
+The editor's filename casing does not prevent actions from appearing for tasks already found by the cache.
+
 ---
 
 ## Available Actions
