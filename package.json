@@ -151,7 +151,7 @@
     "webpack-cli": "^7.2.3"
   },
   "dependencies": {
-    "dotenv": "^18.0.5",
+    "dotenv": "^18.0.9",
     "fast-xml-parser": "^5.11.2",
     "ignore": "^7.0.12",
     "micromatch": "^4.0.8",
